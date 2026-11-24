@@ -9,6 +9,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../scrollToSpy'
 import App from '../../App'
 import { createAppStore } from '../../app/store'
+import '../../presentation/features/reading/view/ReaderPage'
+import '../../presentation/features/reading/view/WorkPage'
+import '../../presentation/features/studio/view/StudioPage'
 
 beforeEach(() => {
   vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -27,7 +30,7 @@ const body = () => screen.getByLabelText('원고 본문')
 describe('집필실 (U13·U14·U16·U17·U22)', () => {
   it('남의 소설은 쓸 수 없고 포크를 권한다', async () => {
     renderAt('/studio/guunmong')
-    await screen.findByRole('heading', { name: '내 소설만 쓸 수 있어요' })
+    await screen.findByRole('heading', { name: '내 소설만 쓸 수 있어요' }, { timeout: 4000 })
     screen.getByRole('link', { name: '✎ 포크하기' })
   })
 

@@ -14,7 +14,7 @@ Python `>=3.11,<3.15`와 uv를 사용합니다.
 ```bash
 uv sync --locked --extra dev
 uv run --locked uvicorn app.main:create_app --factory --reload --port 8000
-# 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다
+# 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다(Compose 동시 작업 수는 AI_PREPROCESSING_CONCURRENCY, 기본 3)
 uv run --locked celery -A app.preprocessing.worker worker -Q preprocessing --concurrency=1 --loglevel=INFO
 # 작업 실행(회귀 평가·운영 정기 작업, Celery 큐 jobs)은 AI_CELERY_BROKER_URL·OPERATIONS_SERVICE_BASE_URL·INTERNAL_TOKEN을 설정하고 워커를 따로 띄운다(Compose는 AI_JOBS_CONCURRENCY, 기본 4)
 uv run --locked celery -A app.jobs.worker worker -Q jobs --concurrency=4 --loglevel=INFO
@@ -97,7 +97,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 ## 작업 실행 큐 (운영 정기 작업·회귀 평가, 계약 §4)
 
-`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)·프롬프트 자동 개선(`optimization.run`, 수십 분 걸려 `acks_late=False`)과 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
+`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)·프롬프트 자동 개선(`optimization.run`, 수십 분 걸려 `acks_late=False`)과 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`)와 작업 큐를 분리합니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
 
 | 경로 | 내용 |
 |---|---|

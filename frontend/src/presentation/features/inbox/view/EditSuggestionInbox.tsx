@@ -22,6 +22,7 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
   useEffect(() => { if (mine) note.current?.focus() }, [mine])
   const undecided = s.status === 'pending' || s.status === 'held'
   const retryable = s.status === 'approved' && s.applyResult === 'failed'
+  const studioHref = `/studio/${s.workId}?ep=${s.episodeNumber}`
   const locked = vm.pending !== null
   // 서버에 저장하지 않은 편집안이 있으면 승인돼도 그 문장이 반영되지 않으므로, 먼저 저장하게 승인을 잠근다(앞뒤 공백은 저장 때 잘리므로 무시).
   const unsaved = edited.trim() !== shown
@@ -53,15 +54,15 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
         </>
       )}
       {s.status === 'approved' && s.applyResult === 'applied' && (
-        <div className="rowend">{s.published ? <Go to={`/read/${s.workId}/${s.episodeNumber}`} className="btn sm">발행본 보기</Go> : <><span>발행은 집필실에서 할 수 있어요.</span><Go to={`/studio/${s.workId}?ep=${s.episodeNumber}`} className="btn sm">집필실 열기</Go></>}</div>
+        <div className="rowend">{s.published ? <Go to={`/read/${s.workId}/${s.episodeNumber}`} className="btn sm">발행본 보기</Go> : <><span>발행은 집필실에서 할 수 있어요.</span><Go to={studioHref} className="btn sm">집필실 열기</Go></>}</div>
       )}
       {s.handlerName && <p className="small muted">처리자 {s.handlerName} · {s.handledAt ? new Date(s.handledAt).toLocaleString('ko-KR') : '처리 시각 기록 없음'}</p>}
       {retryable && (
         <>
-          <p role="note" className="note">반영 실패: {s.applyFailure}</p>
+          <p role="note" className="note">반영 실패: {s.applyFailure} 초안을 수정했다면 저장 후 다시 시도해 주세요.</p>
           <div className="rowend">
-            <Go to={`/studio/${s.workId}`} className="btn sm">집필실에서 직접 고치기</Go>
-            <button type="button" className="btn pri" disabled={locked} onClick={() => void vm.approve(s)}>다시 반영 시도</button>
+            <button type="button" className="btn" disabled={locked} onClick={() => void vm.approve(s)}>다시 반영 시도</button>
+            <Go to={studioHref} className="btn pri">{s.episodeNumber}화 집필실 열기</Go>
           </div>
         </>
       )}
@@ -69,7 +70,7 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
       {mine && (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <p ref={note} role={mine.ok ? 'status' : 'alert'} tabIndex={-1}>{mine.msg}</p>
-          {mine.msg === BASE_CHANGED_MESSAGE && <Go to={`/studio/${s.workId}`} className="btn sm">집필실 열기</Go>}
+          {mine.msg === BASE_CHANGED_MESSAGE && !retryable && <Go to={studioHref} className="btn sm">집필실 열기</Go>}
         </div>
       )}
     </article>
