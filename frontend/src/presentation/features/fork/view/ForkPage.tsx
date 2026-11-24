@@ -49,6 +49,12 @@ function ForkForm({id}:{id:string}) {
             ))}
           </div>
           {vm.episodes.some(({ ok }) => !ok) && <p id={DENIED_NOTE} className="small muted">작가가 포크를 허용하지 않은 회차는 고를 수 없어요.</p>}
+          <div className="note fork-guidance">
+            <p><strong>스포일러 주의.</strong> 선택한 {vm.at}화까지의 원작 내용이 포크에 포함돼요.</p>
+            {w.allowForkPublication !== undefined && (
+              <p><strong>포크 작품 공개.</strong> 처음에는 비공개로 만들어져요. {w.allowForkPublication ? '현재 원작 정책상 이후 공개할 수 있어요.' : '현재 원작 정책상 비공개로만 집필할 수 있어요.'}</p>
+            )}
+          </div>
           <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
           {/* 항상 마운트해 둔 안내 영역이다. 회차를 바꿔 설정을 다 읽으면 문구가 바뀌어 스크린 리더가 전환 완료를 알린다(처음 열 때는 읽지 않는다). */}
           <p className="sr-only" aria-live="polite">{vm.reading ? '선택한 회차의 공개 설정을 불러오고 있어요…' : `${vm.at}화 끝에서 포크해요. 공개된 세계관 규칙 ${vm.ruleCount}개, 인물 ${vm.castCount}명을 가져가요.`}</p>

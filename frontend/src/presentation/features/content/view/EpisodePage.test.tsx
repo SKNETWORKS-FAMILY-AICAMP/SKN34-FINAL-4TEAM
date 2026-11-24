@@ -256,11 +256,11 @@ it('previews the chosen cover image in the cover slot of the creation screen', a
   expect(screen.getByText('선택한 파일: cover.png')).toBeTruthy()
 })
 
-it('hides the 내 댓글·제보 link on the creation screen', async () => {
+it('hides the 내 제보·수정 제안 link on the creation screen', async () => {
   stubCover()
   openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
   await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull()
 })
 
 it('keeps 작품 만들기 disabled when my works could not be loaded', async () => {
@@ -390,7 +390,7 @@ it('puts the back link to the library in the sidebar just below the logo and dra
   expect(document.querySelector('.ep-top')).toBeNull() // 두 곳에 동시에 두지 않는다
 })
 
-it('puts the work menu, then the account row in the sidebar — no tool group; 내 댓글·제보 is a menu tab (button) and the studio is reached from the episode list only', async () => {
+it('puts the work menu, then the account row in the sidebar — no tool group; 내 제보·수정 제안 is a menu tab (button) and the studio is reached from the episode list only', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const side = within(document.querySelector<HTMLElement>('.ep-menu')!)
@@ -400,14 +400,14 @@ it('puts the work menu, then the account row in the sidebar — no tool group; �
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
-  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 댓글·제보 링크)은 없고, 알림·테마·계정은 본문 밖의 맨 아래 줄이다.
+  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 제보·수정 제안 링크)은 없고, 알림·테마·계정은 본문 밖의 맨 아래 줄이다.
   expect(document.querySelector('.ep-menu-tools')).toBeNull()
   expect(order[0].closest('.ep-menu-body')?.lastElementChild).toBe(order[0])
   expect(order[1].closest('.ep-menu-account')?.contains(order[2])).toBe(true)
   expect(order[1].closest('.ep-menu-body')).toBeNull()
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull() // 사이드바 링크가 아니라 작품 메뉴의 탭(버튼)이다
-  expect(within(order[0]).getByRole('button', { name: '내 댓글·제보' })).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull() // 사이드바 링크가 아니라 작품 메뉴의 탭(버튼)이다
+  expect(within(order[0]).getByRole('button', { name: '내 제보·수정 제안' })).toBeTruthy()
 })
 
 it('folds the sidebar: the back link moves to the top row so it is never in two places (no action buttons there), and unfolding brings it back', async () => {
@@ -421,11 +421,11 @@ it('folds the sidebar: the back link moves to the top row so it is never in two 
   expect(toggle.getAttribute('aria-expanded')).toBe('false')
   const top = within(document.querySelector<HTMLElement>('.ep-top')!)
   expect(top.getByRole('link', { name: '내가 쓰는 소설' }).getAttribute('href')).toBe('/lib?tab=write')
-  // 상단 줄에는 돌아가기 링크뿐이다: 회차 작성하기·내 댓글·제보 같은 행동 버튼은 사이드바에도 상단 줄에도 없다.
+  // 상단 줄에는 돌아가기 링크뿐이다: 회차 작성하기·내 제보·수정 제안 같은 행동 버튼은 사이드바에도 상단 줄에도 없다.
   expect(document.querySelector('.ep-top')?.children).toHaveLength(1)
   expect(document.querySelector('.ep-top-actions')).toBeNull()
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull()
   expect(screen.getAllByRole('link', { name: '내가 쓰는 소설' })).toHaveLength(1)
   // 900px 이하에서는 접힌 본문도 CSS로 보이므로 hidden에 기대지 않고 DOM에서도 한 곳뿐이다.
   expect(document.querySelector('.ep-menu-back')).toBeNull()
@@ -914,7 +914,7 @@ it('lists the management tabs including the overview and operating settings, and
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const nav = screen.getByRole('navigation', { name: '작품 메뉴' })
-  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['개요', '공개 회차 · 0', '세계관·설정집', '이야기 분기', 'AI 집필', '받은 피드백', '내 댓글·제보', '운영 설정', '저장·AI·발행 이력'])
+  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['개요', '공개 회차 · 0', '세계관·설정집', '이야기 분기', 'AI 집필', '받은 피드백', '내 제보·수정 제안', '운영 설정', '저장·AI·발행 이력'])
   expect(within(nav).getByRole('button', { name: '개요' }).getAttribute('aria-current')).toBe('page')
   expect(screen.getByRole('heading', { level: 1, name: '옛 제목' })).toBeTruthy() // 히어로(표지·제목·소개)는 개요 탭의 내용이다.
   expect(screen.queryByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeNull()
@@ -1087,7 +1087,7 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
   // AI 집필 탭은 컨테이너의 서버 UseCase로 읽는다(응답 모양은 data 단위 테스트가 본다).
   vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockResolvedValue({ enabled: false, days: [], time: '21:00', direction: '' })
   vi.spyOn(appContainer.resolve('serialUseCase'), 'boards').mockResolvedValue([])
-  // 내 댓글·제보 탭은 계정 메뉴의 같은 화면과 같은 UseCase로 읽는다(서버 제보·수정 제안은 비어 있고 데모 피드백은 메모리 목록이다).
+  // 내 제보·수정 제안 탭은 계정 메뉴의 같은 화면과 같은 UseCase로 읽는다(서버 제보·수정 제안은 비어 있고 데모 피드백은 메모리 목록이다).
   vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listMine').mockResolvedValue([])
   vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'mine').mockResolvedValue([])
   await openWork(contentApi({
@@ -1103,7 +1103,7 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
     '이야기 분기': async () => screen.getByRole('heading', { level: 3, name: '그 순간, 다른 선택을 했다면' }),
     'AI 집필': () => screen.findByRole('button', { name: '설정 저장' }),
     '받은 피드백': () => screen.findByRole('heading', { level: 3, name: '독자 제보 0' }),
-    '내 댓글·제보': () => screen.findByRole('heading', { level: 3, name: '내 제보 0' }), // 구획 제목은 탭 제목(h2) 아래 h3다(쪽 제목 h1은 없다)
+    '내 제보·수정 제안': () => screen.findByRole('heading', { level: 3, name: '내 제보 0' }), // 구획 제목은 탭 제목(h2) 아래 h3다(쪽 제목 h1은 없다)
     '운영 설정': () => screen.findByRole('button', { name: '집필 방식 저장' }),
     '저장·AI·발행 이력': () => screen.findByText('발행 이력이 없어요.'),
   }

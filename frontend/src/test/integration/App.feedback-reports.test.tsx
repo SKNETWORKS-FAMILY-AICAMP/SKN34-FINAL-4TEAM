@@ -105,8 +105,7 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       expect(sheet.getByLabelText<HTMLSelectElement>('공개 범위').value).toBe('private')
       expect(sheet.getByLabelText<HTMLTextAreaElement>('내용').maxLength).toBe(500)
       expect(sheet.queryByText(/AI|시뮬레이션|데모/)).toBeNull()
-      expect(sheet.getByText(/‘내 댓글·제보’에서 정정·철회·공개 범위 변경/)).toBeTruthy()
-      expect(sheet.queryByText(/내 댓글·신고/)).toBeNull()
+      expect(sheet.getByRole('link', { name: '내 제보·수정 제안' }).getAttribute('href')).toBe('/content?view=reports')
       fireEvent.change(sheet.getByLabelText('피드백 유형'), { target: { value: '스토리 오류' } })
       expect(sheet.queryByText(/시뮬레이션/)).toBeNull()
       fireEvent.change(sheet.getByLabelText('내용'), { target: { value: '  앞 장면과 시간이 안 맞아요  ' } })
@@ -149,8 +148,9 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       ])
       renderApp('/read/guunmong/2', user())
       await screen.findByRole('heading', { name: '제보 4' })
-      // 실제 범위와 맞는 안내: 공개 제보·공개 답변, 로그인하면 나와 작가만 보는 비공개 제보까지.
-      screen.getByText('공개 제보와 공개 답변이 보여요. 로그인하면 나와 작가만 보는 비공개 제보도 함께 보여요.')
+      const feedback = within(screen.getByRole('region', { name: '독자 제보' }))
+      feedback.getByText('공개 제보와 공개 답변이 보여요. 내가 남긴 비공개 제보도 함께 보여요.')
+      expect(feedback.queryByText(/로그인하면/)).toBeNull()
       expect(card('open').getByText('공개 제보 본문')).toBeTruthy()
       expect(card('open').getByText('인용 문장').tagName).toBe('Q')
       expect(card('open').getByText('처리 완료')).toBeTruthy()
@@ -184,6 +184,7 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       const repo = connect([])
       const { store } = renderApp('/read/guunmong/2')
       await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+      within(screen.getByRole('region', { name: '독자 제보' })).getByText(/로그인하면 내가 남긴 비공개 제보도 볼 수 있어요/)
       fireEvent.click(document.querySelector<HTMLElement>('#text [data-s]')!)
       const popup = within(screen.getByRole('dialog', { name: '문장 작업' }))
       // 회원 전용인 세 동작은 같은 규칙으로 '로그인하고 …'라고 알린다.
@@ -197,7 +198,7 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
     })
   })
 
-  describe('내 서재 · 내 제보', () => {
+  describe('내 제보·수정 제안 · 내 제보', () => {
     const mine = () => [
       report({ id: 'a', mine: true, visibility: 'private', reporterName: '나', body: '내 비공개 제보', status: 'answered', responses: [{ id: 'p', authorName: '작가', body: '비공개 답변이에요', isPublic: false, createdAt: '2026-11-10T02:00:00Z' }] }),
       report({ id: 'b', mine: true, visibility: 'public', reporterName: '나', body: '내 공개 제보', episodeNumber: 3, createdAt: '2026-11-10T00:00:00Z' }),
@@ -205,7 +206,7 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
 
     it('실제 제보 목록을 상태·작가 답변·공개 범위 칩과 함께 보이고, 공개로 바꿀 때만 한 번 확인한 뒤 서버 값으로 바꾼다', async () => {
       const repo = connect(mine())
-      // 서재 탭에서 빠진 내 댓글·제보는 작품 관리(/content?view=reports)에서 연다. 새 작품 만들기 화면에는 링크가 없다.
+      // 서재 탭에서 빠진 내 제보·수정 제안는 작품 관리(/content?view=reports)에서 연다. 새 작품 만들기 화면에는 링크가 없다.
       renderApp('/content?view=reports', user())
       await screen.findByRole('heading', { name: '내 제보 2' })
       expect(card('a').getByText('답변함')).toBeTruthy()

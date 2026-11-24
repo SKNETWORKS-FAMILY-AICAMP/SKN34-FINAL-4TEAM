@@ -45,13 +45,14 @@ const doc = (id: string, cat: string, t: string): Doc => ({ id, cat, t, body: ''
  * 서버 작품처럼 회차마다 설정을 다시 읽는 Fork 폼을 흉내 낸다. `at` 회차의 응답만 호출자가 정한 때까지 붙잡거나 실패시킨다.
  * 서버 작품의 설정 분류(cats)는 기존 WCATS 이름이고, `docs`·`allowed`로 공개 자료와 포크를 허용한 회차를 바꿀 수 있다.
  */
-function serverFork(on: (at: number) => Promise<void> | void, options: { docs?: Doc[]; allowed?: number[] } = {}) {
+function serverFork(on: (at: number) => Promise<void> | void, options: { docs?: Doc[]; allowed?: number[]; allowForkPublication?: boolean } = {}) {
   const forks = appContainer.resolve('forkUseCase')
   const getForm = forks.getForm.bind(forks)
   vi.spyOn(forks, 'getForm').mockImplementation(async (id, at) => {
     const form = await getForm(id, at)
     if (form) {
       form.work.canonical = true
+      form.work.allowForkPublication = options.allowForkPublication
       form.work.wiki = { cats: structuredClone(WCATS), docs: options.docs ?? [doc('event', 'event', `${form.basisEpisode}화 사건`)] }
       if (options.allowed) form.forkList = options.allowed
     }
@@ -60,6 +61,22 @@ function serverFork(on: (at: number) => Promise<void> | void, options: { docs?: 
   })
 }
 const epcButton = (name: RegExp) => within(document.getElementById('epc')!).getByRole('button', { name })
+
+it.each([
+  [true, '현재 원작 정책상 이후 공개할 수 있어요.'],
+  [false, '현재 원작 정책상 비공개로만 집필할 수 있어요.'],
+] as const)('원작의 공개 허용이 %s일 때 포크 생성 전에 정책과 기준 회차의 스포일러를 알린다', async (allowForkPublication, notice) => {
+  serverFork(() => {}, { allowForkPublication })
+  renderApp('/fork/guunmong', user())
+  await screen.findByRole('heading', { name: '「구운몽」 포크' })
+  screen.getByText(/선택한 2화까지의 원작 내용/)
+  screen.getByText(new RegExp(notice))
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: /포크 소설 시작하기/ }).disabled).toBe(false)
+  fireEvent.click(epcButton(/3화 끝에서/))
+  await screen.findByText(/선택한 3화까지의 원작 내용/)
+  await waitFor(() => expect(screen.getByRole<HTMLButtonElement>('button', { name: /포크 소설 시작하기/ }).disabled).toBe(false))
+  screen.getByText(new RegExp(notice))
+})
 
 it('서버 작품은 선택한 회차의 설정을 읽는 동안 이전 회차의 규칙·인물 수를 보이지 않는다', async () => {
   let release!: () => void

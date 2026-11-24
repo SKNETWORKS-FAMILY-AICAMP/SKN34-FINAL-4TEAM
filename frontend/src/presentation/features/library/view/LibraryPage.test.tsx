@@ -93,11 +93,11 @@ it('서재 탭은 읽는 중 · 내가 쓰는 소설 · 내가 만드는 세계�
   expect(tab('내가 쓰는 소설').hasAttribute('aria-current')).toBe(false)
 })
 
-it('내 댓글·제보 탭은 없고, 예전 주소 ?tab=qa는 읽는 중 탭으로 열린다', async () => {
+it('내 제보·수정 제안 탭은 없고, 예전 주소 ?tab=qa는 읽는 중 탭으로 열린다', async () => {
   renderLibrary('/lib?tab=qa')
   await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
   expect(tab('읽는 중').getAttribute('aria-current')).toBe('page')
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull()
   expect(screen.queryByText('작가가 처리하면 상태가 바뀌어요.')).toBeNull()
 })
 

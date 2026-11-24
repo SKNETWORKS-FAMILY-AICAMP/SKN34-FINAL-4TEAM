@@ -79,7 +79,7 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     return { repo, dialog, text: first.textContent! }
   }
 
-  it('고른 문장을 변경 전으로 채운 시트에서 고친 문장과 사유를 보내면 서버에 등록하고 시트를 닫는다', async () => {
+  it('수정 제안을 등록하면 시트에서 접수 결과와 내역 링크를 보이고 확인에 초점을 둔다', async () => {
     const { repo, dialog, text } = await openSheet()
     expect(dialog.querySelector('.quote')!.textContent).toBe(text)
     const box = within(dialog).getByLabelText<HTMLTextAreaElement>('고친 문장')
@@ -89,9 +89,15 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     fireEvent.change(within(dialog).getByLabelText('사유 (선택)'), { target: { value: ' 맞춤법 ' } })
     fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
     await waitFor(() => expect(repo.create).toHaveBeenCalledWith('guunmong', 2, { beforeText: text, afterText: `${text} (고침)`, reason: '맞춤법' }))
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull())
-    expect(toastText()).toContain('수정 제안을 보냈어요')
-    expect(toastText()).toContain('작가가 승인해야 원고에 반영되고')
+    const receipt = await within(dialog).findByRole('status')
+    const confirm = within(dialog).getByRole('button', { name: '확인' })
+    expect(receipt.textContent).toContain('수정 제안을 보냈어요')
+    expect(within(receipt).getByRole('link', { name: '내 제보·수정 제안' }).getAttribute('href')).toBe('/content?view=reports')
+    expect(confirm.getAttribute('aria-describedby')).toBe(receipt.id)
+    expect(document.activeElement).toBe(confirm)
+    expect(toastText()).not.toContain('수정 제안을 보냈어요')
+    fireEvent.click(confirm)
+    expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull()
   })
 
   it('서버가 거절하면 시트 안에서만 알리고 시트와 입력을 그대로 둔다', async () => {
