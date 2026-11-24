@@ -122,10 +122,10 @@ def _optimize(request: OptimizationRequest) -> None:
     base = _read(client, request.prompt, version=request.version)
     if not isinstance(base.prompt, str):   # 채팅 프롬프트는 메시지 목록이라 지시문으로 개선할 수 없다
         raise OptimizationFailure(422, '텍스트 프롬프트만 개선할 수 있어요.')
-    _ensure_baseline(client, dataset, request.prompt)
-    train, val = load_pool(dataset)
-    adapter = SimulationAdapter(simulation.KINDS[dataset], tracing.model_of(base.config))
+    train, val = load_pool(dataset)   # 풀·gepa 설치는 기준 평가(OpenAI 호출)를 하기 전에 확인한다
     import gepa
+    _ensure_baseline(client, dataset, request.prompt)
+    adapter = SimulationAdapter(simulation.KINDS[dataset], tracing.model_of(base.config))
     try:
         result = gepa.optimize(seed_candidate={'instructions': base.prompt}, trainset=train, valset=val, adapter=adapter, reflection_lm=_reflect,
                                reflection_prompt_template=prompt.REFLECTION, max_metric_calls=request.maxMetricCalls, seed=0, raise_on_exception=True)

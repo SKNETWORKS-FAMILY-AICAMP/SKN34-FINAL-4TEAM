@@ -388,3 +388,16 @@ def test_a_failing_reflection_ends_the_run_at_once_even_though_gepa_swallows_exc
     root = root_of(world)
     assert swallowed == [] and status_of(root) == 'failed' and world.created == [] and world.ran == []
     assert attrs(root)['langfuse.observation.status_message'] == '프롬프트 개선 모델 호출에 실패했어요.'
+
+
+def test_a_missing_pool_ends_the_run_before_the_baseline_evaluation_spends_anything(world, monkeypatch):
+    world.baseline = None   # 기준 평가가 필요한 상태에서도
+
+    def missing(dataset):
+        raise OptimizationFailure(503, '최적화 풀을 읽을 수 없어요.')
+    monkeypatch.setattr(service, 'load_pool', missing)
+
+    service.run_job(REQUEST.model_dump())
+
+    root = root_of(world)
+    assert status_of(root) == 'failed' and world.prepared == [] and world.ran == [] and world.optimized == []
