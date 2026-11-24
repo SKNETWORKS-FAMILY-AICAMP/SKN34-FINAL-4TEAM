@@ -88,6 +88,9 @@ def run(request: JobRequest) -> None:
                         except Exception as error:
                             reason = reason_of(job, error)
                             continue
+                        # ponytail: 저장 거절(return)이나 장애(예외)로 with를 빠져나가면 shutdown(wait=True)이 같은 묶음에서 실행 중인 추출(최대 3개)을 끝까지 기다리고 결과는 버린다.
+                        # 그동안 모델 비용이 낭비되고 Celery 슬롯이 묶인다(추출 한 건은 70초 이상 걸릴 수 있다). 실행 중인 future는 취소할 수 없어 묶음 크기(EPISODE_CONCURRENCY)가 낭비 상한이다.
+                        # shutdown(cancel_futures=True)는 대기 중인 것만 취소하는데 묶음=작업자 수라 대기가 없어 소용없다. 줄이려면 회차별 태스크로 나눈다.
                         if not send("result", {"result": result.model_dump(mode="json")}, unsaved):
                             return
                         unsaved.remove(number)
