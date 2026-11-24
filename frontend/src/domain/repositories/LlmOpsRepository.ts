@@ -13,7 +13,8 @@ export interface LlmOpsRepository {
   prompts(): Promise<Prompt[]>
   prompt(name: string): Promise<Prompt>
   createPromptVersion(name: string, input: PromptVersionInput): Promise<void>
-  /** 그 버전의 최신 회귀 평가가 통과가 아니면 서버가 409로 거절하고 문구를 줍니다(OperationsRejected). */
+  /** 조합(본문+모델) 버전을 서비스 반영 후보로 등록합니다(#705). 반영(promote)은 후보만 됩니다. 평가 세트가 있는 프롬프트는 그 세트의 최신 평가가 통과가 아니면 409입니다(#787). */
+  candidate(name: string, version: number): Promise<void>
   promote(name: string, version: number): Promise<void>
   models(): Promise<Model[]>
   createModel(input: ModelInput): Promise<void>

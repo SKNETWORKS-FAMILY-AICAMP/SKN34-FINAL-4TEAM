@@ -335,3 +335,21 @@ def test_the_ledger_counts_failed_calls_without_usage_as_zero_and_ignores_other_
     RunnableLambda(calls).invoke(None, {'callbacks': [agent_runtime.CreditLedger(credit)]})
 
     assert (credit.input_tokens, credit.output_tokens) == (100, 50)
+
+
+def test_the_model_chosen_in_the_prompt_version_replaces_the_env_default(monkeypatch):
+    """#705: 운영 화면에서 고른 모델(프롬프트 버전 config.model)이 OPENAI_MODEL보다 먼저다. 모델이 없는 버전은 환경 변수 기본값이다."""
+    from app import tracing
+    seen = fake_chat(monkeypatch, text='새 원고')
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    monkeypatch.delenv('OPENAI_MODEL')
+
+    run()
+
+    assert seen['init']['model'] == 'gpt-chosen'
+
+
+def test_an_evaluation_run_uses_the_model_of_the_version_it_evaluates(monkeypatch):
+    seen = fake_chat(monkeypatch, text='평가 대상 응답')
+    agent_runtime.run('test.generation', '테스트', Failure, '평가할 버전 본문', {}, model='gpt-evaluated', max_tokens=100, timeout=7, trace={})
+    assert seen['init']['model'] == 'gpt-evaluated'

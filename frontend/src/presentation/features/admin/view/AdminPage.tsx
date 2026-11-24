@@ -52,7 +52,7 @@ const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
 const LLM_TITLES: Record<LlmPage, [string, string]> = {
   alerts: ['LLM Ops · 경고', '운영 경고를 확인하고 조치하며, 경고 기준과 켜고 끄기를 정합니다.'],
   traces: ['LLM Ops · 추적·지표', 'Langfuse 기준 AI 요청 추적과 기간별 품질·비용 지표를 확인합니다.'],
-  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트 버전과 production 승격, 모델 단가를 관리합니다.'],
+  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트·모델 조합의 후보 등록과 서비스 반영, 모델 단가를 관리합니다.'],
   quality: ['LLM Ops · 평가·누설 검사', '회귀 평가를 실행해 결과를 확인하고, 정보 누설 검사 기록과 표본 비율을 관리합니다.'],
 }
 const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {

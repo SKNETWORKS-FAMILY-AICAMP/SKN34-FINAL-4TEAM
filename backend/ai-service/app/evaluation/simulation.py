@@ -19,14 +19,14 @@ BAD_INPUT = '시뮬레이션 평가 항목의 input.data(객체)가 필요합니
 BAD_ITEM = '시뮬레이션 평가 항목에 정답(expectedOutput)과 metadata.judge(character·scene·facts)가 필요합니다.'
 
 
-def generate(kind: str, instructions: str, item_input: dict) -> str:
-    """항목 입력(input.data는 서비스가 그 호출에 보내는 값 그대로)을 서비스 호출로 실행해 응답 글을 돌려준다."""
+def generate(kind: str, instructions: str, item_input: dict, model: str | None = None) -> str:
+    """항목 입력(input.data는 서비스가 그 호출에 보내는 값 그대로)을 서비스 호출로 실행해 응답 글을 돌려준다. model은 평가하는 버전의 모델이다."""
     data = item_input.get('data')
     if not isinstance(data, dict):
         raise EvaluationFailure(422, BAD_INPUT)
     if kind == 'act':
-        return service.normalize_quotes(service.acted(agent.act(data, instructions)).prose.strip())
-    return service.narrated(agent.narrate(data, instructions), monologue=item_input.get('set') == 'monologue').prose.strip()
+        return service.normalize_quotes(service.acted(agent.act(data, instructions, model)).prose.strip())
+    return service.narrated(agent.narrate(data, instructions, model), monologue=item_input.get('set') == 'monologue').prose.strip()
 
 
 async def evaluate(kind: str, item_input: dict, output: str, expected, metadata) -> list[Evaluation]:
