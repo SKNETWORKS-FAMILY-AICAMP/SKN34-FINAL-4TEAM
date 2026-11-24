@@ -110,6 +110,6 @@ export function versionAction(version: PromptVersion): 'live' | 'promote' | 'can
   if (version.labels.includes('production')) return 'live'
   return version.labels.includes(candidateOf(version.version)) ? 'promote' : 'candidate'
 }
-const LABELS = new Map([['production', '서비스 반영 중'], ['seed', '코드 시드'], ['latest', null]])
+const LABELS = new Map<string, string | null>([['production', '서비스 반영 중'], ['seed', '코드 시드'], ['latest', null]])
 /** 라벨의 화면 이름. Langfuse가 스스로 관리하는 latest는 숨기고(null) 후보 라벨은 번호 없이 '후보'로 보인다. */
-export const labelText = (label: string) => (/^candidate-\d+$/.test(label) ? '후보' : LABELS.has(label) ? LABELS.get(label)! : label)
+export const labelText = (label: string): string | null => (/^candidate-\d+$/.test(label) ? '후보' : LABELS.has(label) ? LABELS.get(label) ?? null : label)

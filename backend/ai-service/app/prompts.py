@@ -6,6 +6,7 @@ tests/test_prompts.py가 소스의 이름과 대조한다. 평가 채점기 루�
 """
 
 import logging
+import time
 
 from app import tracing
 from app.generation import prompt as generation
@@ -62,10 +63,23 @@ SEEDS: dict[str, str] = {
 }
 
 
-def register_all() -> None:
-    """모든 프롬프트를 한 번씩 읽어 없으면 등록하고 시드를 맞춘다. 하나가 실패해도 나머지는 계속한다(그 프롬프트는 처음 호출될 때 다시 읽는다)."""
-    for name, text in SEEDS.items():
-        try:
-            tracing.prompt(name, text)
-        except tracing.PromptUnavailable:
-            logger.warning('%s 프롬프트를 기동 때 등록하지 못했습니다.', name)
+RETRIES, RETRY_WAIT = 10, 15  # ai-service는 langfuse-web 기동을 기다리지 않아 처음엔 실패할 수 있다: 15초 간격으로 10번(약 2.5분)까지 다시 한다
+
+
+def register_all(wait=time.sleep) -> None:
+    """모든 프롬프트를 읽어 없으면 등록하고 시드를 맞춘다. 못 읽은 프롬프트만 RETRY_WAIT 뒤 다시 하고, RETRIES번 뒤에도 못 읽으면
+    경고만 남긴다(그 프롬프트는 처음 호출될 때 다시 읽는다)."""
+    pending = list(SEEDS)
+    for attempt in range(RETRIES + 1):
+        if attempt:
+            wait(RETRY_WAIT)
+        failed = []
+        for name in pending:
+            try:
+                tracing.prompt(name, SEEDS[name])
+            except tracing.PromptUnavailable:
+                failed.append(name)
+        if not failed:
+            return
+        pending = failed
+    logger.warning('기동 때 등록하지 못한 프롬프트: %s', ', '.join(pending))

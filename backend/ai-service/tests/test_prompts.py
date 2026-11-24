@@ -29,5 +29,28 @@ def test_register_all_reads_every_prompt_and_one_unavailable_prompt_does_not_sto
         return tracing.Prompt(default)
 
     monkeypatch.setattr(tracing, 'prompt', prompt)
-    prompts.register_all()
-    assert asked == list(prompts.SEEDS) and 'orchestration.main' in caplog.text
+    prompts.register_all(wait=lambda seconds: None)
+    assert asked[:len(prompts.SEEDS)] == list(prompts.SEEDS) and set(asked[len(prompts.SEEDS):]) == {'orchestration.main'}
+    assert 'orchestration.main' in caplog.text
+
+
+def test_prompts_that_failed_at_boot_are_retried_until_langfuse_is_up(monkeypatch):
+    """ai-service는 langfuse-web 기동을 기다리지 않는다: 처음 못 읽은 프롬프트만 간격을 두고 다시 등록한다."""
+    attempts, waits = {}, []
+
+    def prompt(name, default):
+        attempts[name] = attempts.get(name, 0) + 1
+        if name == 'orchestration.main' and attempts[name] < 3:
+            raise tracing.PromptUnavailable
+        return tracing.Prompt(default)
+
+    monkeypatch.setattr(tracing, 'prompt', prompt)
+    prompts.register_all(wait=waits.append)
+    assert attempts['orchestration.main'] == 3 and attempts['decision_guard.judge'] == 1 and waits == [prompts.RETRY_WAIT] * 2
+
+
+def test_registration_gives_up_after_the_retries(monkeypatch):
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: (_ for _ in ()).throw(tracing.PromptUnavailable))
+    waits = []
+    prompts.register_all(wait=waits.append)
+    assert len(waits) == prompts.RETRIES

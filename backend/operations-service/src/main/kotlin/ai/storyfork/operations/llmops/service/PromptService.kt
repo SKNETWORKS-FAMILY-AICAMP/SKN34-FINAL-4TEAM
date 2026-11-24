@@ -89,9 +89,9 @@ class PromptService(
         require(request.version >= 1) { "Invalid version." }
         val current = langfuse.prompt(name, request.version)
         val labels = labels(current)
-        val evaluation = evaluations.latest(name, request.version)
-        if (PRODUCTION in labels) return version(current, evaluation)
+        if (PRODUCTION in labels) return version(current, evaluations.latest(name, request.version))
         if (candidateLabel(request.version) !in labels) throw CandidateRequiredException()
+        val evaluation = evaluations.latest(name, request.version)  // only for the answer: the gate no longer reads evaluations
         // Langfuse manages "latest" itself and keeps labels unique across versions, so the version's other labels stay and production moves here.
         langfuse.setPromptLabels(name, request.version, (labels - "latest") + PRODUCTION)
         activities.record(member, "PROMPT_PROMOTE", "PROMPT", name, "v${request.version}")

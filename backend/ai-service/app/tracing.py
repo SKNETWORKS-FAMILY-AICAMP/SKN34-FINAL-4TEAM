@@ -159,8 +159,8 @@ def prompt(name: str, default: str) -> Prompt:
 
     없는 프롬프트(404)는 default를 버전 1(production·seed)로 등록해 쓴다. 읽기에 실패하면 SDK가 캐시(마지막 성공 값)를 주고,
     캐시도 없으면 default로 바꾸지 않고 PromptUnavailable이다. 읽을 때마다 코드 시드를 `seed` 라벨 버전으로 맞춘다(_sync_seed).
-    shortcut: 서버가 막 뜬 직후 같은 프롬프트를 동시에 처음 쓰면 같은 내용의 버전이 둘 생길 수 있고, 프롬프트마다 첫 읽기는 동기 HTTP다
-    (이후는 SDK 캐시). 문제 되면 시작 때 한 번 등록·예열한다.
+    shortcut: 서버가 막 뜬 직후 기동 등록(app/prompts.py)과 첫 요청이 같은 프롬프트를 동시에 처음 쓰면 같은 내용의 버전이 둘 생길 수 있다.
+    문제 되면 등록이 끝날 때까지 요청을 받지 않는다.
     """
     if not enabled():
         return Prompt(default)
@@ -193,7 +193,7 @@ def _sync_seed(name: str, default: str, cached) -> None:
 
     production 본문이 시드와 같으면 그 버전에 seed 라벨만 단다(시드 본문으로 모델만 바꾼 버전을 승격해도 seed가 따라온다). 다르면 seed 버전이
     이미 시드면 그대로 두고, 아니면 시드를 라벨 seed의 새 버전(production의 모델 config를 이어받는다)으로 등록한다. production은 옮기지 않는다:
-    운영 화면에서 회귀 평가를 통과해야 승격된다. 호출마다 돌지만 맞춰진 상태는 SDK 캐시 읽기뿐이고, 쓰기 직전에만 캐시 없이 다시 읽는다
+    운영 화면에서 후보로 등록해야 서비스에 반영된다. 호출마다 돌지만 맞춰진 상태는 SDK 캐시 읽기뿐이고, 쓰기 직전에만 캐시 없이 다시 읽는다
     (캐시의 지난 라벨로 쓰면 그 사이 승격된 production을 되돌리거나 같은 시드를 두 번 등록할 수 있다).
     실패는 기록만 한다: 화면에 시드가 늦게 보일 뿐 기능은 production 버전으로 돌고 다음 호출이 다시 맞춘다.
     """
