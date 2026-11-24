@@ -30,10 +30,22 @@ export type MetricsGroup = 'day' | 'feature' | 'model'
 export type MetricsQuery = { from: string; to: string; groupBy: MetricsGroup }
 export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['feature', '기능'], ['model', '모델']]
 
-export type PromptVersion = { version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null }
-export type Prompt = { name: string; versions: PromptVersion[] }
-/** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. */
-export type PromptVersionInput = { prompt: string; commitMessage: string }
+/**
+ * model은 그 버전에 고른 모델(#705, Langfuse 버전 config.model)이고 비면 AI 서비스의 환경 변수 기본 모델입니다.
+ * prompt는 텍스트 본문으로 상세에서만 옵니다(목록·채팅 프롬프트는 비어 있습니다).
+ */
+export type PromptVersion = {
+  version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
+  model?: string | null; prompt?: string | null; commitMessage?: string | null
+}
+/**
+ * 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다.
+ * evaluationDataset은 후보로 등록하려면 통과해야 하는 평가 세트이고(#787) 비면 평가 없이 후보로 등록합니다.
+ * models는 새 조합에 고를 수 있는 모델(AI 서비스가 부르는 OpenAI 모델, 운영 설정 LLMOPS_MODELS, #806)이고 상세에만 옵니다.
+ */
+export type Prompt = { name: string; versions: PromptVersion[]; candidates: number; evaluationDataset?: string | null; models?: string[] | null }
+/** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. model이 비면 기본 모델 버전입니다. */
+export type PromptVersionInput = { prompt: string; commitMessage: string; model: string }
 
 /** 가격은 토큰당 USD입니다. */
 export type Model = { id: string; modelName: string; matchPattern: string; inputPrice?: number | null; outputPrice?: number | null }
@@ -54,8 +66,10 @@ export type LlmOpsSettings = { leakSampleRate: number }
 /** LLM Ops 조회 API는 `llm` 권한이 필요합니다. 403이면 다시 불러오기 대신 이 안내만 보입니다. */
 export const LLM_FORBIDDEN = 'LLM Ops 조회 권한이 있어야 볼 수 있어요.'
 
-/** 승격이 그 버전의 최신 회귀 평가 미통과로 막힐 때(409 EVALUATION_REQUIRED) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
-export const EVALUATION_REQUIRED_MESSAGE = '회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'
+/** 후보가 아닌 버전을 서비스에 반영하려다 막힐 때(409 CANDIDATE_REQUIRED, #705) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
+export const CANDIDATE_REQUIRED_MESSAGE = '후보로 등록한 조합만 서비스에 반영할 수 있어요.'
+/** 평가 세트가 있는 프롬프트를 평가 통과 전에 후보로 등록하려다 막힐 때(409 EVALUATION_REQUIRED, #787) 보이는 문구. */
+export const EVALUATION_REQUIRED_MESSAGE = '이 프롬프트는 평가 세트의 회귀 평가를 통과한 버전만 후보로 등록할 수 있어요.'
 
 const TRACE_STATUSES = new Map([['success', '성공'], ['failed', '실패'], ['timeout', '시간 초과']])
 export const TRACE_STATUS_OPTIONS = [...TRACE_STATUSES]
@@ -80,9 +94,25 @@ export const perMillion = (price: number | null | undefined) => price == null ? 
 /** 추적 입력·출력 본문: 문자열은 그대로, 그 밖은 들여쓴 JSON입니다. */
 export const bodyText = (value: unknown) => value == null ? '' : typeof value === 'string' ? value : JSON.stringify(value, null, 2)
 
-/** 승격 버튼 이름: production보다 새 버전은 승격, 오래된 버전은 이전 버전 복원, production 자신은 null입니다. */
-export function promoteLabel(versions: PromptVersion[], version: PromptVersion): '승격' | '복원' | null {
-  if (version.labels.includes('production')) return null
-  const live = versions.find((v) => v.labels.includes('production'))
-  return live && version.version < live.version ? '복원' : '승격'
+export const productionOf = (p: Prompt) => p.versions.find((v) => v.labels.includes('production')) ?? null
+/** 코드 시드(AI 서비스가 seed 라벨로 등록한 버전, #705)가 production과 다르면 그 버전. 회귀 평가를 통과하면 승격할 수 있습니다. */
+export function pendingSeed(p: Prompt) {
+  const seed = p.versions.find((v) => v.labels.includes('seed'))
+  return seed && !seed.labels.includes('production') ? seed : null
 }
+/** 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 이름을 단정하지 않습니다(#808). */
+export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델(환경 설정)'
+/** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
+const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
+export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)
+
+/** 버전에 붙는 후보 라벨. Langfuse는 라벨을 한 버전에만 두므로 버전 번호를 넣어 후보 여럿이 함께 있을 수 있다(#705). */
+const candidateOf = (version: number) => `candidate-${version}`
+/** 버전 표의 조치: 서비스에 반영 중(live), 후보라 반영할 수 있음(promote), 아직 후보가 아님(candidate). */
+export function versionAction(version: PromptVersion): 'live' | 'promote' | 'candidate' {
+  if (version.labels.includes('production')) return 'live'
+  return version.labels.includes(candidateOf(version.version)) ? 'promote' : 'candidate'
+}
+const LABELS = new Map<string, string | null>([['production', '서비스 반영 중'], ['seed', '코드 시드'], ['latest', null]])
+/** 라벨의 화면 이름. Langfuse가 스스로 관리하는 latest는 숨기고(null) 후보 라벨은 번호 없이 '후보'로 보인다. */
+export const labelText = (label: string): string | null => (/^candidate-\d+$/.test(label) ? '후보' : LABELS.has(label) ? LABELS.get(label) ?? null : label)

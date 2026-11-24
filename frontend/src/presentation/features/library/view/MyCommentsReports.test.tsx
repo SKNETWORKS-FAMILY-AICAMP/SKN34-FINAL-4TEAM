@@ -18,10 +18,10 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const open = (embedded?: boolean) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><MyCommentsReports embedded={embedded} /></MemoryRouter></Provider>)
 
-it('쪽(/content?view=reports)에서는 내 댓글·제보가 쪽 제목(h1)이고 구획 제목(내 제보·내 수정 제안·데모 작품 피드백)은 h2다', async () => {
+it('쪽(/content?view=reports)에서는 내 제보·수정 제안가 쪽 제목(h1)이고 구획 제목(내 제보·내 수정 제안·데모 작품 피드백)은 h2다', async () => {
   open()
-  expect(screen.getByRole('heading', { level: 1, name: '내 댓글·제보' })).toBeTruthy()
-  expect(screen.getByRole('region', { name: '내 댓글·제보' }).contains(screen.getByRole('heading', { level: 1 }))).toBe(true)
+  expect(screen.getByRole('heading', { level: 1, name: '내 제보·수정 제안' })).toBeTruthy()
+  expect(screen.getByRole('region', { name: '내 제보·수정 제안' }).contains(screen.getByRole('heading', { level: 1 }))).toBe(true)
   expect(await screen.findByRole('heading', { level: 2, name: '내 제보 0' })).toBeTruthy()
   expect(screen.getByRole('heading', { level: 2, name: '내 수정 제안' })).toBeTruthy()
   expect(await screen.findByRole('heading', { level: 2, name: /데모 작품 피드백/ })).toBeTruthy()
@@ -34,5 +34,5 @@ it('작품 관리 탭 안(embedded)에서는 쪽 제목(h1)을 그리지 않고 
   expect(await screen.findByRole('heading', { level: 3, name: /데모 작품 피드백/ })).toBeTruthy()
   expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   expect(screen.queryByRole('heading', { level: 2 })).toBeNull()
-  expect(screen.getByRole('region', { name: '내 댓글·제보' })).toBeTruthy() // 이름 있는 구역은 남는다
+  expect(screen.getByRole('region', { name: '내 제보·수정 제안' })).toBeTruthy() // 이름 있는 구역은 남는다
 })

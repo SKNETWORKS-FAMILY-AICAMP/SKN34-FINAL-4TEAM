@@ -25,3 +25,10 @@ def test_blank_model_output_is_a_failure(monkeypatch):
         agent.generate('지시문', {'question': '질문'})
 
     assert error.value.status == 502
+
+
+def test_generate_runs_on_the_model_of_the_evaluated_version(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(agent.agent_runtime, 'run', lambda *a, **options: seen.update(options) or (AIMessage('응답'), None))
+    agent.generate('본문', {}, 'gpt-chosen')
+    assert seen['model'] == 'gpt-chosen'

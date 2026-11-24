@@ -16,14 +16,13 @@ def generate(context: dict, prompt: str) -> GenerationResponse:
 
     추적에는 모델·사용량·프롬프트 버전·실패만 남긴다. 문맥은 설정 본문을 담아 추적 결정 범위 밖이다.
     """
-    key = os.environ.get('OPENAI_API_KEY')
-    model = os.environ.get('OPENAI_MODEL')
-    if not key or not model:
-        raise ProviderFailure()
     try:
         managed = tracing.prompt('proposals.continue', INSTRUCTIONS)
     except tracing.PromptUnavailable:
         raise ProviderFailure() from None
+    key, model = os.environ.get('OPENAI_API_KEY'), managed.model or os.environ.get('OPENAI_MODEL')  # 운영 화면에서 고른 모델(#705), 없으면 환경 변수 기본값
+    if not key or not model:
+        raise ProviderFailure()
     client = OpenAI(api_key=key, timeout=60, max_retries=0)
     try:
         with tracing.observe('proposals.generation', as_type='generation', model=model, prompt=managed.client) as generation:

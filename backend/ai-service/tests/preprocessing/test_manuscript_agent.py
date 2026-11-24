@@ -126,3 +126,9 @@ def test_resolve_input_is_compact(monkeypatch):
     assert 'source' not in dumped and 'evidence' not in dumped and lines[1][60] not in dumped  # 인용되지 않은 원문 줄은 가지 않는다
     assert data[0]['mentions'] == [{'ref': '1:m1', 'name': '서하', 'kind': 'character', 'quote': lines[1][0]}]
     assert data[0]['quotes'] == sorted(lines[1][1:31])
+
+
+def test_the_model_chosen_in_the_prompt_version_is_called(provider, monkeypatch):
+    monkeypatch.setattr(tracing, 'prompt', lambda name, text: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    agent.extract(EpisodeText(number=1, title='x', body='본문'))
+    assert provider.settings['model'] == 'gpt-chosen'

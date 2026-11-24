@@ -790,3 +790,10 @@ def test_a_pending_ask_web_research_call_from_an_old_checkpoint_runs_as_ask_rese
 
     asyncio.run(agent.DynamicToolMiddleware().awrap_tool_call(request, handler))
     assert ran == [{'name': 'ask_research', 'args': {'task': 'web'}, 'id': 'c1'}]
+
+
+def test_the_main_agent_calls_the_model_chosen_in_its_prompt_version(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    run(inputs={'story_context': QA})
+    assert calls.main.init['model'] == 'gpt-chosen'

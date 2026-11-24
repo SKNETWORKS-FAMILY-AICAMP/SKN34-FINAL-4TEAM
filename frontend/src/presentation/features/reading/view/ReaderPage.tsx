@@ -198,7 +198,7 @@ export function ReaderPage() {
             </div>
           )}
           {w.canonical && <EpisodeComments key={`${w.id}/${r.n}`} workId={w.id} n={r.n} quoted={vm.sheet?.kind === 'comment' ? vm.sentences[vm.sheet.k] : undefined} onCloseSheet={closeSheet} />}
-          {w.canonical && <EpisodeFeedbackReports key={`${w.id}/${r.n}/reports`} workId={w.id} n={r.n} refresh={reportsRefresh} />}
+          {w.canonical && <EpisodeFeedbackReports key={`${w.id}/${r.n}/reports`} workId={w.id} n={r.n} refresh={reportsRefresh} loggedIn={vm.loggedIn} />}
           {!w.canonical && <section className="tcard cms">
             <h3>댓글 {r.comments.length}</h3>
             <form className="cmf" id="cmf" onSubmit={(ev) => {

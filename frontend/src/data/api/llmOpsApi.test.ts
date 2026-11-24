@@ -147,17 +147,31 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
   const version = { version: 2, labels: ['production'], createdAt: AT, evaluation: { runId: 'r1', passed: true, createdAt: AT } }
 
   it('프롬프트 목록·상세·새 버전 등록은 이름을 인코딩해 보낸다', async () => {
-    const fetcher = ok({ items: [{ name: 'qa answer' }], page: 0, size: 100, total: 1 })
+    const fetcher = ok({ items: [{ name: 'qa answer' }, { name: 'qa', versions: [version], candidates: 2, evaluationDataset: 'qa.grounding' }], page: 0, size: 100, total: 1 })
     const repo = new HttpLlmOpsRepository(fetcher)
-    // 목록은 버전을 안 줘도 읽는다(상세가 채운다).
-    expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [] }])
-    const detail = new HttpLlmOpsRepository(ok({ name: 'qa answer', versions: [version] }))
-    expect(await detail.prompt('qa answer')).toEqual({ name: 'qa answer', versions: [version] })
-    await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '메모' })
+    // 목록은 버전·후보 수를 안 줘도 읽는다(상세가 채운다). 목록의 버전은 production·seed뿐이고 후보 수는 따로 온다(#786).
+    expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [], candidates: 0 }, { name: 'qa', versions: [version], candidates: 2, evaluationDataset: 'qa.grounding' }])
+    const detail = new HttpLlmOpsRepository(ok({ name: 'qa answer', versions: [version], candidates: 0 }))
+    expect(await detail.prompt('qa answer')).toEqual({ name: 'qa answer', versions: [version], candidates: 0 })
+    await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '메모', model: '' })
+    await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '', model: 'gpt-x' })
     expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])).toEqual([
       ['/api/v1/operations/llmops/prompts', 'GET', undefined],
+      // 모델을 고르지 않으면 config를 보내지 않아 그 버전은 AI 서비스의 환경 변수 기본 모델로 돈다(#705).
       ['/api/v1/operations/llmops/prompts/qa%20answer', 'POST', JSON.stringify({ prompt: '본문', commitMessage: '메모' })],
+      ['/api/v1/operations/llmops/prompts/qa%20answer', 'POST', JSON.stringify({ prompt: '본문', commitMessage: '', config: { model: 'gpt-x' } })],
     ])
+  })
+
+  it('버전의 모델과 상세의 본문을 읽고, 텍스트가 아닌 본문(채팅 프롬프트)은 비운다', async () => {
+    const versions = [{ version: 2, labels: ['production'], model: 'gpt-x', prompt: '지시' }, { version: 1, labels: [], prompt: [{ role: 'system', content: '규칙' }] }]
+    const detail = await new HttpLlmOpsRepository(ok({ name: 'qa', versions })).prompt('qa')
+    expect(detail.versions.map((v) => [v.model ?? null, v.prompt ?? null])).toEqual([['gpt-x', '지시'], [null, null]])
+  })
+
+  it('상세는 고를 수 있는 모델(#806)과 버전의 변경 메모(#807)를 읽는다', async () => {
+    const detail = await new HttpLlmOpsRepository(ok({ name: 'qa', models: ['gpt-6-luna'], versions: [{ version: 1, labels: [], commitMessage: '처음' }] })).prompt('qa')
+    expect([detail.models, detail.versions[0].commitMessage]).toEqual([['gpt-6-luna'], '처음'])
   })
 
   it('프롬프트 버전의 등록 시각이 비어 와도(Langfuse에 값이 없을 때) 상세를 거절하지 않는다', async () => {
@@ -166,12 +180,19 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     expect(detail.versions.map((v) => v.createdAt ?? null)).toEqual([null, null])
   })
 
-  it('production 승격은 PUT으로 버전을 보내고, 평가 미통과 409(EVALUATION_REQUIRED)는 서버의 영문 문구 대신 정해진 한국어 문구로 알린다', async () => {
+  it('후보 등록·서비스 반영은 PUT으로 버전을 보내고, 후보가 아닌 반영 409(CANDIDATE_REQUIRED)는 서버의 영문 문구 대신 정해진 한국어 문구로 알린다', async () => {
     const fetcher = ok({})
+    await new HttpLlmOpsRepository(fetcher).candidate('qa', 3)
     await new HttpLlmOpsRepository(fetcher).promote('qa', 3)
-    expect(callsOf(fetcher)[0].slice(0, 2).map((v) => typeof v === 'string' ? v : [v.method, v.body])).toEqual(['/api/v1/operations/llmops/prompts/qa/production', ['PUT', JSON.stringify({ version: 3 })]])
-    const rejected = new HttpLlmOpsRepository(fail(409, { code: 'EVALUATION_REQUIRED', message: 'A passing regression evaluation is required for this prompt version.' })).promote('qa', 3)
-    await expect(rejected).rejects.toThrow(new OperationsRejected('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'))
+    expect(callsOf(fetcher).map((call) => call.slice(0, 2).map((v) => typeof v === 'string' ? v : [v.method, v.body]))).toEqual([
+      ['/api/v1/operations/llmops/prompts/qa/candidate', ['PUT', JSON.stringify({ version: 3 })]],
+      ['/api/v1/operations/llmops/prompts/qa/production', ['PUT', JSON.stringify({ version: 3 })]],
+    ])
+    const rejected = new HttpLlmOpsRepository(fail(409, { code: 'CANDIDATE_REQUIRED', message: 'Only a candidate prompt version can be promoted.' })).promote('qa', 3)
+    await expect(rejected).rejects.toThrow(new OperationsRejected('후보로 등록한 조합만 서비스에 반영할 수 있어요.'))
+    // 평가 세트가 있는 프롬프트의 후보 등록이 평가 통과 전에 막힌 409(#787)도 code로 정해진 문구를 보인다.
+    const unevaluated = new HttpLlmOpsRepository(fail(409, { code: 'EVALUATION_REQUIRED', message: "A passing regression evaluation on the prompt's evaluation set is required." })).candidate('qa', 3)
+    await expect(unevaluated).rejects.toThrow(new OperationsRejected('이 프롬프트는 평가 세트의 회귀 평가를 통과한 버전만 후보로 등록할 수 있어요.'))
     // 다른 409(영문 고정 문구)나 본문이 없는 409는 일반 충돌 안내다.
     await expect(new HttpLlmOpsRepository(fail(409, { code: 'CONFLICT', message: 'Resource conflicts with its current state.' })).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))
     await expect(new HttpLlmOpsRepository(fail(409, {})).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))

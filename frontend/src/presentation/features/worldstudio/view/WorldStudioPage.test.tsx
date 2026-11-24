@@ -3798,7 +3798,7 @@ it('빼기는 서버를 부르지 않고 초안에서 이미지 연결만 지워
   expect(preview()).toBeNull()
   expect(imageGroup().queryByRole('button', { name: '빼기' })).toBeNull()
   expect(imageInput().disabled).toBe(false)
-  expect(document.activeElement).toBe(imageInput()) // 눌렀던 빼기 버튼이 사라지므로 같은 자리의 추가 칸으로 초점을 옮긴다
+  await waitFor(() => expect(document.activeElement).toBe(imageInput())) // 눌렀던 빼기 버튼이 사라지므로 같은 자리의 추가 칸으로 초점을 옮긴다(렌더 뒤 이동이라 기다린다)
   expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
   expect(uploadCardImage).not.toHaveBeenCalled()
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()

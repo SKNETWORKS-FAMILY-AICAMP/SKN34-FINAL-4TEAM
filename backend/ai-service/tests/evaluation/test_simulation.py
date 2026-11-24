@@ -23,7 +23,7 @@ def action(prose='"갑시다."', observed='가자고 했다'):
 def test_generate_calls_the_service_act_with_the_version_body_and_returns_the_normalized_line(monkeypatch):
     seen = {}
 
-    def act(data, instructions=None):
+    def act(data, instructions=None, model=None):
         seen.update(data=data, instructions=instructions)
         return action('  「가자.」 그가 말했다.  ')
     monkeypatch.setattr(agent, 'act', act)
@@ -36,7 +36,7 @@ def test_generate_calls_the_service_act_with_the_version_body_and_returns_the_no
 def test_generate_calls_the_service_narrate_and_keeps_the_monologue_without_observed(monkeypatch, kind):
     seen = {}
 
-    def narrate(data, instructions=None):
+    def narrate(data, instructions=None, model=None):
         seen.update(data=data, instructions=instructions)
         return Narration.model_construct(prose='  문이 열렸다.  ', observed='' if kind == 'monologue' else '문이 열렸다')
     monkeypatch.setattr(agent, 'narrate', narrate)
@@ -46,7 +46,7 @@ def test_generate_calls_the_service_narrate_and_keeps_the_monologue_without_obse
 
 
 def test_a_narration_without_observed_is_an_invalid_response_but_a_monologue_is_not(monkeypatch):
-    monkeypatch.setattr(agent, 'narrate', lambda data, instructions=None: Narration.model_construct(prose='문이 열렸다.', observed=''))
+    monkeypatch.setattr(agent, 'narrate', lambda data, instructions=None, model=None: Narration.model_construct(prose='문이 열렸다.', observed=''))
 
     with pytest.raises(SimulationFailure):   # 서비스와 같은 응답 확인(service.narrated)
         simulation.generate('narrate', '본문', {'set': 'narration', 'data': DATA})
