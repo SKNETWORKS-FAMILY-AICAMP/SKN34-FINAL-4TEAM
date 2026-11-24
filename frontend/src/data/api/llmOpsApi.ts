@@ -73,6 +73,7 @@ const prompt = z.object({
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
     model: text, prompt: z.unknown().optional().transform((value) => (typeof value === 'string' ? value : undefined)),
   })).default([]),
+  candidates: z.number().default(0),
 })
 const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num })
 const evaluation = z.object({

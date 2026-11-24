@@ -20,6 +20,7 @@ import tools.jackson.databind.JsonNode
 
 private const val LLM = "llm"
 private const val PRODUCTION = "production"
+private const val SEED = "seed"
 private const val NAME_MAX = 100
 
 /** Prompt versions live in Langfuse; this service reads them with their latest evaluation and moves the production label behind the evaluation gate. */
@@ -31,20 +32,27 @@ class PromptService(
     private val activities: AdminActivityService,
 ) {
     /**
-     * Prompts are read in parallel: the AI service registers every prompt of every LLM call (#705), and reading them one after another took seconds.
-     * shortcut: still one Langfuse read per version (the prompt list has no per-version labels), so a very long version history makes it slow;
-     * read only the production and seed versions then.
+     * Only the production and seed versions of each prompt (read by label, once when one version has both), so the reads do not grow with the version
+     * history (#786); the candidates are counted from the labels the prompt list carries. Prompts are read in parallel: the AI service registers every
+     * prompt of every LLM call (#705).
      */
     fun list(member: OperationsMember): PromptListResponse {
         permissions.requirePermission(member, LLM)
         val latest = evaluations.latestByVersion()
-        return PromptListResponse(langfuse.prompts().parallelStream().map { prompt(it, latest) }.toList())
+        return PromptListResponse(langfuse.prompts().parallelStream().map { meta ->
+            val name = meta.path("name").asString()
+            val listed = labels(meta)
+            val production = if (PRODUCTION in listed) langfuse.prompt(name, PRODUCTION) else null
+            val seed = if (SEED in listed && production?.let { SEED in labels(it) } != true) langfuse.prompt(name, SEED) else null
+            prompt(meta, listOfNotNull(production, seed).sortedByDescending { it.path("version").asInt() }, latest)
+        }.toList())
     }
 
     fun detail(member: OperationsMember, name: String): Prompt {
         permissions.requirePermission(member, LLM)
         val meta = langfuse.prompts(name).firstOrNull { it.path("name").asString() == name } ?: throw NoSuchElementException("Prompt not found.")
-        return prompt(meta, evaluations.latestByVersion(), withBody = true)
+        val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { langfuse.prompt(name, it) }
+        return prompt(meta, versions, evaluations.latestByVersion(), withBody = true)
     }
 
     /** A new version without any label: it only reaches production through [promote]. */
@@ -102,11 +110,11 @@ class PromptService(
         return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation?.summary(), model(current))
     }
 
-    private fun prompt(meta: JsonNode, latest: Map<Pair<String, Int>, Evaluation>, withBody: Boolean = false): Prompt {
+    private fun prompt(meta: JsonNode, versions: List<JsonNode>, latest: Map<Pair<String, Int>, Evaluation>, withBody: Boolean = false): Prompt {
         val name = meta.path("name").asString()
-        val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending()
-            .map { version(langfuse.prompt(name, it), latest[name to it], withBody) }
-        return Prompt(name, versions)
+        val read = versions.map { version(it, latest[name to it.path("version").asInt()], withBody) }
+        val live = read.firstOrNull { PRODUCTION in it.labels }?.version
+        return Prompt(name, read, labels(meta).count { it.startsWith("candidate-") && it != live?.let(::candidateLabel) })
     }
 
     private fun version(node: JsonNode, evaluation: Evaluation?, withBody: Boolean = false) = PromptVersion(

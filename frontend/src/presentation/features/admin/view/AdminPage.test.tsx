@@ -1345,10 +1345,11 @@ it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 �
 it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 수·코드 시드 대기를, 상세는 반영 중인 조합 요약과 버전별 상태·모델, 반영 중인 본문·모델로 채운 조합 폼을 보인다(#705)', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
   vi.spyOn(llm, 'prompts').mockResolvedValue([
-    { name: 'orchestration.main', versions: [{ version: 4, labels: ['candidate-4'] }, { version: 3, labels: ['seed', 'latest'] }, { version: 2, labels: ['production'], model: 'gpt-x' }] },
-    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }] },
+    // 목록은 production·seed 버전만 주고 후보 수는 따로 센다(#786).
+    { name: 'orchestration.main', versions: [{ version: 3, labels: ['seed', 'latest'] }, { version: 2, labels: ['production'], model: 'gpt-x' }], candidates: 1 },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }], candidates: 0 },
   ])
-  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', versions: [
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', candidates: 1, versions: [
     { version: 4, labels: ['candidate-4'], model: 'gpt-y', prompt: '운영 지시' }, { version: 3, labels: ['seed', 'latest'], prompt: '새 시드' },
     { version: 2, labels: ['production'], model: 'gpt-x', prompt: '운영 지시' }] })
   vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm1', modelName: 'gpt-x', matchPattern: 'x' }, { id: 'm2', modelName: 'gpt-y', matchPattern: 'y' }])
@@ -1387,8 +1388,8 @@ it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 
 
 it('후보 등록과 서비스 반영은 그 버전 행의 버튼으로 하고, 반영은 확인을 받는다(#705)', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
-  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 2, labels: ['candidate-2'] }, { version: 1, labels: ['production'] }] }])
-  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', versions: [
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'] }], candidates: 1 }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 1, versions: [
     { version: 3, labels: [], prompt: '셋' }, { version: 2, labels: ['candidate-2'], prompt: '둘' }, { version: 1, labels: ['production'], prompt: '하나' }] })
   vi.spyOn(llm, 'models').mockResolvedValue([])
   const candidate = vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)
@@ -1408,8 +1409,8 @@ it('후보 등록과 서비스 반영은 그 버전 행의 버튼으로 하고, 
 
 it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를 수 없다', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
-  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
-  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'] }] }])
   renderAdmin('llm', 'prompts&sub=prompts')
   fireEvent.click(await screen.findByRole('button', { name: 'decision_guard.judge' }))
   const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
@@ -1421,8 +1422,8 @@ it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를
 it('모델 목록이 늦게 와도 먼저 고른 모델이 바뀌지 않는다', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
   let answer: (rows: { id: string; modelName: string; matchPattern: string }[]) => void = () => {}
-  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'], model: 'gpt-x' }] }])
-  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', versions: [{ version: 1, labels: ['production'], model: 'gpt-x', prompt: '지시' }] })
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-x' }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-x', prompt: '지시' }] })
   vi.spyOn(llm, 'models').mockReturnValue(new Promise((resolve) => { answer = resolve }))
   renderAdmin('llm', 'prompts&sub=prompts')
   fireEvent.click(await screen.findByRole('button', { name: 'qa' }))

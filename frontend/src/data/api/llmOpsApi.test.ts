@@ -147,12 +147,12 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
   const version = { version: 2, labels: ['production'], createdAt: AT, evaluation: { runId: 'r1', passed: true, createdAt: AT } }
 
   it('프롬프트 목록·상세·새 버전 등록은 이름을 인코딩해 보낸다', async () => {
-    const fetcher = ok({ items: [{ name: 'qa answer' }], page: 0, size: 100, total: 1 })
+    const fetcher = ok({ items: [{ name: 'qa answer' }, { name: 'qa', versions: [version], candidates: 2 }], page: 0, size: 100, total: 1 })
     const repo = new HttpLlmOpsRepository(fetcher)
-    // 목록은 버전을 안 줘도 읽는다(상세가 채운다).
-    expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [] }])
-    const detail = new HttpLlmOpsRepository(ok({ name: 'qa answer', versions: [version] }))
-    expect(await detail.prompt('qa answer')).toEqual({ name: 'qa answer', versions: [version] })
+    // 목록은 버전·후보 수를 안 줘도 읽는다(상세가 채운다). 목록의 버전은 production·seed뿐이고 후보 수는 따로 온다(#786).
+    expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [], candidates: 0 }, { name: 'qa', versions: [version], candidates: 2 }])
+    const detail = new HttpLlmOpsRepository(ok({ name: 'qa answer', versions: [version], candidates: 0 }))
+    expect(await detail.prompt('qa answer')).toEqual({ name: 'qa answer', versions: [version], candidates: 0 })
     await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '메모', model: '' })
     await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '', model: 'gpt-x' })
     expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])).toEqual([

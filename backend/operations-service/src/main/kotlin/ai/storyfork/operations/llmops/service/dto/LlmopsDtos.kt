@@ -65,7 +65,11 @@ data class PromptVersion(
     val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
 )
 
-data class Prompt(val name: String, val versions: List<PromptVersion>)
+/**
+ * In the list [versions] are only the production and seed versions (#786: two Langfuse reads per prompt however many versions); the detail has them all.
+ * [candidates] counts the versions with their own candidate label other than the production version, from the labels Langfuse lists for the prompt.
+ */
+data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0)
 
 data class PromptListResponse(val items: List<Prompt>)
 

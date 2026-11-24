@@ -1,5 +1,5 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
-import { CANDIDATE_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
@@ -17,6 +17,7 @@ import type { OperationsDashboardRepository } from '../../domain/repositories/Op
  */
 const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
 const NOT_FOUND = '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'
+const candidatesOf = (versions: Prompt['versions']) => versions.filter((v) => versionAction(v) === 'promote').length
 const found = <T>(row: T | undefined): T => { if (!row) throw new OperationsError(NOT_FOUND); return row }
 const paged = <T>(rows: T[], page: number, size = 20): OperationsPage<T> => ({ items: rows.slice(page * size, (page + 1) * size), page, size, total: rows.length, unavailable: [] })
 const summary = (requests: number, failed: number, timeouts: number) => ({ requests, failed, timeouts, failureRate: requests ? failed / requests : null, costUser: 0, costPlatform: requests * 0.0021 })
@@ -115,7 +116,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     trace('trace-1', 'qa', 'success', 5, 1840, 0.0042), trace('trace-2', 'writing', 'failed', 40, 920, 0.0011),
     trace('trace-3', 'manuscript_review', 'timeout', 95, 30000, 0.0087), trace('trace-4', 'qa', 'success', 180, 1620, 0.0039),
   ]
-  private readonly prompts_: Prompt[] = [
+  private readonly prompts_: Omit<Prompt, 'candidates'>[] = [
     { name: 'qa-answer', versions: [
       { version: 3, labels: ['seed'], createdAt: ago(300), evaluation: { runId: 'run-2', passed: false, createdAt: ago(240) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하고 근거를 함께 보여 주세요.' },
       { version: 2, labels: ['production'], createdAt: ago(4000), evaluation: { runId: 'run-1', passed: true, createdAt: ago(3900) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하세요.' },
@@ -170,9 +171,17 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
       adoptionRate: 0.42, approvalRate: 0.67, filterRestoreRate: null,
     }
   }
-  // 서버처럼 목록은 버전의 라벨·모델만, 상세는 본문까지 준다.
-  async prompts() { return structuredClone(this.prompts_.map(({ name, versions }) => ({ name, versions: versions.map(({ prompt: _body, ...v }) => v) }))) }
-  async prompt(name: string) { return structuredClone(found(this.prompts_.find((p) => p.name === name))) }
+  // 서버처럼 목록은 production·seed 버전의 라벨·모델과 후보 수만, 상세는 모든 버전과 본문까지 준다(#786).
+  async prompts() {
+    return structuredClone(this.prompts_.map(({ name, versions }) => ({
+      name, candidates: candidatesOf(versions),
+      versions: versions.filter((v) => v.labels.includes('production') || v.labels.includes('seed')).map(({ prompt: _body, ...v }) => v),
+    })))
+  }
+  async prompt(name: string) {
+    const p = found(this.prompts_.find((item) => item.name === name))
+    return structuredClone({ ...p, candidates: candidatesOf(p.versions) })
+  }
   async createPromptVersion(name: string, input: PromptVersionInput) {
     const p = found(this.prompts_.find((item) => item.name === name))
     p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString(), model: input.model || null, prompt: input.prompt })

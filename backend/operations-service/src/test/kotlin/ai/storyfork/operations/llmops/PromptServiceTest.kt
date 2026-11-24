@@ -69,30 +69,47 @@ class PromptServiceTest {
     }
 
     @Test
-    fun `a prompt lists its versions newest first with labels creation time and the latest evaluation`() {
+    fun `the list reads only the production and seed versions by label and counts candidates from the prompt labels`() {
         givenRuns(run("run-old", "2026-11-19T01:00:00Z", "qa/answer", 2) to false, run("run-new", "2026-11-19T02:00:00Z", "qa/answer", 2) to true)
-        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1,3,2],"labels":["production","latest"]}""")))
-        `when`(langfuse.prompt("qa/answer", 1)).thenReturn(version("qa/answer", 1, "[]", "2026-11-01T00:00:00Z"))
-        `when`(langfuse.prompt("qa/answer", 2)).thenReturn(version("qa/answer", 2, """["production"]""", "2026-11-10T00:00:00Z"))
-        `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, """["latest"]"""))
+        // Langfuse lists a prompt with the labels of all its versions; candidate-2 is on the production version, so only candidate-3 waits.
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1,4,3,2],"labels":["production","seed","latest","candidate-2","candidate-3"]}""")))
+        `when`(langfuse.prompt("qa/answer", "production")).thenReturn(version("qa/answer", 2, """["production","candidate-2"]""", "2026-11-10T00:00:00Z"))
+        `when`(langfuse.prompt("qa/answer", "seed")).thenReturn(version("qa/answer", 4, """["seed","latest"]"""))
 
         val prompt = service.list(operators.llm).items.single()
 
         assertEquals("qa/answer", prompt.name)
-        assertEquals(listOf(3, 2, 1), prompt.versions.map { it.version })
-        assertEquals(listOf(listOf("latest"), listOf("production"), emptyList()), prompt.versions.map { it.labels })
-        assertEquals(listOf(null, Instant.parse("2026-11-10T00:00:00Z"), Instant.parse("2026-11-01T00:00:00Z")), prompt.versions.map { it.createdAt })
+        assertEquals(1, prompt.candidates)
+        assertEquals(listOf(4, 2), prompt.versions.map { it.version })
+        assertEquals(listOf(listOf("seed", "latest"), listOf("production", "candidate-2")), prompt.versions.map { it.labels })
+        assertEquals(listOf(null, Instant.parse("2026-11-10T00:00:00Z")), prompt.versions.map { it.createdAt })
         assertNull(prompt.versions[0].evaluation)
-        assertNull(prompt.versions[2].evaluation)
         val evaluation = checkNotNull(prompt.versions[1].evaluation)
         assertEquals(listOf("run-new", true, Instant.parse("2026-11-19T02:00:00Z")), listOf(evaluation.runId, evaluation.passed, evaluation.createdAt))
+        verify(langfuse, never()).prompt(anyString(), anyInt())
+    }
+
+    @Test
+    fun `the list reads a production version that is also the seed once and a prompt without either label not at all`() {
+        givenRuns()
+        `when`(langfuse.prompts()).thenReturn(listOf(
+            json("""{"name":"qa","versions":[1,2,3],"labels":["production","seed","latest"]}"""), json("""{"name":"bare","versions":[1],"labels":["latest"]}"""),
+        ))
+        `when`(langfuse.prompt("qa", "production")).thenReturn(version("qa", 2, """["production","seed"]"""))
+
+        val items = service.list(operators.llm).items
+
+        assertEquals(listOf(listOf(2), emptyList()), items.map { prompt -> prompt.versions.map { it.version } })
+        assertEquals(listOf(0, 0), items.map { it.candidates })
+        verify(langfuse, times(1)).prompt(anyString(), anyString())
+        verify(langfuse, never()).prompt(anyString(), anyInt())
     }
 
     @Test
     fun `a prompt version whose creation time cannot be read is a 502`() {
         givenRuns()
-        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1]}""")))
-        `when`(langfuse.prompt("qa/answer", 1)).thenReturn(version("qa/answer", 1, "[]", "never"))
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1],"labels":["production"]}""")))
+        `when`(langfuse.prompt("qa/answer", "production")).thenReturn(version("qa/answer", 1, """["production"]""", "never"))
 
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm) }.statusCode)
     }
@@ -100,11 +117,12 @@ class PromptServiceTest {
     @Test
     fun `the detail is the prompt with exactly that name and an unknown name is not found`() {
         givenRuns()
-        `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1]}"""), json("""{"name":"qa","versions":[1]}""")))
+        `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1]}"""), json("""{"name":"qa","versions":[1],"labels":["production","candidate-1","candidate-5"]}""")))
         `when`(langfuse.prompt("qa", 1)).thenReturn(version("qa", 1, """["production"]"""))
         `when`(langfuse.prompts("nope")).thenReturn(emptyList())
 
-        assertEquals(listOf("qa"), listOf(service.detail(operators.llm, "qa").name))
+        val detail = service.detail(operators.llm, "qa")
+        assertEquals(listOf("qa", 1), listOf(detail.name, detail.candidates))
         assertThrows(NoSuchElementException::class.java) { service.detail(operators.llm, "nope") }
     }
 
@@ -134,7 +152,8 @@ class PromptServiceTest {
     fun `each version shows the model chosen in its config and only the detail carries the prompt body`() {
         givenRuns()
         val chosen = json("""{"name":"qa","version":2,"labels":["production","seed"],"prompt":"지시","config":{"model":"gpt-chosen"}}""")
-        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa","versions":[1,2],"labels":["production","seed"]}""")))
+        `when`(langfuse.prompt("qa", "production")).thenReturn(chosen)
         `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
         `when`(langfuse.prompt("qa", 2)).thenReturn(chosen)
         `when`(langfuse.prompt("qa", 1)).thenReturn(json("""{"name":"qa","version":1,"labels":[],"prompt":"옛 지시","config":{}}"""))
@@ -142,8 +161,8 @@ class PromptServiceTest {
         val listed = service.list(operators.llm).items.single().versions
         val detail = service.detail(operators.llm, "qa").versions
 
-        assertEquals(listOf("gpt-chosen", null), listed.map { it.model })
-        assertEquals(listOf(null, null), listed.map { it.prompt })
+        assertEquals(listOf("gpt-chosen"), listed.map { it.model })
+        assertEquals(listOf(null), listed.map { it.prompt })
         assertEquals(listOf(json("\"지시\""), json("\"옛 지시\"")), detail.map { it.prompt })
     }
 

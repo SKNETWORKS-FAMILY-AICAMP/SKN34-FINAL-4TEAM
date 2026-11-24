@@ -43,8 +43,7 @@ export function Prompts({ vm, l }: Props) {
               </thead>
               <tbody>
                 {[...rows].sort((a, b) => a.name.localeCompare(b.name)).map((row) => {
-                  const current = productionOf(row), pending = pendingSeed(row)
-                  const candidates = row.versions.filter((v) => versionAction(v) === 'promote').length
+                  const current = productionOf(row), pending = pendingSeed(row), candidates = row.candidates
                   return (
                     <tr key={row.name}>
                       <td><button type="button" className="admin-prompt-name" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}>{row.name}</button></td>

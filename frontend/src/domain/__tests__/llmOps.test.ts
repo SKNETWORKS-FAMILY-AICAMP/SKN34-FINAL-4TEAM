@@ -103,12 +103,12 @@ describe('권한 안내 문구', () => {
 
   it('production 버전과, production과 다른 코드 시드(seed 라벨) 버전을 찾는다(#705)', () => {
     const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
-    expect(productionOf({ name: 'p', versions: [v(3, ['seed']), v(2, ['production'])] })?.version).toBe(2)
-    expect(pendingSeed({ name: 'p', versions: [v(3, ['seed', 'latest']), v(2, ['production'])] })?.version).toBe(3)
+    expect(productionOf({ name: 'p', candidates: 0, versions: [v(3, ['seed']), v(2, ['production'])] })?.version).toBe(2)
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(3, ['seed', 'latest']), v(2, ['production'])] })?.version).toBe(3)
     // 시드가 production과 같은 버전이거나 아직 seed 라벨이 없으면 대기 중인 시드가 없다.
-    expect(pendingSeed({ name: 'p', versions: [v(2, ['production', 'seed'])] })).toBeNull()
-    expect(pendingSeed({ name: 'p', versions: [v(2, ['production'])] })).toBeNull()
-    expect(productionOf({ name: 'p', versions: [v(1)] })).toBeNull()
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(2, ['production', 'seed'])] })).toBeNull()
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(2, ['production'])] })).toBeNull()
+    expect(productionOf({ name: 'p', candidates: 0, versions: [v(1)] })).toBeNull()
   })
 
   it('버전에 고른 모델이 없으면 기본 모델(gpt-6-luna, 인물 대사만 gpt-6.1-terra)이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {

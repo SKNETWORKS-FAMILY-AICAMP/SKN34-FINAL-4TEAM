@@ -77,10 +77,12 @@ class LlmopsJsonTest {
     fun `a prompt with its versions and evaluation has the contract fields`() {
         val tree = tree(PromptListResponse(listOf(Prompt("qa/answer", listOf(
             PromptVersion(2, listOf("production"), at, PromptEvaluation("run-1", true, at), "gpt-x", json("\"지시\"")), PromptVersion(1, emptyList(), null, null),
-        )))))
+        ), 2))))
 
         val prompt = tree.path("items").path(0)
-        assertEquals(listOf("name", "versions"), prompt.names())
+        // candidates counts the versions waiting as candidates: the list carries only the production and seed versions (#786).
+        assertEquals(listOf("name", "versions", "candidates"), prompt.names())
+        assertEquals(2, prompt.path("candidates").asInt())
         // model is the version's config.model and prompt the body (detail only); both are null when absent (#705).
         assertEquals(listOf("version", "labels", "createdAt", "evaluation", "model", "prompt"), prompt.path("versions").path(0).names())
         assertEquals(listOf("gpt-x", "지시"), listOf(prompt.path("versions").path(0).path("model").asString(), prompt.path("versions").path(0).path("prompt").asString()))

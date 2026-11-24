@@ -70,7 +70,7 @@
 | `GET /llmops/traces?from&to&feature&status&userId&requestId&page` | `llm` | trace 목록(시각·기능·상태·지연·토큰·비용), `requestId`는 metadata `request_id` 일치 |
 | `GET /llmops/traces/{id}` | `llm` | 단계별 observation(이름·시각·지연·모델·토큰·level), 입력·출력 본문 |
 | `GET /llmops/metrics?from&to&groupBy=day|feature|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자/플랫폼)·채택률·승인률·필터 복원률 |
-| `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 프롬프트별 버전·라벨·모델(`config.model`)·최신 평가 결과. 상세만 버전 본문(`prompt`)을 싣는다 |
+| `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 프롬프트별 버전·라벨·모델(`config.model`)·최신 평가 결과와 후보 수(`candidates`, production이 아닌 `candidate-N` 라벨 수). 목록은 `production`·`seed` 버전만 라벨로 읽어(프롬프트당 Langfuse 읽기 최대 2회, 버전 수와 무관, #786) 싣고 후보 수는 Langfuse 목록의 라벨 합집합에서 센다. 상세만 모든 버전과 본문(`prompt`)을 싣는다 |
 | `POST /llmops/prompts/{name}` | `llm` | 새 버전 등록(라벨 없음). `config.model`은 Langfuse 모델 정의에 있는 이름(문자열)이어야 하며 아니면 400 |
 | `PUT /llmops/prompts/{name}/candidate` `{version}` | `llm` | 그 버전(조합)을 서비스 반영 후보로 등록: 라벨 `candidate-<version>`을 단다(Langfuse 라벨은 한 버전에만 있어 버전 번호를 넣는다, 여럿 공존). 평가는 요구하지 않는다(#705) |
 | `PUT /llmops/prompts/{name}/production` `{version}` | `llm` | `production` 라벨 이동(서비스 반영·이전 버전 복원). 그 버전에 자기 후보 라벨이 없으면 409 `CANDIDATE_REQUIRED`(화면은 code로 한국어 안내). 복원도 후보로 등록한 뒤 한다 |
@@ -104,7 +104,7 @@ TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTi
 Page<T> { items:[T], page, size, total }
 MetricRow { key(날짜·기능·모델), requests, failureRate?, timeoutRate?, p50LatencyMs?, p95LatencyMs?, inputTokens, outputTokens, costUser, costPlatform }
 Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null. 끝난 요청이 없으면 AiSummary·MetricRow의 실패율·시간 초과율·지연도 null(0이 아님), 요청·토큰·비용이 모두 없는 행은 내려주지 않는다
-Prompt { name, versions:[{version, labels:[string], createdAt?, evaluation?:{runId, passed, createdAt}, model?, prompt?}] }   // model은 config.model(없으면 기본 모델), prompt는 상세에서만
+Prompt { name, versions:[{version, labels:[string], createdAt?, evaluation?:{runId, passed, createdAt}, model?, prompt?}], candidates }   // model은 config.model(없으면 기본 모델), prompt는 상세에서만, 목록의 versions는 production·seed뿐
 Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
 Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,
              metrics:[{name, score, baseline?, delta?}] }

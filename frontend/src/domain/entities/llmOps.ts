@@ -38,7 +38,8 @@ export type PromptVersion = {
   version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
   model?: string | null; prompt?: string | null
 }
-export type Prompt = { name: string; versions: PromptVersion[] }
+/** 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다. */
+export type Prompt = { name: string; versions: PromptVersion[]; candidates: number }
 /** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. model이 비면 기본 모델 버전입니다. */
 export type PromptVersionInput = { prompt: string; commitMessage: string; model: string }
 
