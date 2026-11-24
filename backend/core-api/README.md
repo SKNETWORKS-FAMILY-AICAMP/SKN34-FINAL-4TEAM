@@ -199,6 +199,20 @@ AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `by
 타인·미존재 작품/설정/첨부·다른 설정의 첨부 ID는 동일한 404이며 미인증은 401, CSRF·허용하지 않은 origin은 403입니다.
 인증/CSRF 오류는 기존 Security 경계의 응답 형식을 유지합니다.
 
+### 세계관 카드 첨부 (#735)
+
+옛 작품 설정 문서가 없는 새 작품도 참고 파일·설정 이미지를 붙일 수 있도록 같은 첨부를 WorldStudio 설정 카드에도 둔다(사용자 결정 2026-11-24, [DEC-39](../../docs/design/decisions.md)).
+기준 경로는 `/api/v1/world-studios/{worldId}/cards/{cardId}/attachments`이고 하위 경로·요청·응답·허용 형식·10 MiB 한도·카드마다 이미지 10개·교체/삭제 복원·오류 코드는 위 설정 첨부와 같다
+(같은 `AttachmentService` 로직을 `card = true`로 재사용하며 `AttachmentResponse.url`만 `/api/v1/world-studios/{worldId}/cards/{cardId}/attachments/{attachmentId}/content`다).
+
+- **인가**: 세계관 소유자만 올리고 보고 받는다. 운영자는 GET·HEAD 열람만 하고 쓰기는 소유자만이다(`StudioWorldRepository.lockAccessible`). 남의 세계관·삭제한(소프트 삭제) 세계관·지운 카드(`lifecycle=removed`)·초안에 없는 카드·다른 세계관의 카드·UUID가 아닌 ID는 모두 같은 404 `ATTACHMENT_NOT_FOUND`이며 객체 저장소에 닿기 전에 막힌다(미인증 401은 그대로).
+  `CardAttachmentService`가 WorldStudio 트랜잭션(`WorldStudioService.hasCard`)에서 소유·카드를 먼저 확인한 뒤 첨부 트랜잭션을 연다(두 트랜잭션을 겹치지 않는다). 세계관 쪽 DB 실패는 503 `ATTACHMENT_DATABASE_FAILURE`다.
+- **저장**: `setting_attachment`가 옛 설정 문서(`setting_document_id`) 또는 카드(`world_card_id`) 중 정확히 한 곳을 가리킨다(DB CHECK, `db/migration/settingattachment/V2`, V1 바이트는 그대로). 카드는 `worldstudio` 스키마·별도 Flyway 이력이라 FK를 두지 않고 서비스가 확인한다.
+  한계: 확인과 저장 사이에 카드를 지우거나 카드를 지운(초안에서 뺀) 뒤에는 읽을 수 없는 첨부 행·객체가 남을 수 있다(자동 정리 없음, 운영자 몫).
+- **싣지 않는 곳**: 카드 첨부는 소유자 전용이다. 공개 세계관·독자 설정 위키·Fork 이어받기·설정 가져오기·Fork 독립 복사 응답에는 첨부 필드가 없고, Fork는 원본의 카드 첨부를 보지 못한다. 카드 대표 이미지(#401, `world-card-images`)는 별개 기능이다.
+- **옛 작품 설정 첨부는 그대로다**: 기존 작품(옛 설정이 있는 15개 작품)의 첨부는 옮기지 않고 같은 옛 경로·옛 화면(`/content` 세계관·설정집 탭의 `설정 첨부` 카드)에서 보이고 받는다. 새 업로드 대상만 카드가 늘었다.
+- **공개 진입점**: `/api/v1/world-studios/` 접두는 이미 Content로 가고, 파일 10 MiB(multipart 11 MiB)를 받도록 그 위치의 `client_max_body_size`를 6m에서 11m으로 올렸다(`frontend/nginx.conf`·`infrastructure/nginx.dev.conf`, `test_ci.py`가 고정).
+
 ### 보수적인 기술 제한 (요금·업무 저장 한도 정책이 아님)
 
 - 모든 파일은 비어 있지 않은 **10 MiB 이하**입니다. multipart envelope 한도는 11 MiB입니다.
@@ -236,13 +250,13 @@ Compose의 Core Auth Health → Content fresh 업무 migration → 첨부 Entity
 
 ```bash
 # backend/content-service에서 로컬 선택 순수 단위만
-./gradlew unitTest --tests 'ai.storyfork.content.attachment.AttachmentServiceTest' --tests 'ai.storyfork.content.attachment.AttachmentUploadHelperTest' --no-daemon
+./gradlew unitTest --tests 'ai.storyfork.content.attachment.AttachmentServiceTest' --tests 'ai.storyfork.content.attachment.CardAttachmentServiceTest' --tests 'ai.storyfork.content.attachment.AttachmentUploadHelperTest' --no-daemon
 # 아래는 hosted CI 형식이며 로컬 자동 검증 목록이 아닙니다.
 ./gradlew integrationTest --tests 'ai.storyfork.content.attachment.*' --no-daemon
 ```
 
 `AttachmentStorageClientTest`의 대역 HTTP와 `AttachmentMigrationLocationTest`의 H2/Flyway도 통합 계층입니다.
-`AttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다.
+`AttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다. 카드 첨부의 HTTP·DB(CHECK 포함) 흐름은 `world/CardAttachmentHttpIntegrationTest`(CI 전용, 객체 저장소 대역)가 확인합니다.
 설정·HTTP 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 활성화합니다. 격리 DB 사용자는 `content_test`/빈 비밀번호이며 공유 DB에는 실행하지 않습니다.
 HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필요하고 전용 `issue87-test` 비공개 버킷을 만듭니다.
 실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.

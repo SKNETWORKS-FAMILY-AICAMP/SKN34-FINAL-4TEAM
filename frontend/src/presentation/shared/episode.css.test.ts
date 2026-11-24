@@ -669,3 +669,13 @@ describe('episode.css 관리 화면 polish 계약 (manage-cards G1 5단계)', ()
     expect(check).toMatch(/padding-block:11px/)
   })
 })
+
+describe('episode.css 표지 AI 생성 패널', () => {
+  it('패널을 펴면 화면 폭과 상관없이 히어로가 한 열이라 폼이 240px 표지 열에 갇히지 않는다', () => {
+    expect(rule('.episode-app .ep-hero:has(.ep-cover-ai[data-open])')).toMatch(/grid-template-columns:minmax\(0,1fr\)/)
+    expect(rule('.ep-hero-cover:has(.ep-cover-ai[data-open])')).toMatch(/max-width:none/)
+    expect(rule('.ep-hero-cover:has(.ep-cover-ai[data-open])>.ep-cover')).toMatch(/max-width:220px/) // 표지 그림은 원래 폭을 지킨다
+    // 900px 이하에만 적용하던 때는 데스크톱에서 폼이 표지 열에 갇혔다: 미디어 쿼리 안에 두지 않는다.
+    expect(narrow('.ep-hero-cover:has(.ep-cover-ai[data-open])')).toBe('')
+  })
+})

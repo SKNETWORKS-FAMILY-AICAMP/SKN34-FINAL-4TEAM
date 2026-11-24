@@ -11,16 +11,19 @@ import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
+import ai.storyfork.content.world.domain.Setting
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.PublicWorldService
+import ai.storyfork.content.world.service.WorldService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.CardPayload
 import ai.storyfork.content.world.service.dto.CreateWorldRequest
 import ai.storyfork.content.world.service.dto.EditWorldDraftRequest
 import ai.storyfork.content.world.service.dto.InheritedSource
 import ai.storyfork.content.world.service.dto.InheritedWorldResponse
+import ai.storyfork.content.world.service.dto.ReadingDocumentResponse
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
@@ -84,7 +87,8 @@ class WorkWorldDetachServiceTest {
     private val works = mock(WorkRepository::class.java)
     private val references = mock(ForkWorldReferenceRepository::class.java)
     private val publicWorlds = mock(PublicWorldService::class.java)
-    private val service = WorkWorldService(access, works, mock(PublicationService::class.java), mock(StudioWorldRepository::class.java), publicWorlds, references, worldStudio, TransactionTemplate(manager))
+    private val legacyWorlds = mock(WorldService::class.java)
+    private val service = WorkWorldService(access, works, mock(PublicationService::class.java), mock(StudioWorldRepository::class.java), publicWorlds, references, worldStudio, legacyWorlds, TransactionTemplate(manager))
 
     private val fork = WorkEntity(id = "fork", ownerId = ownerId, title = "분기", revision = 1)
     private val original = WorkEntity(id = "original", ownerId = UUID.randomUUID().toString(), title = "원작", revision = 1).also { it.worldStudioId = sourceWorld }
@@ -300,5 +304,107 @@ class WorkWorldDetachServiceTest {
         val names = mockingDetails(worldStudio).invocations.filter { it.method.name == "create" }.map { it.getArgument<CreateWorldRequest>(1).name }
         assertEquals(listOf("가".repeat(96) + " 세계관", "가".repeat(95) + " 세계관"), names)
         assertTrue(names.all { it.length <= 100 })
+    }
+
+    // ---- 원작에 세계관이 없는 옛 작품 설정집 방식 Fork(#737): 따라가던 설정을 카드로 복사한다 ----
+
+    private fun book(vararg names: String) = names.map { name ->
+        val setting = Setting("id-$name", "v-$name", name, "$name 내용", "규칙", emptyList(), "public", 1, null, emptyList(), "")
+        setting to ReadingDocumentResponse(setting.id, setting.versionId, "world", name, setting.content, emptyList(), emptyList(), emptyList(), "#7C8A9E", null, null, null, emptyList(), emptyList(), emptyList())
+    }
+
+    /** 원작에 세계관이 없고 Fork가 옛 설정 [names]를 따라간다. */
+    private fun settingsBook(vararg names: String) {
+        forking()
+        original.worldStudioId = null
+        `when`(legacyWorlds.followingSettings("fork", ownerId)).thenReturn(book(*names))
+    }
+
+    @Test fun `a fork of an original without a world copies the settings it follows into a new private world, connects it and stops following`() {
+        settingsBook("하린", "봉인")
+
+        val result = service.detachInheritedWorld("fork", ownerId)
+
+        val create = call("create").getArgument<CreateWorldRequest>(1)
+        assertEquals(WorkWorldLinkResponse("fork", create.id), result)
+        // 이어받을 원작 세계관이 없으니 읽지 않고, 옛 설정집의 설정을 한 번 읽어 같은 순서(생성 → 초안 편집, 확정 버전 없음)로 복사한다.
+        verifyNoInteractions(publicWorlds)
+        verify(legacyWorlds).followingSettings("fork", ownerId)
+        assertEquals(listOf("create", "edit"), calls())
+        val edit = call("edit").getArgument<EditWorldDraftRequest>(2)
+        assertEquals(listOf<Any>(0L, "분기 세계관"), listOf(edit.expectedDraftRevision, edit.name))
+        assertEquals(listOf("하린", "봉인"), edit.cards.map { it.title })
+        assertTrue(edit.relationships.isEmpty())
+        assertEquals(create.id, fork.worldStudioId)
+        assertEquals("independent", following.referenceStatus)
+        assertNotNull(following.detachedAt)
+        verify(works).saveAndFlush(fork)
+        verify(references).lockById("fork")
+        assertEquals(0, openTransactions)
+    }
+
+    @Test fun `a world the original has is copied as before and the settings book is not read`() {
+        forking()
+        readable()
+        `when`(legacyWorlds.followingSettings("fork", ownerId)).thenReturn(book("옛 설정"))
+
+        service.detachInheritedWorld("fork", ownerId)
+
+        assertEquals(listOf("하린", "온실"), call("edit").getArgument<EditWorldDraftRequest>(2).cards.map { it.title })
+        verifyNoInteractions(legacyWorlds)
+    }
+
+    @Test fun `a fork that follows no settings book is 409 without reading any settings`() {
+        settingsBook("하린")
+        fork.worldStudioId = UUID.randomUUID()  // 자기 세계관이 있다
+        notInherited()
+        fork.worldStudioId = null
+        forking(ForkWorldReferenceEntity("fork", "legacy-world", "independent")); original.worldStudioId = null  // 이미 독립했다
+        notInherited()
+        forking(null); original.worldStudioId = null  // 추종 기록이 없다
+        notInherited()
+        forking(source = null); original.worldStudioId = null  // Fork가 아니다
+        notInherited()
+        forking(source = SourceResponse("original", "원작", 2, 1, "", deleted = true)); original.worldStudioId = null  // 원작이 삭제됐다
+        notInherited()
+
+        verifyNoInteractions(worldStudio, legacyWorlds)
+        verify(works, never()).saveAndFlush(any())
+        assertNull(fork.worldStudioId)
+    }
+
+    @Test fun `a fork whose original has no world and no settings to copy is 409 and no world is made`() {
+        forking(); original.worldStudioId = null  // legacyWorlds는 복사할 설정이 없다고(빈 목록) 답한다
+
+        notInherited()
+
+        verifyNoInteractions(worldStudio)
+        verify(works, never()).saveAndFlush(any())
+        assertEquals("following", following.referenceStatus)
+    }
+
+    @Test fun `when another request detached first while the settings were being copied, the new world is soft-deleted and the answer is 409`() {
+        settingsBook("하린")
+        during = { following.referenceStatus = "independent" }
+
+        notInherited()
+
+        assertEquals(listOf("create", "edit", "delete"), calls())
+        assertEquals(listOf<Any>(call("create").getArgument<CreateWorldRequest>(1).id, owner, false), call("delete").arguments.toList())
+        assertNull(fork.worldStudioId)
+        verify(works, never()).saveAndFlush(any())
+        assertEquals(0, openTransactions)
+    }
+
+    @Test fun `when the original got a world while the settings were being copied, nothing is connected`() {
+        settingsBook("하린")
+        during = { original.worldStudioId = sourceWorld }  // 이제 이 Fork는 설정이 아니라 그 세계관을 이어받는다: 복사한 설정은 낡았다
+
+        notInherited()
+
+        assertEquals(listOf("create", "edit", "delete"), calls())
+        assertNull(fork.worldStudioId)
+        assertEquals("following", following.referenceStatus)
+        verify(works, never()).saveAndFlush(any())
     }
 }

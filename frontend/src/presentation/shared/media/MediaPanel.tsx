@@ -1,5 +1,5 @@
 import {Fragment,useEffect,useMemo,useRef,useState} from 'react'
-import type {Attachment,MediaTarget} from '../../../domain/entities/media'
+import {isFileTarget,type Attachment,type MediaTarget} from '../../../domain/entities/media'
 import {manuscriptBlocks,type InlinePart} from '../../../domain/entities/manuscriptFormat'
 import {useMediaViewModel,useStoredImage} from './useMediaViewModel'
 import {usePublicImageAlts} from './usePublicImageAlts'
@@ -67,10 +67,11 @@ export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;on
  const vm=useMediaViewModel(target)
  const [renaming,setRenaming]=useState('')
  const cover=target.kind==='cover'
- // 설정 첨부는 바깥 카드('설정 첨부', h3) 안쪽이라 h4이고 이름 없는 구역이다(같은 이름의 구역이 겹치지 않게). 표지는 혼자 선 구역(h3)이다.
- const Heading=cover?'h3':'h4'
+ // 옛 설정 첨부는 작품 관리의 바깥 카드('설정 첨부', h3) 안쪽이라 h4이고 이름 없는 구역이다(같은 이름의 구역이 겹치지 않게). 표지와 세계관 설정 카드 첨부(#735)는 혼자 선 구역(h3)이다.
+ const nested=target.kind==='setting'
+ const Heading=nested?'h4':'h3'
  useEffect(()=>{onBusy?.(vm.mutating);return ()=>onBusy?.(false)},[vm.mutating,onBusy])
- return <section className={`media-panel ${cover?'media-cover':''}`} aria-label={cover?'작품 표지':undefined}>
+ return <section className={`media-panel ${cover?'media-cover':''}`} aria-label={cover?'작품 표지':nested?undefined:'설정 첨부'}>
   <Heading>{cover?'작품 표지':'이미지·파일 첨부'}</Heading>
   <p className="small muted">{cover?'PNG·JPEG, 10 MiB 이하. 작품 공개 전에는 나만 볼 수 있어요.':'PNG·JPEG·TXT·MD·CSV·PDF, 파일당 10 MiB 이하 · 설정 이미지 최대 10개. 첨부는 소유자 전용이며 독자에게 자동 공개되지 않아요.'}</p>
   {vm.error&&<p role="alert">{vm.error}</p>}
@@ -85,9 +86,9 @@ export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;on
     <p><strong>{item.filename}</strong> · {(item.byteSize/1024).toLocaleString('ko-KR',{maximumFractionDigits:1})} KiB</p>
     <div className="media-actions"><button type="button" className="btn sm" onClick={()=>void vm.download(item)}>다운로드 · {item.filename}</button>
      {!cover&&<label className="media-file">파일 교체 · {item.filename}<input type="file" aria-label={`파일 교체 · ${item.filename}`} accept=".png,.jpg,.jpeg,.txt,.md,.csv,.pdf" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.upload(file,item.id)}}/></label>}
-     {target.kind==='setting'&&renaming!==item.id&&<button type="button" className="btn sm" onClick={()=>setRenaming(item.id)}>이름 변경 · {item.filename}</button>}
+     {isFileTarget(target)&&renaming!==item.id&&<button type="button" className="btn sm" onClick={()=>setRenaming(item.id)}>이름 변경 · {item.filename}</button>}
      <button type="button" className="btn sm" onClick={()=>{if(window.confirm(`${item.filename} 첨부를 삭제할까요?`))void vm.remove(item.id)}}>삭제 · {item.filename}</button></div>
-    {target.kind==='setting'&&renaming===item.id&&<RenameForm item={item} onRename={filename=>vm.rename(item,filename)} onCancel={()=>setRenaming('')}/>}
+    {isFileTarget(target)&&renaming===item.id&&<RenameForm item={item} onRename={filename=>vm.rename(item,filename)} onCancel={()=>setRenaming('')}/>}
    </li>)}</ul>
   </fieldset>
   {vm.busy&&<button className="btn sm" type="button" onClick={vm.cancel}>파일 요청 취소</button>}

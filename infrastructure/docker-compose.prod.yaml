@@ -9,6 +9,10 @@ include:
 
 services:
   # Variable names match local/dev; the production server's own .env supplies values. Blank required values fail config.
+  image-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
+    platform: linux/amd64
+
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
     platform: linux/amd64
@@ -63,6 +67,12 @@ services:
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      # 이미지 worker가 올린 결과를 Content가 읽도록 같은 저장소를 쓴다. 값은 base의 image-worker와 같은 보간이다.
+      ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+      ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+      ATTACHMENT_S3_ENDPOINT: ${ATTACHMENT_S3_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       # 원고 색인은 항상 켜져 있다: 외부 Elasticsearch가 필요하다(이 파일은 볼륨을 만들지 않는다). 인덱스는 Content가 시작할 때 만들고 매핑을 검증한다.
       MANUSCRIPT_INDEX_URL: ${MANUSCRIPT_INDEX_URL:?Set MANUSCRIPT_INDEX_URL to the external Elasticsearch URL}
       APP_CORS_ALLOWED_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN to the public HTTPS origin}
