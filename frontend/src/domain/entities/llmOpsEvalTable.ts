@@ -40,7 +40,7 @@ export const AGENT_EVALUATIONS: AgentEvaluation[] = [
   { agent: '인물 시뮬레이션', feature: 'character_simulation.act', mode: '새 답변 생성', set: 'simulation.act(24)', dataset: 'simulation.act', metrics: 'voice(말투) · intent(의도) · pov_ok(시점)', result: RECENT_RUN },
   { agent: '인물 시뮬레이션', feature: 'character_simulation.narrate', mode: '새 답변 생성', set: 'simulation.narrate(46)', dataset: 'simulation.narrate', metrics: 'style(문체) · info(정보) · pov_ok(시점)', result: RECENT_RUN },
   { agent: '인물 시뮬레이션', feature: '기억 회상(NovelBrain recall)', mode: '원문 검색', set: '한국어 62문항(고정 스냅샷)', metrics: 'Recall@5 · P@5 · MRR@5 · 미래·비목격 누설', result: `${CI} — 3단계 known Recall@5 0.96 · MRR@5 0.51, setting 0.86 · 0.65, 미래 누설 0.08` },
-  { agent: '전처리 설정 추출', feature: 'manuscript_extraction.extract', ...NONE },
+  { agent: '전처리 설정 추출', feature: 'manuscript_extraction.extract', mode: '새 답변 생성', set: 'extraction.extract(30)', dataset: 'extraction.extract', metrics: 'recall(재현율) · quote_ok(인용 통과율)', result: RECENT_RUN },
 ]
 
 /** 평가 목록에서 그 세트의 가장 최근 Run. 목록 순서를 믿지 않고 시각으로 고르며, 다른 세트의 Run은 대신하지 않는다. */

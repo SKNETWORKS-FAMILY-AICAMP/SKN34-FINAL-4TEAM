@@ -40,10 +40,10 @@ LLMOps 화면 '평가·누설 검사'의 맨 위 '에이전트별 평가' 표와
 | 인물 시뮬레이션 · `character_simulation.act` | 새 답변 생성 | `simulation.act`(24) | `voice`(말투) · `intent`(의도) · `pov_ok`(시점) | 최근 Run |
 | 인물 시뮬레이션 · `character_simulation.narrate` | 새 답변 생성 | `simulation.narrate`(46) | `style`(문체) · `info`(정보) · `pov_ok`(시점) | 최근 Run |
 | 인물 시뮬레이션 · 기억 회상(NovelBrain `recall`) | 원문 검색 | 한국어 62문항(고정 스냅샷) | Recall@5 · P@5 · MRR@5 · 미래·비목격 누설 | 버튼 없음 · CI에서 확인 — 3단계 known Recall@5 0.96 · MRR@5 0.51, setting 0.86 · 0.65, 미래 누설 0.08 |
-| 전처리 설정 추출 · `manuscript_extraction.extract` | — | 평가 세트 없음(후속) | — | — |
+| 전처리 설정 추출 · `manuscript_extraction.extract` | 새 답변 생성 | `extraction.extract`(30) | `recall`(재현율) · `quote_ok`(인용 통과율) | 최근 Run |
 
 - 후보 등록 평가 게이트(#787)는 Q&A 답변(`qa.grounding`)·인물 대사(`simulation.act`)·나레이션(`simulation.narrate`)에만 있다. 나머지 세트(`leak.spoiler`·`world.conflict`·`writing.fix`)는 범용이라 게이트가 아니다. `leak.spoiler`는 운영 정기 작업 `leak_sample_check`가 실제 Fork 응답을 표본으로 판정하는 것과 같은 방식(DeepEval)이다. 방식은 [운영 LLMOps 계약](../design/operations-llmops-contract.md), 시뮬레이션 세트는 [원문 평가 §10](simulation-original.md#10-운영-llmops-등록-형식내보내기)에 있다.
-- 세트가 생기면 '평가 세트 없음(후속)' 행을 그 세트·지표로 바꾼다. 전처리 설정 추출의 정답표 세트·코드 채점(`recall`·`quote_ok`)은 같은 이슈 묶음의 다른 브랜치(`docs/evaluation/extraction-set.md`, #824)가 만들고, 그 브랜치가 병합되면 이 행을 `extraction.extract`로 바꾼다.
+- 세트가 생기면 '평가 세트 없음(후속)' 행을 그 세트·지표로 바꾼다. 전처리 설정 추출은 #824로 `extraction.extract`(30회차)로 바뀌었다: 채점 모델 없이 코드가 정답표와 대조하고 `recall`은 설정다운 정답만 센다([추출 평가 세트](extraction-set.md)).
 - 웹 검색은 제외한다(결과가 시점마다 달라 고정 입력이 성립하지 않는다, 재현 불가). Content 원고 벡터 검색(`app/retrieval`)은 후속이다: 색인·검색 범위는 Content가 소유하고 호출에 Content 내부 API와 Content가 서명한 토큰이 필요하다. NovelBrain 평가의 '벡터'는 운영과 같은 고정 리비전의 E5-small로 AI가 문단을 직접 임베딩해 코사인 kNN으로 찾는 근사다.
 
 ### 1.2 화면 표에 없는 평가(로컬 CLI)
@@ -56,6 +56,7 @@ LLMOps 화면에 Run이 남지 않고 로컬 CLI로 돌리는 평가다.
 | 원문 → 세계관 → 인물 시뮬레이션 통합(전처리 `extract`·`resolve`·`organize` → `world_from` → `act`·`narrate`) | 새 답변 생성 | 로컬 CLI `eval/simulation/pipe_cli.py`(`--via ocx`는 금액 0) | 세계관 인용 통과율·평가 인물 포함률, 페르소나 인물 문서 줄의 원문 근거 비율, act `voice`·`intent`·narrate `style`·`info`·시점 위반율(손라벨 세계관 기준선과 같은 문항 짝 비교) | 공개 세트 14편: ① 대사 150·③ 나레이션 70·③ 독백 30 | [통합 평가](pipeline-eval.md) |
 | NovelBrain 단계 효과(검색 문맥을 준 응답의 시점 일관성) | 새 답변 생성 | 로컬 CLI `run_timechara.py`·`ko_timechara/kt_run.py`(유료 호출) | 시공간 일관성 | KoTimeChara 3,328·TimeChara 600 | [NovelBrain 평가](novelbrain.md) |
 | NovelBrain 근거 검색(영어 공개) | 원문 검색 | 로컬 CLI `run.py retrieval`(호출 없음) | Recall@5·P@5 | NarrativeQA 100·MuSiQue 100 | [NovelBrain 평가 §4.1](novelbrain.md#41-근거-검색-narrativeqamusique) |
+| 전처리 설정 추출(로컬 세트) | 새 답변 생성 | 로컬 CLI `eval/extraction/ex_cli.py score`(유료 호출, 해리 포터·웹소설 원문은 저장소 밖) | `recall`(설정다운 정답)·`quote_ok` | 해리 포터 14·웹소설 87회차(로컬 전용) | [추출 평가 세트](extraction-set.md) |
 
 ## 2. 검색 평가 방식
 

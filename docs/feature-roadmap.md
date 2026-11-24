@@ -306,7 +306,7 @@
 <tr><td>원고 등록 실패 항목 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
 <tr><td>TXT 원고 내보내기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
 <tr><td>EPUB 원고 내보내기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
-<tr><td>회차 파일 일괄 업로드 <small>(작품 관리에서 TXT·EPUB 최대 1,000개를 파일당 한 회차로 저장, 실패 파일만 원래 번호로 재시도)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/349">PR #349</a></td></tr>
+<tr><td>회차 파일 일괄 업로드 <small>(작품 관리에서 TXT·EPUB 최대 1,000개를 파일당 한 회차로 저장, 실패 파일만 원래 번호로 재시도, 1화 저장본 누락 안내와 세계관 추출 접수 결과 표시)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/349">PR #349</a></td></tr>
 <tr><td rowspan="4">세계관 확장 관리</td><td rowspan="4">19 세계관 설정 가져오기</td><td>가져올 수 있는 공개 세계관 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/316">PR #316</a></td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/30">#30</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
 <tr><td>가져올 원본 세계관 선택</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/316">PR #316</a></td></tr>
 <tr><td>가져올 설정 항목 선택</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/316">PR #316</a></td></tr>
@@ -675,7 +675,7 @@
 <tr><td>프롬프트 이전 버전 복원</td><td>✅</td></tr>
 <tr><td>생성 결과의 사용 모델·프롬프트 버전 조회</td><td>✅</td></tr>
 <tr><td>모든 LLM 호출의 모델·프롬프트 조합 선택·후보 등록·서비스 반영과 코드 시드 자동 등록</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/705">#705</a></td></tr>
-<tr><td>평가 세트가 있는 프롬프트(Q&A 답변·인물 대사·나레이션)의 후보 등록에 회귀 평가 통과 조건</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/787">#787</a></td></tr>
+<tr><td>평가 세트가 있는 프롬프트(Q&A 답변·인물 대사·나레이션·회차 설정 추출)의 후보 등록에 회귀 평가 통과 조건</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/787">#787</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/824">#824</a></td></tr>
 <tr><td>인물 대사·나레이션 지시문 자동 개선(GEPA): 새 버전 저장(라벨 없음)과 게이트 세트 회귀 평가까지 자동, 후보 등록·서비스 반영은 수동</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/823">#823</a></td></tr>
 <tr><td rowspan="7">40-C 회귀 평가</td><td>고정 평가 세트 관리 범위 확정</td><td>✅</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>회귀 평가 실행</td><td>✅</td></tr>
