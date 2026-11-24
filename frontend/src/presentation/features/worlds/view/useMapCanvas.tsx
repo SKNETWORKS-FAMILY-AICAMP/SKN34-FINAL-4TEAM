@@ -29,7 +29,7 @@ export function MapControls<N,L>({canvas:{host,graph,reduced,paused,setPaused,se
   g.centerAt(x,y,reduced?0:200)
  }
  return <div className="world-map-controls">
-  <button type="button" className="btn pri sm" onClick={onReplay}>다시 펼치기</button>
+  <button type="button" className="btn sm" onClick={onReplay}>다시 펼치기</button>
   <button type="button" className="btn sm" onClick={()=>{if(paused){setSettled(false);graph.current?.d3ReheatSimulation()}setPaused(!paused)}}>{paused?'움직임 재개':'움직임 멈추기'}</button>
   <button type="button" className="btn sm" onClick={()=>graph.current?.zoomToFit(reduced?0:350,40)}>전체 보기</button>
   <button type="button" className="btn sm" onClick={()=>{const g=graph.current;if(g)g.zoom(g.zoom()*1.25,reduced?0:200)}} aria-label="지도 확대">확대 +</button>

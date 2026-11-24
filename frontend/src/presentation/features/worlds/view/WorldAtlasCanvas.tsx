@@ -56,7 +56,8 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
     ctx.globalAlpha = alpha
     if (node.kind !== 'card' && alpha === 1) {
       ctx.shadowColor = node.color
-      ctx.shadowBlur = node.kind === 'genre' ? 24 : 10
+      // 번짐은 별자리 느낌만 남기고 줄였다(quieter). 허브·세계관의 위계는 크기와 흰 테두리가 맡는다.
+      ctx.shadowBlur = node.kind === 'genre' ? 12 : 6
     }
     ctx.beginPath()
     ctx.arc(x, y, r, 0, 2 * Math.PI)

@@ -48,10 +48,9 @@
   .atlas-foot .map-pan { display: flex; }
 }
 .atlas-foot .map-pan .btn { width: 36px; padding: 0; }
+/* 지도 컨트롤 다섯(다시 펼치기·움직임·전체 보기·확대·축소)은 같은 옅은 윤곽선이다(quieter: 가끔 쓰는 '다시 펼치기'가 채운 보라라 어두운 지도에서 가장 진한 면이었다. 채운 버튼 규칙은 두지 않는다). */
 .atlas-foot .btn { background: color-mix(in srgb, var(--fixed-ink) 8%, transparent); border-color: color-mix(in srgb, var(--fixed-ink) 20%, transparent); color: var(--fixed-ink); }
 .atlas-foot .btn:hover { background: color-mix(in srgb, var(--fixed-ink) 16%, transparent); }
-.atlas-foot .btn.pri { background: var(--fixed-pri); border-color: var(--fixed-pri); color: var(--on-fixed-pri); }
-.atlas-foot .btn.pri:hover { background: color-mix(in srgb, var(--fixed-pri) 75%, var(--fixed-ink)); }
 .atlas-info { display: grid; gap: 5px; padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, .06); color: var(--fixed-sub); font-size: 11.5px; }
 .atlas-stats { margin: 0; }
 /* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째, 묶음 안에서도 줄바꿈한다(390px에서 장르 일곱 개는 두 줄이다. 숨은 가로 스크롤로 넘기면 마지막 장르가 없는 것처럼 보인다). */

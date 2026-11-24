@@ -235,6 +235,14 @@ it('잠긴 저장 버튼(개요 저장·사이드바/상단 저장·마법사 �
   expect(css).not.toMatch(/\.world-writing \.btn\.pri:disabled/) // 화면 전체로 넓히면 어두운 무대의 상대 선택·채팅 버튼까지 바뀐다
 })
 
+it('저장 상태 글자(wait)는 보라(--pri-ink)가 아니라 본문색(--tfg)이다 — 저장할 것이 있다는 강조는 바로 아래 채운 저장 버튼 하나가 맡고, 굵기 650은 그대로라 회색 "저장됨"(--tsub)과 위계가 유지된다 (quieter)', () => {
+  const wait = rule((s) => s === '.world-save-state.wait')?.body ?? ''
+  expect(wait).toMatch(/color:var\(--tfg\)/)
+  expect(wait).not.toMatch(/--pri-ink/)
+  expect(rule((s) => s === '.world-save-state.ok')?.body).toMatch(/color:var\(--tsub\)/)
+  expect(rule((s) => s === '.world-save-state')?.body).toMatch(/font-weight:650/)
+})
+
 it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(상태 칩 제외), 공개 칸의 N화부터는 보라 기둥도 굵은 기둥도 아니라 본문색 보통 굵기다', () => {
   expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-status-chip)')?.body).toMatch(/font-weight:650/)
   const vis = rule((s) => s === '.world-card-library .worlds-board-table .col-vis[data-public=true]')?.body ?? ''
