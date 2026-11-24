@@ -39,7 +39,7 @@
 ## 4. 정답표 만드는 법
 
 1. 원문을 회차 크기(5,500자 안팎)로 자른다(근대 소설은 문단을 묶어 작품별로 같은 크기의 회차로, 해리 포터는 장 덩어리를 줄 경계에서 5,500자 이하 조각으로 잘라 권마다 고르게 뽑는다). 위키문헌의 틀·태그·장식 줄은 걷는다. 작품표(`ex_sources.PUBLIC`)는 위키문헌 근대 소설 80편(작가 14명, 사망 1962년 이전 작가만)이고 한 작품에서 회차를 4개까지만 고르게 쓴다(`MAX_PER_WORK`, 긴 장편이 세트를 차지하지 않게). 작품은 위키문헌 작가 문서(작가 15명, 628건)에서 골랐다. **위키문헌 PD 틀이 있고·4,500자 이상·한글 비율 0.6 이상·서술 문장(`~다.`로 끝나는 문장) 비율 0.4 이상·대화 따옴표 4개 이상·옛 철자 어미(`…엿다`·`…얏다` 등) 2개 이하·깨진 글자(자모) 없음**인 178편 가운데 **5,000자 이상이고 1천 자당 대화 따옴표가 3개 이상**인 것에서, 이미 쓰던 4편과 손으로 뺀 2편(강경애 「동정」, 이효석 「만보」)을 빼 132편을 남겼다. 사망 연도가 불확실한 김명순을 뺀 작가 14명을 **번갈아 돌며 작가 안에서는 대화 따옴표 밀도가 높은 순**으로 75편을 더했다(맨 앞 5편은 처음부터 정한 작품). 작품표가 정본이라 다시 고르지 않고, 새 작품은 맨 뒤에만 더한다(회차 id가 표 순서라 정답표 캐시가 id로 이어진다).
-   - 웹소설(로컬, `eval/extraction/ex_webnovel.py`): txt 폴더에서 장르(파일 이름의 `@판타지`·`현판` 같은 표지, 없으면 제목 말로 어림, 없으면 기타)를 번갈아 돌며 22작품을 고른다(번역본·패러디·같은 제목의 다른 파일은 빼고 장르 안의 순서는 파일 이름 해시). 글은 utf-8·utf-16·cp949를 가려 읽고(한글이 절반 미만이거나 깨지면 그 작품은 건너뛴다), 번호가 이어지는 회차 표지 줄(`12화`·`제12화`·`# 12`·`12. 제목`·`제목 12화`·`EP.12` 등, 30개 이상 이어져야 한다)로 나눈다. 작품마다 **초반 3회차(설정 소개가 많다)와 중반 1회차**를 문단 단위로 5천~6천 자에 맞춘다(짧으면 다음 회차 글을 이어 붙이고 길면 문단에서 자르며 서로 겹치지 않는다). 고른 작품·회차 번호는 선택표 `.data/webnovel/manifest.json`에만 남기고 한 번 만들면 새 파일이 생겨도 같은 선택이다(지우면 다시 고른다).
+   - 웹소설(로컬, `eval/extraction/ex_webnovel.py`): txt 폴더에서 장르(파일 이름의 `@판타지`·`현판` 같은 표지, 없으면 제목 말로 어림, 없으면 기타)를 번갈아 돌며 22작품을 고른다(번역본·패러디·같은 제목의 다른 파일은 빼고 장르 안의 순서는 파일 이름 해시). 글은 utf-8·utf-16·cp949를 가려 읽고(한글이 절반 미만이거나 깨지면 그 작품은 건너뛴다), 번호가 이어지는 회차 표지 줄(`12화`·`제12화`·`# 12`·`12. 제목`·`제목 12화`·`EP.12` 등, 30개 이상 이어져야 한다)로 나눈다. 작품마다 **초반 3회차(설정 소개가 많다)와 중반 1회차**를 문단 단위로 5천~6천 자에 맞춘다(짧으면 다음 회차 글을 이어 붙이고 길면 문단에서 자르며 서로 겹치지 않는다. 줄바꿈까지 세어 5천 자에 닿지 못했거나 6천 자를 넘는 글이 나오는 작품은 쓰지 않는다). 고른 작품·회차 번호와 원본 파일의 해시는 선택표 `.data/webnovel/manifest.json`에만 남기고, 한 번 만들면 새 파일이 생겨도 같은 선택이다(파일이 바뀌어 해시나 회차 번호가 달라지면 오류로 멈추고, 지우면 다시 고른다).
 2. 상위 모델(**ocx `gpt-6.2-sol`**, 금액 0)로 **운영 프롬프트와 다른 지시문 두 가지(A·B)** 로 회차마다 두 번 뽑는다(`eval/extraction/ex_gold.py`). 출력 틀은 운영과 같은 `ProposedExtraction`이다.
    A는 설정집 편집자, B는 독자 질문 관점으로 쓴 서로 다른 글이다(운영 지시문을 베끼지 않는다. 운영 검증 규칙은 같아서 규칙 문구는 같은 뜻으로 다시 썼다).
 3. 두 결과를 각각 **서비스와 같은 검증(`service.extract`, 원문 인용 대조 포함)** 에 통과시키고 통과한 항목만 남긴다. 인용 대조가 정답표에도 공짜로 걸린다.
@@ -102,7 +102,8 @@ uv run --locked --extra dev python eval/extraction/ex_cli.py export [--gate 30]
 uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source hp --hp-dir <.data/hp 폴더> --per-book 2
 uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source webnovel --novel-dir <웹소설 txt 폴더> --workers 24   # 첫 실행이 선택표 .data/webnovel/manifest.json을 만든다(지우면 다시 고른다)
 # ③ 오프라인 채점: 운영 지시문(코드 시드 또는 --instructions 파일)을 운영 모델로 돌려 채점한다(유료 OpenAI 호출: 사용자가 키 파일을 불러온 뒤)
-uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extraction/.data/sets/{hp,webnovel}.jsonl [--instructions 파일] [--model 모델] [--tag 태그] [--limit N]   # 세트마다 한 번씩
+uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extraction/.data/sets/hp.jsonl [--instructions 파일] [--model 모델] [--tag 태그] [--limit N]
+uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extraction/.data/sets/webnovel.jsonl [위와 같은 옵션]   # 세트마다 한 번씩 부른다
 ```
 
 ## 7. 한계

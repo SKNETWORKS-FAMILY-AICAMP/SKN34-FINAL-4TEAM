@@ -6,7 +6,8 @@
     uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source hp [--hp-dir <.data/hp>] [--per-book 2]                       # 로컬 전용 → .data/sets/hp.jsonl(커밋·Langfuse 금지)
     uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source webnovel --novel-dir <웹소설 txt 폴더>                          # 로컬 전용 → .data/sets/webnovel.jsonl(선택표 .data/webnovel/manifest.json, 커밋·Langfuse 금지)
     set -a; . <키 파일>; set +a                                                                                                               # 이하 OpenAI 호출(유료): 유료 명령마다 같은 명령 안에서 불러온다(키 값은 출력하지 않는다)
-    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/{hp,webnovel}.jsonl [--instructions 파일] [--model M] [--tag T] [--limit N]   # 오프라인 채점 → results/extraction-<세트>-<태그>.json(집계만)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/hp.jsonl [--instructions 파일] [--model M] [--tag T] [--limit N]   # 오프라인 채점 → results/extraction-<세트>-<태그>.json(집계만)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/webnovel.jsonl [위와 같은 옵션]                                      # 웹소설 세트도 같은 방법(세트마다 한 번씩 부른다)
 
 시작 때 Langfuse 키를 지워 원문이 Langfuse로 가지 않게 한다. gold는 호출을 ocx로 돌리고 실제 OpenAI 키를 쓰지 않는다. 원문·정답표·응답은 .data(git 무시)에만 두고 results에는 숫자와 항목 id만 둔다.
 저작권 있는 원천(해리 포터·웹소설)의 원문·정답표·선택표도 .data에만 둔다: 커밋·푸시·Langfuse 금지, 평가 세트 폴더(app/evaluation/datasets)에도 두지 않는다.
@@ -31,7 +32,7 @@ from app.manuscript_extraction.errors import PreprocessingFailure
 HERE = Path(__file__).resolve().parent
 DATA = HERE / '.data'
 SETS, GOLD, RESULTS = DATA / 'sets', DATA / 'gold', HERE / 'results'
-MANIFEST = DATA / 'webnovel' / 'manifest.json'   # 웹소설 선택표(작품·장르·회차 번호): 로컬 전용
+MANIFEST = DATA / 'webnovel' / 'manifest.json'   # 웹소설 선택표(작품·장르·회차 번호·원본 파일 해시): 로컬 전용
 DATASET = HERE.parents[1] / 'app' / 'evaluation' / 'datasets' / 'extraction.extract.jsonl'
 POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
 GATE_SIZE = 30   # 게이트 세트 회차 수(평가 1회 = 운영 모델 호출 이만큼)

@@ -106,12 +106,12 @@ def units(episodes: list) -> list[tuple[int, str]]:
         text, after = take(episodes, i)
         out.append((episodes[i][0], text))
         i = after
-    return out if all(LOW * 0.8 <= len(text) <= HIGH + 1000 for _, text in out) else []
+    return out if all(LOW - 1 <= len(text) <= HIGH for _, text in out) else []   # 줄바꿈까지 세어 LOW에 닿은 글(글자 수 LOW - 1 이상)만, 채우지 못했거나 HIGH를 넘는 글은 아니다
 
 
 def select(root: Path, count: int = WORKS) -> list[dict]:
     """폴더의 txt에서 장르를 번갈아 돌며 count개 작품을 고른다. 장르 안의 순서는 파일 이름의 해시(고르게 퍼지고 같은 입력이면 같다). 번역본·같은 제목·읽을 수 없거나 회차를 못 나누는 작품은 건너뛴다.
-    선택표 행: {file, title, genre, episodes(회차 번호들)}."""
+    선택표 행: {file, title, genre, episodes(회차 번호들), sha1(원본 파일 해시)}."""
     root, queues = Path(root), {}
     for name in sorted(p.name for p in root.iterdir() if p.suffix.lower() == '.txt' and not SKIP.search(p.name)):
         queues.setdefault(genre_of(name), []).append(name)
@@ -125,26 +125,28 @@ def select(root: Path, count: int = WORKS) -> list[dict]:
                 title = clean_title(name)
                 if title in tried:
                     continue
-                tried.add(title)
-                text = decode((root / name).read_bytes())
+                raw = (root / name).read_bytes()
+                text = decode(raw)
                 made = units(split(text)) if text else []
                 if made:
-                    works.append({'file': name, 'title': title, 'genre': genre, 'episodes': [n for n, _ in made]})
+                    tried.add(title)   # 고른 작품만 적는다: 읽을 수 없는 파일이 같은 제목의 다른 파일까지 막지 않게
+                    works.append({'file': name, 'title': title, 'genre': genre, 'episodes': [n for n, _ in made], 'sha1': hashlib.sha1(raw).hexdigest()})
                     break
     return works
 
 
 def episodes(root: Path, manifest: Path, count: int = WORKS) -> list[dict]:
     """선택표(manifest)의 작품마다 초반 셋·중반 하나의 회차 항목(ex_sources와 같은 모양)을 만든다. 선택표가 없으면 select로 만들어 쓰고, 있으면 새 파일이 생겨도 같은 선택이다.
-    파일이 선택표와 달라졌으면 ValueError다."""
+    파일이 선택표와 달라졌으면(원본 해시나 회차 번호) ValueError다."""
     root, manifest = Path(root), Path(manifest)
     if not manifest.exists():
         manifest.parent.mkdir(parents=True, exist_ok=True)
         manifest.write_text(json.dumps(select(root, count), ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     items = []
     for w, work in enumerate(json.loads(manifest.read_text(encoding='utf-8')), 1):
-        made = units(split(decode((root / work['file']).read_bytes()) or ''))
-        if [n for n, _ in made] != work['episodes']:
+        raw = (root / work['file']).read_bytes()
+        made = units(split(decode(raw) or ''))
+        if hashlib.sha1(raw).hexdigest() != work['sha1'] or [n for n, _ in made] != work['episodes']:
             raise ValueError(f"{work['file']}: 선택표(manifest)와 다른 글이다. 선택표를 지우면 다시 고른다.")
         for k, (number, body) in enumerate(made, 1):
             items.append({'id': f'webnovel-{w:02d}-{k}', 'number': number, 'title': work['title'], 'body': body, 'license': LICENSE,

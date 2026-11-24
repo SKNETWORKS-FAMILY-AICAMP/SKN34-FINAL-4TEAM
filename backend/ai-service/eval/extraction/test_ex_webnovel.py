@@ -1,5 +1,6 @@
 """웹소설 평가 원천(ex_webnovel): 장르·제목·인코딩·회차 표지 판별, 운영 크기 회차 만들기, 작품 고르기를 가짜 txt로 확인한다. 실제 웹소설 글은 쓰지 않는다. 호출 없음."""
 
+import hashlib
 import json
 import re
 
@@ -120,6 +121,13 @@ def test_a_work_without_enough_text_or_with_a_giant_paragraph_has_no_units(episo
     assert ex_webnovel.units(episodes) == []
 
 
+def test_a_unit_over_the_operating_size_is_refused_and_one_that_just_reached_it_is_kept():
+    too_long = [(i + 1, ['가' * 6500]) for i in range(35)]   # 문단 하나가 HIGH를 넘는다
+    just_enough = [(i + 1, ['가' * (LOW - 1)]) for i in range(35)]   # 줄바꿈까지 세어 LOW에 딱 닿는 글(글자 수는 LOW - 1)
+
+    assert ex_webnovel.units(too_long) == [] and len(ex_webnovel.units(just_enough)) == 4
+
+
 def test_a_work_whose_paragraphs_are_too_long_to_fill_the_size_has_no_units():
     episodes = [(i + 1, ['가' * 3500] * 3) for i in range(35)]   # 문단 둘이면 HIGH를 넘고 하나로는 모자란다
 
@@ -151,6 +159,16 @@ def test_select_alternates_the_genres_and_skips_unreadable_duplicate_and_transla
     assert all(w['episodes'][0] == 1 and len(w['episodes']) == 4 for w in works)
 
 
+def test_a_same_title_file_is_still_tried_when_the_first_file_of_that_title_is_unreadable(tmp_path):
+    names = ['느긋한 하루 1-35 완.txt', '느긋한 하루 1-35 (완).txt']   # 같은 제목
+    first = min(names, key=lambda name: hashlib.sha1(name.encode()).hexdigest())   # select가 먼저 읽는 파일
+    root = library(tmp_path, {name: b'not korean' if name == first else novel().encode() for name in names})
+
+    [work] = ex_webnovel.select(root, 3)
+
+    assert work['file'] != first   # 읽을 수 없는 쪽이 같은 제목의 멀쩡한 쪽까지 막지 않는다
+
+
 def test_episodes_pick_the_works_once_and_keep_them_in_the_manifest(tmp_path):
     root = library(tmp_path, FILES)
     manifest = tmp_path / 'data' / 'webnovel' / 'manifest.json'
@@ -164,6 +182,18 @@ def test_episodes_pick_the_works_once_and_keep_them_in_the_manifest(tmp_path):
     assert {e['license'] for e in first} == {e['source']['license'] for e in first} == {ex_webnovel.LICENSE}
     assert ex_webnovel.LICENSE.startswith('저작권 있음') and '로컬' in ex_webnovel.LICENSE and '저장소·Langfuse에 두지 않는다' in ex_webnovel.LICENSE   # 저장소·Langfuse에 두지 않는 표시
     assert ex_webnovel.episodes(root, manifest, count=2) == first   # 선택표가 있으면 새 파일이 생겨도 같은 선택이다
+
+
+def test_a_source_changed_after_the_manifest_was_made_is_refused_by_its_hash_even_when_the_episodes_stay_the_same(tmp_path):
+    root = library(tmp_path, {'느긋한 하루 1-35 완.txt': novel().encode()})
+    manifest = tmp_path / 'manifest.json'
+    first = ex_webnovel.episodes(root, manifest, count=1)
+    path = root / '느긋한 하루 1-35 완.txt'
+
+    assert ex_webnovel.episodes(root, manifest, count=1) == first   # 원본이 그대로면 다시 만들어도 같다
+    path.write_bytes(path.read_bytes() + '\n'.encode())   # 회차 번호·글은 그대로이고 파일만 달라졌다
+    with pytest.raises(ValueError, match=re.escape(path.name)):
+        ex_webnovel.episodes(root, manifest, count=1)
 
 
 def test_a_file_that_no_longer_matches_the_manifest_fails_loudly(tmp_path):
