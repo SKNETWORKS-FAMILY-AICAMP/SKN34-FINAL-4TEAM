@@ -16,7 +16,7 @@ from traced import attrs
 
 @pytest.fixture
 def provider(monkeypatch):
-    calls = SimpleNamespace(settings=None, schema=None, messages=None,
+    calls = SimpleNamespace(settings=None, schema=None, messages=None, invocation_count=0,
         result={'raw':SimpleNamespace(response_metadata={'status':'completed'}),
                 'parsed':{'mentions':[],'statements':[],'relationships':[]},'parsing_error':None},error=None)
     class Fake:
@@ -25,6 +25,7 @@ def provider(monkeypatch):
             calls.schema=(schema,kwargs);return self
         def invoke(self,messages):
             calls.messages=messages
+            calls.invocation_count += 1
             if calls.error: raise calls.error
             return calls.result
     monkeypatch.setenv('OPENAI_API_KEY','synthetic-only')
@@ -38,7 +39,7 @@ def test_strict_responses_path_no_retries_and_original_is_data(provider):
     result=agent.extract(EpisodeText(number=1,title='원문',body=body))
     assert result.mentions==[]
     assert provider.settings['max_retries']==0 and provider.settings['use_responses_api'] is True
-    assert provider.settings['timeout'].read == 70
+    assert provider.settings['timeout'].read == 120
     assert provider.settings['timeout'].connect == 60
     assert provider.settings['store'] is False
     assert provider.schema[1]=={'method':'json_schema','strict':True,'include_raw':True}
@@ -129,6 +130,7 @@ def test_the_model_call_is_a_generation_of_the_managed_prompt(provider, monkeypa
     asked, version = [], SimpleNamespace(name=name, version=3, is_fallback=False)
     monkeypatch.setattr(tracing, 'prompt', lambda asked_name, text: asked.append((asked_name, text)) or tracing.Prompt('관리된 지시', version))
     call()
+    assert provider.settings['timeout'].read == (70 if name.endswith('.resolve') else 120)
     assert asked == [(name, default)] and provider.messages[0].content == '관리된 지시'
     [span] = spans()
     found = attrs(span)
@@ -146,6 +148,7 @@ def test_a_failed_model_call_is_an_error_generation_and_still_the_same_failure(p
         agent.extract(EpisodeText(number=1,title='x',body='private manuscript'))
     [span] = spans()
     assert str(failure.value) == ('MODEL_TIMEOUT' if timeout else 'MODEL_UNAVAILABLE')
+    assert provider.invocation_count == 1 and provider.settings['max_retries'] == 0
     assert span.attributes['langfuse.observation.level'] == 'ERROR' and 'private' not in str(span.attributes.values())
 
 
@@ -168,7 +171,7 @@ def test_resolve_input_is_compact(monkeypatch):
     extractions = [service.extract(EpisodeText(number=n, title='t', body='\n'.join(rows))) for n, rows in lines.items()]
     assert sum(len(e.source) for e in extractions) > 45000 and all(not e.skipped for e in extractions)
     sent = []
-    monkeypatch.setattr(agent, '_call', lambda name, instructions, data, schema: sent.append((name, data)) or ProposedResolution(links=[]))
+    monkeypatch.setattr(agent, '_call', lambda name, instructions, data, schema, *, read_timeout: sent.append((name, data)) or ProposedResolution(links=[]))
     agent.resolve(extractions)
     (name, data), = sent
     dumped = json.dumps(data, ensure_ascii=False, sort_keys=True)
