@@ -26,7 +26,7 @@ const ACTIONS = new Map([
   ['INQUIRY_REPLY_CREATE', '문의 답변 등록'], ['INQUIRY_REPLY_UPDATE', '문의 답변 수정'], ['INQUIRY_REPLY_DELETE', '문의 답변 삭제'],
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
   // DEC-55 운영 LLMOps(조각 2 서버 코드의 이름)와 작업 감시(조각 3)
-  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_CANDIDATE', '프롬프트 후보 등록'], ['PROMPT_PROMOTE', '프롬프트 서비스 반영'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
+  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_CANDIDATE', '프롬프트 후보 등록'], ['PROMPT_PROMOTE', '프롬프트 서비스 반영'], ['PROMPT_OPTIMIZE', '프롬프트 자동 개선 실행'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
   ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
   ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
   // DEC-56 장르 관리(운영 서비스가 남기는 조치)

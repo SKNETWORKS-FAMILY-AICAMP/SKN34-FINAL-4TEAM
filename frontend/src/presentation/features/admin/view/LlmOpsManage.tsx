@@ -1,7 +1,8 @@
 import { Fragment, useState } from 'react'
 
 import {
-  LLM_FORBIDDEN, evaluationStatusLabel, fixedModel, labelText, modelLabel, passedLabel, pendingSeed, perMillion, productionOf, versionAction, type Evaluation,
+  LLM_FORBIDDEN, OPTIMIZATION_DEFAULT_CALLS, OPTIMIZATION_MAX_CALLS, estimatedCalls, evaluationStatusLabel, fixedModel, isOptimizable, itemReason, labelText, modelLabel, passedLabel, pendingSeed, perMillion,
+  productionOf, versionAction, type Evaluation, type EvaluationItem,
 } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
@@ -180,9 +181,50 @@ export function Prompts({ vm, l }: Props) {
               <div className="rowend wide"><button type="submit" className="btn pri">{vm.actions[`prompt:${p.name}:new`]?.pending ? '저장 중…' : '조합 저장'}</button></div>
             </fieldset>
           </form>
+          {isOptimizable(p.name) && <OptimizeForm vm={vm} l={l} name={p.name} versions={p.versions.map((v) => v.version).sort((a, b) => b - a)} base={live?.version} />}
         </>
       )}
     </section>
+  )
+}
+
+/**
+ * 자동 개선(GEPA, #823): 기준 버전과 평가 호출 상한을 정해 요청합니다. AI가 새 버전(라벨 없음)을 저장하고 게이트 세트 회귀 평가까지 돌리며(수십 분),
+ * 후보 등록·서비스 반영은 사람이 위 버전 표에서 합니다. 비용이 드는 요청이라 예상 OpenAI 호출 수(어림)를 보이고 한 번 더 확인합니다.
+ */
+function OptimizeForm({ vm, l, name, versions, base }: { vm: VM; l: LlmVM; name: string; versions: number[]; base?: number }) {
+  const [calls, setCalls] = useState(String(OPTIMIZATION_DEFAULT_CALLS))
+  const busy = !!vm.actions[`prompt:${name}:optimize`]?.pending, budget = Number(calls), valid = Number.isInteger(budget) && budget >= 1 && budget <= OPTIMIZATION_MAX_CALLS
+  const estimate = valid ? `약 ${estimatedCalls(name, budget).toLocaleString('ko-KR')}회` : '—'
+  return (
+    <form
+      aria-label="프롬프트 자동 개선"
+      onSubmit={(e) => {
+        e.preventDefault()
+        const version = formNumber(e.currentTarget, 'baseVersion')
+        // 값이 어긋나면 확인 없이 보내 사용 사례가 어긋난 이유를 알린다.
+        if (!valid || window.confirm(`${name} ${version}번 버전을 기준으로 자동 개선을 시작할까요? 예상 OpenAI 호출은 ${estimate}이고 수십 분 걸려요.`)) void l.optimize(name, version, budget)
+      }}
+    >
+      <h3>자동 개선(GEPA)</h3>
+      <p className="small muted">기준 버전을 반성 모델이 고쳐 쓰고 최적화 풀의 val 점수가 가장 높은 지시문을 새 버전(라벨 없음)으로 저장한 뒤 게이트 세트 회귀 평가까지 돌려요. 후보 등록·서비스 반영은 위 표에서 사람이 해요.</p>
+      <fieldset disabled={busy} className="form-grid">
+        <label className="field">
+          자동 개선 기준 버전
+          <select className="inp" name="baseVersion" key={`${name}:${base}`} defaultValue={base ?? versions[0]}>
+            {versions.map((v) => <option key={v} value={v}>{v}번 버전</option>)}
+          </select>
+        </label>
+        <label className="field">
+          평가 호출 상한
+          <input className="inp" name="maxMetricCalls" type="number" min={1} max={OPTIMIZATION_MAX_CALLS} step={1} value={calls} onChange={(e) => setCalls(e.target.value)} required />
+        </label>
+        <p className="small muted wide" aria-live="polite">
+          예상 OpenAI 호출 {estimate}(2 × 상한 + 2 × 게이트 세트 문항 수, 기준 평가가 없으면 더 들어요). 같은 프롬프트는 한 번에 하나만 돌아요.
+        </p>
+        <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '요청 중…' : '자동 개선 실행'}</button></div>
+      </fieldset>
+    </form>
   )
 }
 
@@ -243,6 +285,37 @@ export function Models({ vm, l }: Props) {
 
 const evaluationChip = (e: Evaluation) => <span className={`chip ${e.status === 'failed' ? 'bad' : passTone(e.passed)}`}>{e.status === 'completed' ? passedLabel(e.passed) : evaluationStatusLabel(e.status)}</span>
 
+/** 문항별 결과(실패 로그, #823): 서버가 실패 먼저로 줍니다. 문항 본문은 오지 않아 문항 id·지표 점수·결과·이유만 보입니다. */
+function EvaluationItems({ items }: { items: EvaluationItem[] }) {
+  const names = [...new Set(items.flatMap((item) => Object.keys(item.scores)))], failed = items.filter((item) => item.failed).length
+  return (
+    <>
+      <h3>문항별 결과</h3>
+      <p className="small muted" role="status">실패 {failed}문항 / 전체 {items.length}문항 (실패: 항목 오류 · 시점 위반 · 지표 하나라도 0.5 미만)</p>
+      <Table label="문항별 결과 표">
+        <thead>
+          <tr>
+            <th scope="col">문항</th>
+            {names.map((name) => <th key={name} scope="col">{name}</th>)}
+            <th scope="col">결과</th>
+            <th scope="col">이유</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.itemId}>
+              <td>{item.itemId}</td>
+              {names.map((name) => <td key={name} className="admin-num">{item.scores[name] == null ? '—' : item.scores[name].toFixed(2)}</td>)}
+              <td><span className={`chip ${item.failed ? 'bad' : ''}`}>{item.failed ? '실패' : '통과'}</span></td>
+              <td>{itemReason(item) ?? '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </>
+  )
+}
+
 export function Evaluations({ vm, l }: Props) {
   const rows = l.evaluations.data, e = l.evaluation.data, busy = !!vm.actions['eval:new']?.pending
   if (l.runId) {
@@ -279,6 +352,7 @@ export function Evaluations({ vm, l }: Props) {
                 </Table>
               )
               : <p className="admin-empty">아직 지표가 없어요. 실행이 끝나면 채워져요.</p>}
+            {e.items && (e.items.length ? <EvaluationItems items={e.items} /> : <p className="admin-empty">끝난 문항이 아직 없어요.</p>)}
           </>
         )}
       </section>
