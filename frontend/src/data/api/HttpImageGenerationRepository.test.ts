@@ -34,11 +34,16 @@ it('사용자 참조 파일을 생성 요청과 함께 한 번만 올린다', as
  expect(options?.headers).toMatchObject({'Idempotency-Key':'request-key','X-CSRF-TOKEN':'test-csrf'})
 })
 
-it.each([403, 409, 422])('접수가 %i로 거절되면 서버가 준 안내를 그대로 전달한다', async (status) => {
- vi.mocked(protectedRequest).mockResolvedValue(Response.json({ detail:'이 작품에서는 AI 생성을 사용할 수 없어요.' }, { status }))
+it.each([
+ [403, '이 작품에서는 AI 생성을 사용할 수 없어요.'],
+ [409, '이전 요청과 생성 조건이 달라요. 다시 생성해 주세요.'],
+ [410, '이전 생성 요청이 삭제됐어요. 다시 생성해 주세요.'],
+ [422, '이미지 생성 조건을 확인해 주세요.'],
+])('접수가 %i로 거절되면 서버가 준 안내를 그대로 전달한다', async (status, detail) => {
+ vi.mocked(protectedRequest).mockResolvedValue(Response.json({ detail }, { status }))
  const error = await new HttpImageGenerationRepository().submit({ purpose:'work_cover', prompt:'scene' }, 'key').catch((e: unknown) => e)
  expect(error).toBeInstanceOf(ImageRequestRejected)
- expect((error as Error).message).toBe('이 작품에서는 AI 생성을 사용할 수 없어요.')
+ expect((error as Error).message).toBe(detail)
  expect(vi.mocked(protectedRequest).mock.calls[0][4]).toMatchObject({ allowHttpError:true })
 })
 

@@ -60,8 +60,8 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
   val uploadHash=upload?.let(::digest)
   val hash=digest((if(uploadHash==null) json else "$json\n$uploadHash").toByteArray(Charsets.UTF_8))
   fun existing():ImageResult?=tx.execute { jobs.findByOwnerAndRequestKey(owner,requestKey)?.let {
-   if(it.inputHash!=hash) throw ContentFailure(409,"같은 요청 키의 입력이 달라요.")
-   if(it.status=="deleted") throw ContentFailure(410,"삭제한 이미지 작업입니다. 새 요청 키를 사용해 주세요.")
+   if(it.inputHash!=hash) throw ContentFailure(409,"이전 요청과 생성 조건이 달라요. 다시 생성해 주세요.")
+   if(it.status=="deleted") throw ContentFailure(410,"이전 생성 요청이 삭제됐어요. 다시 생성해 주세요.")
    response(it)
   } }
   existing()?.let { return it }
