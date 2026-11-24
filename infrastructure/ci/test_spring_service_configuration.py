@@ -188,6 +188,21 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertIn("docker/setup-buildx-action@", system)
         self.assertIn("crazy-max/ghaction-github-runtime@", system)
 
+    def test_cd_publish_reads_the_ci_layer_cache_and_never_writes_it(self):
+        publish = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8").split("\n  deploy:\n", 1)[0]
+        before, images = publish.split("        id: images\n", 1)
+        # type=gha를 읽으려면 이미지 단계보다 먼저 buildx builder와 Actions 캐시 토큰(CI system job과 같은 두 액션)이 있어야 한다.
+        for action in ("docker/setup-buildx-action@", "crazy-max/ghaction-github-runtime@"):
+            self.assertIn(action, before)
+        # CD는 읽기만 한다(서비스별 --cache-from은 publish 실행 시험이 확인한다): CI가 mode=max로 쓰는 같은 scope의 index를
+        # 덮어쓰면 두 빌드 그래프가 어긋날 때 서로의 캐시를 밀어낸다.
+        self.assertNotIn("--cache-to", images)
+        # setup-buildx의 builder는 기본 ~/.docker/buildx에 있다. 자격 증명용 DOCKER_CONFIG를 임시 위치로 바꿔도 찾도록 먼저 고정한다.
+        self.assertLess(images.index("export BUILDX_CONFIG="), images.index('export DOCKER_CONFIG="$scratch"'))
+        # buildx builder는 --load 없이는 이미지를 데몬에 올리지 않아, MinIO 재빌드 경로도 이어지는 docker push가 실패한다.
+        minio = images.split('if ! docker manifest inspect "$minio"', 1)[1].split("\n          fi", 1)[0]
+        self.assertIn("--load", minio)
+
     def test_content_boot_entry_point_is_explicit(self):
         service = ROOT / "backend/content-service"
         build = (service / "build.gradle").read_text(encoding="utf-8")
@@ -195,15 +210,17 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         application = service / "src/main/kotlin/ai/storyfork/content/Application.kt"
         self.assertIn("runApplication<ContentServiceApplication>(*args)", application.read_text(encoding="utf-8"))
 
-    def test_gradle_image_builds_lock_the_shared_user_home_cache(self):
-        for service in ("core-api", "content-service"):
+    def test_gradle_image_builds_resolve_dependencies_in_a_layer_before_the_sources(self):
+        # 의존성은 `COPY src` 앞의 별도 레이어에서 받아 CI의 type=gha 레이어 캐시에 싣는다(#800). BuildKit cache mount는 그 캐시로
+        # 내보내지지 않아, 소스가 바뀔 때마다 새 러너에서 Maven Central을 다시 부르다 429로 간헐 실패했다. 소스 레이어는 새로 받지 않는다.
+        for service in ("core-api", "content-service", "operations-service"):
             with self.subTest(service=service):
                 dockerfile = (ROOT / "backend" / service / "Dockerfile").read_text(encoding="utf-8")
-                self.assertIn(
-                    "RUN --mount=type=cache,target=/root/.gradle,sharing=locked \\\n"
-                    "    ./gradlew bootJar --no-daemon",
-                    dockerfile,
-                )
+                builder = dockerfile.split(" AS builder\n", 1)[1].split("\nFROM ", 1)[0]
+                self.assertNotIn("--mount=type=cache", builder)
+                dependencies, sources = builder.split("COPY src ./src\n", 1)
+                self.assertIn("./gradlew bootJar --no-daemon", dependencies)
+                self.assertIn("./gradlew bootJar --no-daemon --offline", sources)
 
     def test_each_independent_build_reuses_core_wrapper_bytes_and_executable_mode(self):
         for service in SERVICES:

@@ -461,7 +461,7 @@ class InitialWorldAnalysisPostgresTest {
             ctx.getBean(SettingCardRepository::class.java),ctx.getBean(SettingCardDraftRepository::class.java),ctx.getBean(SettingCardVersionRepository::class.java),
             ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
             ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,manager,mapper,org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java),
-            ctx.getBean(ManuscriptBuildJobRepository::class.java),ctx.getBean(ManuscriptBuildLoadStepRepository::class.java),ctx.getBean(CardCategoryRepository::class.java))
+            ctx.getBean(ManuscriptBuildJobRepository::class.java),ctx.getBean(ManuscriptBuildLoadStepRepository::class.java),ctx.getBean(CardCategoryRepository::class.java), ctx)
         return InitialWorldApplicationService(studio,ctx.getBean(InitialWorldAnalysisService::class.java),ctx.getBean(StudioWorldRepository::class.java),
             ctx.getBean(InitialWorldAnalysisRepository::class.java),ctx.getBean(InitialWorldCandidateRepository::class.java),
             ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(InitialWorldApplicationItemRepository::class.java),mapper,

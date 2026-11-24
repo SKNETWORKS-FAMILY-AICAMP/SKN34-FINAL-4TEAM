@@ -15,6 +15,7 @@ import ai.storyfork.content.world.studio.entity.ManuscriptBuildLoadStep
 import ai.storyfork.content.world.studio.entity.ManuscriptBuildResult
 import ai.storyfork.content.world.studio.entity.StudioWorld
 import ai.storyfork.content.world.studio.repository.*
+import java.time.Duration
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -56,8 +57,9 @@ class ManuscriptBuildServiceTest {
 
     @Suppress("UNCHECKED_CAST") private fun json(value:Any)=mapper.readValue(mapper.writeValueAsBytes(value),Map::class.java) as Map<String,Any?>
     /** 업데이트 작업의 manifest에는 기준 초안이 없고(claim 때 [basis] 칼럼에 고정한다) 최초 구축 작업은 manifest에 둔다. */
-    private fun job(status:String,token:UUID?=null,kind:String="initial",basis:WorldDraftResponse?=null):ManuscriptBuildJob {
-        val episodes=sources.map { mapOf("number" to it.number,"episodeId" to it.episodeId,
+    private fun job(status:String,token:UUID?=null,kind:String="initial",basis:WorldDraftResponse?=null,
+        episodeSources:List<ManuscriptBuildSource> = sources):ManuscriptBuildJob {
+        val episodes=episodeSources.map { mapOf("number" to it.number,"episodeId" to it.episodeId,
             "versionId" to it.versionId,"title" to it.title,"body" to it.body,"sourceHash" to it.hash) }
         val manifest=if(kind=="update") mapOf("episodes" to episodes) else mapOf("basis" to json(emptyDraft),"episodes" to episodes)
         return ManuscriptBuildJob(workId=workId,worldId=worldId,ownerSubject=owner,requestKey="key-1",requestHash="a".repeat(64),
@@ -182,6 +184,23 @@ class ManuscriptBuildServiceTest {
     private fun anyInstant():Instant=any(Instant::class.java) ?: Instant.EPOCH
     @Suppress("UNCHECKED_CAST") private fun anyWanted():(Int)->Boolean=any(Function1::class.java) as? ((Int)->Boolean) ?: { _:Int -> true }
     private fun claimedBy(token:UUID) { `when`(execution.claim(anyUuid(),anyUuid(),anyInstant(),anyInstant(),isNull())).thenReturn(token) }
+
+    @Test fun `the execution lease covers each long extraction plus resolution and result callbacks`() {
+        for (episodes in listOf(sources.take(1), sources)) {
+            val job = job("queued", episodeSources = episodes)
+            val token = UUID.randomUUID()
+            claimedBy(token)
+            `when`(snapshot.read(workId, owner.toString())).thenReturn(ManuscriptBuildInput(episodes))
+            val started = ArgumentCaptor.forClass(Instant::class.java)
+            val deadline = ArgumentCaptor.forClass(Instant::class.java)
+
+            assertEquals(token, service.claim(job.id, workId)["token"])
+
+            verify(execution).claim(eq(job.id) ?: job.id, eq(owner) ?: owner,
+                started.capture() ?: Instant.EPOCH, deadline.capture() ?: Instant.EPOCH, isNull())
+            assertEquals(Duration.ofSeconds(200L * episodes.size + 150L), Duration.between(started.value, deadline.value))
+        }
+    }
 
     @Test fun `claiming an update job fixes the current draft as its basis`() {
         val job=job("queued",kind="update");val token=UUID.randomUUID();claimedBy(token)

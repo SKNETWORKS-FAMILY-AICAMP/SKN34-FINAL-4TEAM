@@ -104,5 +104,6 @@ tests/
 - 단위 테스트는 router·service·agent 함수를 직접 호출하고 OpenAI·로컬 모델은 monkeypatch 대역으로 바꿉니다. 실제 네트워크·키를 사용하지 않습니다.
 - FastAPI TestClient·HTTP 경계는 `test_http.py`에 `pytestmark = pytest.mark.integration`으로 두고 CI에서 실행합니다.
 - 고정 모델 응답과 벡터는 동작·계약 검증용입니다. 실제 생성 품질·검색 정확도 측정 결과로 보고하지 않습니다.
+- 검색 품질 평가(#825)의 고정 스냅샷 임계값 테스트는 기능 패키지가 아니라 평가 묶음이라 `tests/retrieval_eval/`에 두고 고정 입력은 같은 디렉터리의 `fixtures/`에 둡니다. 고정 입력은 `eval/novelbrain/ko.py snapshot`이 실제 E5 결과를 얼려 만들고 테스트는 모델을 부르지 않으며, 정확도 측정 결과는 이 테스트가 아니라 `ko.py run`이 만든 `eval/novelbrain/results/`입니다. [검색 품질 평가](../../../docs/evaluation/retrieval.md)
 
 세부 정책과 금액·실행 한도·자동 발행 조건은 [루트 기획 목표](../../../README.md)에 남아 있습니다.

@@ -35,6 +35,7 @@ import ai.storyfork.operations.llmops.service.LeakCheckService
 import ai.storyfork.operations.llmops.service.LlmopsSettingService
 import ai.storyfork.operations.llmops.service.MetricsService
 import ai.storyfork.operations.llmops.service.ModelService
+import ai.storyfork.operations.llmops.service.OptimizationService
 import ai.storyfork.operations.llmops.service.PipelineService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.TraceService
@@ -116,6 +117,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var models: ModelService
     @MockitoBean lateinit var pipelines: PipelineService
     @MockitoBean lateinit var evaluations: EvaluationService
+    @MockitoBean lateinit var optimizations: OptimizationService
     @MockitoBean lateinit var leakChecks: LeakCheckService
     @MockitoBean lateinit var llmopsSettings: LlmopsSettingService
     @MockitoBean lateinit var alerts: AlertService
@@ -489,7 +491,7 @@ class MemberSecurityIntegrationTest {
         for (builder in listOf(
             get("/api/v1/operations/dashboard"), get("/api/v1/operations/llmops/traces"), get("/api/v1/operations/llmops/traces/t-1"),
             get("/api/v1/operations/llmops/metrics"), get("/api/v1/operations/llmops/prompts"), put("/api/v1/operations/llmops/prompts/qa-answer/production"),
-            get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
+            post("/api/v1/operations/llmops/prompts/qa-answer/optimizations"), get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
             get("/api/v1/operations/llmops/settings"), get("/api/v1/operations/alerts"), put("/api/v1/operations/alerts/$id"),
             get("/api/v1/operations/alerts/rules"), put("/api/v1/operations/alerts/rules/ai_failure_rate"),
         )) {

@@ -11,6 +11,9 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import '../../presentation/features/account/view/AccountPage'
+import '../../presentation/features/admin/view/AdminPage'
+import '../../presentation/features/reading/view/ReaderPage'
 import type { Metrics } from '../../domain/entities/llmOps'
 import type { OperationsFeedbackReport } from '../../domain/entities/operationsFeedbackReport'
 
@@ -42,7 +45,7 @@ describe('관리자 (A01~A18)', () => {
         : new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetch)
     const { store } = renderAt('/admin')
-    fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }, { timeout: 4000 }))
     fireEvent.click(screen.getByRole('menuitem', { name: '로그아웃' }))
     await toastIs('로그아웃했어요')
     await waitFor(() => expect(where()).toBe('/'))

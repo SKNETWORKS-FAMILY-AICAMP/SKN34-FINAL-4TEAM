@@ -159,7 +159,7 @@ export function EpisodeBulkImportSheet({ workId, firstEpisodeUnsaved, onClose }:
             onChange={(event) => vm.setRightsConfirmed(event.currentTarget.checked)} />
           원고 등록 권한이 있고 계약상 등록·이용 제한이 없음을 확인했어요.
         </label>}
-        <ImportUploadNotice />
+        {(vm.editable || vm.canRetry) && <ImportUploadNotice />}
         <div className="episode-bulk-actions">
           <button type="button" className="btn" disabled={vm.busy} onClick={close}>닫기</button>
           {!vm.basis && vm.error && <button type="button" className="btn" onClick={vm.refreshBasis}>회차 정보 다시 읽기</button>}

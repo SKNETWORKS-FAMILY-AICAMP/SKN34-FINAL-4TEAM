@@ -35,6 +35,9 @@ private const val CURSOR_PAGE = 100
 private const val MAX_EXPERIMENTS = 500
 private const val MAX_SCORES = 1000
 
+/** The gate sets have 24 and 46 items. */
+private const val MAX_EXPERIMENT_ITEMS = 100
+
 /** Experiment ids per scores request, so the URL stays short. */
 private const val SCORE_ID_CHUNK = 50
 
@@ -184,6 +187,14 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
     fun experimentScores(experimentIds: List<String>): List<JsonNode> = experimentIds.chunked(SCORE_ID_CHUNK).flatMap { ids ->
         cursorPages("/api/public/v3/scores", listOf("experimentId" to ids.joinToString(","), "fields" to "details,subject"), CURSOR_PAGE) { MAX_SCORES - it.size }
     }
+
+    /**
+     * The items of one experiment (a Dataset Run) with their item scores, from the Experiments items API: the only v4 route to a run's items (the dataset-run-items
+     * read answers 404 there). [from] bounds the item start time, which Langfuse requires. ponytail: the first 100 items, which is every item of a gate set.
+     */
+    fun experimentItems(experimentId: String, from: Instant): List<JsonNode> = cursorPages(
+        "/api/public/experiment-items", listOf("experimentId" to experimentId, "fromStartTime" to from.toString(), "fields" to "core,scores"), CURSOR_PAGE,
+    ) { MAX_EXPERIMENT_ITEMS - it.size }
 
     /** The conditions of the requests that count: finished ones (a status is set, or is the one asked for) and the filters of the screen. */
     private fun traceConditions(feature: String?, status: String?, userId: String?, requestId: String?): List<Map<String, Any?>> = listOfNotNull(
