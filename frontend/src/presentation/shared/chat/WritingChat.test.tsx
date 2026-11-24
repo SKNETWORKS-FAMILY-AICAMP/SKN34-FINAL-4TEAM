@@ -1362,3 +1362,26 @@ it('고쳐 보낸 턴은 그 턴의 진행 목록을 새 목록으로 바꾼다(
   expect(await screen.findByText('작업 1개')).toBeTruthy()
   expect(screen.queryByText('작업 2개')).toBeNull()
 })
+
+it('고쳐 보낸 요청이 도착하기 전에 실패하면 원래 진행 목록을 보존한다(#784)', async () => {
+  openThread([])
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '원래 답' }
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '원래 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '원래 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getByRole('button', { name: '이 메시지 고치기' })).toBeTruthy())
+  expect(screen.getByText('작업 1개')).toBeTruthy()
+  expect(screen.getByText('원래 답')).toBeTruthy()
+})

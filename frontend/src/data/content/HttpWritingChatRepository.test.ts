@@ -73,6 +73,7 @@ describe('집필 AI 채팅 SSE', () => {
     await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(
       'event: activity\ndata: {"id":"c1","label":"세계관 읽기","target":"3화","status":"running","feature":"new_feature","extra":1}\n\n',
       'event: activity\ndata: {"id":"c1","label":"세계관 읽기","status":"paused"}\n\nevent: activity\ndata: {oops\n\n',
+      'event: constructor\ndata: {}\n\nevent: future-event\ndata: {}\n\n',
       'event: tool_trace\ndata: {"x":1}\n\n',
       'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
     expect(events.map((e) => e.type)).toEqual(['activity', 'done'])

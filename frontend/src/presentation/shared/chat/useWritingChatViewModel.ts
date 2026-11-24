@@ -161,7 +161,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (id) await load(id)
         // 이력을 읽는 사이 작품이 바뀌었으면 뒷정리는 새 작품의 상태를 건드리지 않는다(옛 요청이 sceneTicket을 올려 새 작품의 멈춘 장면이 저절로 재생되던 문제).
         if (generation.current === owner) {
-          setActivityLog((log) => ({ ...log, [at]: activities }))
+          if (ok || activities.length) setActivityLog((log) => ({ ...log, [at]: activities }))
           setLive(null); setPending(false)
           void refreshSessions()
           // 실패한 턴은 알리지 않는다: 무대가 저절로 다음 턴을 보내지 않고 작가가 다시 시도한다.

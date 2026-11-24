@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -30,8 +32,12 @@ def test_orchestration_stream_sends_sse_events(monkeypatch):
                                json={'request': '길드 규칙 알려줘', 'inputs': {'story_context': QA}})
     assert denied.status_code == 403
     assert response.headers['content-type'].startswith('text/event-stream')
-    assert [line[7:] for line in response.text.splitlines() if line.startswith('event: ')] == [
-        'plan', 'started', 'step', 'done']
+    events = [line[7:] for line in response.text.splitlines() if line.startswith('event: ')]
+    assert events == ['activity', 'activity', 'plan', 'started', 'activity', 'activity', 'step', 'done']
+    activity = [json.loads(block.splitlines()[1][6:]) for block in response.text.replace('\r\n', '\n').split('\n\n')
+                if block.startswith('event: activity\n')]
+    assert [row['status'] for row in activity] == ['running', 'done', 'running', 'done']
+    assert activity[0]['id'] == activity[1]['id'] != activity[2]['id'] == activity[3]['id']
 
 
 

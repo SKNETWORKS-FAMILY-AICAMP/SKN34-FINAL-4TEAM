@@ -168,8 +168,8 @@ function parse(block: string): ChatEvent | null {
     if (line.startsWith('event:')) name = line.slice(6).trim()
     else if (line.startsWith('data:')) data.push(line.slice(5).trimStart())
   }
+  if (!Object.hasOwn(events, name) || !data.length) return null
   const schema = events[name as keyof typeof events]
-  if (!schema || !data.length) return null
   let value: unknown
   try { value = JSON.parse(data.join('\n')) } catch { value = undefined }
   const parsed = schema.safeParse(value)
