@@ -65,6 +65,7 @@ export type Work = {
   serial?: '연재 중' | '완결' | '휴재'
   forkFrom?: number
   forksAllowed?: boolean
+  allowForkPublication?: boolean
   forkAll?: boolean
   forkEps?: number[]
   cast: CastMember[]

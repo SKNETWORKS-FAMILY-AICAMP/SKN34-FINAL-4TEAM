@@ -155,6 +155,10 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
     fun prompt(name: String, version: Int): JsonNode =
         get("/api/public/v2/prompts/{name}", mapOf("name" to name), listOf("version" to version))
 
+    /** The version carrying the label (production, seed). */
+    fun prompt(name: String, label: String): JsonNode =
+        get("/api/public/v2/prompts/{name}", mapOf("name" to name), listOf("label" to label))
+
     fun createPrompt(body: Map<String, Any?>): JsonNode = send(HttpMethod.POST, "/api/public/v2/prompts", emptyMap(), body)
 
     /** Langfuse keeps labels unique across versions, so this also takes them off any other version. */

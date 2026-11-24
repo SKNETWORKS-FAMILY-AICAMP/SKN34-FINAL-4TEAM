@@ -150,8 +150,8 @@ def main():
         plan = select(changed_paths(base) if base else [], full=base is None)
         print(json.dumps({"base": base, **plan}, indent=2))
         with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-            for tier in ("unit", "integration"):
-                output.write(f"{tier}={json.dumps({'include': plan[tier]})}\n{tier}_needed={str(bool(plan[tier])).lower()}\n")
+            # 서비스 job 하나가 단위·통합을 모두 실행한다. select가 두 목록을 같게 만들므로 행렬은 하나만 내보낸다.
+            output.write(f"service={json.dumps({'include': plan['unit']})}\nservice_needed={str(bool(plan['unit'])).lower()}\n")
             output.write(f"system={','.join(plan['system'])}\nsystem_needed={str(bool(plan['system'])).lower()}\ninfra={str(plan['infra']).lower()}\n")
         check_base = base
         if check_base is None:
@@ -171,7 +171,7 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(redact(file.read_text(errors="replace")))
     elif args.action == "required":
-        expected = {tier for tier in ("unit", "integration", "system", "configuration") if os.environ[tier.upper() + "_NEEDED"] == "true"}
+        expected = {tier for tier in ("service", "system", "configuration") if os.environ[tier.upper() + "_NEEDED"] == "true"}
         expected.add("changes")
         check_results({job: value["result"] for job, value in json.loads(os.environ["NEEDS"]).items()}, expected)
 

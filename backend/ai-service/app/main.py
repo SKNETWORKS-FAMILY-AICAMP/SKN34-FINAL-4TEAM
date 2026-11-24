@@ -1,9 +1,10 @@
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from app.images.router import router as images_router
 
-from app import tracing
+from app import prompts, tracing
 from app.evaluation.router import router as evaluation_router
 from app.health.router import router as health_router
 from app.generation.router import router as generation_router
@@ -24,11 +25,13 @@ from app.writing.router import router as writing_router
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    """대화 체크포인트를 열고 닫은 뒤 아직 보내지 않은 추적 span을 보낸다.
+    """프롬프트를 등록하고 대화 체크포인트를 열고 닫은 뒤 아직 보내지 않은 추적 span을 보낸다.
 
     SDK의 종료 훅(atexit)에 맡기면 안 된다: uvicorn은 SIGTERM으로 정상 종료한 뒤 그 시그널을 다시 올려 프로세스를 끝내므로
     (컨테이너는 init: true) atexit이 돌지 않아, 요청 뒤 SDK 전송 주기(5초) 안에 재시작하면 마지막 요청의 trace가 사라진다.
     """
+    if tracing.enabled():  # 운영 화면이 모든 프롬프트를 처음부터 보이게 등록한다(#705). Langfuse가 느려도 기동을 늦추지 않게 따로 돈다
+        threading.Thread(target=prompts.register_all, name='prompt-register', daemon=True).start()
     try:
         async with orchestration.lifespan(application):
             yield

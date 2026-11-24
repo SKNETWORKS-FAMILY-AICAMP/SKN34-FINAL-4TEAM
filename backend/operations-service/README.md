@@ -231,7 +231,7 @@ python3 -I -m unittest discover -s infrastructure/ci -p test_spring_service_conf
 CI는 Operations 소스/테스트/SQL/빌드 변경에 Operations 단위·통합을 함께 선택하고 다른 서비스나 HTTP 시스템 시나리오는 추가하지 않습니다. 공유/알 수 없는 설정 변경과 수동 실행은 기존처럼 보수적으로 전체 범위를 선택합니다. `.github/workflows/ci.yml`이 native Gradle `unitTest`/`integrationTest`를 직접 실행합니다.
 
 - 보안 통합은 MVC/Security 조립을 검증합니다. CRUD 통합은 실제 HTTP·PostgreSQL·Flyway·JPA 경로를 검증하도록 작성합니다.
-- CI 통합 job의 격리된 임시 PostgreSQL에만 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`를 전달합니다. 실행별 job service container는 Actions가 정리하며 운영/공유 DB·실제 `.env`를 쓰지 않습니다.
+- CI Operations 서비스 job(통합 단계)의 격리된 임시 PostgreSQL에만 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`를 전달합니다. 실행별 job service container는 Actions가 정리하며 운영/공유 DB·실제 `.env`를 쓰지 않습니다.
 - CI 실패 보고서에는 운영 토큰·DB 비밀번호도 정제합니다. 실제 DB 적용·서버 배포·실제 메일·유료 AI 호출은 하지 않습니다.
 - 로컬 Spring/HTTP/DB/컨테이너/브라우저 E2E/전체 빌드는 **미실행**입니다. HTTP 통합을 브라우저 E2E로 표현하지 않습니다.
 - 로컬 `/code-review`는 CodeRabbit API로 diff를 전송하는 스킬이므로 외부 업로드 금지에 따라 실행하지 않습니다. Ponytail review와 로컬 보안·정확성 자체 검토는 별도 수행합니다.

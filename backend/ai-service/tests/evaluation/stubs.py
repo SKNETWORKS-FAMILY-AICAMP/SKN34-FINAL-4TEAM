@@ -36,8 +36,8 @@ def item(number, input, expected=None, metadata=None, dataset='qa.grounding') ->
                                       'metadata': metadata})
 
 
-def prompt(text, version):
-    return SimpleNamespace(prompt=text, version=version)
+def prompt(text, version, model=None):
+    return SimpleNamespace(prompt=text, version=version, config={'model': model} if model else {})
 
 
 def _score(name, value, data_type):
@@ -167,10 +167,11 @@ def prepared(monkeypatch, items, *, request=QA_REQUEST, experiments=(), prompts=
 
 def stub_models(monkeypatch, *, generate=None, ragas=None, geval=None):
     """모델 실행과 두 채점기 대역. 호출 기록을 돌려준다. generate·ragas·geval은 기본 응답을 바꾸는 함수다."""
-    calls = SimpleNamespace(generate=[], ragas=[], geval=[])
+    calls = SimpleNamespace(generate=[], ragas=[], geval=[], models=[])
 
-    def run(instructions, data):
+    def run(instructions, data, model=None):
         calls.generate.append((instructions, data))
+        calls.models.append(model)
         return generate(instructions, data) if generate else '답: ' + str(data.get('question') or data.get('text'))
 
     async def ragas_scores(question, contexts, answer):
@@ -189,10 +190,11 @@ def stub_models(monkeypatch, *, generate=None, ragas=None, geval=None):
 
 def stub_simulation(monkeypatch, *, generate=None, grade=None):
     """시뮬레이션 세트의 서비스 호출 생성과 루브릭 채점 대역. 호출 기록을 돌려준다. generate(kind, instructions, input)·grade(payload)는 기본 응답을 바꾸는 함수다."""
-    calls = SimpleNamespace(generate=[], grade=[])
+    calls = SimpleNamespace(generate=[], grade=[], models=[])
 
-    def run(kind, instructions, data):
+    def run(kind, instructions, data, model=None):
         calls.generate.append((kind, instructions, data))
+        calls.models.append(model)
         return generate(kind, instructions, data) if generate else '"갑시다."'
 
     async def rubric_grade(instructions, payload, schema):

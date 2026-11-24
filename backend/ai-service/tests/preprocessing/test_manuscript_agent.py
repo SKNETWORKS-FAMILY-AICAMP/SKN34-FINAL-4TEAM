@@ -1,7 +1,10 @@
 """SDK 경로를 대역으로 검증한다. 유료 API·네트워크 호출 없음."""
 import json
+from functools import partial
 from types import SimpleNamespace
+import httpx2
 import pytest
+from langchain_openai import ChatOpenAI
 from openai import APITimeoutError, APIConnectionError
 from app import tracing
 from app.manuscript_extraction import agent, prompt, service
@@ -49,6 +52,53 @@ def test_strict_responses_path_no_retries_and_original_is_data(provider):
 def test_the_resolve_prompt_leaves_same_names_to_the_program():
     assert '프로그램이 종류와 이름이 같은 대상을 같은 대상으로 묶는다' in prompt.RESOLVE
     assert 'name_only' not in prompt.RESOLVE and 'explicit_coreference' not in prompt.RESOLVE
+
+
+@pytest.mark.parametrize('completed,stream_error,expected', [
+    (True, None, None),
+    (False, None, 'MODEL_OUTPUT_INCOMPLETE'),
+    (False, httpx2.ReadTimeout, 'MODEL_TIMEOUT'),
+    (False, httpx2.RemoteProtocolError, 'MODEL_UNAVAILABLE'),
+])
+def test_extraction_requires_a_completed_responses_stream(monkeypatch, completed, stream_error, expected):
+    output = json.dumps({'mentions': [], 'statements': [], 'relationships': []})
+    response = {'id': 'resp_test', 'object': 'response', 'created_at': 0,
+                'model': 'test-model', 'status': 'in_progress', 'output': []}
+    events = [
+        {'type': 'response.created', 'sequence_number': 0, 'response': response},
+        {'type': 'response.output_text.delta', 'sequence_number': 1, 'item_id': 'msg_test',
+         'output_index': 0, 'content_index': 0, 'delta': output},
+    ]
+
+    class EventStream(httpx2.SyncByteStream):
+        def __iter__(self):
+            for event in events:
+                yield f'data: {json.dumps(event)}\n\n'.encode()
+            if stream_error:
+                raise stream_error('Interrupted while reading the body')
+
+    def serve(request):
+        payload = json.loads(request.content)
+        if not payload.get('stream'):
+            raise httpx2.RemoteProtocolError('Server disconnected without sending a response.')
+        if completed:
+            message = {'id': 'msg_test', 'type': 'message', 'role': 'assistant', 'status': 'completed',
+                       'content': [{'type': 'output_text', 'text': output, 'annotations': []}]}
+            events.append({'type': 'response.completed', 'sequence_number': 2,
+                           'response': {**response, 'status': 'completed', 'text': payload['text'],
+                                        'output': [message]}})
+        return httpx2.Response(200, headers={'Content-Type': 'text/event-stream'}, stream=EventStream())
+
+    monkeypatch.setenv('OPENAI_API_KEY', 'synthetic-only')
+    monkeypatch.setenv('OPENAI_MODEL', 'test-model')
+    with httpx2.Client(transport=httpx2.MockTransport(serve)) as client:
+        monkeypatch.setattr(agent, 'ChatOpenAI', partial(ChatOpenAI, http_client=client))
+        episode = EpisodeText(number=1, title='원문', body='본문')
+        if expected is None:
+            assert agent.extract(episode).mentions == []
+        else:
+            with pytest.raises(PreprocessingFailure, match=expected):
+                agent.extract(episode)
 
 
 @pytest.mark.parametrize('mode,code', [('incomplete','MODEL_OUTPUT_INCOMPLETE'),('bad_json','INVALID_MODEL_OUTPUT'),('bad_shape','INVALID_MODEL_OUTPUT'),('refused','INVALID_MODEL_OUTPUT'),('timeout','MODEL_TIMEOUT'),('api','MODEL_UNAVAILABLE'),('missing_env','MODEL_NOT_CONFIGURED')])
@@ -126,3 +176,9 @@ def test_resolve_input_is_compact(monkeypatch):
     assert 'source' not in dumped and 'evidence' not in dumped and lines[1][60] not in dumped  # 인용되지 않은 원문 줄은 가지 않는다
     assert data[0]['mentions'] == [{'ref': '1:m1', 'name': '서하', 'kind': 'character', 'quote': lines[1][0]}]
     assert data[0]['quotes'] == sorted(lines[1][1:31])
+
+
+def test_the_model_chosen_in_the_prompt_version_is_called(provider, monkeypatch):
+    monkeypatch.setattr(tracing, 'prompt', lambda name, text: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    agent.extract(EpisodeText(number=1, title='x', body='본문'))
+    assert provider.settings['model'] == 'gpt-chosen'

@@ -1,5 +1,6 @@
 import importlib
 import logging
+from threading import Barrier
 from types import SimpleNamespace
 
 import httpx
@@ -9,7 +10,7 @@ from app.manuscript_extraction.errors import PreprocessingFailure
 from app.preprocessing import worker
 from app.preprocessing.models import JobRequest
 
-from traced import attrs, status_of
+from traced import attrs, named, status_of
 
 REQUEST = JobRequest(jobId="job", workId="work", episodes=[1, 2])
 RAW = {"number": 2, "title": "둘", "body": "원문"}
@@ -77,6 +78,40 @@ def test_a_finished_job_runs_every_stage_in_order_and_its_trace_is_a_success(mon
     assert status_of(spans()[0]) == "success"
     assert calls == [("claim", {"workId": "work"}), ("result", {"token": "lease", "result": {"number": 2}}), ("structure-input", {"token": "lease"}),
                      ("structure", {"token": "lease", "identity": {"identity": True}, "payload": {"payload": True}}), ("load", {"token": "lease"})]
+
+
+@pytest.mark.parametrize("failed_episode", [None, 2])
+def test_extracts_four_at_a_time_and_saves_results_before_finishing(monkeypatch, spans, failed_episode):
+    raws = [{"number": n, "title": "t", "body": "원문"} for n in range(1, 6)]
+    calls = content(monkeypatch, missing=raws)
+    first_batch = Barrier(4, timeout=5)
+
+    def extract(episode):
+        with worker.tracing.observe("test.extract"):
+            if episode.number <= 4:
+                first_batch.wait()
+            else:
+                assert [data["result"]["number"] for action, data in calls if action == "result"] == [
+                    n for n in range(1, 5) if n != failed_episode
+                ]
+            if episode.number == failed_episode:
+                raise PreprocessingFailure("MODEL_TIMEOUT")
+            return dumped({"number": episode.number})
+
+    model(monkeypatch, extract=extract)
+    worker.run(REQUEST)
+
+    saved = [data["result"]["number"] for action, data in calls if action == "result"]
+    assert saved == [n for n in range(1, 6) if n != failed_episode]
+    if failed_episode is None:
+        assert [action for action, _ in calls][-3:] == ["structure-input", "structure", "load"]
+    else:
+        assert calls[-1] == ("failed", {"token": "lease", "episodes": [failed_episode], "reason": "AI_TIMEOUT"})
+        assert "structure-input" not in [action for action, _ in calls]
+    [root] = named(spans, "manuscript_extraction")
+    extractions = named(spans, "test.extract")
+    assert len(extractions) == len(raws)
+    assert all(span.parent == root.context for span in extractions)
 
 
 def test_a_prepared_structure_skips_the_model_and_goes_to_load(monkeypatch):
@@ -152,14 +187,15 @@ def test_a_content_outage_is_not_recorded_as_a_failure_and_stays_resumable(monke
     assert "failed" not in [action for action, _ in calls]
 
 
-def test_a_rejected_result_fails_every_episode_that_has_no_saved_result_and_stops_calling_the_model(monkeypatch):
-    # Content는 failed.episodes가 결과 없는 회차 전체와 같기를 요구한다(아니면 그 콜백도 거절돼 작업이 멈춘다). 2화가 거절되면 1화는 저장됐고 3화는 아직 안 했다.
-    raws = [{"number": n, "title": "t", "body": "원문"} for n in (1, 2, 3)]
+def test_a_rejected_result_reports_all_unsaved_episodes_and_stops_before_the_next_batch(monkeypatch):
+    raws = [{"number": n, "title": "t", "body": "원문"} for n in range(1, 6)]
     calls = content(monkeypatch, missing=raws, failing={"result": lambda data: rejected(422) if data["result"]["number"] == 2 else None})
     asked = []
     model(monkeypatch, extract=lambda ep: asked.append(ep.number) or dumped({"number": ep.number}))
     worker.run(REQUEST)
-    assert asked == [1, 2] and calls[-1] == ("failed", {"token": "lease", "episodes": [2, 3], "reason": "CONTENT_REJECTED"})
+    assert sorted(asked) == [1, 2, 3, 4]
+    assert [data["result"]["number"] for action, data in calls if action == "result"] == [1, 2]
+    assert calls[-1] == ("failed", {"token": "lease", "episodes": [2, 3, 4, 5], "reason": "CONTENT_REJECTED"})
 
 
 def test_a_failed_extraction_and_a_later_rejection_are_both_reported(monkeypatch):

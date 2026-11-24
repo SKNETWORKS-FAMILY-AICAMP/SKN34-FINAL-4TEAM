@@ -34,10 +34,10 @@ services:
     expose:
       - "8000"
 
-  # 회차 원고 전처리 Celery 워커. ai-service와 같은 이미지·환경(Content 콜백 주소·내부 토큰·OpenAI·Langfuse)으로 큐의 작업을 한 번에 하나씩 실행한다.
+  # 회차 원고 전처리 Celery 워커. ai-service와 같은 이미지·환경을 쓰며 동시 작업 수는 AI_PREPROCESSING_CONCURRENCY가 정한다.
   ai-worker:
     init: true
-    command: [celery, -A, app.preprocessing.worker, worker, -Q, preprocessing, --concurrency=1, --loglevel=INFO]
+    command: [celery, -A, app.preprocessing.worker, worker, -Q, preprocessing, "--concurrency=${AI_PREPROCESSING_CONCURRENCY:-3}", --loglevel=INFO]
     environment: *ai-environment
 
   # 작업 Celery 워커(회귀 평가·운영 정기 작업, 계약 operations-funnel-credit-contract §4). ai-service와 같은 이미지·환경으로 jobs 큐의 작업을
@@ -162,6 +162,8 @@ services:
       OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      # 프롬프트 버전에 고를 수 있는 모델(#806, 쉼표 구분, AI 서비스가 OpenAI로 부르는 모델만). 빈 값은 Spring이 기본값 대신 빈 목록으로 읽어 기본 목록을 여기 둔다.
+      LLMOPS_MODELS: ${LLMOPS_MODELS:-gpt-6-luna,gpt-6.1-terra,gpt-6-sol,gpt-6.1-sol,gpt-6-astra}
       # 평가 위임·누설 판정은 AI 내부 API로 부르며 Content와 같은 INTERNAL_TOKEN을 쓴다.
       OPERATIONS_AI_BASE_URL: http://ai-service:8000
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}

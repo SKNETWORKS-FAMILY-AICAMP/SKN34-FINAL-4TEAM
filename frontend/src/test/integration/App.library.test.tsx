@@ -25,7 +25,7 @@ const acceptPolicy = async () => {
 }
 
 describe('내 서재 (U11·U12)', () => {
-  it('읽는 중·내가 쓰는 소설 탭을 오간다(내 댓글·제보는 작품 관리 /content?view=reports)', async () => {
+  it('읽는 중·내가 쓰는 소설 탭을 오간다(내 제보·수정 제안는 작품 관리 /content?view=reports)', async () => {
     renderAt('/lib')
     await screen.findByRole('link', { name: '▶ 2화 이어 읽기' })
     await waitFor(() => expect(sid()).toBe('U11 내 서재'))

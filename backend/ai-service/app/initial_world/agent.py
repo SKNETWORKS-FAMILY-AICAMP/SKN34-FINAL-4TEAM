@@ -14,13 +14,16 @@ def propose(data: Input) -> ProposedOutput:
 
     추적에는 모델·사용량·프롬프트 버전·실패만 남긴다. 설정 본문(입력·후보)은 추적 결정 범위 밖이다.
     """
-    key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
-    if not key or not model:
+    key = os.environ.get('OPENAI_API_KEY')
+    if not key:
         raise ExtractionFailure('MODEL_NOT_CONFIGURED', 503)
     try:
         managed = tracing.prompt('initial_world.extract', INSTRUCTIONS)
     except tracing.PromptUnavailable:
         raise ExtractionFailure('MODEL_UNAVAILABLE', 503) from None
+    model = managed.model or os.environ.get('OPENAI_MODEL')  # 운영 화면에서 고른 모델(#705), 없으면 환경 변수 기본값
+    if not model:
+        raise ExtractionFailure('MODEL_NOT_CONFIGURED', 503)
     client = None
     try:
         client = OpenAI(api_key=key, timeout=60, max_retries=0)
