@@ -154,7 +154,13 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
    if(job.running() || job.status=="succeeded") input(job) else null
   } ?: rejectCompletion(id)
   val bytes=storage.read(key(id)).bytes
-  validate(bytes,request.purpose)
+  try { validate(bytes,request.purpose) }
+  catch(e:Exception) {
+   // 규격·형식이 맞지 않는 결과는 running으로 남기지 않고 실패로 닫은 뒤 PNG를 지운다.
+   failed(id,"uploading")
+   discardAbandonedResult(id)
+   throw e
+  }
   val (result,discard)=tx.execute {
    val job=locked(id)
    if(!job.running() && job.status!="succeeded") return@execute null
@@ -165,20 +171,20 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
   if(discard) discardReference(id)
   return result
  }
- private fun rejectCompletion(id:UUID):Nothing {
+ private fun discardAbandonedResult(id:UUID) {
   // 종료 상태는 다시 실행되지 않는다. 성공이 커밋된 결과나 아직 실행 가능한 결과는 보존한다.
-  val abandoned=transaction { locked(id).status in setOf("failed","interrupted","deleted") }
-  if(abandoned) {
-   try { storage.delete(key(id)) }
-   catch(_:Exception) { log.warn("종료된 이미지 작업의 결과 파일을 정리하지 못했어요. jobId={}",id) }
-  }
+  if(!transaction { locked(id).status in setOf("failed","interrupted","deleted") }) return
+  try { storage.delete(key(id)) }
+  catch(_:Exception) { log.warn("종료된 이미지 작업의 결과 파일을 정리하지 못했어요. jobId={}",id) }
+ }
+ private fun rejectCompletion(id:UUID):Nothing {
+  discardAbandonedResult(id)
   throw ContentFailure(409,"종료된 이미지 작업입니다.")
  }
  fun content(id:UUID,owner:String):ByteArray {
-  val request=transaction { val j=owned(id,owner)
-   if(j.status!="succeeded") throw ContentFailure(409,"이미지 생성이 완료되지 않았어요.")
-   input(j) }
-  return storage.read(key(id)).bytes.also { validate(it,request.purpose) }
+  // succeeded는 complete()가 결과를 검증한 뒤에만 되므로 읽을 때 다시 검증하지 않는다.
+  transaction { if(owned(id,owner).status!="succeeded") throw ContentFailure(409,"이미지 생성이 완료되지 않았어요.") }
+  return storage.read(key(id)).bytes
  }
  fun delete(id:UUID,owner:String) {
   val hasReference=transaction { val job=locked(id)
@@ -201,13 +207,14 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
   val ids=transaction { jobs.findAllByStatusInAndUpdatedAtBefore(listOf("accepted","queued","running"),Instant.now().minusSeconds(300)).map { it.id } }
   if(ids.isEmpty()) return
   // 후보 조회의 JPA 캐시를 닫아야 잠금 뒤 이미 완료된 작업을 최신 상태로 다시 읽는다.
-  val expiredReferences=transaction {
-   ids.filter { id ->
+  val expired=transaction {
+   ids.mapNotNull { id ->
     val job=locked(id)
-    if(job.status !in setOf("accepted","queued","running") || !job.updatedAt.isBefore(Instant.now().minusSeconds(300))) false
-    else { job.status="interrupted"; hasTemporaryReference(job) }
+    if(job.status !in setOf("accepted","queued","running") || !job.updatedAt.isBefore(Instant.now().minusSeconds(300))) null
+    else { job.status="interrupted"; id to hasTemporaryReference(job) }
    }
   }
-  expiredReferences.forEach(::discardReference)
+  // 업로드 뒤 완료 보고가 유실된 작업의 결과 파일도 남기지 않는다. 없는 키의 삭제는 멱등이다.
+  expired.forEach { (id,temporary) -> if(temporary) discardReference(id); discardAbandonedResult(id) }
  }
 }

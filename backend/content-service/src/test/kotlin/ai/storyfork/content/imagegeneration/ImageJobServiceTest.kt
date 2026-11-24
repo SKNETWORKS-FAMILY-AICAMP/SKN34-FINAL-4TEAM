@@ -6,15 +6,18 @@ import ai.storyfork.content.imagegeneration.service.ImageReferences
 import ai.storyfork.content.imagegeneration.client.ImageJobClient
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
+import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.service.AttachmentService
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content._common.exception.ContentFailure
+import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyCollection
 import org.mockito.Mockito.*
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.SimpleTransactionStatus
@@ -61,6 +64,45 @@ class ImageJobServiceTest {
   `when`(storage.read(key)).thenReturn(validCover())
   assertEquals("succeeded",service.complete(job.id,key).status)
   verify(storage,never()).delete(key)
+ }
+ @Test fun `a result that fails validation fails the job and removes the PNG`() {
+  // 형식 오류(AttachmentFailure)와 규격 오류(ContentFailure) 모두 영구 running·잔류 PNG를 남기지 않는다.
+  for((purpose,bytes) in listOf("work_cover" to byteArrayOf(1,2,3),"character_profile" to validCover().bytes)) {
+   val job=ImageJob(status="running",input="""{"purpose":"${purpose}","prompt":"scene"}""")
+   val key="image-generations/${job.id}.png"
+   `when`(jobs.lock(job.id)).thenReturn(job)
+   `when`(storage.read(key)).thenReturn(AttachmentObjectResult(bytes))
+   val status=when(val error=assertThrows(RuntimeException::class.java){service.complete(job.id,key)}) {
+    is ContentFailure -> error.status
+    is AttachmentFailure -> error.status
+    else -> -1
+   }
+   assertEquals(422,status)
+   assertEquals("failed",job.status)
+   assertEquals("uploading",job.stage)
+   verify(storage).delete(key)
+  }
+ }
+ @Test fun `expiry removes the abandoned result object and the temporary reference`() {
+  val old=Instant.now().minusSeconds(600)
+  val temporary=ImageJob(status="running",templateVersion="cover-v3",updatedAt=old,
+   input="""{"request":{"purpose":"work_cover","prompt":"scene","reference":{"mode":"upload","role":"style"}},"digest":"x","mediaType":"image/png"}""")
+  val plain=ImageJob(status="queued",updatedAt=old)
+  `when`(jobs.findAllByStatusInAndUpdatedAtBefore(anyCollection(),any(Instant::class.java) ?: Instant.EPOCH)).thenReturn(listOf(temporary,plain))
+  `when`(jobs.lock(temporary.id)).thenReturn(temporary)
+  `when`(jobs.lock(plain.id)).thenReturn(plain)
+  service.expire()
+  assertEquals(listOf("interrupted","interrupted"),listOf(temporary.status,plain.status))
+  verify(storage).delete("image-generations/${temporary.id}.png")
+  verify(storage).delete("image-references/${temporary.id}")
+  verify(storage).delete("image-generations/${plain.id}.png")
+  verify(storage,never()).delete("image-references/${plain.id}")
+ }
+ @Test fun `a succeeded job serves the stored PNG without parsing or revalidating it`() {
+  val job=ImageJob(owner="alice",status="succeeded")
+  `when`(jobs.lock(job.id)).thenReturn(job)
+  `when`(storage.read("image-generations/${job.id}.png")).thenReturn(AttachmentObjectResult(byteArrayOf(1)))
+  assertArrayEquals(byteArrayOf(1),service.content(job.id,"alice"))
  }
  private fun validCover()=AttachmentObjectResult(java.io.ByteArrayOutputStream().also {
   javax.imageio.ImageIO.write(java.awt.image.BufferedImage(1152,1536,java.awt.image.BufferedImage.TYPE_INT_RGB),"png",it)
