@@ -284,10 +284,9 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
   }
   /** 인증·CSRF·시간 제한을 붙여 보내고 응답은 그대로 돌려준다. multipart(FormData)는 Content-Type을 브라우저가 경계와 함께 붙이도록 두지 않는다. */
   private async send(path: string, method: string, body: string | FormData | undefined, signal: AbortSignal | undefined): Promise<Response> {
-    const version = authVersion(),
-      requestSignal = signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
-        : AbortSignal.timeout(20000)
+    const version = authVersion()
+    const timeout = AbortSignal.timeout(method === 'PUT' && path.endsWith('/cover') ? 45000 : 20000)
+    const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout
     const headers: Record<string, string> = body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
     if (method !== 'GET') headers['X-CSRF-TOKEN'] = await csrf(requestSignal)
     try {

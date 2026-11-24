@@ -42,6 +42,8 @@ import type { WorkInterestUseCase } from '../../domain/usecases/WorkInterestUseC
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  imageGenerationRepository: import("../../domain/repositories/ImageGenerationRepository").ImageGenerationRepository
+  imageGenerationUseCase: import("../../domain/usecases/ImageGenerationUseCase").ImageGenerationUseCase
   operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
   operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
   noticeRepository: import('../../domain/repositories/NoticeRepository').NoticeRepository
@@ -60,6 +62,9 @@ export type AppCradle = {
   operationsCreditUseCase: import('../../domain/usecases/OperationsCreditUseCase').OperationsCreditUseCase
   operationsCommentRepository: import('../../domain/repositories/OperationsCommentRepository').OperationsCommentRepository
   operationsCommentUseCase: import('../../domain/usecases/OperationsCommentUseCase').OperationsCommentUseCase
+  operationsFeedbackReportRepository: import('../../domain/repositories/OperationsFeedbackReportRepository').OperationsFeedbackReportRepository
+  /** 운영자의 독자 제보 열람(#750). 서버가 없는 `--mode mockup`은 null이라 관리자 제보·문의 탭이 기존 메모리 데모 표를 그대로 보인다. */
+  operationsFeedbackReportUseCase: import('../../domain/usecases/OperationsFeedbackReportUseCase').OperationsFeedbackReportUseCase | null
   adminActivityRepository: import('../../domain/repositories/AdminActivityRepository').AdminActivityRepository
   adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
   operationsDashboardRepository: import('../../domain/repositories/OperationsDashboardRepository').OperationsDashboardRepository

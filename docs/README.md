@@ -83,3 +83,5 @@
 | [회차 삭제 정책 초안](episode-deletion-policy-draft.md) | 정책 확정 전 이슈 초안 |
 | [이전 설계: KAG](design/archive/kag-design/design.md) · [RDB MVP](design/archive/rdb-mvp/design.md) | 현재 설계 이전의 아키텍처안 |
 | [WorldStudio 콘텐츠 확장안](archive/worldstudio-content-extension/README.md) | 폐기된 Content 확장 스키마 원본 보관 |
+
+- [이미지 비동기 생성 계약](design/image-generation-contract.md) — #332, Flare high·목적별 규격·작업 상태·실행 설정.

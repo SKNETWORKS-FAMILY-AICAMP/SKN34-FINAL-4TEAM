@@ -37,19 +37,23 @@ class AttachmentEnvironmentTest(unittest.TestCase):
         command = ["docker", "compose", "--env-file", str(ROOT / ".env.example"), "-f", str(ROOT / "infrastructure/docker-compose.yaml"),
                    "-f", str(ROOT / "infrastructure/docker-compose.local.yaml"), "config", "--format", "json"]
         services = json.loads(subprocess.run(command, env=env, capture_output=True, text=True, check=True).stdout)["services"]
+        s3_keys = ("ATTACHMENT_S3_ENDPOINT", "ATTACHMENT_S3_REGION", "ATTACHMENT_S3_BUCKET",
+                   "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
+        content = services["content-service"]["environment"]
+        image_worker = services["image-worker"]["environment"]
         for name, service in services.items():
             settings = service.get("environment", {})
-            for key in ("ATTACHMENT_S3_ENDPOINT", "ATTACHMENT_S3_REGION", "ATTACHMENT_S3_BUCKET",
-                        "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"):
-                self.assertEqual(name == "content-service", key in settings)
+            for key in s3_keys:
+                self.assertEqual(name in ("content-service", "image-worker"), key in settings)
                 self.assertNotIn(key, service.get("build", {}).get("args", {}))
-            self.assertEqual(name in ("ai-service", "ai-worker", "ai-jobs-worker"), "OPENAI_API_KEY" in settings)
+            self.assertEqual(name in ("ai-service", "ai-worker", "ai-jobs-worker", "image-worker"), "OPENAI_API_KEY" in settings)
             self.assertNotIn("env_file", service)
             for port in service.get("ports", []):
                 self.assertEqual("127.0.0.1", port["host_ip"])
         self.assertEqual("synthetic-s3-id", services["minio"]["environment"]["MINIO_ROOT_USER"])
         self.assertEqual("synthetic-s3-secret", services["minio"]["environment"]["MINIO_ROOT_PASSWORD"])
-        content = services["content-service"]["environment"]
+        for key in s3_keys:
+            self.assertEqual(content[key], image_worker[key], key)
         self.assertEqual("http://minio:9000", content["ATTACHMENT_S3_ENDPOINT"])
         self.assertEqual("storyfork-setting-attachments", content["ATTACHMENT_S3_BUCKET"])
         self.assertEqual("us-east-1", content["ATTACHMENT_S3_REGION"])

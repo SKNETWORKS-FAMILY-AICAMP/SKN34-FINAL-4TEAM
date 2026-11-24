@@ -6,6 +6,10 @@ services:
     environment: &ai-environment
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
+      CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
       # 운영 회귀 평가(ai-jobs-worker)의 채점 모델. 비우면 OPENAI_MODEL이다(계약 operations-llmops-contract).
       EVALUATION_JUDGE_MODEL: ${EVALUATION_JUDGE_MODEL:-}
       # 회귀 평가 통과 허용 오차(지표별 기준 평균 - 이 값 이상이면 통과, 점수는 모두 0~1). 비우면 0.1이다.
@@ -53,6 +57,30 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_BASE_URL: http://langfuse-web:3000
+
+  image-worker:
+    init: true
+    command: [celery, -A, app.images.worker:app, worker, --concurrency=1, --loglevel=WARNING]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # 이미지 추적은 모델·규격·사용량·실패 유형만 기록한다.
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_BASE_URL: http://langfuse-web:3000
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      CONTENT_SERVICE_BASE_URL: http://content-service:8081
+      CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
+      ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+      ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+      ATTACHMENT_S3_ENDPOINT: ${ATTACHMENT_S3_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    depends_on:
+      content-service:
+        condition: service_started
 
   core-api:
     init: true

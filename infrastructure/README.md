@@ -115,7 +115,7 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 
 ## 로컬 설정 첨부 저장소 (#87)
 
-첨부 저장소(MinIO)는 플래그 없이 local·개발 배포 compose에 항상 포함됩니다. Content만 `http://minio:9000`과 `AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY`를 받으며 Core에는 S3 설정을 전달하지 않습니다. 이미지는 Dockerfile의 고정 버전 태그(`storyfork-minio:RELEASE…`)로 ghcr에 없을 때만 CD가 한 번 빌드·게시하고, 개발 배포·CI는 그 이미지를 받아 씁니다(local은 받을 수 없으면 처음 한 번 빌드).
+첨부 저장소(MinIO)는 플래그 없이 local·개발 배포 compose에 항상 포함됩니다. Content와 `image-worker`에 `http://minio:9000`, 버킷, S3 자격을 전달합니다. `image-worker`는 안전 검사를 통과한 생성 이미지의 저장에 이 설정을 사용합니다. 이미지는 Dockerfile의 고정 버전 태그(`storyfork-minio:RELEASE…`)로 ghcr에 없을 때만 CD가 한 번 빌드·게시하고, 개발 배포·CI는 그 이미지를 받아 씁니다(local은 받을 수 없으면 처음 한 번 빌드).
 
 MinIO는 승인된 [기존 minio.dockerfile](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-5Team/blob/HEAD/minio.dockerfile) 방식의 소스 빌드입니다. Go `1.24.8`/MinIO `RELEASE.2025-10-15T17-29-55Z`를 고정하며 다운로드/빌드는 네트워크가 필요합니다.
 
@@ -180,6 +180,8 @@ develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.
 - **Content**: `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다(색인은 끄는 플래그 없이 항상 켭니다). 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
 - **AI 이미지**: `--extra manuscript`(numpy·onnxruntime·tokenizers, `uv.lock` 고정)를 설치합니다. 고정 리비전 `614241f6…`의 `onnx/model_qint8_avx512_vnni.onnx`와 `onnx/tokenizer.json`은 빌드할 때 `ADD --checksum`으로 받으며, SHA-256이 다르면 빌드가 실패합니다. 위치는 `MANUSCRIPT_EMBEDDING_MODEL_DIR=/app/models/multilingual-e5-small`입니다. 서버에는 모델 디렉터리나 `.env` 값을 따로 둘 필요가 없습니다.
 - **배포 확인**: 스택이 healthy가 된 뒤 CD가 `ai-service`에서 E5 임베딩을 한 번 실행합니다. 실패하면 이전 이미지를 정리하지 않고 CD를 실패로 끝냅니다.
+- **디스크 확보**: pull 전에 dangling 이미지(`docker image prune --force`)와 빌드 캐시(`docker builder prune --force`)만 지우고 `df -h /`·`docker system df`를 로그에 남깁니다. 태그 있는 이미지·컨테이너·볼륨(공유 DB 포함)은 지우지 않습니다(#770).
+- **원격 스크립트 stdin**: 스크립트를 SSH stdin(`bash -se`)으로 보내므로 stdin을 읽는 명령이 남은 줄을 먹을 수 있습니다. stdin을 넘기는 `docker compose exec`에는 `</dev/null`을 붙여 마지막 `docker image prune --force`가 성공 종료 속에 건너뛰어지지 않게 합니다(#770).
 
 배포 전제조건은 CD가 확인하지 않으므로 서버 관리자가 확인해야 합니다.
 

@@ -5,6 +5,7 @@ import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
 import ai.storyfork.content.attachment.domain.AttachmentFailure
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.world.domain.WorldCoverFile
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldConflict
@@ -34,7 +35,8 @@ class WorldCoverServiceTest {
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = WorldCoverService(worlds, storage, expandedSeeds, manager)
+    private val moderation = mock(CoverModerationClient::class.java)
+    private val service = WorldCoverService(worlds, storage, expandedSeeds, manager, moderation)
     private val id = UUID.randomUUID()
     private val owner = UUID.randomUUID()
     private val png = WorldCoverFile(byteArrayOf(1, 2, 3), "image/png")
@@ -45,6 +47,18 @@ class WorldCoverServiceTest {
     private fun world(key: String? = null, type: String? = null) = StudioWorld(id, owner, coverObjectKey = key, coverContentType = type).also {
         `when`(worlds.lockOwned(id, owner)).thenReturn(it)
         `when`(worlds.findById(id)).thenReturn(Optional.of(it))
+    }
+
+    @Test fun `cover moderation failure leaves the existing cover and metadata untouched`() {
+        val entity = world("world-covers/old", "image/jpeg")
+        for ((status, code) in listOf(422 to "COVER_CONTENT_BLOCKED", 503 to "COVER_MODERATION_UNAVAILABLE")) {
+            doThrow(AttachmentFailure(status, code, "blocked")).`when`(moderation).check(png.bytes, png.contentType)
+            val error = assertThrows(AttachmentFailure::class.java) { service.put(id, owner, png) }
+            assertEquals(code, error.code)
+            assertEquals("world-covers/old", entity.coverObjectKey)
+            assertEquals(0L, entity.ownerMetadataVersion)
+            verifyNoInteractions(storage)
+        }
     }
 
     @Test fun `active expansion rejects cover changes before object upload`() {

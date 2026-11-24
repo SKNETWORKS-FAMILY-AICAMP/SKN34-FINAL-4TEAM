@@ -21,7 +21,9 @@ import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
+import { useFeedbackReportsViewModel } from '../viewmodel/useFeedbackReportsViewModel'
 import { AdminCardCategories } from './AdminCardCategories'
+import { AdminFeedbackReports } from './AdminFeedbackReports'
 import { AdminGenres } from './AdminGenres'
 import { AdminWorkDetail } from './AdminWorkDetail'
 import { AdminWorlds } from './AdminWorlds'
@@ -69,7 +71,7 @@ const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
   comments: ['댓글 관리', '독자 댓글을 조회하고 숨김·게시 복구를 요청합니다.'],
   feedback: [
     '제보·문의',
-    '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 시연용 데이터예요.',
+    '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 열람만 하고, 처리는 작가가 해요.',
   ],
   jobs: ['정기 작업', '원고 전처리와 운영 정기 작업의 실행 기록을 보고 실패 작업과 일정을 관리합니다.'],
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
@@ -360,7 +362,7 @@ function Body(p: BodyProps) {
   if (tab === 'works') return <Works {...p} />
   if (tab === 'comments') return <Comments {...p} />
   if (tab === 'audit') return <Audit vm={vm} />
-  // 운영 API 탭이라 데모 조회(d) 없이 그린다(Feedback의 시연용 제보 표만 d가 있을 때 붙는다).
+  // 운영 API 탭이라 데모 조회(d) 없이 그린다(Feedback의 서버 없는 시연(`--mode mockup`) 제보 표만 d가 있을 때 붙는다).
   if (tab === 'feedback') return <Feedback {...p} />
   if (tab === 'events') return <Events vm={vm} />
   if (tab === 'notices') {
@@ -1181,7 +1183,7 @@ function Events({ vm }: { vm: VM }) {
   )
 }
 
-/** 67 고객지원 문의: 회원이 보낸 문의 목록·상세와 답변 등록·수정·삭제. 작가 검토 제보는 기존 데모를 그대로 둡니다. */
+/** 67 고객지원 문의: 회원이 보낸 문의 목록·상세와 답변 등록·수정·삭제. 그 아래 작가 검토 제보는 운영 API의 독자 제보를 읽기만 하고(#750), 서버 없는 `--mode mockup`만 기존 메모리 데모 표를 그대로 둡니다. */
 function Feedback({ d, vm, f, setF }: BodyProps) {
   const selection = vm.recordSelection.inquiries
   const list = vm.live.inquiries
@@ -1191,6 +1193,7 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
   const root = useAdminDetailFocus(selection, !!row, rows.length)
   const replyHeading = useRef<HTMLHeadingElement>(null)
   const adding = vm.actions[`inquiry:${selection}:reply`]
+  const authorReports = useFeedbackReportsViewModel()
   return (
     <>
       <section className='panel admin-operations' aria-label='회원 고객지원 문의' ref={root}>
@@ -1299,7 +1302,7 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
             </>
           )}
       </section>
-      {d && (
+      {authorReports ? <AdminFeedbackReports vm={vm} reports={authorReports} /> : d && (
         <div className='panel'>
           <h2 className='panel-title'>작가 검토 제보</h2>
           <p className='small muted'>

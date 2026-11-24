@@ -3,6 +3,7 @@ package ai.storyfork.content.world.service
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.world.domain.WorldCoverFile
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldConflict
@@ -27,6 +28,7 @@ import org.springframework.transaction.support.TransactionTemplate
 class WorldCoverService(
     private val worlds: StudioWorldRepository, private val storage: AttachmentStorageClient, private val expandedSeeds:ExpandedSeedProgressRepository,
     @Qualifier("worldStudioTransactionManager") manager: PlatformTransactionManager,
+    private val coverModeration: CoverModerationClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val transaction = TransactionTemplate(manager)
@@ -40,6 +42,8 @@ class WorldCoverService(
      * ponytail: DB 갱신이 실패하면 새 객체가, 이전 객체 삭제가 실패하면 이전 객체가 객체 저장소에 남는다. 정리는 운영자 몫이고 보상 트랜잭션은 두지 않는다.
      */
     fun put(worldId: UUID, subject: UUID, cover: WorldCoverFile): WorldCoverResponse {
+        tx { owned(worldId, subject); guardExpansion(worldId) }
+        coverModeration.check(cover.bytes, cover.contentType)
         tx { val world = owned(worldId, subject); guardExpansion(worldId); world.ownerMetadataVersion = Math.incrementExact(world.ownerMetadataVersion) }
         val key = "world-covers/${UUID.randomUUID()}"
         coverStorage { storage.upload(key, AttachmentObjectPayload(cover.bytes, cover.contentType)) }

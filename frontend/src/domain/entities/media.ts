@@ -1,7 +1,10 @@
 export type MediaTarget =
  | {kind:'setting';workId:string;settingId:string}
+ | {kind:'card';worldId:string;cardId:string}
  | {kind:'cover';workId:string}
  | {kind:'episode';workId:string;number:number}
+/** 이미지와 참고 파일(TXT·MD·CSV·PDF)을 함께 붙이고 교체·이름 변경하는 대상: 옛 작품 설정과 세계관 카드(#735). 표지·회차 이미지는 PNG·JPEG만이다. */
+export const isFileTarget=(target:MediaTarget)=>target.kind==='setting'||target.kind==='card'
 
 export type Attachment = {id:string;filename:string;mediaType:string;kind:'IMAGE'|'FILE';byteSize:number;createdAt:string;url:string}
 /** 회차 원고 이미지 목록 항목. 대체 텍스트는 이미지마다 하나이며 버전별로 보존되지 않는다. */

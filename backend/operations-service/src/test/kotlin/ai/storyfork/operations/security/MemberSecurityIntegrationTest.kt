@@ -41,6 +41,8 @@ import ai.storyfork.operations.llmops.service.TraceService
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
 import ai.storyfork.operations.llmops.service.dto.TracePage
 import ai.storyfork.operations.event.controller.AdminEventController
+import ai.storyfork.operations.feedbackreport.controller.FeedbackReportController
+import ai.storyfork.operations.feedbackreport.service.FeedbackReportService
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
@@ -83,7 +85,7 @@ import tools.jackson.databind.json.JsonMapper
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
 @WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class,
     DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class, CreditController::class,
-    CardCategoryController::class, WorldStudioController::class], properties = [
+    CardCategoryController::class, WorldStudioController::class, FeedbackReportController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -104,6 +106,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var credits: CreditService
     @MockitoBean lateinit var cardCategories: CardCategoryService
     @MockitoBean lateinit var worldStudios: WorldStudioService
+    @MockitoBean lateinit var feedbackReports: FeedbackReportService
     @MockitoBean lateinit var comments: CommentService
     @MockitoBean lateinit var adminActivities: AdminActivityService
     @MockitoBean lateinit var dashboard: DashboardService
@@ -313,6 +316,35 @@ class MemberSecurityIntegrationTest {
             .content("""{"active":false}""")).andExpect(status().isOk()).andExpect(jsonPath("$.name").value("사이버펑크"))
         mvc.perform(put("/api/v1/operations/genres/order").header("Authorization", bearer).contentType("application/json")
             .content("""{"codes":["genre-02","genre-01"]}""")).andExpect(status().isOk())
+    }
+
+    @Test
+    fun `feedback report routes require a Core verified Bearer and ignore the service token`() {
+        val response = mvc.perform(get("/api/v1/operations/feedback-reports").header("X-Operations-Service-Token", serviceToken))
+            .andExpect(status().isUnauthorized()).andReturn().response
+        assertEquals("UNAUTHORIZED", code(response.contentAsString))
+        assertNull(response.getHeader("Set-Cookie"))
+        verifyNoInteractions(core, feedbackReports)
+    }
+
+    @Test
+    fun `verified member reaches the feedback report controller as principal with the filter and gets Content's JSON as is`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val page = mapper.readTree("""{"items":[{"id":"r1","workTitle":"작품","status":"checked"}],"page":1,"size":5,"totalElements":6,"totalPages":2}""")
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(feedbackReports.list(member, "checked", 1, 5)).thenReturn(page)
+        `when`(feedbackReports.list(member, null, null, null)).thenReturn(page)
+
+        mvc.perform(get("/api/v1/operations/feedback-reports?status=checked&page=1&size=5").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].workTitle").value("작품")).andExpect(jsonPath("$.totalPages").value(2))
+        mvc.perform(get("/api/v1/operations/feedback-reports").header("Authorization", bearer)).andExpect(status().isOk())
+        // The author handles a reader report, so the operator has no write route.
+        mvc.perform(post("/api/v1/operations/feedback-reports").header("Authorization", bearer)).andExpect(status().isMethodNotAllowed())
+        // A page that is not a number is the common 400 and never reaches the service.
+        mvc.perform(get("/api/v1/operations/feedback-reports?page=x").header("Authorization", bearer)).andExpect(status().isBadRequest())
+        verify(feedbackReports).list(member, "checked", 1, 5)
+        verify(feedbackReports).list(member, null, null, null)
+        verifyNoMoreInteractions(feedbackReports)
     }
 
     @Test

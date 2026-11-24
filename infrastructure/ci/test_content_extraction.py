@@ -50,7 +50,8 @@ class ContentExtractionTest(unittest.TestCase):
         # V40 adds immutable work operating settings history to the work leaf.
         # V44 adds the AI serial tables (settings, boards, choices, proposals, votes, summaries) to the work leaf (#659); V45 adds autonomous to the writing mode CHECK (work leaf, #659).
         # V46 adds the episode operator restriction (episode leaf, 운영자 콘텐츠 관리 결정 A).
-        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42,44,45,46],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
+        # V47 adds image generation jobs to the proposal leaf (#332).
+        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42,44,45,46,47],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
         created=set()
         for path in files:
             for statement in re.split(r'(?=CREATE TABLE )',path.read_text()):

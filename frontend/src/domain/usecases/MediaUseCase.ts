@@ -1,8 +1,12 @@
 import type {MediaRepository} from '../repositories/MediaRepository'
-import type {MediaTarget} from '../entities/media'
+import {isFileTarget,type MediaTarget} from '../entities/media'
 
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export function validateMediaTarget(target:MediaTarget) {
+ if(target.kind==='card'){
+  if(!uuid.test(target.worldId)||!uuid.test(target.cardId))throw new Error('서버에 저장된 설정 카드를 선택해 주세요.')
+  return
+ }
  if(!uuid.test(target.workId))throw new Error('서버에 저장된 작품을 선택해 주세요.')
  if(target.kind==='setting'&&!uuid.test(target.settingId))throw new Error('설정 초안을 서버에 먼저 저장해 주세요.')
  if(target.kind==='episode'&&(!Number.isSafeInteger(target.number)||target.number<1))throw new Error('서버에 저장된 회차를 선택해 주세요.')
@@ -20,12 +24,12 @@ export class MediaUseCase {
  private readonly repository:MediaRepository
  constructor(repository:MediaRepository){this.repository=repository}
  async list(target:MediaTarget,signal?:AbortSignal){validateMediaTarget(target);return this.repository.list(target,signal)}
- async upload(target:MediaTarget,file:File,replaceId?:string,signal?:AbortSignal){validateMediaTarget(target);validateMediaFile(file,target.kind!=='setting');return this.repository.upload(target,file,replaceId,signal)}
+ async upload(target:MediaTarget,file:File,replaceId?:string,signal?:AbortSignal){validateMediaTarget(target);validateMediaFile(file,!isFileTarget(target));return this.repository.upload(target,file,replaceId,signal)}
  remove(target:MediaTarget,id:string,signal?:AbortSignal){validateMediaTarget(target);if(!uuid.test(id))throw new Error('첨부 식별자를 확인해 주세요.');return this.repository.remove(target,id,signal)}
  /** 설정 첨부의 파일명만 바꾼다. 확장자 유지는 화면이 고정하고 서버가 다시 검사한다. */
  async rename(target:MediaTarget,id:string,filename:string,signal?:AbortSignal){
   validateMediaTarget(target)
-  if(target.kind!=='setting')throw new Error('설정 첨부만 이름을 바꿀 수 있어요.')
+  if(!isFileTarget(target))throw new Error('설정 첨부만 이름을 바꿀 수 있어요.')
   if(!uuid.test(id))throw new Error('첨부 식별자를 확인해 주세요.')
   validateMediaFilename(filename)
   return this.repository.rename(target,id,filename,signal)
