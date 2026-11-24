@@ -195,15 +195,17 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         application = service / "src/main/kotlin/ai/storyfork/content/Application.kt"
         self.assertIn("runApplication<ContentServiceApplication>(*args)", application.read_text(encoding="utf-8"))
 
-    def test_gradle_image_builds_lock_the_shared_user_home_cache(self):
-        for service in ("core-api", "content-service"):
+    def test_gradle_image_builds_resolve_dependencies_in_a_layer_before_the_sources(self):
+        # 의존성은 `COPY src` 앞의 별도 레이어에서 받아 CI의 type=gha 레이어 캐시에 싣는다(#800). BuildKit cache mount는 그 캐시로
+        # 내보내지지 않아, 소스가 바뀔 때마다 새 러너에서 Maven Central을 다시 부르다 429로 간헐 실패했다. 소스 레이어는 새로 받지 않는다.
+        for service in ("core-api", "content-service", "operations-service"):
             with self.subTest(service=service):
                 dockerfile = (ROOT / "backend" / service / "Dockerfile").read_text(encoding="utf-8")
-                self.assertIn(
-                    "RUN --mount=type=cache,target=/root/.gradle,sharing=locked \\\n"
-                    "    ./gradlew bootJar --no-daemon",
-                    dockerfile,
-                )
+                builder = dockerfile.split(" AS builder\n", 1)[1].split("\nFROM ", 1)[0]
+                self.assertNotIn("--mount=type=cache", builder)
+                dependencies, sources = builder.split("COPY src ./src\n", 1)
+                self.assertIn("./gradlew bootJar --no-daemon", dependencies)
+                self.assertIn("./gradlew bootJar --no-daemon --offline", sources)
 
     def test_each_independent_build_reuses_core_wrapper_bytes_and_executable_mode(self):
         for service in SERVICES:
