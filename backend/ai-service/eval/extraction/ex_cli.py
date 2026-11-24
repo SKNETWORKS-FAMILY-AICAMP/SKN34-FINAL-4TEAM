@@ -31,6 +31,8 @@ SETS, GOLD, RESULTS = DATA / 'sets', DATA / 'gold', HERE / 'results'
 DATASET = HERE.parents[1] / 'app' / 'evaluation' / 'datasets' / 'extraction.extract.jsonl'
 POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
 GATE_SIZE = 30   # 게이트 세트 회차 수(평가 1회 = 운영 모델 호출 이만큼)
+VAL = 20   # 최적화 풀의 val 문항 수 상한(시뮬레이션 풀 orig_export.VAL과 같다): 기본 호출 상한 150에서 기준 본문의 val 평가가 호출의 큰 몫을 쓰지 않게 작게 둔다
+VAL_SHARE = 0.4   # 풀이 작으면 val은 풀의 이 비율까지만(나머지는 train)
 SIMULATION_DATA = HERE.parent / 'simulation' / '.data'
 
 
@@ -85,13 +87,22 @@ def split(items: list[dict], gate_size: int) -> tuple[list[dict], list[dict]]:
     return [item for item in items if item['id'] in gate], [item for item in items if item['id'] not in gate]
 
 
+def numbered(gate: list[dict], pool: list[dict]) -> tuple[list[dict], list[dict]]:
+    """최종 id와 풀의 split: 게이트는 extraction.extract-01부터, 풀은 extraction.extract.opt-001부터(시뮬레이션 풀과 같은 규칙)이고, 풀 항목에는 자동 개선이 읽는 metadata.split이 붙는다.
+    val은 풀 전체에서 같은 간격으로 min(VAL, 풀의 VAL_SHARE)개이고 나머지는 train이다."""
+    size = min(VAL, round(len(pool) * VAL_SHARE))
+    val = {n * len(pool) // size for n in range(size)} if size else set()
+    return ([{**item, 'id': f'extraction.extract-{n:02d}'} for n, item in enumerate(gate, 1)],
+            [{**item, 'id': f'extraction.extract.opt-{n + 1:03d}', 'metadata': {**item['metadata'], 'split': 'val' if n in val else 'train'}} for n, item in enumerate(pool)])
+
+
 def cmd_export(args) -> int:
     """공개 세트(.data/sets/public.jsonl)를 게이트 세트와 최적화 풀로 나눠 저장소에 쓴다. 저작권 만료 공개 항목이 아니면 아무것도 쓰지 않고 멈춘다(해리 포터가 저장소·Langfuse로 가지 않게)."""
     items = read_items(SETS / 'public.jsonl')
     bad = [item['id'] for item in items if not (item['id'].startswith('extraction.extract-') and item['metadata']['license'].startswith('저작권 만료'))]
     if bad:
         raise SystemExit(f'저작권 만료 공개 항목만 내보낼 수 있다: {", ".join(bad)}')
-    gate, pool = split(items, args.gate)
+    gate, pool = numbered(*split(items, args.gate))
     write_items(DATASET, gate)
     write_items(POOL, pool)
     print(f'게이트 {len(gate)}개 → {DATASET}\n풀 {len(pool)}개 → {POOL}')

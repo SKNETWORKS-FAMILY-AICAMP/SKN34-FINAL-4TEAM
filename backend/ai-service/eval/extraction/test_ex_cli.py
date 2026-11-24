@@ -124,13 +124,44 @@ def test_split_with_a_gate_larger_than_the_set_or_zero_has_an_empty_side():
     assert ex_cli.split(items, 99) == (items, []) and ex_cli.split(items, 0) == ([], items)
 
 
+def episode_of(items):
+    return [(i['metadata']['source']['work'], i['metadata']['source']['episode']) for i in items]
+
+
 def test_export_splits_the_public_items_into_the_gate_set_and_the_optimization_pool(home):
-    ex_cli.write_items(home / 'sets' / 'public.jsonl', catalog())
+    items = catalog()
+    ex_cli.write_items(home / 'sets' / 'public.jsonl', items)
 
     ex_cli.main(['export', '--gate', '6'])
 
-    assert ids(ex_cli.read_items(ex_cli.DATASET)) == [2, 4, 6, 7, 9, 10] and ids(ex_cli.read_items(ex_cli.POOL)) == [1, 3, 5, 8]
-    assert ex_cli.POOL.parent.name == 'optimize' and ex_cli.POOL.name == ex_cli.DATASET.name   # seed가 올리지 않는 하위 폴더에 같은 세트 이름으로
+    gate, pool = ex_cli.read_items(ex_cli.DATASET), ex_cli.read_items(ex_cli.POOL)
+    by_id = {i['id']: i for i in items}
+    assert episode_of(gate) == episode_of([by_id[f'extraction.extract-{n:02d}'] for n in (2, 4, 6, 7, 9, 10)])   # 어느 회차가 어디로 가는지는 split이 정한다
+    assert episode_of(pool) == episode_of([by_id[f'extraction.extract-{n:02d}'] for n in (1, 3, 5, 8)])
+    assert ex_cli.POOL.parent.name == 'optimize' and ex_cli.POOL.name == ex_cli.DATASET.name   # seed가 올리지 않는 하위 폴더에 같은 세트 이름으로(자동 개선이 읽는 위치)
+    assert [i['id'] for i in gate] == [f'extraction.extract-{n:02d}' for n in range(1, 7)] and [i['id'] for i in pool] == [f'extraction.extract.opt-{n:03d}' for n in range(1, 5)]   # 파일에 쓰는 id는 번호를 새로 맨 것
+    assert all('split' not in i['metadata'] for i in gate) and {i['metadata']['split'] for i in pool} == {'train', 'val'}
+
+
+def test_numbered_gives_the_gate_contiguous_ids_and_the_pool_opt_ids_with_an_even_val_split():
+    pool = work_items('가', 'a', 10, 100)   # 풀이 작으면 val은 풀의 40%(4개)
+
+    gate, numbered_pool = ex_cli.numbered(work_items('나', 'b', 3, 1), pool)
+
+    assert [i['id'] for i in gate] == ['extraction.extract-01', 'extraction.extract-02', 'extraction.extract-03']
+    assert [i['id'] for i in numbered_pool] == [f'extraction.extract.opt-{n:03d}' for n in range(1, 11)]   # 시뮬레이션 풀과 같은 id 규칙
+    assert [n for n, i in enumerate(numbered_pool) if i['metadata']['split'] == 'val'] == [0, 2, 5, 7]   # 같은 간격: n * 10 // 4
+    assert {i['metadata']['split'] for i in numbered_pool} == {'train', 'val'}
+    assert 'split' not in gate[0]['metadata']   # 게이트 세트는 split이 없다
+
+
+def test_the_val_split_is_twenty_for_a_large_pool_and_spread_over_it():
+    _, pool = ex_cli.numbered([], work_items('가', 'a', 157, 1))
+
+    val = [n for n, i in enumerate(pool) if i['metadata']['split'] == 'val']
+    assert len(val) == ex_cli.VAL == 20 and sum(i['metadata']['split'] == 'train' for i in pool) == 137   # 상한 20: 기본 호출 상한 150에서 val 평가가 호출의 큰 몫을 쓰지 않게
+    assert val[0] == 0 and val[-1] >= 140 and max(b - a for a, b in zip(val, val[1:])) <= 8   # 풀 전체에서 같은 간격(157 // 20 = 7~8칸)
+
 
 
 def test_the_default_gate_is_about_thirty_episodes():

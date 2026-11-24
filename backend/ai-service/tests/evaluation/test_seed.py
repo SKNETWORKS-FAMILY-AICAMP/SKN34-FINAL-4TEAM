@@ -4,6 +4,7 @@ from collections import Counter
 import pytest
 
 from app.evaluation import extraction, seed
+from app.optimization import service
 
 PUBLIC = {'qa.grounding', 'world.conflict', 'writing.fix', 'leak.spoiler'}
 SIMULATION = {'simulation.act', 'simulation.narrate'}
@@ -69,12 +70,12 @@ def pool():
     return [json.loads(line) for line in POOL.read_text(encoding='utf-8').splitlines()]
 
 
-def check_extraction_items(items):
-    """게이트 세트·최적화 풀 공통: 저작권 만료 회차 + 채점 코드가 읽는 모양의 정답표."""
+def check_extraction_items(items, prefix):
+    """게이트 세트·최적화 풀 공통: 저작권 만료 회차 + 채점 코드가 읽는 모양의 정답표. id는 prefix로 시작한다."""
     assert len({it['input']['body'] for it in items}) == len(items) and len({it['id'] for it in items}) == len(items)   # 같은 회차를 두 번 싣지 않는다(평균에 두 배 가중치가 붙는다)
     for it in items:
         source, gold, body = it['metadata']['source'], it['metadata']['gold'], it['input']['body']
-        assert it['id'].startswith('extraction.extract-') and set(it['input']) == {'number', 'title', 'body'} and body.strip()   # 운영이 모델에 보내는 값 그대로
+        assert it['id'].startswith(prefix) and set(it['input']) == {'number', 'title', 'body'} and body.strip()   # 운영이 모델에 보내는 값 그대로
         assert {'work', 'author', 'origin', 'license', 'episode'} <= set(source) and source['license'].startswith('저작권 만료') and it['metadata']['license'] == source['license']
         assert gold['model'] == 'gpt-6.2-sol' and gold['runs'] == ['A', 'B'] and set(gold['agreement']) == {'mentions', 'statements', 'relationships'}
         table = extraction.Gold.model_validate(it['expectedOutput'])
@@ -84,19 +85,21 @@ def check_extraction_items(items):
 
 def test_the_extraction_gate_set_is_about_thirty_episodes_stratified_over_works_and_authors():
     items = seed.load()['extraction.extract']
-    check_extraction_items(items)
+    check_extraction_items(items, 'extraction.extract-')
 
     works = Counter((it['metadata']['source']['author'], it['metadata']['source']['work']) for it in items)
     authors = Counter(it['metadata']['source']['author'] for it in items)
-    assert len(items) == 30   # 평가 1회 = 운영 모델 호출 30회
+    assert [it['id'] for it in items] == [f'extraction.extract-{n:02d}' for n in range(1, 31)]   # 평가 1회 = 운영 모델 호출 30회
     assert len(works) >= 15 and max(works.values()) <= 3 and len(authors) >= 8 and max(authors.values()) / len(items) <= 0.25   # 한 작품·한 작가가 점수를 좌우하지 않는다
 
 
-def test_the_extraction_optimization_pool_is_the_rest_of_the_public_episodes():
+def test_the_extraction_optimization_pool_is_the_rest_of_the_public_episodes_in_the_shape_the_optimizer_reads():
     items = pool()
-    check_extraction_items(items)
+    check_extraction_items(items, 'extraction.extract.opt-')
 
     assert len(items) >= 30 and len(items) + len(seed.load()['extraction.extract']) >= 60   # 게이트와 합쳐 60회차 이상
+    train, val = service.load_pool('extraction.extract')   # 자동 개선이 풀 파일 이름(게이트 세트 이름)으로 읽는다: metadata.split이 train·val
+    assert len(val) == 20 and len(train) == len(items) - 20 and {it['metadata']['split'] for it in items} == {'train', 'val'}   # val 상한 20(시뮬레이션 풀과 같은 규칙)
 
 
 def test_the_extraction_gate_set_and_the_pool_share_no_episode_and_no_text():

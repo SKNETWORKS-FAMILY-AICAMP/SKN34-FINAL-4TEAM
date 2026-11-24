@@ -17,10 +17,11 @@
 | 세트 | 원천 | 둘 곳 | Langfuse | 용도 |
 |---|---|---|---|---|
 | **게이트 세트** `extraction.extract` | 저작권 만료 근대 한국 소설(위키문헌 `{{PD-old-NN}}`) 30회차(작품·작가 층화) | `app/evaluation/datasets/extraction.extract.jsonl`(저장소) | `python -m app.evaluation.seed`가 Dataset으로 등록 | 운영 회귀 평가·후보 등록 게이트(평가 1회 = 운영 모델 호출 30회) |
-| **최적화 풀** | 같은 공개 작품의 나머지 157회차 | `app/evaluation/datasets/optimize/extraction.extract.jsonl`(저장소) | **올리지 않는다**(seed는 `datasets/*.jsonl`만 읽고 하위 폴더는 읽지 않는다) | 프롬프트 자동 개선(GEPA)의 훈련·검증 재료 |
+| **최적화 풀** | 같은 공개 작품의 나머지 157회차(`metadata.split` train 137·val 20) | `app/evaluation/datasets/optimize/extraction.extract.jsonl`(저장소) | **올리지 않는다**(seed는 `datasets/*.jsonl`만 읽고 하위 폴더는 읽지 않는다) | 프롬프트 자동 개선(GEPA)의 훈련·검증 재료 |
 | **해리 포터 로컬 세트** | 해리 포터 번역본(저작권 있음) | `eval/extraction/.data/`(`.gitignore`, **저장소·Langfuse에 두지 않는다**) | 올리지 않는다 | 로컬 오프라인 평가 전용(CLI `score`) |
 
 - 게이트 짝 상수(운영 `PromptService`)와 계약 문서는 **저장소에 있는 공개 세트**만 가리킨다. Langfuse는 환경(로컬·dev·prod)마다 따로이고 게이트 짝은 코드 상수라, 세트가 없는 환경에서는 그 프롬프트가 영구 409가 된다. 공개 세트는 `ai-eval-seed`가 compose를 올릴 때마다 등록한다.
+- 풀은 자동 개선(`app/optimization/`)이 읽는 모양이다: 파일 이름이 게이트 세트 이름(`extraction.extract`)과 같고 항목에 `metadata.split`(`train`·`val`)이 있어 `service.load_pool('extraction.extract')`가 그대로 읽는다. 지금 자동 개선이 지원하는 프롬프트는 인물 대사·나레이션뿐이라, 추출에 켜려면 AI `OPTIMIZABLE`과 운영 지원 목록에 `manuscript_extraction.extract` → `extraction.extract` 짝만 더하면 된다(이 작업의 범위 밖).
 - 게이트와 풀은 **회차·원문이 겹치지 않는다**: 항목 id·(작품, 회차)·본문 40자 조각이 모두 달라야 하고 `tests/evaluation/test_seed.py`가 고정한다. 같은 작품의 다른 회차는 양쪽에 있을 수 있다(게이트 작품 30편 중 25편이 풀에도 있다, 7절).
 - 해리 포터 원문·정답표·항목은 `.data/` 밖에 쓰지 않는다. 문서·`results/`에는 집계 수치만 둔다.
 
@@ -33,7 +34,7 @@
   - `mentions[]`: `{name, kind, aliases[], core}` — `aliases`는 두 번 중 다른 쪽이 쓴 호칭이다.
   - `statements[]`: `{kind, quote, core}` — `quote`는 원문의 한 문장이다(원문에 정확히 한 번 있다).
   - `relationships[]`: `{source, target, label, core}` — 끝점은 `mentions[].name`이다.
-- `metadata` = `{license, source{work, author, origin, license, episode}, gold{model, runs, agreement}}`. `agreement`는 두 번의 일치도(종류별 `core ÷ 합집합`)라 정답표를 얼마나 믿을지 보여 준다.
+- `metadata` = `{license, source{work, author, origin, license, episode}, gold{model, runs, agreement}}`(풀 항목은 `split`이 더해진다). `agreement`는 두 번의 일치도(종류별 `core ÷ 합집합`)라 정답표를 얼마나 믿을지 보여 준다.
 
 ## 4. 정답표 만드는 법
 
@@ -47,7 +48,7 @@
    - 관계: 끝점 두 대상이 같으면(방향 무관) 같은 관계다. 방향·라벨은 합칠 때 보지 않는다.
 5. `core` 대상이 3개 미만이거나 `core` 진술이 5개 미만인 회차는 항목으로 만들지 않는다(재현율이 너무 거칠다, `MIN_CORE`. 197회차 중 10회차가 걸렸다). 같은 (지시문·모델·회차)의 응답은 디스크 캐시라 같은 명령을 다시 치면 부르지 않는다.
    검증에서 대상 하나가 떨어지면 그 대상을 가리키던 진술이 줄줄이 빠지는데(`UNKNOWN_ENTITY` 연쇄, 운영 검증기와 같은 동작) 처음 만든 11회차에서는 두 실행(봄봄 1화 A·2화 B)이 18~21개씩 잃어 그 두 실행만 한 번 다시 뽑았다. 확대한 회차는 다시 뽑지 않고 `core`가 작아진 회차를 위 기준이 걸러 낸다.
-6. 나눈다(`ex_cli.py export`): 항목을 게이트 30회차와 풀로 가른다(층화). **작가를 번갈아 돌며 작품마다 한 회차씩** 30개를 채우고(작품이 30편보다 많아 뒤 작품은 풀에만 든다) 한 작품에서 여러 회차를 뽑게 되면 고르게(하나면 가운데) 뽑는다. 입력 순서를 지키고 두 쪽은 겹치지 않는다. 처음 11회차(5편 전체)는 이 규칙에 따라 5회차가 게이트에, 6회차가 풀에 갔다(이전 게이트 구성은 지켜지지 않고 재구성했다).
+6. 나눈다(`ex_cli.py export`): 항목을 게이트 30회차와 풀로 가른다(층화). **작가를 번갈아 돌며 작품마다 한 회차씩** 30개를 채우고(작품이 30편보다 많아 뒤 작품은 풀에만 든다) 한 작품에서 여러 회차를 뽑게 되면 고르게(하나면 가운데) 뽑는다. 입력 순서를 지키고 두 쪽은 겹치지 않는다. 그다음 번호를 새로 매긴다: 게이트는 `extraction.extract-01`부터, 풀은 `extraction.extract.opt-001`부터(시뮬레이션 풀과 같은 규칙)이고 풀 항목에 `metadata.split`을 붙인다(val은 풀 전체에서 같은 간격으로 20개, 풀이 작으면 풀의 40%, 나머지 train. 기본 호출 상한 150에서 기준 본문의 val 평가가 호출의 큰 몫을 쓰지 않게 시뮬레이션 풀과 같은 20으로 작게 잡았다). 처음 11회차(5편 전체)는 이 규칙에 따라 5회차가 게이트에, 6회차가 풀에 갔다(이전 게이트 구성은 지켜지지 않고 재구성했다).
 
 ## 5. 코드 채점
 
@@ -139,6 +140,7 @@ uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extracti
 | `core`(두 번 모두, 재현율 기준) | 319·509·72 | 1,644·2,677·480 | 1,963·3,186·552 |
 | 회차별 일치도 평균(`core` ÷ 합집합) | 0.65·0.54·0.47 | 0.67·0.55·0.54 | 0.66·0.55·0.53 |
 | 관계 `core`가 없는 회차 | 5 | 11 | 16 |
+| `split`(train·val) | - | 137·20 | - |
 
 - 게이트 30회차는 작품 30편에서 한 회차씩이고 작가 14명이 1~3회차씩 든다(현진건·김동인·김유정·채만식 3, 이효석·최서해·나도향·강경애·이광수·이무영·계용묵·이상 2, 나혜석·심훈 1). 풀은 작품 75편(게이트 작품 25편은 다른 회차가, 50편은 풀에만 있다)이다.
 - 두 지시문은 뽑는 양이 다르다: B가 대상 1.4배·관계 1.3배다(A는 설정집에 실을 것만, B는 독자 질문의 근거가 될 것을 빠짐없이). 그래서 `core`는 A의 대부분과 B의 일부다.
