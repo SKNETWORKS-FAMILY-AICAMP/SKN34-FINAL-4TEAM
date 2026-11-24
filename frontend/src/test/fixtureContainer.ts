@@ -14,6 +14,8 @@ import { InMemoryPublicWorldRepository } from '../data/mock/InMemoryPublicWorldR
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../data/mock/InMemoryWorkInterestRepository'
 import { mockupFeedbackReportRepository } from '../data/mock/mockupRepositories'
+import { FEEDBACK_REPORTS_PAGE_SIZE } from '../domain/entities/operationsFeedbackReport'
+import type { OperationsFeedbackReportRepository } from '../domain/repositories/OperationsFeedbackReportRepository'
 import type { SerialRepository } from '../domain/repositories/SerialRepository'
 
 // 서버가 없는 격리 컨테이너라 '다음 회차' 게시판은 'AI 자율 집필 꺼짐'(탭 없음)으로 답해, 정본 작품 화면이 네트워크 오류로 깨지지 않게 한다. 게시판을 확인하는 테스트는 serialUseCase를 대역으로 바꾼다.
@@ -48,6 +50,8 @@ export function createFixtureContainer() {
     publicWorldRepository: asValue(new InMemoryPublicWorldRepository()),
     // 정본 작품이 없는 격리 컨테이너라 제보 목록은 비어 있고, 제보 화면을 확인하는 테스트는 저장소 메서드를 spyOn으로 바꾼다.
     feedbackReportRepository: asValue(mockupFeedbackReportRepository),
+    // 운영 독자 제보 열람도 서버가 없어 빈 쪽이고, 제보 표를 확인하는 테스트는 UseCase 메서드를 spyOn으로 바꾼다.
+    operationsFeedbackReportRepository: asValue<OperationsFeedbackReportRepository>({ list: async ({ page }) => ({ items: [], page, size: FEEDBACK_REPORTS_PAGE_SIZE, total: 0 }) }),
     serialRepository: asValue(noSerialBoard),
   })
   return container

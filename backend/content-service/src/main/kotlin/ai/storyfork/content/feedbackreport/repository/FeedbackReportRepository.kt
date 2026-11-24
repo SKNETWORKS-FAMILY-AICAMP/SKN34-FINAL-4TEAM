@@ -2,6 +2,8 @@ package ai.storyfork.content.feedbackreport.repository
 
 import ai.storyfork.content.feedbackreport.entity.FeedbackReportEntity
 import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.*
 import org.springframework.data.repository.query.Param
 
@@ -26,4 +28,23 @@ interface FeedbackReportRepository : JpaRepository<FeedbackReportEntity, String>
     /** 작가가 아직 확인하지 않은(`unchecked`) 제보 수다. 삭제된 작품의 제보는 작가 피드백함에 나오지 않으므로 세지 않는다(운영 통계, DEC-55). */
     @Query("select count(r) from FeedbackReportEntity r join WorkEntity w on w.id = r.workId where r.status = 'unchecked' and w.deletedAt is null")
     fun countUnchecked(): Long
+
+    /**
+     * 운영 서비스 전용 제보 열람 목록의 `[제보, 작품 제목]` 행이다(운영자는 읽기만 한다). 삭제된 작품의 제보는 작가 피드백함에 나오지 않으므로 [countUnchecked]와 같은 기준으로 뺀다.
+     * 정렬(작성 최신순, 같은 시각은 id순)은 쿼리가 정하고 쪽만 [pageable]이 정한다.
+     */
+    @Query(
+        value = """select r, w.title from FeedbackReportEntity r join WorkEntity w on w.id = r.workId
+            where w.deletedAt is null order by r.createdAt desc, r.id""",
+        countQuery = "select count(r) from FeedbackReportEntity r join WorkEntity w on w.id = r.workId where w.deletedAt is null",
+    )
+    fun listForOperations(pageable: Pageable): Page<Array<Any?>>
+
+    /** [listForOperations]에서 [status] 하나만 본다. 상태 값 검사는 서비스가 한다. */
+    @Query(
+        value = """select r, w.title from FeedbackReportEntity r join WorkEntity w on w.id = r.workId
+            where w.deletedAt is null and r.status = :status order by r.createdAt desc, r.id""",
+        countQuery = "select count(r) from FeedbackReportEntity r join WorkEntity w on w.id = r.workId where w.deletedAt is null and r.status = :status",
+    )
+    fun listForOperationsByStatus(@Param("status") status: String, pageable: Pageable): Page<Array<Any?>>
 }
