@@ -1,6 +1,7 @@
 """배포 원격 명령과 publish 이미지 단계를 fake Docker로 실행하는 순수 단위 회귀. DB/SSH/레지스트리는 사용하지 않는다."""
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -16,6 +17,12 @@ PULL = "pull " + APP  # fake Docker가 기록한 첫 앱 이미지 pull 줄의 �
 FULL_UP = "up -d --no-build --pull missing --wait --wait-timeout 600\n"
 
 
+def job(name):
+    """ci.yml에서 job 하나의 본문(다음 2칸 들여쓴 job 키 전까지). 게시·배포는 CI와 같은 워크플로의 마지막 두 job이다."""
+    jobs = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\njobs:\n", 1)[1]
+    return re.split(r"\n  [a-z][\w-]*:\n", jobs.split(f"\n  {name}:\n", 1)[1], maxsplit=1)[0]
+
+
 class DevelopDeploymentTest(unittest.TestCase):
     def deploy(self, overrides=None, server=None, registry=None):
         """server: 서버 앱 이미지의 build-tree 라벨(빠진 서비스는 이미지 없음, 기본은 ai-service만 옛 이미지).
@@ -23,8 +30,7 @@ class DevelopDeploymentTest(unittest.TestCase):
         bash = shutil.which("bash")
         if os.name == "nt":
             bash = "C:/Program Files/Git/bin/bash.exe"
-        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
-        script = textwrap.dedent(workflow.split("cat <<'REMOTE'", 1)[1].split("\n          REMOTE", 1)[0])
+        script = textwrap.dedent(job("deploy").split("cat <<'REMOTE'", 1)[1].split("\n          REMOTE", 1)[0])
         with tempfile.TemporaryDirectory(dir=ROOT if os.name == "nt" else None) as directory:
             path = Path(directory).resolve()
             directory = str(path)
@@ -157,20 +163,17 @@ class DevelopDeploymentTest(unittest.TestCase):
     def test_langfuse_compose_is_staged_like_the_other_files_for_the_dev_include(self):
         # dev가 include하는 Langfuse 정의도 SSH stdin으로 보내 임시 위치에 두고, 절대 경로를 CD_LANGFUSE_COMPOSE_FILE로 준다
         # (받는 쪽은 위 fake docker의 image inspect 검사가 확인한다).
-        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
-        self.assertIn('COMPOSE_LANGFUSE_YAML "$(< infrastructure/docker-compose.langfuse.yaml)"', workflow)
+        self.assertIn('COMPOSE_LANGFUSE_YAML "$(< infrastructure/docker-compose.langfuse.yaml)"', job("deploy"))
 
     def test_publish_requires_target_to_be_current_develop_head(self):
-        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
-        publish = workflow.split("  publish:", 1)[1].split("\n  deploy:", 1)[0]
+        publish = job("publish")
         check = publish.index('gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha')
         self.assertIn('[[ "$head" == "$TARGET_SHA" ]]', publish)
         self.assertLess(check, publish.index("docker build"))
 
     def test_publish_builds_only_services_whose_build_context_tree_is_not_published(self):
         # publish의 이미지 단계를 실제 git tree와 fake Docker로 실행한다. 앞의 세 서비스는 tree 태그가 레지스트리에 이미 있다.
-        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
-        script = textwrap.dedent(workflow.split("        id: images\n        run: |\n", 1)[1].split("\n\n  deploy:", 1)[0])
+        script = textwrap.dedent(job("publish").split("        id: images\n        run: |\n", 1)[1])
         contexts = ["frontend" if service == "web" else "backend/" + service for service in SERVICES]
         sha, *tree_list = subprocess.run(["git", "rev-parse", "HEAD", *["HEAD:" + context for context in contexts]],
             cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()

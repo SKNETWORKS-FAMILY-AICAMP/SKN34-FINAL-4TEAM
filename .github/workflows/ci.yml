@@ -4,15 +4,16 @@ on:
   push:
     branches: [develop, main]
   pull_request:
-  # 비교 기준이 없는 수동 실행은 모든 서비스/시나리오를 선택한다.
+  # 비교 기준이 없는 수동 실행은 모든 서비스/시나리오를 선택한다. develop에서의 수동 실행은 CI가 성공하면 게시·배포까지 한다.
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# PR·main은 새 push가 이전 run을 취소한다. develop은 진행 중인 CI·배포를 끊지 않는다(기다리는 run은 가장 새 것 하나만 남는다).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
 
 # 격리된 CI 전용 값이다. 저장소/서버의 실제 .env·secrets는 사용하지 않는다.
 env:
@@ -39,10 +40,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
-      unit: ${{ steps.plan.outputs.unit }}
-      unit_needed: ${{ steps.plan.outputs.unit_needed }}
-      integration: ${{ steps.plan.outputs.integration }}
-      integration_needed: ${{ steps.plan.outputs.integration_needed }}
+      service: ${{ steps.plan.outputs.service }}
+      service_needed: ${{ steps.plan.outputs.service_needed }}
       system: ${{ steps.plan.outputs.system }}
       system_needed: ${{ steps.plan.outputs.system_needed }}
       infra: ${{ steps.plan.outputs.infra }}
@@ -54,7 +53,7 @@ jobs:
           persist-credentials: false
       - id: plan
         run: python3 infrastructure/ci/ci.py plan
-      - if: ${{ steps.plan.outputs.unit_needed == 'true' }}
+      - if: ${{ steps.plan.outputs.service_needed == 'true' }}
         run: python3 -m unittest discover -s infrastructure/ci -p 'test_*.py' -v
 
   configuration:
@@ -113,109 +112,20 @@ jobs:
       - name: Validate simulation demo worlds without a database
         run: python3 -I -m unittest discover -s infrastructure/sample-data/simulation-demo -p 'test_*.py' -v
 
-  unit:
-    name: Unit / ${{ matrix.service }}
+  # 서비스마다 job 하나다. 한 러너에서 빌드 → 단위 → 통합 순서로 실행하고 앞 단계가 실패하면 뒤 단계는 실행하지 않는다.
+  # 서비스끼리는 병렬이다. 통합에 쓰는 postgres·neo4j·elasticsearch·mailpit은 해당 서비스에만 띄운다(image가 비면 건너뛴다).
+  service:
+    name: Service / ${{ matrix.service }}
     needs: changes
-    if: ${{ needs.changes.outputs.unit_needed == 'true' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.unit) }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
-      - if: ${{ matrix.service == 'web' }}
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          package_json_file: frontend/package.json
-      - if: ${{ matrix.service == 'web' }}
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: gradle
-          # 키를 서비스별로 가른다. 기본 키는 세 서비스를 한 캐시로 묶어 먼저 저장한 서비스의 의존성만 남는다.
-          cache-dependency-path: |
-            backend/${{ matrix.service }}*/*.gradle*
-            backend/${{ matrix.service }}*/gradle/wrapper/gradle-wrapper.properties
-      - if: ${{ matrix.service == 'ai' }}
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          working-directory: backend/ai-service
-          enable-cache: true
-          cache-dependency-glob: backend/ai-service/uv.lock
-      - if: ${{ matrix.service == 'web' }}
-        run: pnpm --dir frontend install --frozen-lockfile
-      - if: ${{ matrix.service == 'ai' }}
-        run: uv lock --check --directory backend/ai-service
-      - name: Vitest unit tests (isolated modules only)
-        if: ${{ matrix.service == 'web' }}
-        working-directory: frontend
-        run: pnpm exec vitest run src/domain src/data src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/unit.xml
-      - name: JUnit unit tests (selected feature packages)
-        if: ${{ matrix.service == 'core' }}
-        working-directory: backend/core-api
-        env:
-          SCOPE: ${{ matrix.scope }}
-        run: |
-          filters=()
-          if [[ "$SCOPE" != all ]]; then
-            for feature in ${SCOPE//,/ }; do
-              case "$feature" in
-                auth) packages=("$feature") ;;
-                health) packages=(_health _health_ai_service _common) ;;
-                *) exit 1 ;;
-              esac
-              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
-            done
-          fi
-          ./gradlew unitTest --no-daemon "${filters[@]}"
-      - name: JUnit Content pure unit tests (integration excluded)
-        if: ${{ matrix.service == 'content' }}
-        working-directory: backend/content-service
-        run: ./gradlew unitTest --no-daemon
-      - name: JUnit Operations pure unit tests (integration excluded)
-        if: ${{ matrix.service == 'operations' }}
-        working-directory: backend/operations-service
-        run: ./gradlew unitTest --no-daemon
-      - name: pytest isolated provider unit tests
-        if: ${{ matrix.service == 'ai' }}
-        working-directory: backend/ai-service
-        run: uv run --locked --extra dev python -m pytest -m 'not integration' --junitxml=reports/unit.xml
-      - if: ${{ matrix.service == 'web' }}
-        run: pnpm --dir frontend lint && pnpm --dir frontend build
-      - name: Sanitize failure reports
-        if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ failure() }}
-        with:
-          name: unit-${{ matrix.service }}
-          path: sanitized/
-          retention-days: 7
-          if-no-files-found: ignore
-
-  integration:
-    name: Integration / ${{ matrix.service }}
-    needs: changes
-    if: ${{ needs.changes.outputs.integration_needed == 'true' }}
+    if: ${{ needs.changes.outputs.service_needed == 'true' }}
     permissions:
       contents: read
       packages: read
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 45
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
+      matrix: ${{ fromJSON(needs.changes.outputs.service) }}
     services:
       postgres:
         # Core·Content·Operations 통합 job마다 서로 격리된 임시 DB를 생성한다.
@@ -311,6 +221,61 @@ jobs:
           cache-dependency-glob: backend/ai-service/uv.lock
       - if: ${{ matrix.service == 'web' }}
         run: pnpm --dir frontend install --frozen-lockfile
+      # 1) 빌드: 서비스 이미지를 만드는 것과 같은 작업을 먼저 확인한다.
+      - name: Build web (lint and bundle)
+        if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend lint && pnpm --dir frontend build
+      - name: Build Core jar (same task as the image build)
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        run: ./gradlew bootJar --no-daemon
+      - name: Build Content jar (same task as the image build)
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew bootJar --no-daemon
+      - name: Build Operations jar (same task as the image build)
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/operations-service
+        run: ./gradlew bootJar --no-daemon
+      - name: Check AI dependency lock (no compile step)
+        if: ${{ matrix.service == 'ai' }}
+        run: uv lock --check --directory backend/ai-service
+      # 2) 단위: 빌드가 성공한 뒤에만 실행한다.
+      - name: Vitest unit tests (isolated modules only)
+        if: ${{ matrix.service == 'web' }}
+        working-directory: frontend
+        run: pnpm exec vitest run src/domain src/data src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/unit.xml
+      - name: JUnit unit tests (selected feature packages)
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        env:
+          SCOPE: ${{ matrix.scope }}
+        run: |
+          filters=()
+          if [[ "$SCOPE" != all ]]; then
+            for feature in ${SCOPE//,/ }; do
+              case "$feature" in
+                auth) packages=("$feature") ;;
+                health) packages=(_health _health_ai_service _common) ;;
+                *) exit 1 ;;
+              esac
+              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
+            done
+          fi
+          ./gradlew unitTest --no-daemon "${filters[@]}"
+      - name: JUnit Content pure unit tests (integration excluded)
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew unitTest --no-daemon
+      - name: JUnit Operations pure unit tests (integration excluded)
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/operations-service
+        run: ./gradlew unitTest --no-daemon
+      - name: pytest isolated provider unit tests
+        if: ${{ matrix.service == 'ai' }}
+        working-directory: backend/ai-service
+        run: uv run --locked --extra dev python -m pytest -m 'not integration' --junitxml=reports/unit.xml
+      # 3) 통합: 단위가 모두 성공한 뒤에만 실행한다(통합 테스트 단계에는 상태 조건을 두지 않는다). 아래 보고·정리 단계만 실패 때도 돈다.
       - name: Vitest React integration tests (exclude unit files)
         if: ${{ matrix.service == 'web' }}
         working-directory: frontend
@@ -409,7 +374,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:
-          name: integration-${{ matrix.service }}
+          name: service-${{ matrix.service }}
           path: sanitized/
           retention-days: 7
           if-no-files-found: ignore
@@ -417,8 +382,8 @@ jobs:
 
   system:
     name: Selected HTTP system scenarios
-    needs: [changes, unit, integration, configuration]
-    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && needs.integration.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
+    needs: [changes, service, configuration]
+    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.service.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
     permissions:
       contents: read
       packages: read
@@ -483,7 +448,7 @@ jobs:
   required:
     name: Required CI
     if: ${{ always() }}
-    needs: [changes, configuration, unit, integration, system]
+    needs: [changes, configuration, service, system]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -494,8 +459,211 @@ jobs:
       - name: Reject failures, cancellations and unexpected skips
         env:
           NEEDS: ${{ toJSON(needs) }}
-          UNIT_NEEDED: ${{ needs.changes.outputs.unit_needed }}
-          INTEGRATION_NEEDED: ${{ needs.changes.outputs.integration_needed }}
+          SERVICE_NEEDED: ${{ needs.changes.outputs.service_needed }}
           SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
           CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
         run: python3 infrastructure/ci/ci.py required
+
+  # 게시·배포는 CI와 같은 워크플로의 마지막 두 job이다(별도 CD 워크플로 없음).
+  publish:
+    name: Publish develop images
+    needs: required
+    # develop push(또는 develop 수동 실행)에서 Required CI가 성공했을 때만 돈다. PR·fork·main에는 게시 권한이 없다.
+    if: ${{ needs.required.result == 'success' && github.repository == 'SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM' && github.ref == 'refs/heads/develop' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # 진행 중인 게시·배포를 새 push가 끊지 않게 deploy와 같은 그룹에서 취소 없이 차례로 실행한다.
+    concurrency:
+      group: develop-cd
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      trees: ${{ steps.images.outputs.trees }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify target is current develop HEAD
+        run: |
+          set -euo pipefail
+          # 늦게 끝난 이전 커밋의 CI가 develop 태그와 서버를 과거로 되돌리지 않게 한다.
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha)
+          [[ "$head" == "$TARGET_SHA" ]] || { printf '::error::develop HEAD %s is not target %s; skip stale publish.\n' "$head" "$TARGET_SHA"; exit 1; }
+      - name: Build and push develop images
+        id: images
+        run: |
+          set -euo pipefail
+          umask 077
+          scratch=$(mktemp -d)
+          trap 'rm -rf -- "$scratch"' EXIT
+          export DOCKER_CONFIG="$scratch"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          # MinIO는 고정 버전 소스 빌드라 내용이 같다. 그 버전 태그가 ghcr에 없을 때만 한 번 빌드·게시한다.
+          minio="ghcr.io/sknetworks-family-aicamp/storyfork-minio:$(grep -oE 'RELEASE\.[0-9TZ-]+' infrastructure/minio/Dockerfile | head -1)"
+          if ! docker manifest inspect "$minio" >/dev/null 2>&1; then
+            docker build --platform linux/amd64 --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --tag "$minio" infrastructure/minio
+            docker push "$minio"
+          fi
+          # 이미지는 서비스 빌드 컨텍스트(Dockerfile과 COPY 대상이 모두 그 안에 있다)의 내용으로만 정해진다.
+          # 컨텍스트의 git tree가 같은 이미지가 이미 게시돼 있으면 다시 빌드하지 않는다.
+          trees=
+          for service in web core-api content-service operations-service ai-service; do
+            image="ghcr.io/sknetworks-family-aicamp/storyfork-$service"
+            context="backend/$service"
+            if [[ "$service" == web ]]; then context=frontend; fi
+            tree=$(git rev-parse "$TARGET_SHA:$context")
+            trees="$trees $service=$tree"
+            if docker manifest inspect "$image:tree-$tree" >/dev/null 2>&1; then
+              printf 'skip %s: build tree %s is already published.\n' "$service" "$tree"
+              continue
+            fi
+            printf 'build %s: build tree %s.\n' "$service" "$tree"
+            docker build --platform linux/amd64 \
+              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.revision=$TARGET_SHA" \
+              --label "io.storyfork.build-tree=$tree" \
+              --tag "$image:tree-$tree" --tag "$image:sha-$TARGET_SHA" "$context"
+            # tree 태그는 게시 완료 표시라 마지막에 올린다(위 건너뛰기 판정이 이 태그를 본다).
+            docker push "$image:sha-$TARGET_SHA"
+            docker push "$image:tree-$tree"
+          done
+          # 모든 tree 이미지 게시 후에만 develop을 갱신한다. 새로 빌드하지 않은 서비스도 같은 tree 이미지로 맞춘다
+          # (이미 게시된 tree로 되돌린 커밋이면 develop이 다른 tree를 가리키고 있다).
+          for pair in $trees; do
+            image="ghcr.io/sknetworks-family-aicamp/storyfork-${pair%%=*}"
+            docker buildx imagetools create --tag "$image:develop" "$image:tree-${pair#*=}"
+          done
+          printf 'trees=%s\n' "${trees# }" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy develop images
+    needs: publish
+    # publish가 develop push·수동 실행에서 Required CI가 성공했을 때만 돌므로 publish 성공만 요구한다.
+    if: ${{ needs.publish.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      group: develop-cd
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+    environment: develop-cd
+    env:
+      CD_DEPLOY_DIR: ${{ vars.CD_DEPLOY_DIR }}
+      CD_WEB_PORT: ${{ vars.CD_WEB_PORT }}
+      CD_TREES: ${{ needs.publish.outputs.trees }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:storyfork-cd
+      - name: Prepare SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CD_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.CD_SSH_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          SSH_DIR="$RUNNER_TEMP/storyfork-ssh"
+          printf 'SSH_DIR=%s\n' "$SSH_DIR" >> "$GITHUB_ENV"
+          mkdir -p "$SSH_DIR"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$SSH_DIR/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$SSH_DIR/known_hosts"
+      - name: Pull and start develop images
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          {
+            # 설정과 토큰은 명령 인자가 아닌 암호화된 SSH stdin으로 전달한다.
+            printf '%s=%q\n' CD_DIRECTORY "$CD_DEPLOY_DIR" CD_WEB_PORT "$CD_WEB_PORT" CD_TREES "$CD_TREES" \
+              GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
+              COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
+              COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)" \
+              COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)" \
+              COMPOSE_LANGFUSE_YAML "$(< infrastructure/docker-compose.langfuse.yaml)"
+            cat <<'REMOTE'
+          set -euo pipefail
+          umask 077
+          cd -P -- "$CD_DIRECTORY"
+          [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
+          export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
+          # 서버 .env의 profile 설정이 배포 구성을 바꾸지 못하게 한다.
+          export COMPOSE_PROFILES=
+          unset DOCKER_CONTEXT
+          export DOCKER_CONFIG
+          DOCKER_CONFIG=$(mktemp -d)
+          trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
+          export COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.yaml:$DOCKER_CONFIG/docker-compose.dev.yaml"
+          printf '%s\n' "$COMPOSE_BASE_YAML" > "$DOCKER_CONFIG/docker-compose.yaml"
+          printf '%s\n' "$COMPOSE_DEV_YAML" > "$DOCKER_CONFIG/docker-compose.dev.yaml"
+          # --project-directory changes relative extends resolution; use the staged absolute path.
+          export CD_LOCAL_COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.local.yaml"
+          printf '%s\n' "$COMPOSE_LOCAL_YAML" > "$CD_LOCAL_COMPOSE_FILE"
+          # dev가 include하는 Langfuse 정의도 같은 이유로 임시 절대 경로로 준다.
+          export CD_LANGFUSE_COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.langfuse.yaml"
+          printf '%s\n' "$COMPOSE_LANGFUSE_YAML" > "$CD_LANGFUSE_COMPOSE_FILE"
+
+          # 같은 프로젝트 이름을 사용하는 다른 배포는 변경하지 않는다.
+          containers=$(docker container ls --all --quiet --filter label=com.docker.compose.project=storyfork-develop-cd)
+          for container in $containers; do
+            [[ "$(docker container inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$container")" == "$CD_DIRECTORY" ]] || exit 1
+          done
+
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          unset GH_TOKEN
+          # pull 전에 공간을 먼저 확보한다(#770). 공유 DB 볼륨과 태그 있는 이미지는 건드리지 않도록 dangling 이미지와 빌드 캐시(--no-build라 서버는 안 씀)만 지운다.
+          df -h / || true
+          docker system df || true
+          docker image prune --force
+          docker builder prune --force
+          # 앱 이미지는 build-tree 라벨이 이번 run의 tree와 같으면 서버의 이미지를 그대로 쓰고, 다르거나 없을 때만 받는다.
+          # CD_TREES는 publish가 계산한 '<서비스>=<tree>' 다섯 쌍이다. 받은 뒤에도 라벨이 다르면(재실행된 이전 run이 더 새
+          # develop 이미지와 이전 Compose를 섞는 경우 등) 앱을 멈추기 전에 중단한다.
+          tree_of() { docker image inspect --format '{{index .Config.Labels "io.storyfork.build-tree"}}' "$1" 2>/dev/null || true; }
+          deny() { printf 'develop images are not this run build trees; rerun CD for current develop.\n' >&2; exit 1; }
+          set -- $CD_TREES
+          [[ $# -eq 5 ]] || deny
+          for pair; do
+            image=ghcr.io/sknetworks-family-aicamp/storyfork-${pair%%=*}:develop
+            tree=${pair#*=}
+            [[ "$tree" =~ ^[0-9a-f]{40}$ ]] || deny
+            [[ "$(tree_of "$image")" == "$tree" ]] || docker pull "$image"
+            [[ "$(tree_of "$image")" == "$tree" ]] || deny
+          done
+          # Stop public writes and the old Core content writer before any new migration/writer starts.
+          # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service operations-service
+          # 앱 이미지는 위에서 맞췄으므로 --pull missing은 서버에 없는 서드파티 이미지(첫 배포·정리 뒤)만 받는다.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull missing --wait --wait-timeout 180 postgres mailpit
+          # Neo4j·RabbitMQ·MinIO·Langfuse를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
+          # 첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨므로 대기 제한을 600초로 둔다(위 postgres·mailpit만 올릴 때는 180초).
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull missing --wait --wait-timeout 600
+          # 원고 검색 인덱스는 Content 시작 때 생성·검증된다(실패하면 위 --wait가 실패). 고정 리비전 E5 모델은
+          # 이 서버 CPU에서 한 번 실제로 실행해 확인한다. 실패하면 이전 이미지를 지우지 않고 CD를 실패시킨다.
+          # 이 스크립트는 ssh의 `bash -se` stdin으로 읽히므로, exec가 stdin을 넘기면 남은 줄(마지막 prune)을 먹는다. </dev/null로 막는다.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env exec -T ai-service python -c 'from app.story_qa.service import get_encoder; get_encoder().encode(["query: storyfork deploy check"])' </dev/null
+          # 같은 :develop 태그를 다시 pull하면 이전 이미지가 dangling으로 남아 디스크를 채운다.
+          # 새 스택이 healthy가 된 뒤에만 지우며, 컨테이너가 참조하는 이미지와 태그 있는 이미지는 지우지 않는다.
+          docker image prune --force
+          REMOTE
+          } | ssh -F /dev/null -T -p 5798 -i "$SSH_DIR/key" \
+            -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$SSH_DIR/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o ForwardAgent=no -o ClearAllForwardings=yes -o ConnectTimeout=15 \
+            tgv99536@100.90.8.124 'bash -se'
+      - name: Clean up SSH credentials
+        if: ${{ always() }}
+        run: rm -rf -- "$SSH_DIR"

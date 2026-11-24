@@ -141,7 +141,7 @@ class ContentExtractionTest(unittest.TestCase):
             with self.subTest(compose=relative):
                 self.assertIn('  content-service:', (ROOT / relative).read_text())
         self.assertTrue((ROOT / 'backend/content-service/Dockerfile').exists())
-        self.assertIn('for service in web core-api content-service operations-service ai-service; do', (ROOT / '.github/workflows/publish-images.yml').read_text())
+        self.assertIn('for service in web core-api content-service operations-service ai-service; do', (ROOT / '.github/workflows/ci.yml').read_text())
 
 
 if __name__ == '__main__':

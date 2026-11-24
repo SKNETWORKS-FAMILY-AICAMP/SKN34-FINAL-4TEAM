@@ -1,6 +1,6 @@
 # STORYFORK Docker 실행 기반
 
-Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD는 publish 워크플로에서 operations-service 이미지도 빌드·게시하고 배포 build-tree 검사에 포함합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
+Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD는 `ci.yml`의 publish job에서 operations-service 이미지도 빌드·게시하고 배포 build-tree 검사에 포함합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
 
 Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다. 과거 Content history와 호환되지 않으며 실제 대상 DB·보존/복구 범위·중단 시간을 확인하기 전 기존 DB에 바로 배포하지 않습니다. 이 문서는 DB 삭제·volume 초기화·개인 `.env` 변경·배포 승인이 아닙니다. Auth·첨부·독립 WorldStudio의 SQL/이력은 유지합니다.
 
@@ -75,7 +75,7 @@ docker compose down
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 빈 값(네이티브는 추적 끔, Compose는 필수) | AI·Operations, Langfuse 서버의 초기 프로젝트 키(세 곳이 같은 값) |
 | `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음) | Core만, 양수면 가입한 회원에게 한 번 지급(30일 뒤 소멸) |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
-| `WEB_PORT` | local `5173` / prod 필수 | web loopback (dev는 CD workflow의 `CD_WEB_PORT`) |
+| `WEB_PORT` | local `5173` / prod 필수 | web loopback (dev는 deploy job의 `CD_WEB_PORT`) |
 | `CORE_API_PORT` / `CONTENT_SERVICE_PORT` | `8080` / `8081` | local API loopback |
 | `DATABASE_PORT` | `5432` | local DB loopback, 컨테이너 내부는 고정 5432 |
 | `CORE_MAILPIT_SMTP_PORT` / `CORE_MAILPIT_WEB_PORT` | `1025` / `8025` | local Mailpit loopback |
@@ -87,7 +87,7 @@ Health는 OpenAI 인증·모델 접근 검증이 아니며 모델 클라이언�
 
 ## 운영 서버 설정 준비 — prod
 
-prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP**만 선택합니다. 소스 build·PostgreSQL·Mailpit·로컬 자격증명·앱 DB volume을 포함하지 않습니다. 예외로 Langfuse는 `include`로 함께 켜며 자체 저장소 컨테이너와 volume을 씁니다([Langfuse 절](#집필-ai-추적용-langfuse-302)). 현재 [`publish-images.yml`](../.github/workflows/publish-images.yml)은 **develop만 게시**하므로 `:main`의 존재·접근 가능 여부는 미확인입니다. 이미지 목록에 이름이 있다고 실제 게시된 것은 아닙니다. main 게시/배포 trigger는 추가하지 않았습니다.
+prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP**만 선택합니다. 소스 build·PostgreSQL·Mailpit·로컬 자격증명·앱 DB volume을 포함하지 않습니다. 예외로 Langfuse는 `include`로 함께 켜며 자체 저장소 컨테이너와 volume을 씁니다([Langfuse 절](#집필-ai-추적용-langfuse-302)). 현재 [`ci.yml`](../.github/workflows/ci.yml)의 `publish` job은 **develop만 게시**하므로 `:main`의 존재·접근 가능 여부는 미확인입니다. 이미지 목록에 이름이 있다고 실제 게시된 것은 아닙니다. main 게시/배포 trigger는 추가하지 않았습니다.
 
 변수 이름은 local/dev와 같습니다. 운영 서버 담당자가 서버 전용 `.env`에 다음 값을 준비하며 로컬 `.env`를 복사하지 않습니다. `config` 단계에서 비어 있거나 누락된 필수값은 명시적으로 실패합니다.
 
@@ -170,7 +170,7 @@ PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/
 2. Content 로그의 `manuscript index reconciled`로 첫 적재를 확인한 뒤, 집필실 채팅에서 발행 회차에 대한 작품 질문을 보냅니다.
 3. 단독 Elasticsearch(위)를 따로 띄워 두었다면 먼저 `stop`합니다: 호스트 포트 9200이 겹칩니다.
 
-CI의 시스템 Compose(`infrastructure/ci/compose.test.yaml`)는 같은 `elasticsearch` 서비스를 호스트 포트 없이 띄우고 Content가 healthy를 기다립니다. CI 통합 단계(`.github/workflows/ci.yml`)는 Content 작업에 Elasticsearch service(`127.0.0.1:9200`)를 띄우므로 모든 Spring 컨텍스트가 인덱스를 만들 수 있습니다.
+CI의 시스템 Compose(`infrastructure/ci/compose.test.yaml`)는 같은 `elasticsearch` 서비스를 호스트 포트 없이 띄우고 Content가 healthy를 기다립니다. CI의 Content 서비스 job(`.github/workflows/ci.yml`)은 Elasticsearch service(`127.0.0.1:9200`)를 띄우므로 모든 Spring 컨텍스트가 인덱스를 만들 수 있습니다.
 
 ### 개발 서버 자동 배포(CD)
 
@@ -247,15 +247,14 @@ docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 
 ## CI → CD (publish → deploy)
 
-[CI](../.github/workflows/ci.yml)와 [CD](../.github/workflows/publish-images.yml) 두 workflow를 사용합니다. 별도 deploy workflow는 없습니다.
+[CI](../.github/workflows/ci.yml) 한 workflow가 변경 선택부터 게시·배포까지 합니다. 별도 CD·deploy workflow는 없고 `workflow_run`도 쓰지 않습니다.
 
-- CI는 변경 선택 → 단위·통합·설정 병렬 → 선택 HTTP 시스템 → `Required CI`입니다.
-- 자동 CD publish는 신뢰된 같은 저장소 develop의 성공한 push/수동 CI만 받습니다. PR·fork·main·실패·취소 CI는 게시/배포 권한이 없습니다.
-- 수동 **CD → Run workflow → develop**은 해당 커밋의 이미지를 게시합니다(이미 게시된 빌드 tree는 건너뜁니다). 이 수동 경로가 CI 재검증을 대신하지는 않습니다. 다른 ref는 생략합니다.
-- deploy는 publish 성공만 요구하며 별도 활성화·승인 변수는 없습니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
-- packages write는 publish, packages read/id-token write는 deploy에만 부여합니다. `storyfork-develop-cd` concurrency로 직렬화하고 실행 중 취소하지 않습니다.
+- CI는 변경 선택 → 서비스별 job(빌드 → 단위 → 통합)·설정 병렬 → 선택 HTTP 시스템 → `Required CI` → (develop) `publish` → `deploy`입니다. 서비스마다 job 하나(`Service / <서비스>`)가 한 러너에서 순서대로 실행하고, 단위가 실패하면 통합을 돌리지 않습니다.
+- `publish`·`deploy`는 같은 저장소 develop의 **push**(또는 develop에서의 수동 **CI → Run workflow**)에서 `Required CI`가 성공했을 때만 돕니다. PR·fork·main·실패·취소 CI는 게시·배포 권한이 없습니다. develop 수동 실행도 전체 CI(기준 커밋이 없어 모든 서비스·시나리오)를 거치며, CI 없이 게시만 하는 경로는 없습니다.
+- deploy는 publish 성공만 요구하며 별도 활성화·승인 변수는 없습니다. GitHub environment(`develop-cd`) 승인과 Tailscale·SSH host key 검증을 유지합니다.
+- packages write는 publish, packages read/id-token write는 deploy에만 부여합니다. 두 job은 job 수준 concurrency `develop-cd`(취소 없음)로 차례로 실행합니다. 워크플로 수준 취소는 develop에서 꺼 둬 진행 중인 배포를 새 push가 끊지 않으며(PR·main은 새 push가 이전 run을 취소), develop에서 기다리는 run은 가장 새 것 하나만 남습니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 중단하므로 늦게 끝난 run이 과거로 되돌리지 않습니다.
 
-자동 `workflow_run`은 기본 브랜치 main, 수동은 develop ref를 사용하므로 `develop-cd` environment의 allowed deployment branches에 둘을 허용하고 승인 정책을 유지해야 합니다. 소스 파일만으로 실제 GitHub 설정·branch protection·게시·배포가 완료되지 않습니다.
+push·수동 실행 모두 ref가 develop이므로 `develop-cd` environment의 allowed deployment branches에는 develop만 있으면 됩니다(예전 `workflow_run`은 main ref를 써서 main도 허용해야 했습니다). 승인 정책은 유지합니다. 소스 파일만으로 실제 GitHub 설정·branch protection·게시·배포가 완료되지 않습니다.
 
 ### 이미지
 
@@ -266,7 +265,7 @@ docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 - `ghcr.io/sknetworks-family-aicamp/storyfork-content-service`
 - `ghcr.io/sknetworks-family-aicamp/storyfork-ai-service`
 
-서비스 빌드 컨텍스트의 git tree가 이미 게시돼 있으면 그 서비스는 다시 빌드하지 않습니다(규칙은 [개발 서버 자동 배포(CD)](#개발-서버-자동-배포cd)). 새로 빌드한 이미지는 `tree-<tree>`·`sha-<전체 SHA>` 태그와 라벨 `io.storyfork.build-tree`로 게시하고, 모든 tree 이미지를 게시한 뒤에만 `develop` 태그를 각 서비스의 tree 이미지로 맞춥니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 게시하지 않습니다. deploy는 앱 `develop` 이미지의 `build-tree` 라벨이 모두 이 run의 서비스별 tree와 같지 않으면(혼합 커밋·더 새 커밋 포함) 앱을 멈추기 전에 중단합니다. 같은 CD run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
+서비스 빌드 컨텍스트의 git tree가 이미 게시돼 있으면 그 서비스는 다시 빌드하지 않습니다(규칙은 [개발 서버 자동 배포(CD)](#개발-서버-자동-배포cd)). 새로 빌드한 이미지는 `tree-<tree>`·`sha-<전체 SHA>` 태그와 라벨 `io.storyfork.build-tree`로 게시하고, 모든 tree 이미지를 게시한 뒤에만 `develop` 태그를 각 서비스의 tree 이미지로 맞춥니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 게시하지 않습니다. deploy는 앱 `develop` 이미지의 `build-tree` 라벨이 모두 이 run의 서비스별 tree와 같지 않으면(혼합 커밋·더 새 커밋 포함) 앱을 멈추기 전에 중단합니다. 같은 run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
 
 Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-worker`, ClickHouse·PostgreSQL·Redis)와 이미 게시하는 `storyfork-minio`를 그대로 쓰므로 게시 목록은 바뀌지 않습니다. 배포는 이 이미지들을 서버에 없을 때만 받고(`up --pull missing`) build-tree 비교 대상은 앱 이미지뿐입니다.
 
@@ -274,7 +273,7 @@ Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-
 
 | 위치 | 이름 | 역할 |
 |---|---|---|
-| Environment | `develop-cd` | main/develop ref와 필요한 승인 정책 |
+| Environment | `develop-cd` | develop ref와 필요한 승인 정책 |
 | Environment variable | `CD_DEPLOY_DIR` / `CD_WEB_PORT` | 기존 전용 절대 실경로 / 비충돌 loopback 1024–65535 |
 | Environment secret | `CD_SSH_PRIVATE_KEY` / `CD_SSH_KNOWN_HOSTS` | 전용 SSH 키 / 검증한 host key |
 | Environment secret | `TS_OAUTH_CLIENT_ID` / `TS_AUDIENCE` | Tailscale workload identity |
