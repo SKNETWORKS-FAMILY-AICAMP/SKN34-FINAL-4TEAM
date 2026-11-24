@@ -4930,7 +4930,7 @@ it('개요 탭 맨 위에 세계관 지표 띠가 있고 설정 카드·관계·
   await openOverview({ visibility: 'public', currentRevisionId: 'r2', linkedWorkId: 'work-1' }, friends([garam, narae], garam, narae))
   expect(metricValue('설정 카드')).toBe('2개')
   expect(metricValue('관계')).toBe('1개')
-  expect(metricValue('저장 버전')).toBe('1')
+  expect(metricValue('저장 버전')).toBe('1개') // 다른 칸과 같은 'N개' 형식이다
   expect(metricValue('확정 버전')).toBe('2개')
   expect(metricValue('공개 상태')).toBe('공개 중')
   await waitFor(() => expect(metricValue('연결 소설')).toBe('달빛 기록'))
@@ -4941,6 +4941,14 @@ it('개요 탭 맨 위에 세계관 지표 띠가 있고 설정 카드·관계·
   expect(band.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 지표가 폼보다 위다
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(screen.queryByRole('region', { name: '세계관 지표' })).toBeNull() // 다른 보기에서는 폼과 같이 숨는다
+})
+
+it('개요 탭 본문은 화면에 안 보이는 h2 `개요`로 시작해 제목 단계가 h1 → h2 → h3로 이어진다(작품 관리 탭 본문의 h2와 같다)', async () => {
+  await openOverview()
+  const dash = document.querySelector('.ep-dash') as HTMLElement
+  const title = within(dash).getByRole('heading', { level: 2, name: '개요' })
+  expect(title.classList.contains('sr-only')).toBe(true) // 메뉴 탭 이름과 같은 글이라 화면에는 다시 그리지 않는다
+  expect(dash.firstElementChild).toBe(title)
 })
 
 it('지표 띠는 모르는 값을 0으로 채우지 않는다: 확정 버전은 읽는 동안 …, 읽지 못하면 불러오지 못했어요, 확정 버전이 없으면 0개이고 서버가 목록을 주지 않는 데모에는 칸이 없다', async () => {

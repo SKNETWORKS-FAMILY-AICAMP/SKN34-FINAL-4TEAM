@@ -578,11 +578,12 @@ it('개요 탭은 바깥 내용 카드(.tcard.ep-card)의 면을 지워 구획 �
   expect(box).toMatch(/margin-bottom:0/) // 면이 없는 껍데기 아래에 32px 빈 띠를 남기지 않는다
 })
 
-it('개요 폼은 560px 폭 제한을 풀고 구획 카드를 내용 열을 채우는 auto-fit 격자에 놓는다: 기본 정보·공개 설정은 2열(360px 미만이면 1열)이고 표지·저장 줄·삭제는 전체 폭이다', () => {
+it('개요 폼은 560px 폭 제한을 풀고 구획 카드를 내용 열을 채우는 auto-fit 격자에 놓는다: 기본 정보·저장 줄·삭제는 전체 폭이고 공개 설정·표지는 둘째 줄 반폭 두 카드다(360px 미만이면 1열)', () => {
   expect(asCard('.world-info-edit')).toMatch(/max-width:none/) // 공용 .episode-app .ep-edit의 560px보다 특이도가 높다
   expect(asCard('.world-info-edit')).toMatch(/margin-top:0/) // 지표 구획과의 간격은 .ep-dash의 gap 하나가 정한다
   expect(asCard('.world-info-edit>fieldset')).toMatch(/grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,360px\),1fr\)\)/)
-  expect(asCard('.world-info-edit>fieldset>:is(.world-cover-edit,.ep-edit-actions,.ep-delete,p)')).toMatch(/grid-column:1\/-1/)
+  expect(asCard('.world-info-edit>fieldset>:is(.world-info-basic,.ep-edit-actions,.ep-delete,p)')).toMatch(/grid-column:1\/-1/)
+  expect(rules.filter((r) => r.selector.includes('.world-cover-edit') && /grid-column/.test(r.body))).toEqual([]) // 표지는 전체 폭이 아니라 공개 설정 옆 반폭이다(오른쪽이 비지 않게)
   expect(asCard('.world-info-edit .ep-edit-actions,' + overviewTab + ' .world-info-edit>fieldset>p')).toMatch(/margin:0/) // 격자 gap 위에 .ep-card의 위 여백이 겹치지 않게
 })
 
@@ -591,6 +592,15 @@ it('구획 카드 면은 운영 설정 카드(.ep-settings-cards)와 같은 값�
   expect(asCard('.world-info-card.ep-delete')).toMatch(/border-color:color-mix\(in srgb,var\(--danger\) 35%,var\(--line2\)\)/)
   expect(asCard('.world-info-basic')).toMatch(/display:grid;align-content:start;gap:16px/)
   expect(asCard('.world-info-card .world-publish')).toMatch(/margin:0/) // 공개 설정 묶음의 위 16px·아래 12px 여백(.episode-app .world-publish)은 카드 안에서 쓰지 않는다
+})
+
+it('공개 설정 카드 안의 공개 범위 토글·장르 선택은 카드 폭을 채운다(한 줄에 하나씩이고 토글 200px·선택 150px 고정이 아니다)', () => {
+  expect(asCard('.world-publish .field')).toMatch(/flex:1 1 100%/)
+  expect(asCard('.world-publish :is(.seg,select)')).toMatch(/width:100%/)
+})
+
+it('평소 비어 있는 저장 알림 문단(p[role=status]:empty)은 격자 칸을 만들지 않아 저장 줄과 삭제 카드 사이가 카드 사이 간격(16px) 하나다', () => {
+  expect(asCard('.world-info-edit>fieldset>p[role=status]:empty')).toMatch(/position:absolute/) // 절대 위치 자식은 격자 트랙·gap을 만들지 않고 알림 영역(live region)은 접근성 트리에 남는다
 })
 
 it('카드·구획 제목(지표 h3·기본 정보 h3·공개 설정 legend·표지 이름)은 같은 16px/700이고, .ep-tab 안에서만 걸리는 공용 h3 규칙에 기대지 않는다', () => {
@@ -606,7 +616,7 @@ it('지표 띠는 작품 관리 개요의 .ep-dash·.ep-metrics를 다시 정의
   expect(asCard('.ep-metrics dd.world-metric-title')).toMatch(/font-size:14px;font-weight:600/) // 연결된 소설 제목은 숫자 칸(22px)이 아니라 보조 글 크기다
 })
 
-it('표지 카드는 601px부터 지금 표지(160px)를 왼쪽에 띄우고 버튼·안내를 그 오른쪽에 흘려 오른쪽이 비지 않고, 600px 이하는 기존처럼 세로로 쌓인다', () => {
+it('표지 카드는 601px부터 지금 표지(160px)를 왼쪽에 띄우고 버튼·안내를 그 오른쪽에 흘려 오른쪽이 비지 않고(반폭 카드도 같다: 카드는 360px 아래로 줄지 않아 오른쪽 열이 130px 아래가 되지 않는다), 600px 이하는 기존처럼 세로로 쌓인다', () => {
   const from601 = (selector: string) => mediaRule('(min-width:601px)', selector)
   expect(from601(`${overviewTab} .world-cover-edit`)).toMatch(/display:flow-root/) // 띄운 표지를 카드 높이에 포함한다
   expect(from601(`${overviewTab} .world-cover-edit>.world-cover-now`)).toMatch(/float:left/)

@@ -310,6 +310,8 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           )}
           {(overviewSeen || view === 'overview') && (
             <div className="ep-dash" hidden={view !== 'overview'}>
+              {/* 메뉴 탭 이름과 같은 글이라 화면에는 그리지 않는다(작품 관리 탭 본문의 h2와 같다): 제목 단계가 h1 → h3로 건너뛰지 않게. */}
+              <h2 className="sr-only">개요</h2>
               <WorldOverviewMetrics vm={vm} world={vm.saved ?? world} revisions={revisions} />
               <WorldInfoPanel key={vm.relationKey} vm={vm} world={vm.saved ?? world} />
             </div>

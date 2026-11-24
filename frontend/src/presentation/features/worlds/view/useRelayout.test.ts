@@ -34,6 +34,29 @@ it('다시 펼치기는 고정을 풀고 노드를 중심 근처 나선으로 �
   expect([graph.centerAt.mock.calls, graph.zoom.mock.calls]).toEqual([[[0, 0, 0]], [[1, 0]]])
 })
 
+it('배치가 펼쳐지는 동안(처음 맞춤 전)에는 첫 틱과 그 뒤 20틱마다 화면에 맞춰 펼쳐지는 모양을 화면이 따라가고, 처음 멈춘 뒤에는 틱으로 맞추지 않는다', () => {
+  const { graph, onEngineTick, onEngineStop } = setup()
+  for (let tick = 0; tick < 45; tick++) onEngineTick()
+  expect(graph.zoomToFit.mock.calls).toEqual([[0, 40], [0, 40], [0, 40]]) // 틱 0·20·40
+  onEngineStop()
+  expect(graph.zoomToFit).toHaveBeenLastCalledWith(500, 40) // 마지막 맞춤은 멈출 때 애니메이션으로
+  graph.zoomToFit.mockClear()
+  for (let tick = 0; tick < 45; tick++) onEngineTick() // 맞춘 뒤(사용자가 확대·이동했을 수 있다)에는 틱이 화면을 건드리지 않는다
+  expect(graph.zoomToFit).not.toHaveBeenCalled()
+})
+
+it('다시 펼치기는 틱 수와 맞춤 여부를 처음으로 되돌려 틱 맞춤이 첫 틱부터 다시 시작한다', () => {
+  const { graph, onEngineTick, onEngineStop, replay } = setup()
+  onEngineTick()
+  onEngineTick()
+  onEngineStop()
+  graph.zoomToFit.mockClear()
+  replay()
+  onEngineTick() // 틱 0
+  onEngineTick() // 틱 1
+  expect(graph.zoomToFit.mock.calls).toEqual([[0, 40]])
+})
+
 it('움직임 줄이기 설정이면 애니메이션 없이 맞춘다', () => {
   const { graph, onEngineStop } = setup(true)
   onEngineStop()

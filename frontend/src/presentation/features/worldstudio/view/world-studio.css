@@ -34,21 +34,24 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 개요 탭(?view=overview, .ep-content[data-view=overview])은 작품 관리 개요(WorkDashboard)처럼 위에 지표 띠(.ep-dash > section > dl.ep-metrics), 아래에 구획 카드 격자다. 틀·지표 카드는 shared/episode.css를 그대로 쓰고(다시 정의하지 않는다) 여기에는 세계관 개요 전용 규칙만 둔다.
    ① 바깥 내용 카드(section.tcard.ep-card)는 면을 지워 구획 카드가 카드 안의 카드가 되지 않게 한다(관계도 보기와 같은 방식. 요소·scroll-margin은 그대로고, 껍데기라 아래 32px 여백도 없앤다).
    ② 지표 칸의 최소 폭은 120px다: 채팅을 연 1440px에서 내용 열이 약 800px라 공용 128px면 6칸이 5+1로 갈라져 한 칸이 줄 전체를 차지한다(120px면 6칸이 한 줄이고, 500px대는 3+3, 390px는 2+2+2다). 연결된 소설 제목은 숫자 칸(22px)이 아니라 보조 글 크기(14px)이되 값이라 본문색이다(.ep-muted는 흐린 글색이라 쓰지 않는다).
-   ③ 폼은 560px 폭 제한을 풀고(내용 열을 채운다) 구획 카드를 auto-fit 격자에 놓는다: 기본 정보·공개 설정이 2열(카드가 360px 아래로 줄면 1열), 표지·저장 줄·삭제는 전체 폭이다. 폼·바깥 fieldset·저장 버튼은 그대로 하나고 카드는 그 안의 묶음일 뿐이다(저장 계약 불변). 격자 gap이 간격을 정하므로 저장 줄·알림 문구의 위 여백은 없앤다.
+   ③ 폼은 560px 폭 제한을 풀고(내용 열을 채운다) 구획 카드를 auto-fit 격자에 놓는다: 기본 정보는 전체 폭 첫 줄, 공개 설정·표지는 둘째 줄 반폭 두 카드(카드가 360px 아래로 줄면 1열), 저장 줄·삭제는 전체 폭이다. 공개 설정의 공개 범위 토글·장르 선택은 한 줄에 하나씩 카드 폭을 채운다(200px·150px 고정이면 반폭 카드의 오른쪽이 빈다). 폼·바깥 fieldset·저장 버튼은 그대로 하나고 카드는 그 안의 묶음일 뿐이다(저장 계약 불변). 격자 gap이 간격을 정하므로 저장 줄·알림 문구의 위 여백은 없앤다. 평소 비어 있는 저장 알림 문단(p[role=status]:empty)은 절대 위치로 격자 칸을 만들지 않게 한다: 칸이 있으면 gap이 두 번 들어가 삭제 카드만 32px 떨어진다(절대 위치 자식도 알림 영역으로 접근성 트리에 남고, '저장했어요.'가 들어오면 :empty가 풀려 줄이 생긴다. display:none·contents는 알림을 놓칠 수 있어 쓰지 않는다).
    ④ 카드 면은 운영 설정 카드(.ep-settings-cards, episode.css)와 같은 값(--surface·1px --line2·16px·20px 24px)이고 삭제 카드만 빨간 테두리다. 카드 제목(지표·기본 정보 h3, 공개 설정 legend, 표지 이름)은 모두 16px/700이다(.ep-tab 안에서만 걸리는 공용 h3 규칙은 개요에 닿지 않는다).
    공개 설정 legend는 테두리·안쪽 여백이 없는 fieldset의 첫 줄이라 카드 면(바깥 div)을 가르지 않고 흐름 안의 제목으로 놓인다(fieldset 자체를 카드로 만들면 legend가 윗 테두리에 걸린다).
-   ⑤ 표지 카드는 601px부터 지금 표지(160px)를 왼쪽에 띄우고 버튼·안내를 그 오른쪽에 흘려 넓은 카드의 오른쪽이 비지 않게 한다(오른쪽 자식이 알림 줄 등으로 늘어도 흘러서 맞는다). 600px 이하는 기존처럼 세로로 쌓인다. */
+   ⑤ 표지 카드는 601px부터 지금 표지(160px)를 왼쪽에 띄우고 버튼·안내를 그 오른쪽에 흘려 카드의 오른쪽이 비지 않게 한다(오른쪽 자식이 알림 줄 등으로 늘어도 흘러서 맞는다). 둘째 줄 반폭 카드도 같은 규칙이다: 카드가 360px 아래로 줄지 않아 오른쪽 열이 130px 이상이라 버튼이 세로로 쌓여 읽히고, 공개 설정 카드와 높이도 거의 맞는다(표지 213px + 제목 ≈ 공개 설정 폼). 600px 이하는 기존처럼 세로로 쌓인다. */
 .ep-content[data-view=overview]>.ep-card{padding:0;border:0;background:none;box-shadow:none;margin-bottom:0}
 .ep-content[data-view=overview] .ep-metrics>div{flex-basis:120px}
 .ep-content[data-view=overview] .ep-metrics dd.world-metric-title{font-size:14px;font-weight:600;line-height:1.4}
 .ep-content[data-view=overview] .world-info-edit{max-width:none;margin-top:0}
 .ep-content[data-view=overview] .world-info-edit>fieldset{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr))}
-.ep-content[data-view=overview] .world-info-edit>fieldset>:is(.world-cover-edit,.ep-edit-actions,.ep-delete,p){grid-column:1/-1}
+.ep-content[data-view=overview] .world-info-edit>fieldset>:is(.world-info-basic,.ep-edit-actions,.ep-delete,p){grid-column:1/-1}
+.ep-content[data-view=overview] .world-info-edit>fieldset>p[role=status]:empty{position:absolute}
 .ep-content[data-view=overview] .world-info-edit .ep-edit-actions,.ep-content[data-view=overview] .world-info-edit>fieldset>p{margin:0}
 .ep-content[data-view=overview] .world-info-card{box-sizing:border-box;min-width:0;margin:0;padding:20px 24px;border:1px solid var(--line2);border-radius:16px;background:var(--surface)}
 .ep-content[data-view=overview] .world-info-card.ep-delete{border-color:color-mix(in srgb,var(--danger) 35%,var(--line2))}
 .ep-content[data-view=overview] .world-info-basic{display:grid;align-content:start;gap:16px}
 .ep-content[data-view=overview] .world-info-card .world-publish{margin:0}
+.ep-content[data-view=overview] .world-publish .field{flex:1 1 100%}
+.ep-content[data-view=overview] .world-publish :is(.seg,select){width:100%}
 .ep-content[data-view=overview] .ep-dash section>h3,.ep-content[data-view=overview] .world-info-card>h3,.ep-content[data-view=overview] .world-info-card legend,.ep-content[data-view=overview] .world-info-card .world-cover-label{margin:0;padding:0;font-size:16px;font-weight:700;line-height:1.5}
 .ep-content[data-view=overview] .world-info-card legend{margin-bottom:16px}
 .ep-content[data-view=overview] .world-cover-edit>.world-cover-label{margin-bottom:8px}

@@ -30,6 +30,12 @@ it('개요 탭의 구성 요약 알약은 좁은 화면과 터치 기기에서 4
   expect(touch).toBeGreaterThan(base)
 })
 
+it('범례는 좁은 화면에서도 숨은 가로 스크롤 없이 줄바꿈한다(390px에서 마지막 장르가 잘려 없는 것처럼 보이던 문제)', () => {
+  expect(css).not.toMatch(/\.atlas-legend \{[^}]*overflow-x:/)
+  expect(css).not.toMatch(/\.atlas-legend ul \{ flex: none; \}/) // 묶음이 줄어들지 않고 한 줄을 고집하지 않는다
+  expect(css).toMatch(/\.atlas-legend ul \{[^}]*flex-wrap: wrap; gap: 4px 12px/) // 묶음 안의 항목도 줄바꿈한다(1440px의 한 줄은 그대로)
+})
+
 it('지도 카드(.worlds-atlas)는 홈 .hero의 가운데 정렬(align-items: center)을 이어받지 않고 칸 폭을 채운다 — 가운데면 .atlas-stage가 캔버스 폭(처음 500px)만큼 줄고 ResizeObserver가 그 폭을 다시 읽어 500px에 갇힌다. .hero의 flex-wrap: wrap도 끊는다 — 여러 줄 flex는 줄 폭을 가장 넓은 항목(캔버스 500px)으로 잡아 stretch가 그 폭까지만 늘린다(390px에서 126px 넘침)', () => {
   expect(css).toMatch(/\.worlds-atlas \{ display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; \}/)
 })

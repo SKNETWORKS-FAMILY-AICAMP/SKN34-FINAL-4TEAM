@@ -9,7 +9,8 @@ export function useMapCanvas<N,L>() {
  const [paused,setPaused]=useState(reduced),[settled,setSettled]=useState(false)
  useEffect(()=>{const media=window.matchMedia?.('(prefers-reduced-motion: reduce)');if(!media)return;const change=()=>{setReduced(media.matches);if(media.matches)setPaused(true)};media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
  useEffect(()=>{if(!host.current)return;const observer=new ResizeObserver(([entry])=>setWidth(Math.max(240,Math.round(entry.contentRect.width))));observer.observe(host.current);return()=>observer.disconnect()},[])
- useEffect(()=>{graph.current?.zoomToFit(0,40)},[width])
+ // 좌표가 붙기 전(kapsule은 마운트 1ms 뒤에 반영)에는 getGraphBbox가 NaN 상자라 맞추면 d3-zoom 변환이 NaN이 되고, 캔버스가 NaN 변환을 무시해 그래프가 왼쪽 위(0,0)에 몰려 그려진다.
+ useEffect(()=>{const g=graph.current;if(Number.isFinite(g?.getGraphBbox()?.x[0]))g?.zoomToFit(0,40)},[width])
  return {host,graph,width,reduced,paused,setPaused,settled,setSettled,status:paused?'움직임 멈춤':settled?'배치 완료':'연결을 따라 펼쳐지는 중'}
 }
 

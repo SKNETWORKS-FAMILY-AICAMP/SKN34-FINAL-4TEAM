@@ -9,7 +9,7 @@ import WorldAtlasCanvas from './WorldAtlasCanvas'
 import WorldGraphCanvas from './WorldGraphCanvas'
 
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값만 붙잡는다.
-type GraphProps = { enablePanInteraction?: boolean; enableNodeDrag?: boolean; onNodeHover?: unknown; onNodeClick: (node: unknown) => void; onZoom?: (transform: { k: number; x: number; y: number }) => void }
+type GraphProps = { enablePanInteraction?: boolean; enableNodeDrag?: boolean; onNodeHover?: unknown; onNodeClick: (node: unknown) => void; onZoom?: (transform: { k: number; x: number; y: number }) => void; onEngineTick?: () => void; onEngineStop?: () => void }
 const forceGraph = vi.hoisted(() => ({ props: null as null | GraphProps }))
 vi.mock('react-force-graph-2d', () => ({ default: (props: GraphProps) => { forceGraph.props = props; return null } }))
 
@@ -76,6 +76,16 @@ it('터치 기기의 상세 그래프도 지도 이동·노드 끌기를 끄고,
   const card = data.nodes.find((n) => n.kind === '인물')!
   click(card)
   expect(onOpen.mock.calls).toEqual([[card]])
+})
+
+it('지도와 상세 그래프는 배치가 펼쳐지는 동안 화면이 따라가도록 틱·멈춤 알림을 그래프에 연결한다', () => {
+  media(false)
+  render(<WorldAtlasCanvas atlas={atlas()} onOpen={() => {}} />)
+  expect([typeof forceGraph.props!.onEngineTick, typeof forceGraph.props!.onEngineStop]).toEqual(['function', 'function'])
+  cleanup()
+  forceGraph.props = null
+  render(<WorldGraphCanvas data={buildSettingGraph(world)} mode="setting" summary="그래프" onOpen={() => {}} />)
+  expect([typeof forceGraph.props!.onEngineTick, typeof forceGraph.props!.onEngineStop]).toEqual(['function', 'function'])
 })
 
 it('터치 대형 그래프는 확대한 뒤 보이는 노드를 한 번 눌러 연다', () => {

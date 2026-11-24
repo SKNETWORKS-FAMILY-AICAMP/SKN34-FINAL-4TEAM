@@ -46,7 +46,7 @@ const LineKey = ({ kind }: { kind: keyof typeof LINEAGE_COLORS }) => (
 )
 
 /**
- * 지도 카드 아래쪽의 작은 범례: 지도에 있는 장르의 색 · 설정 카드 유형 색 · 파생/조합 선 모양. 묶음째 줄바꿈하고, 좁은 화면에서는 한 줄로 두어 옆으로 밀어 본다.
+ * 지도 카드 아래쪽의 작은 범례: 지도에 있는 장르의 색 · 설정 카드 유형 색 · 파생/조합 선 모양. 묶음째, 묶음 안에서도 줄바꿈한다(좁은 화면에서 장르 일곱 개는 두 줄이 된다).
  * 카드 점이 없는 서버 목록 지도는 카드 유형 색을, 파생·조합이 없으면 연결 선을 보이지 않는다(그리지 않는 것을 설명하지 않는다).
  */
 const AtlasLegend = ({ features, genres }: { features: ReturnType<typeof atlasFeatures>; genres: readonly AtlasNode[] }) => (

@@ -54,9 +54,9 @@
 .atlas-foot .btn.pri:hover { background: color-mix(in srgb, var(--fixed-pri) 75%, var(--fixed-ink)); }
 .atlas-info { display: grid; gap: 5px; padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, .06); color: var(--fixed-sub); font-size: 11.5px; }
 .atlas-stats { margin: 0; }
-/* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째 줄바꿈한다. */
+/* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째, 묶음 안에서도 줄바꿈한다(390px에서 장르 일곱 개는 두 줄이다. 숨은 가로 스크롤로 넘기면 마지막 장르가 없는 것처럼 보인다). */
 .atlas-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
-.atlas-legend ul { display: flex; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.atlas-legend ul { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
 .atlas-legend li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .atlas-legend i { display: block; width: 9px; height: 9px; border-radius: 50%; }
 .atlas-legend i.dot { width: 5px; height: 5px; }
@@ -193,8 +193,5 @@
   .atlas-loading, .worlds-graph .atlas-loading { min-height: 453px; }
   .atlas-foot, .atlas-info { padding-inline: 12px; }
   .atlas-hint { display: none; }
-  .atlas-legend { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .atlas-legend::-webkit-scrollbar { display: none; }
-  .atlas-legend ul { flex: none; }
   .nw-cover .cov { width: min(140px, 100%); }
 }

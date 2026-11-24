@@ -173,7 +173,7 @@ export function WorldOverviewMetrics({ vm, world, revisions }: { vm: VM; world: 
       <dl className="ep-metrics">
         <Metric label="설정 카드">{number(counts.cards)}개</Metric>
         <Metric label="관계">{number(counts.relations)}개</Metric>
-        <Metric label="저장 버전">{world.version}</Metric>
+        <Metric label="저장 버전">{number(world.version)}개</Metric>
         <RevisionMetric world={world} revisions={revisions} />
         {import.meta.env.MODE !== 'mockup' && <NovelMetric linkedWorkId={vm.linkedWorkId} />}
         <Metric label="공개 상태" note={vm.listing === 'unlisted'}>{status}</Metric>
