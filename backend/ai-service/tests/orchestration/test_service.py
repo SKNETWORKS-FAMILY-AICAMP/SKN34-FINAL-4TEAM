@@ -1747,27 +1747,67 @@ def test_deleting_or_editing_a_later_turn_keeps_the_feedback_of_earlier_turns(mo
     assert [(t.request, t.feedback) for t in conversation('history', thread, ME).turns] == [('하나', 'up'), ('둘 고침', None)]
 
 
-def test_a_rating_that_read_a_turn_before_it_was_deleted_does_not_bring_it_back(monkeypatch):
-    thread = str(uuid4())
-    fake_agents(monkeypatch, plan('story_context'))
-    for text in ('하나', '둘'):
-        chat(thread, request=text, inputs={'story_context': QA})
+def slow_first_read(monkeypatch):
+    """첫 상태 읽기 뒤에 틈을 둔다. 먼저 읽은 쪽이 쓰기 전에 같은 대화의 다른 변경이 이 틈에 끝나면 그 변경을 덮는다."""
     read, reads = service.CHAT.aget_state, []
 
     async def read_then_wait(*args, **kwargs):
         first = not reads
         reads.append(args)
         snapshot = await read(*args, **kwargs)
-        if first:  # 평가가 읽은 뒤 쓰기 전의 틈. 같은 대화의 지우기가 이 틈에 끝나면 평가가 지운 턴을 되살린다.
+        if first:
             await asyncio.sleep(0.1)
         return snapshot
 
     monkeypatch.setattr(service.CHAT, 'aget_state', read_then_wait)
 
-    async def both():
-        await asyncio.gather(service.feedback(thread, ME, 1, 'up'), service.truncate(thread, ME, 1))
 
-    asyncio.run(both())
+def saved(thread, *requests):
+    for text in requests:
+        chat(thread, request=text, inputs={'story_context': QA})
+
+
+def together(*calls):
+    async def all_of():
+        await asyncio.gather(*calls, return_exceptions=True)
+    asyncio.run(all_of())
+
+
+def test_a_rating_that_read_a_turn_before_it_was_deleted_does_not_bring_it_back(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    saved(thread, '하나', '둘')
+    slow_first_read(monkeypatch)
+    together(service.feedback(thread, ME, 1, 'up'), service.truncate(thread, ME, 1))
+    assert [t.request for t in conversation('history', thread, ME).turns] == ['하나']
+
+
+def test_a_rating_that_read_a_conversation_before_it_was_deleted_does_not_bring_it_back(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    saved(thread, '하나', '둘')
+    slow_first_read(monkeypatch)
+    together(service.feedback(thread, ME, 1, 'up'), service.delete(thread, ME))
+    # 평가가 삭제 뒤에 쓰면 scope 없는 checkpoint로 지운 턴이 저장소에 되살아난다(목록·이력에는 안 보여도 남는다).
+    assert asyncio.run(service.CHAT.aget_state(service._config(thread, ME))).values == {}
+
+
+def test_an_edit_that_read_the_turns_before_they_were_deleted_does_not_bring_them_back(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    saved(thread, '하나', '둘', '셋')
+    history, slowed = service.CHAT.aget_state_history, []
+
+    async def wait_then_history(*args, **kwargs):  # 메시지 수정이 턴을 읽은 뒤 갈라지기 전의 틈
+        if not slowed:
+            slowed.append(args)
+            await asyncio.sleep(0.1)
+        async for past in history(*args, **kwargs):
+            yield past
+
+    monkeypatch.setattr(service.CHAT, 'aget_state_history', wait_then_history)
+    edit = OrchestrationRequest(request='셋 고침', conversation={'threadId': thread, 'scope': ME}, fromTurn=2)
+    together(service._target(edit), service.truncate(thread, ME, 1))  # 셋을 고치려고 읽은 사이 둘부터 지운다
     assert [t.request for t in conversation('history', thread, ME).turns] == ['하나']
 
 
