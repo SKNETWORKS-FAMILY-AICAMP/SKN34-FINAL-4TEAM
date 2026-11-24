@@ -65,12 +65,15 @@ def skipped_by(records: list[dict]) -> dict:
     return dict(Counter(r['skipped'] for r in records if r.get('skipped')))
 
 
-def assemble(key: str, pipeline: list[dict], hand: list[dict], other: list[dict] | None = None) -> dict:
+def assemble(key: str, pipeline: list[dict], hand: list[dict], other: dict | None = None) -> dict:
     """세트 하나의 세계관별 집계(orig_run의 기존 루브릭 집계)와, 손라벨 기록이 있으면 같은 문항의 짝 비교(후보 = 파이프라인, 기준선 = 손라벨).
-    other(다른 태그의 파이프라인 기록, 예: --reveal이 다른 실행)가 있으면 이 태그가 후보, other가 기준선인 짝 비교도 낸다."""
+    other({'pipeline': …, 'hand': …}, 다른 태그의 기록. 예: --reveal이 다른 실행)가 있으면 이 태그가 후보, other가 기준선인 짝 비교도 낸다:
+    vsOther는 파이프라인끼리, vsOtherHand는 손라벨끼리(같은 조건을 두 번 돌린 차이 = 재현 잡음, 다른 비교가 이보다 커야 의미가 있다)."""
     side = lambda records: {'summary': SUMMARIZE[key](records), 'skippedBy': skipped_by(records)}  # noqa: E731
+    other = other or {}
     return {'pipeline': side(pipeline), **({'hand': side(hand), 'vsHand': rn.compare_runs(key, hand, pipeline)} if hand else {}),
-            **({'vsOther': rn.compare_runs(key, other, pipeline)} if other else {})}
+            **({'vsOther': rn.compare_runs(key, other['pipeline'], pipeline)} if other.get('pipeline') else {}),
+            **({'vsOtherHand': rn.compare_runs(key, other['hand'], hand)} if other.get('hand') and hand else {})}
 
 
 def availability(statuses: dict[str, list[tuple[str, str]]]) -> tuple[dict, dict]:
@@ -145,7 +148,7 @@ def render(result: dict) -> str:
                 s = sides[kind]['summary']
                 scores = ' · '.join(f"{m} {s[m]['mean']:.2f}" for m in ('voice', 'intent', 'style', 'info') if m in s and s[m]['mean'] is not None)
                 out.append(f"시뮬레이션 {oc.NAMES[key]} {kind}: 문항 {s['n']} · 건너뜀 {sides[kind]['skippedBy'] or 0} · 오류 {s['errors']} · 채점 실패 {s['failedJudge']} · {scores} · 시점 위반 {pct(s['leak']['rate'])}")
-        for name, label in (('vsHand', '파이프라인 − 손라벨'), ('vsOther', f"{result['tag']} − {result.get('vsTag')}")):
+        for name, label in (('vsHand', '파이프라인 − 손라벨'), ('vsOther', f"{result['tag']} − {result.get('vsTag')}"), ('vsOtherHand', f"손라벨끼리 {result['tag']} − {result.get('vsTag')}")):
             if name in sides:
                 out.append(f'    짝 비교({label}): ' + ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in sides[name]['metrics'].items()))
     return '\n'.join(out)
@@ -269,7 +272,7 @@ def cmd_report(args) -> None:
               'world': world_section(entries), 'items': items, 'itemsByWork': items_by_work, 'simulation': {}}
     for key in sets:
         done = {kind: list(rn.load_done(rn.run_path(folder, key, kind)).values()) for kind in ('pipeline', 'hand')}
-        other = list(rn.load_done(rn.run_path(RUNS / args.vs_tag, key, 'pipeline')).values()) if args.vs_tag else None
+        other = {kind: list(rn.load_done(rn.run_path(RUNS / args.vs_tag, key, kind)).values()) for kind in ('pipeline', 'hand')} if args.vs_tag else None
         if done['pipeline']:
             result['simulation'][key] = assemble(key, done['pipeline'], done['hand'], other)
     RESULTS.mkdir(exist_ok=True)
@@ -303,7 +306,7 @@ def parser() -> argparse.ArgumentParser:
         if name == 'run':
             p.add_argument('--judge-model', default=JUDGE, help='ocx 채점 모델(기본 gpt-6.2-sol)')
         if name == 'report':
-            p.add_argument('--vs-tag', default=None, help='다른 태그의 파이프라인 기록과 같은 문항 짝 비교(예: --reveal이 다른 실행). 이 태그가 후보, 그 태그가 기준선')
+            p.add_argument('--vs-tag', default=None, help='다른 태그의 기록과 같은 문항 짝 비교(예: --reveal이 다른 실행): 파이프라인끼리와 손라벨끼리(재현 잡음). 이 태그가 후보, 그 태그가 기준선')
     return top
 
 

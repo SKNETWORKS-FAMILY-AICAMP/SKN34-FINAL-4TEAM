@@ -47,10 +47,14 @@ def test_assemble_summarizes_each_world_and_pairs_them_on_shared_items():
     assert 'hand' not in pc.assemble('1', pipeline, []) and 'vsHand' not in pc.assemble('1', pipeline, [])
 
 
-def test_assemble_pairs_with_another_tags_pipeline_run_for_the_reveal_comparison():
-    got = pc.assemble('1', [graded(0, 4, 3), graded(1, 3, 2, ['f'])], [], [graded(0, 3, 3), graded(1, 3, 2)])   # other = 다른 태그의 파이프라인 기록(기준), 이 태그가 후보
-    assert got['vsOther']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 0, 'tie': 1, 'p': 1.0, 'meanDiff': 0.5} and 'vsHand' not in got
+def test_assemble_pairs_with_another_tags_runs_for_the_reveal_comparison_and_the_noise_floor():
+    pipeline, hand = [graded(0, 4, 3), graded(1, 3, 2, ['f'])], [graded(0, 3, 3), graded(1, 3, 2)]
+    other = {'pipeline': [graded(0, 3, 3), graded(1, 3, 2)], 'hand': [graded(0, 3, 3), graded(1, 2, 2)]}   # 다른 태그의 기록(기준선): 이 태그가 후보
+    got = pc.assemble('1', pipeline, hand, other)
+    assert got['vsOther']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 0, 'tie': 1, 'p': 1.0, 'meanDiff': 0.5}   # 파이프라인끼리: 공개 회차 설정이 다른 두 실행
     assert got['vsOther']['metrics']['clean'] == {'n': 2, 'up': 0, 'down': 1, 'tie': 1, 'p': 1.0, 'meanDiff': -0.5}
+    assert got['vsOtherHand']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 0, 'tie': 1, 'p': 1.0, 'meanDiff': 0.5}   # 손라벨끼리(이 태그 [3,3], 다른 태그 [3,2]): 같은 조건을 두 번 돌린 차이(재현 잡음)
+    assert 'vsOther' not in pc.assemble('1', pipeline, hand) and 'vsOtherHand' not in pc.assemble('1', pipeline, hand, {'pipeline': other['pipeline'], 'hand': []})
 
 
 def test_claim_run_refuses_to_mix_settings_in_one_record_folder(tmp_path):
@@ -95,13 +99,14 @@ def test_availability_counts_statuses_per_set_and_per_work():
 
 
 def test_render_shows_the_stages_the_baseline_availability_and_pairs():
-    pipeline, hand, other = [graded(0, 4, 3), graded(1, 3, 2)], [graded(0, 3, 3), graded(1, 3, 2)], [graded(0, 3, 3), graded(1, 3, 2)]
+    pipeline, hand = [graded(0, 4, 3), graded(1, 3, 2)], [graded(0, 3, 3), graded(1, 3, 2)]
+    other = {'pipeline': [graded(0, 3, 3), graded(1, 3, 2)], 'hand': [graded(0, 3, 3), graded(1, 3, 2)]}
     result = {'tag': 't', 'vsTag': 'u', 'world': pc.world_section([entry('a', '갑', True), entry('b', '을', True, lonely=True)]), 'items': {'1': {'ok': 1, 'docs_missing': 3}},
               'simulation': {'1': pc.assemble('1', pipeline, hand, other)}}
     text = pc.render(result)
     assert '인물 카드 3장 중 SOUL 없음 1장(33.3%) · IDENTITY를 이름으로 채움 1장(33.3%)' in text   # 수정 전 기준선: 인물 카드 단위 문서 공백
     assert '문항 ① 대사: ok 1(25.0%) · SOUL 없음(운영이 시작 거절) 3(75.0%)' in text   # 문항 단위 가용률(상태별 개수와 비율, ok가 먼저)
-    assert '짝 비교(파이프라인 − 손라벨): voice 1↑0↓1=' in text and '짝 비교(t − u): voice 1↑0↓1=' in text
+    assert '짝 비교(파이프라인 − 손라벨): voice 1↑0↓1=' in text and '짝 비교(t − u): voice 1↑0↓1=' in text and '짝 비교(손라벨끼리 t − u): voice 0↑0↓2=' in text
 
 
 def test_parser_defaults_follow_the_cheap_safe_choices():
