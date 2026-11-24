@@ -365,13 +365,15 @@ def _rewrite(state: State, steps: list[dict], step: dict, answer: dict) -> State
             step['result'] = tools.write(call).model_dump(mode='json')
     except tools.FAILURES as error:
         step.update(status='failed', error=str(error))
-    reviewed = next((s for s in steps if s['feature'] == 'manuscript_review' and s['status'] == 'completed' and (s.get('result') or {}).get('candidate') is not None), None)
+    reviewed = next((s for s in steps if s['feature'] == 'manuscript_review' and (s.get('result') or {}).get('candidate') is not None), None)
     if step['status'] == 'completed' and reviewed and call.get('base'):
         r = reviewed['result']
         try:
             with tracing.observe('step.manuscript_review', as_type='agent'):
-                reviewed['result'] = manuscript_review.review_candidate(ReviewRequest(workId=r['workId'], episode=r['episode'], check=r['check']),
-                                                                        call['base'], step['result']).model_dump(mode='json')
+                result = manuscript_review.review_candidate(ReviewRequest(workId=r['workId'], episode=r['episode'], check=r['check']),
+                                                            call['base'], step['result']).model_dump(mode='json')
+                reviewed.update(status='completed', result=result)
+                reviewed.pop('error', None)
         except tools.FAILURES as error:
             reviewed.update(status='failed', error=str(error))
     return {'steps': steps, 'rewrites': state.get('rewrites', 0) + 1, 'retrievalScope': answer.get('scope') or state.get('retrievalScope')}

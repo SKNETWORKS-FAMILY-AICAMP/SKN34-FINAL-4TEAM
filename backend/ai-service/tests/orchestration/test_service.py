@@ -2969,13 +2969,18 @@ def test_rewriting_runs_the_same_writing_input_again_and_waits_again_until_the_l
     assert done.status == 'completed' and applied[0][2]['after'] == '버전3'
 
 
-def test_rewriting_also_reruns_the_same_turns_candidate_review_on_the_new_result(monkeypatch):
+@pytest.mark.parametrize('fails_once', [False, True])
+def test_rewriting_also_reruns_the_same_turns_candidate_review_on_the_new_result(monkeypatch, fails_once):
+    from app.manuscript_review.errors import ReviewFailure
+
     fake_agents(monkeypatch, plan('writing_editing', 'manuscript_review'))
     versions(monkeypatch)
     reviewed = []
 
     def review_candidate(data, base, written):
         reviewed.append((data, base, written['after']))
+        if fails_once and len(reviewed) == 2:
+            raise ReviewFailure(503, '검수 실패')
         return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
                               providerResponseId=f'r{len(reviewed)}', usage=None, findings=[], candidate={'selection': None})
 
@@ -2983,8 +2988,15 @@ def test_rewriting_also_reruns_the_same_turns_candidate_review_on_the_new_result
     thread = str(uuid4())
     write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH, 'manuscript_review': REVIEW})
     again = rewrite(thread)
-    assert [after for *_, after in reviewed] == ['버전1', '버전2'] and reviewed[0][:2] == reviewed[1][:2]
-    assert (again.steps[1].feature, again.steps[1].result.providerResponseId) == ('manuscript_review', 'r2')
+    if fails_once:
+        assert (again.steps[1].status, again.steps[1].error) == ('failed', '검수 실패')
+    else:
+        assert again.steps[1].result.providerResponseId == 'r2'
+    third = rewrite(thread)
+    assert [after for *_, after in reviewed] == ['버전1', '버전2', '버전3']
+    assert reviewed[0][:2] == reviewed[1][:2] == reviewed[2][:2]
+    assert (third.steps[1].feature, third.steps[1].status, third.steps[1].error) == ('manuscript_review', 'completed', None)
+    assert third.steps[1].result.providerResponseId == 'r3'
 
 
 def test_a_failed_rewrite_keeps_the_last_result_and_fails_the_step(monkeypatch):
