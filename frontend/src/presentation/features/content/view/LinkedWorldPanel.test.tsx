@@ -47,6 +47,17 @@ it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보�
   expect(onLink).toHaveBeenCalledWith(null)
 })
 
+it('세계관 연결 구획은 같은 탭의 다른 카드와 같은 카드(tcard ep-card)이고, 표지 격자를 담은 연결 양식만 카드 폭을 다 쓰는 ep-pick-form이다(검색창은 양식 밖)', async () => {
+  const { card } = show(null)
+  const search = await card().findByRole('searchbox', { name: '세계관 검색' })
+  const region = screen.getByRole('region', { name: '세계관 연결' })
+  expect([...region.classList]).toEqual(expect.arrayContaining(['tcard', 'ep-card']))
+  const form = card().getByRole('button', { name: '세계관 연결' }).closest('form')!
+  expect(form.classList.contains('ep-pick-form')).toBe(true)
+  expect(form.classList.contains('ep-edit')).toBe(true)
+  expect(search.closest('form')).toBeNull()
+})
+
 it('미연결이면 검색창 아래 목록에서 고르기 전에는 연결할 수 없고, 고른 세계관으로만 연결을 요청한다', async () => {
   const { card, onLink } = show(null, async () => [...MINE, world('free-2', '둘째 빈 세계')])
   const search = await card().findByRole('searchbox', { name: '세계관 검색' }) as HTMLInputElement

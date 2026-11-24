@@ -233,3 +233,33 @@ CREATE INDEX edit_suggestion_proposer ON edit_suggestion (proposer_id, created_a
 작가 승인으로 저장한 회차 버전이 현재 공개 버전 자신이거나 그 선행 버전이면 발행 반영으로 표시한다. 일반 저장은 직전 저장을 잇고, 복원 저장은 복원 원본을 잇는다. 공개 중단·옛 버전 발행·승인 전 버전 복원으로 계보에서 빠지면 초안 반영으로 돌아간다. 발행은 작가가 집필실에서 별도로 선택한다.
 
 수정 제안의 처리 시각(`handledAt`)은 승인이면 `updatedAt`(반영 재시도까지 포함한 마지막 갱신), 보류·거절이면 `decidedAt`이고 검토 대기에는 없다. 제보의 `handledAt`은 작가의 마지막 확인·답변·상태 변경 시각, `authorCheckedAt`은 최초 확인 시각이며 둘 다 처리자(`handlerName`, 작품 소유자의 Core 닉네임)와 함께 작가에게만 준다.
+
+## 운영자 열람 (#750, 사용자 결정 2026-11-24)
+
+관리자 `/admin?tab=feedback`의 '작가 검토 제보' 패널은 서버에 등록된 실제 독자 제보를 **읽기만** 한다. 제보 처리(확인·답변·상태 변경)는 작가 몫이라 운영자의 답변·상태 변경·숨김은 없고(Content의 운영자 열람 전용 규칙과 같다), 운영 서비스는 저장하지 않는다. 개요의 '작가 검토 대기' 카드(`pendingFeedbackReports + pendingEditSuggestions`)는 제보와 수정 제안을 합친 수이고, 이 패널은 제보만 보여 `상태=작가 확인 전`의 전체 건수가 카드의 제보 몫과 같다(수정 제안은 이 패널 범위 밖).
+
+### Content 내부 API (운영 서비스 토큰 체인, 공개 proxy 비등록)
+
+`GET /internal/v1/feedback-reports?status=&page=0&size=20` — 작품을 가리지 않는 모든 독자 제보(공개·비공개·철회 포함, 비공개 원문도 그대로)를 `createdAt DESC, id` 순으로 한 쪽씩 준다. 삭제된 작품의 제보는 `countUnchecked`·작가 피드백함과 같은 기준으로 뺀다. `status`는 `unchecked`·`checked`·`answered`·`resolved`·`closed` 중 하나(생략하면 전체이고 `held`·`pending`은 수정 제안 상태라 422), `page`는 0부터, `size`는 1~100(기본 20)이며 틀린 값은 422다.
+
+```json
+{ "items": [{ "id": "…", "workId": "…", "workTitle": "…", "episodeNumber": 3, "kind": "typo", "body": "…", "quote": "… 또는 null",
+              "visibility": "private", "status": "unchecked", "reporterName": "닉네임 또는 탈퇴한 회원", "withdrawn": false, "createdAt": "…" }],
+  "page": 0, "size": 20, "totalElements": 41, "totalPages": 3 }
+```
+
+제보자명은 쪽의 제보자 ID를 모아 Core 닉네임을 한 번만 조회한다(Core 실패는 503·504·502, 대체 이름 없음). 작품 제목은 목록 쿼리의 행에 있어 행마다 조회하지 않는다.
+
+### 운영 API (브라우저)
+
+`GET /api/v1/operations/feedback-reports?status&page&size` — 회원 Bearer, Core `operator=true` + 운영 `feedback` 권한(같은 탭의 고객지원 문의와 같은 권한, 없으면 403이고 Content 호출보다 먼저 확인). Content 응답을 그대로 중계하고 Content의 422는 안내 문구와 함께 전하며 그 밖의 실패는 502다. `page`·`size`가 숫자가 아니면 400이다. 읽기라 관리자 활동 기록을 남기지 않고 쓰기 경로는 없다(다른 메서드는 405). 경로 끝에 슬래시를 붙이지 않고 nginx·Vite·`MemberSecurityConfig`의 운영 경로 목록에 `feedback-reports`가 있다.
+
+### 화면
+
+실제 모드의 패널(`AdminFeedbackReports`, `HttpOperationsFeedbackReportRepository`·`OperationsFeedbackReportUseCase`)은 상태 조건과 번호 쪽 이동(20건씩)을 서버 조회로 다시 읽고 유형·공개 범위·내용·인용·작품·회차·제보자·접수일(한국시간)·상태(철회됨 표시)를 표로 보인다. 로딩·실패(다시 불러오기)·빈 상태는 실제 응답대로이고 '열람 전용 · 처리는 작가가 합니다'를 알리며 답변·상태 변경 버튼과 '시연용'·'현재 브라우저에만 반영' 문구는 없다. 서버가 없는 `--mode mockup`은 `operationsFeedbackReportUseCase`가 null이라 기존 메모리 데모 표('시연용' 안내 포함)를 그대로 보인다.
+
+### 한계
+
+- 상세 API가 없다. 표의 행이 본문·인용까지 담으므로 운영자가 정정 기록·작가 답변까지 읽어야 하면 제보별 상세를 더한다.
+- 검색(작품·내용·제보자)과 정렬 선택은 없고 최신순·상태 필터·쪽 이동뿐이다. 제보가 매우 많아지면 작품·기간 조건을 서버에서 더한다.
+- 제보 열람은 Core 닉네임 조회에 의존한다(캐시 없음, Core 장애 시 목록이 실패).

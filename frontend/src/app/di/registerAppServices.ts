@@ -19,6 +19,7 @@ import { CardCategoryUseCase } from '../../domain/usecases/CardCategoryUseCase'
 import { OperationsCardCategoryUseCase } from '../../domain/usecases/OperationsCardCategoryUseCase'
 import { OperationsWorldUseCase } from '../../domain/usecases/OperationsWorldUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
+import { OperationsFeedbackReportUseCase } from '../../domain/usecases/OperationsFeedbackReportUseCase'
 import { OperationsCreditUseCase } from '../../domain/usecases/OperationsCreditUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
 import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
@@ -26,6 +27,7 @@ import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
 import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
 import { HttpOperationsCreditRepository } from '../../data/api/HttpOperationsCreditRepository'
+import { HttpOperationsFeedbackReportRepository } from '../../data/api/HttpOperationsFeedbackReportRepository'
 import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpOperationsWorldRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
@@ -133,6 +135,8 @@ export function registerAppServices(container: AppContainer) {
     operationsCreditUseCase: asFunction(({ operationsCreditRepository }) => new OperationsCreditUseCase(operationsCreditRepository)).singleton(),
     operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
+    operationsFeedbackReportRepository: asFunction(() => new HttpOperationsFeedbackReportRepository()).singleton(),
+    operationsFeedbackReportUseCase: asFunction(({ operationsFeedbackReportRepository }) => new OperationsFeedbackReportUseCase(operationsFeedbackReportRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
     operationsDashboardRepository: asFunction(() => new HttpOperationsDashboardRepository()).singleton(),

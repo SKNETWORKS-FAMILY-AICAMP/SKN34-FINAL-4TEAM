@@ -23,10 +23,12 @@ type Props = {
   onSuggestTags: () => Promise<WorkTagSuggestion | null>
   editing: WorkEditing
   onEditingChange: (next: WorkEditing) => void
+  /** AI 자율 집필이 켜져 있는지(EpisodePage가 이미 읽는 소유자 `GET /works/{id}/ai-serial`의 enabled라 새 요청은 없다). 켜져 있으면 칩 줄에 'AI 자율 연재' 칩을 보인다. 읽는 중·읽기 실패는 꺼짐으로 온다. */
+  serialOn?: boolean
 }
 
 /**
- * 작품 관리 화면 위쪽의 소설 상세형 히어로(표지·제목·장르·유형·공개 상태·소개·해시태그). 모든 탭 위에 있어 쉴 때는 88px 표지 썸네일 한 덩어리로 줄고(.ep-hero-compact),
+ * 작품 관리 화면 위쪽의 소설 상세형 히어로(표지·제목·장르·유형·AI 자율 연재 켜짐·공개 상태·소개·해시태그). 모든 탭 위에 있어 쉴 때는 88px 표지 썸네일 한 덩어리로 줄고(.ep-hero-compact),
  * 작품 정보·표지를 편집하는 동안만 옛 큰 히어로로 펴져 폼이 넓은 칸을 쓴다. 분기 정책(포크 정보)·작품 삭제는 운영 설정 탭의 WorkOperations로 옮겼다.
  * 공개 회차·작성 중인 초안 수는 바로 아래 대시보드 지표 카드가 보인다(같은 수를 두 번 보이지 않는다).
  * 작품 정보(제목·소개·장르·해시태그)와 표지는 영역마다 '편집' 버튼이 하나씩 있고 저장/취소로 바꾼다. 한 번에 한 영역만 편집한다(상태는 호출 측이 갖는다).
@@ -35,7 +37,7 @@ type Props = {
  * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 개요 바로가기와 공개 회차 탭 머리의 '집필실 열기', 회차별 수정하기가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
-export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, editing, onEditingChange }: Props) {
+export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, editing, onEditingChange, serialOn }: Props) {
   const infoButton = useRef<HTMLButtonElement>(null)
   const coverButton = useRef<HTMLButtonElement>(null)
   const closed = useRef<'info' | 'cover' | null>(null)
@@ -80,6 +82,7 @@ export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy
         <div className='ep-chips'>
           {!!w.genres?.length && <span className='g'>{w.genres.join(' · ')}</span>}
           {kind && <span className='chip'>{kind}</span>}
+          {serialOn && <span className='chip'>AI 자율 연재</span>}
           <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
             {w.visibility === 'private' ? '비공개 작품' : w.episodes.length ? '공개 중' : '공개 회차 없음'}
           </span>
@@ -88,7 +91,7 @@ export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy
           ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onSuggest={onSuggestTags} onClose={close} />
           : w.summary
           ? <p className='sum'>{w.summary}</p>
-          : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
+          : <p className='sum ep-muted'>아직 소개가 없어요.</p>}
         {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
       </div>
     </section>

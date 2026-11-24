@@ -11,9 +11,9 @@ import { kstDateTime } from '../../../shared/format'
 import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
-vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어로</p> }))
-// 요약 머리는 넘겨받은 초안 수만 data-drafts로 드러낸다(수를 세는 규칙은 이 화면의 몫이다).
-vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount }: { draftCount?: number | null }) => <p data-drafts={String(draftCount)}>작품 요약 머리</p> }))
+vi.mock('./WorkOverview', () => ({ WorkOverview: ({ serialOn }: { serialOn?: boolean }) => <p data-serial={String(serialOn)}>작품 개요 히어로</p> }))
+// 요약 머리는 넘겨받은 초안 수(data-drafts)와 AI 자율 집필 켜짐(data-serial)만 드러낸다(수를 세는 규칙·켜짐 값은 이 화면의 몫이고, AI 자율 연재 칩은 요약 머리가 그린다).
+vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount, serialOn }: { draftCount?: number | null; serialOn?: boolean }) => <p data-drafts={String(draftCount)} data-serial={String(serialOn)}>작품 요약 머리</p> }))
 // 개요 대시보드의 조회·표시(바로가기 링크 포함)는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고 넘겨 주는 값(잠금 포함)만 본다.
 const dashboard = vi.hoisted(() => ({ props: [] as { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }[] }))
 vi.mock('./WorkDashboard', () => ({
@@ -323,6 +323,8 @@ it('같은 저장 버전은 공개 회차·원고 저장본·발행 이력에서
   // [polish] 이력 탭의 발행 이력·저장본 시각은 개요와 같은 공용 한국시간 형식이고 <time dateTime>을 가진다.
   const publishedTime = screen.getByText(/1화 · 발행 ·/).querySelector('time')
   expect(publishedTime?.textContent).toBe(kstDateTime('2026-11-03T00:00:00Z'))
+  // 시각은 줄의 마지막 칸이고 저장 버전은 그 앞이다(CSS가 시각을 줄 오른쪽 끝에 놓는다).
+  expect(screen.getByText(/1화 · 발행 ·/).lastChild).toBe(publishedTime)
   expect(publishedTime?.getAttribute('datetime')).toBe('2026-11-03T00:00:00Z')
   const savedTime = document.querySelector('.ep-reading article time')
   expect(savedTime?.textContent).toBe(kstDateTime('2026-11-02T00:00:00Z'))
@@ -456,6 +458,36 @@ it('AI 자율 집필 중에도 공개 회차 탭에는 작성 중인 초안 묶�
   expect(screen.getAllByRole('link').map((a) => a.getAttribute('href')).filter((href) => href?.startsWith('/studio/'))).toEqual(['/studio/w'])
 })
 
+it('개요 히어로에 AI 자율 집필이 켜져 있는지(serialLocked)를 그대로 넘긴다(AI 자율 연재 칩은 히어로가 그린다. 새 요청은 없다)', () => {
+  for (const [serialLocked, expected] of [[true, 'true'], [false, 'false'], [undefined, 'false']] as const) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    expect(screen.getByText('작품 개요 히어로').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
+  }
+})
+
+it('개요 밖 탭의 요약 머리에도 AI 자율 집필이 켜져 있는지(serialLocked)를 그대로 넘긴다(칩은 요약 머리가 그린다. 개요 히어로와 같은 읽기 값이라 새 요청은 없다)', () => {
+  for (const [serialLocked, expected] of [[true, 'true'], [false, 'false'], [undefined, 'false']] as const) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+    expect(screen.getByText('작품 요약 머리').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
+  }
+})
+
+// ── 헤딩 순서: 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 구획 제목(h3)이다. 개요는 히어로(h1)가 탭 내용 안에 있어 탭 제목을 히어로 다음에 그린다 ──
+it('개요 탭의 탭 제목(h2)은 작품 제목(h1)을 그리는 히어로 다음, 현황(h3 구획) 앞이고, 다른 탭은 요약 머리(h1) 다음이다', () => {
+  const after = (earlier: Node, later: Node) => Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING)
+  openFresh(2)
+  const title = screen.getByRole('heading', { level: 2, name: '개요' })
+  expect(title.classList.contains('sr-only')).toBe(true) // 사이드바에서 이미 '개요'가 선택돼 있어 제목 줄은 화면 밖이다(세계관 관리 개요와 같다)
+  expect(after(screen.getByText('작품 개요 히어로'), title)).toBe(true) // 히어로(h1) → 탭 제목(h2)
+  expect(after(title, screen.getByRole('button', { name: '대시보드' }))).toBe(true) // 탭 제목(h2) → 현황(h3 구획)
+  fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+  expect(after(screen.getByText('작품 요약 머리'), screen.getByRole('heading', { level: 2 }))).toBe(true)
+  expect(screen.getByRole('heading', { level: 2 }).classList.contains('sr-only')).toBe(false) // 다른 탭의 제목은 보이는 본문 시작이다
+})
+
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──
 it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서는 하지 않는다) 초점은 누른 메뉴 버튼에 남는다', () => {
   open(3)
@@ -490,6 +522,32 @@ it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로
   openHistory()
   expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['발행 이력', '원고 저장본', 'AI 요청·제안'])
   expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['1화 · 저장 버전 1 · 첫 화', 'gpt · 검토 대기'])
+})
+
+it('이력 탭의 발행 이력·원고 저장본·AI 요청·제안은 각각 제목이 이름인 카드(tcard ep-card) 구획이고, 항목은 자기 카드 안에 있으며, 안내문은 카드 밖에 둔다', () => {
+  const versions = [saved('v1')]
+  const proposal = { id: 'p1', text: '제안 본문', model: 'gpt', revision: 1, status: 'pending' as const, prompt: '지시문' }
+  openWith({ writing: { id: 'w', rows: [row(1, { versions })] }, history: { versions, proposals: [proposal], publicationHistory: [publication('v1')] } })
+  openHistory()
+  const card = (name: string) => screen.getByRole('region', { name })
+  for (const name of ['발행 이력', '원고 저장본', 'AI 요청·제안']) {
+    expect([...card(name).classList], name).toEqual(expect.arrayContaining(['tcard', 'ep-card']))
+    expect(within(card(name)).getByRole('heading', { level: 3, name })).toBeTruthy()
+  }
+  expect(within(card('발행 이력')).getByText(/1화 · 발행 ·/)).toBeTruthy()
+  expect(within(card('원고 저장본')).getByRole('heading', { level: 4, name: '1화 · 저장 버전 1 · 첫 화' })).toBeTruthy()
+  expect(within(card('AI 요청·제안')).getByRole('heading', { level: 4, name: 'gpt · 검토 대기' })).toBeTruthy()
+  // 이력 탭 전용 카드 규칙(.ep-history)이 걸리는 틀이고, 읽기 전용 안내문은 카드 밖이다.
+  expect(historySection().classList.contains('ep-history')).toBe(true)
+  expect(screen.getByText('저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.').closest('.ep-card')).toBeNull()
+})
+
+it('이력의 빈 상태·응답 오류도 자기 카드 안에서 알린다', () => {
+  openWith({ writing: { id: 'w', rows: [row(1)] }, history: { versions: [], proposals: [], publicationHistory: undefined } })
+  openHistory()
+  expect(within(screen.getByRole('region', { name: '발행 이력' })).getByRole('alert').textContent).toBe('발행 이력 응답을 확인할 수 없어요.')
+  expect(within(screen.getByRole('region', { name: '원고 저장본' })).getByText('아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.')).toBeTruthy()
+  expect(within(screen.getByRole('region', { name: 'AI 요청·제안' })).getByText('아직 AI 제안이 없어요.')).toBeTruthy()
 })
 
 // ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──

@@ -1,5 +1,5 @@
 .media-panel { margin-block: 24px; padding-block: 20px; border-block-start: 1px solid var(--line); min-width: 0; }
-.media-panel h3 { margin: 0 0 12px; }
+.media-panel :is(h3, h4) { margin: 0 0 12px; }
 .media-panel fieldset { border: 0; padding: 0; min-width: 0; }
 .media-file { display: block; font-size: 14px; margin-block: 12px; overflow-wrap: anywhere; }
 .media-file input { display: block; max-width: 100%; margin-block-start: 8px; font: inherit; }

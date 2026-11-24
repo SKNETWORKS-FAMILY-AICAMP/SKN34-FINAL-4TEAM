@@ -143,6 +143,10 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+          # 키를 서비스별로 가른다. 기본 키는 세 서비스를 한 캐시로 묶어 먼저 저장한 서비스의 의존성만 남는다.
+          cache-dependency-path: |
+            backend/${{ matrix.service }}*/*.gradle*
+            backend/${{ matrix.service }}*/gradle/wrapper/gradle-wrapper.properties
       - if: ${{ matrix.service == 'ai' }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
@@ -295,6 +299,10 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+          # 키를 서비스별로 가른다. 기본 키는 세 서비스를 한 캐시로 묶어 먼저 저장한 서비스의 의존성만 남는다.
+          cache-dependency-path: |
+            backend/${{ matrix.service }}*/*.gradle*
+            backend/${{ matrix.service }}*/gradle/wrapper/gradle-wrapper.properties
       - if: ${{ matrix.service == 'ai' }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
