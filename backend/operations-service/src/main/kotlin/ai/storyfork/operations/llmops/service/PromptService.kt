@@ -4,6 +4,7 @@ import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations._common.exception.CandidateRequiredException
+import ai.storyfork.operations._common.exception.EvaluationRequiredException
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.dto.Evaluation
 import ai.storyfork.operations.llmops.service.dto.Prompt
@@ -23,7 +24,17 @@ private const val PRODUCTION = "production"
 private const val SEED = "seed"
 private const val NAME_MAX = 100
 
-/** Prompt versions live in Langfuse; this service reads them with their latest evaluation and moves the production label behind the evaluation gate. */
+/**
+ * The evaluation set each prompt is evaluated on (#787, 2026-11-24 user decision): only the sets built from that very call. A version of these prompts
+ * becomes a candidate once its newest run on the set passed; every other prompt has no fitting set and becomes a candidate without an evaluation.
+ */
+private val EVALUATION_SETS = mapOf(
+    "story_context.answer" to "qa.grounding",
+    "character_simulation.act" to "simulation.act",
+    "character_simulation.narrate" to "simulation.narrate",
+)
+
+/** Prompt versions live in Langfuse; this service reads them with their latest evaluation, registers candidates (behind the evaluation gate for a prompt with a set) and moves the production label to a candidate. */
 @Service
 class PromptService(
     private val permissions: AdminPermissionRepository,
@@ -80,7 +91,8 @@ class PromptService(
 
     /**
      * Registers the version (a prompt body with its chosen model) as a production candidate (#705). Langfuse keeps a label on one version only, so the
-     * label names the version (candidate-<version>) and several candidates can coexist. Evaluation is optional for now (2026-11-24 user decision).
+     * label names the version (candidate-<version>) and several candidates can coexist. A prompt with an evaluation set needs the version's newest run
+     * on it to have passed (#787); a version that already is a candidate stays one.
      */
     fun candidate(member: OperationsMember, name: String, request: PromptPromoteRequest): PromptVersion {
         permissions.requirePermission(member, LLM)
@@ -88,11 +100,13 @@ class PromptService(
         val current = langfuse.prompt(name, request.version)
         val labels = labels(current)
         val candidate = candidateLabel(request.version)
+        val evaluation = evaluations.latest(name, request.version, EVALUATION_SETS[name])
         if (candidate !in labels) {
+            if (name in EVALUATION_SETS && evaluation?.passed != true) throw EvaluationRequiredException()
             langfuse.setPromptLabels(name, request.version, (labels - "latest") + candidate)
             activities.record(member, "PROMPT_CANDIDATE", "PROMPT", name, "v${request.version}")
         }
-        return PromptVersion(request.version, (labels - candidate) + candidate, createdAt(current), evaluations.latest(name, request.version)?.summary(), model(current))
+        return PromptVersion(request.version, (labels - candidate) + candidate, createdAt(current), evaluation?.summary(), model(current))
     }
 
     /** Moves the production label to the version. Only a candidate goes there; restoring an older version is no exception (register it as a candidate first). */
@@ -114,7 +128,7 @@ class PromptService(
         val name = meta.path("name").asString()
         val read = versions.map { version(it, latest[name to it.path("version").asInt()], withBody) }
         val live = read.firstOrNull { PRODUCTION in it.labels }?.version
-        return Prompt(name, read, labels(meta).count { it.startsWith("candidate-") && it != live?.let(::candidateLabel) })
+        return Prompt(name, read, labels(meta).count { it.startsWith("candidate-") && it != live?.let(::candidateLabel) }, EVALUATION_SETS[name])
     }
 
     private fun version(node: JsonNode, evaluation: Evaluation?, withBody: Boolean = false) = PromptVersion(

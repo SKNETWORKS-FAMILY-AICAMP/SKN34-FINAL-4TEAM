@@ -3,6 +3,7 @@ package ai.storyfork.operations.llmops
 import ai.storyfork.operations._common.client.AiClient
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.exception.CandidateRequiredException
+import ai.storyfork.operations._common.exception.EvaluationRequiredException
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.EvaluationService
 import ai.storyfork.operations.llmops.service.PromptService
@@ -34,9 +35,9 @@ class PromptServiceTest {
     private val service = PromptService(operators.permissions, langfuse, evaluations, activities)
 
     /** An experiment as Langfuse lists it for a prompt evaluation: the metadata values are strings and name the prompt version (the name is free here). */
-    private fun run(name: String, createdAt: String, prompt: String, version: Int) = json(
+    private fun run(name: String, createdAt: String, prompt: String, version: Int, dataset: String = "qa-regression") = json(
         """{"id":"id-$name","name":"$name","description":null,"startTime":"$createdAt","endTime":"$createdAt","itemCount":10,"datasetId":"ds-1",
-            "metadata":{"prompt":"$prompt","version":"$version","dataset":"qa-regression"}}""")
+            "metadata":{"prompt":"$prompt","version":"$version","dataset":"$dataset"}}""")
 
     private fun version(name: String, version: Int, labels: String, createdAt: String? = null) = json(
         """{"name":"$name","version":$version,"labels":$labels${createdAt?.let { ",\"createdAt\":\"$it\"" } ?: ""}}""")
@@ -195,7 +196,7 @@ class PromptServiceTest {
     }
 
     @Test
-    fun `a version becomes a candidate by its own candidate label and the change is recorded`() {
+    fun `a version of a prompt without an evaluation set becomes a candidate by its own label without any evaluation and the change is recorded`() {
         givenRuns()
         `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, """["latest","seed"]""", "2026-11-12T00:00:00Z"))
 
@@ -206,6 +207,42 @@ class PromptServiceTest {
         val order = inOrder(langfuse, activities)
         order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("seed", "candidate-3"))
         order.verify(activities).record(operators.llm, "PROMPT_CANDIDATE", "PROMPT", "qa/answer", "v3")
+    }
+
+    @Test
+    fun `a prompt with an evaluation set becomes a candidate only once the newest run of the version on that set passed`() {
+        val name = "story_context.answer"
+        `when`(langfuse.prompt(name, 3)).thenReturn(version(name, 3, """["latest"]"""))
+        val refusals = listOf(
+            arrayOf<Pair<JsonNode, Boolean?>>(),                                                             // never evaluated
+            arrayOf(run("r-other", "2026-11-19T03:00:00Z", name, 3, "leak.spoiler") to true),                  // passed on another set
+            arrayOf(run("r-new", "2026-11-19T02:00:00Z", name, 3, "qa.grounding") to false,
+                run("r-old", "2026-11-19T01:00:00Z", name, 3, "qa.grounding") to true),                      // the newest run on the set failed
+            arrayOf(run("r-run", "2026-11-19T02:00:00Z", name, 3, "qa.grounding") to null),                    // still running
+            arrayOf(run("r-v2", "2026-11-19T02:00:00Z", name, 2, "qa.grounding") to true),                     // another version passed
+        )
+        for (runs in refusals) {
+            givenRuns(*runs)
+            assertThrows(EvaluationRequiredException::class.java) { service.candidate(operators.llm, name, PromptPromoteRequest(3)) }
+        }
+        verify(langfuse, never()).setPromptLabels(anyString(), anyInt(), anyList())
+        verifyNoInteractions(activities)
+
+        givenRuns(run("r-pass", "2026-11-19T04:00:00Z", name, 3, "qa.grounding") to true, run("r-fail", "2026-11-19T01:00:00Z", name, 3, "qa.grounding") to false)
+        val candidate = service.candidate(operators.llm, name, PromptPromoteRequest(3))
+
+        assertEquals(listOf("latest", "candidate-3"), candidate.labels)
+        assertEquals("r-pass", candidate.evaluation?.runId)
+        verify(langfuse).setPromptLabels(name, 3, listOf("candidate-3"))
+    }
+
+    @Test
+    fun `only the answer prompt and the two simulation prompts name an evaluation set`() {
+        givenRuns()
+        val names = listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "world_review.check")
+        `when`(langfuse.prompts()).thenReturn(names.map { json("""{"name":"$it","versions":[1],"labels":[]}""") })
+
+        assertEquals(listOf("qa.grounding", "simulation.act", "simulation.narrate", null), service.list(operators.llm).items.map { it.evaluationDataset })
     }
 
     @Test

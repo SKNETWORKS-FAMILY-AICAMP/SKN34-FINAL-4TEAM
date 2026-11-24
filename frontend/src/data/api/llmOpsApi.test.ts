@@ -147,10 +147,10 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
   const version = { version: 2, labels: ['production'], createdAt: AT, evaluation: { runId: 'r1', passed: true, createdAt: AT } }
 
   it('프롬프트 목록·상세·새 버전 등록은 이름을 인코딩해 보낸다', async () => {
-    const fetcher = ok({ items: [{ name: 'qa answer' }, { name: 'qa', versions: [version], candidates: 2 }], page: 0, size: 100, total: 1 })
+    const fetcher = ok({ items: [{ name: 'qa answer' }, { name: 'qa', versions: [version], candidates: 2, evaluationDataset: 'qa.grounding' }], page: 0, size: 100, total: 1 })
     const repo = new HttpLlmOpsRepository(fetcher)
     // 목록은 버전·후보 수를 안 줘도 읽는다(상세가 채운다). 목록의 버전은 production·seed뿐이고 후보 수는 따로 온다(#786).
-    expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [], candidates: 0 }, { name: 'qa', versions: [version], candidates: 2 }])
+    expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [], candidates: 0 }, { name: 'qa', versions: [version], candidates: 2, evaluationDataset: 'qa.grounding' }])
     const detail = new HttpLlmOpsRepository(ok({ name: 'qa answer', versions: [version], candidates: 0 }))
     expect(await detail.prompt('qa answer')).toEqual({ name: 'qa answer', versions: [version], candidates: 0 })
     await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '메모', model: '' })
@@ -185,6 +185,9 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     ])
     const rejected = new HttpLlmOpsRepository(fail(409, { code: 'CANDIDATE_REQUIRED', message: 'Only a candidate prompt version can be promoted.' })).promote('qa', 3)
     await expect(rejected).rejects.toThrow(new OperationsRejected('후보로 등록한 조합만 서비스에 반영할 수 있어요.'))
+    // 평가 세트가 있는 프롬프트의 후보 등록이 평가 통과 전에 막힌 409(#787)도 code로 정해진 문구를 보인다.
+    const unevaluated = new HttpLlmOpsRepository(fail(409, { code: 'EVALUATION_REQUIRED', message: "A passing regression evaluation on the prompt's evaluation set is required." })).candidate('qa', 3)
+    await expect(unevaluated).rejects.toThrow(new OperationsRejected('이 프롬프트는 평가 세트의 회귀 평가를 통과한 버전만 후보로 등록할 수 있어요.'))
     // 다른 409(영문 고정 문구)나 본문이 없는 409는 일반 충돌 안내다.
     await expect(new HttpLlmOpsRepository(fail(409, { code: 'CONFLICT', message: 'Resource conflicts with its current state.' })).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))
     await expect(new HttpLlmOpsRepository(fail(409, {})).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))

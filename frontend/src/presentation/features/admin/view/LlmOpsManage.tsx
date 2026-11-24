@@ -19,7 +19,7 @@ const passTone = (passed: boolean | null | undefined) => (passed === false ? 'ba
 
 /**
  * 프롬프트 패널(#705): 모든 LLM 호출의 프롬프트를 표로 보이고, 상세에서 모델+본문 조합을 저장하고 후보로 등록한 뒤 서비스에 반영합니다.
- * 회귀 평가·지표는 선택입니다(평가 쪽에서 실행하고 버전 행에서 결과를 엽니다). 변경 조치는 모두 활동 로그에 남습니다.
+ * 회귀 평가·지표는 평가 세트가 있는 프롬프트(#787)만 후보 등록에 통과가 필요하고 나머지는 선택입니다(평가 쪽에서 실행하고 버전 행에서 결과를 엽니다). 변경 조치는 모두 활동 로그에 남습니다.
  */
 export function Prompts({ vm, l }: Props) {
   const rows = l.prompts.data, p = l.prompt.data, live = p && productionOf(p), seed = p && pendingSeed(p)
@@ -59,7 +59,7 @@ export function Prompts({ vm, l }: Props) {
           )
           : <p className="admin-empty">등록된 프롬프트가 없어요. AI 서비스가 시작될 때 모든 LLM 호출의 프롬프트를 버전 1로 등록해요.</p>)}
         <p className="admin-note">
-          프롬프트의 정본은 Langfuse예요. 모델과 본문을 묶은 조합을 저장하고, 필요하면 회귀 평가로 지표를 본 뒤 후보로 등록하면 서비스에 반영할 수 있어요.
+          프롬프트의 정본은 Langfuse예요. 모델과 본문을 묶은 조합을 저장하고, 회귀 평가로 지표를 본 뒤 후보로 등록하면 서비스에 반영할 수 있어요(평가 세트가 있는 프롬프트는 평가를 통과해야 후보가 돼요).
           반영하면 AI 서비스가 재배포 없이 그 조합을 써요(캐시가 1분이라 잠시 뒤부터). 코드의 프롬프트(시드)가 바뀌면 AI 서비스가 코드 시드 버전으로 올려 둬요.
         </p>
       </section>
@@ -78,6 +78,7 @@ export function Prompts({ vm, l }: Props) {
             <div><small>모델</small><b>{live ? modelLabel(live.model, p.name) : '—'}</b></div>
           </div>
           {seed && <p className="admin-note">코드 시드({seed.version}번 버전)가 서비스 반영 중인 본문과 달라요. 후보로 등록하면 반영할 수 있어요.</p>}
+          {p.evaluationDataset && <p className="admin-note">후보 등록 조건: 평가 세트 {p.evaluationDataset}의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).</p>}
           <Table label="프롬프트 버전 표">
             <thead>
               <tr>

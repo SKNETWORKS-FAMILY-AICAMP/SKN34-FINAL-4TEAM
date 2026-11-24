@@ -38,8 +38,11 @@ export type PromptVersion = {
   version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
   model?: string | null; prompt?: string | null
 }
-/** 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다. */
-export type Prompt = { name: string; versions: PromptVersion[]; candidates: number }
+/**
+ * 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다.
+ * evaluationDataset은 후보로 등록하려면 통과해야 하는 평가 세트이고(#787) 비면 평가 없이 후보로 등록합니다.
+ */
+export type Prompt = { name: string; versions: PromptVersion[]; candidates: number; evaluationDataset?: string | null }
 /** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. model이 비면 기본 모델 버전입니다. */
 export type PromptVersionInput = { prompt: string; commitMessage: string; model: string }
 
@@ -64,6 +67,8 @@ export const LLM_FORBIDDEN = 'LLM Ops 조회 권한이 있어야 볼 수 있어�
 
 /** 후보가 아닌 버전을 서비스에 반영하려다 막힐 때(409 CANDIDATE_REQUIRED, #705) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
 export const CANDIDATE_REQUIRED_MESSAGE = '후보로 등록한 조합만 서비스에 반영할 수 있어요.'
+/** 평가 세트가 있는 프롬프트를 평가 통과 전에 후보로 등록하려다 막힐 때(409 EVALUATION_REQUIRED, #787) 보이는 문구. */
+export const EVALUATION_REQUIRED_MESSAGE = '이 프롬프트는 평가 세트의 회귀 평가를 통과한 버전만 후보로 등록할 수 있어요.'
 
 const TRACE_STATUSES = new Map([['success', '성공'], ['failed', '실패'], ['timeout', '시간 초과']])
 export const TRACE_STATUS_OPTIONS = [...TRACE_STATUSES]

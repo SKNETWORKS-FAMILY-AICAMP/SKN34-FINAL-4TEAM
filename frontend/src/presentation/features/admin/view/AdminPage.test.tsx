@@ -1407,6 +1407,17 @@ it('후보 등록과 서비스 반영은 그 버전 행의 버튼으로 하고, 
   expect(confirm).toHaveBeenCalledTimes(2)
 })
 
+it('평가 세트가 있는 프롬프트의 상세는 후보 등록 조건을 안내한다(#787)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'], prompt: '답' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  const region = await screen.findByRole('region', { name: '프롬프트 상세' })
+  await within(region).findByText('후보 등록 조건: 평가 세트 qa.grounding의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).')
+})
+
 it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를 수 없다', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
   vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
@@ -1417,6 +1428,7 @@ it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를
   expect((await within(detail).findByLabelText('모델') as HTMLSelectElement).disabled).toBe(true)
   within(detail).getByText('Decisions API가 gpt-6-luna만 지원해 모델은 고정이에요. 프롬프트만 바꿀 수 있어요.')
   expect(within(detail).queryByText(/코드 시드\(/)).toBeNull()
+  expect(within(detail).queryByText(/후보 등록 조건/)).toBeNull()   // 평가 세트가 없는 프롬프트
 })
 
 it('모델 목록이 늦게 와도 먼저 고른 모델이 바뀌지 않는다', async () => {

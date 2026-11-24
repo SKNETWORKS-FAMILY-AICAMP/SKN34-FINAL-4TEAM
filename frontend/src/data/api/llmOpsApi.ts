@@ -5,7 +5,7 @@ import type { JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../dom
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
-import { CANDIDATE_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import { CANDIDATE_REQUIRED_MESSAGE, EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineQuery, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import type { OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
@@ -73,7 +73,7 @@ const prompt = z.object({
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
     model: text, prompt: z.unknown().optional().transform((value) => (typeof value === 'string' ? value : undefined)),
   })).default([]),
-  candidates: z.number().default(0),
+  candidates: z.number().default(0), evaluationDataset: text,
 })
 const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num })
 const evaluation = z.object({
@@ -105,11 +105,13 @@ const schedule = z.object({
 const MESSAGES_UPSTREAM = { ...MESSAGES, 422: MESSAGES[400], 502: '연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.' }
 const id = encodeURIComponent
 /**
- * 변경 요청의 오류 안내. 서버의 영문 고정 문구("Invalid request." 등)는 상태별 한국어 안내(MESSAGES)로 바꾸고, 후보가 아닌 버전의 서비스 반영이 막힌 409는 code(CANDIDATE_REQUIRED)로 정해진 한국어 문구를 보입니다.
+ * 변경 요청의 오류 안내. 서버의 영문 고정 문구("Invalid request." 등)는 상태별 한국어 안내(MESSAGES)로 바꾸고, 후보가 아닌 버전의 서비스 반영(CANDIDATE_REQUIRED)·
+ * 평가 통과 전 후보 등록(EVALUATION_REQUIRED)이 막힌 409는 code로 정해진 한국어 문구를 보입니다.
  * 상위 서비스(Content 등)가 준 안내는 그대로 보입니다: code가 UPSTREAM…이거나 한글로 쓴 문구인 경우이고, 서버가 상위 서비스 거절을 일반 오류와 같은 code로 주고 문구만 바꾸기 때문에 한글 여부도 함께 봅니다.
  */
 const changeReason: ServerReason = (status, { code, message }) => {
   if (code === 'CANDIDATE_REQUIRED') return CANDIDATE_REQUIRED_MESSAGE
+  if (code === 'EVALUATION_REQUIRED') return EVALUATION_REQUIRED_MESSAGE
   return message && [400, 404, 409, 422].includes(status) && (code?.startsWith('UPSTREAM') || /[가-힣]/.test(message)) ? message : undefined
 }
 /** 비어 있는 조건은 서버에 보내지 않습니다. */

@@ -94,9 +94,10 @@ class EvaluationService(
     internal fun latestByVersion(now: Instant = Instant.now()): Map<Pair<String, Int>, Evaluation> =
         evaluations(runs(now, null).distinctBy { it.prompt to it.version }, now).associateBy { it.prompt to it.version }
 
-    /** The newest run of one prompt version (scored alone): the production gate reads its verdict. */
-    internal fun latest(prompt: String, version: Int, now: Instant = Instant.now()): Evaluation? =
-        runs(now, null).firstOrNull { it.prompt == prompt && it.version == version }?.let { evaluations(listOf(it), now).single() }
+    /** The newest run of one prompt version (scored alone), on [dataset] when given: the candidate gate reads its verdict. */
+    internal fun latest(prompt: String, version: Int, dataset: String? = null, now: Instant = Instant.now()): Evaluation? =
+        runs(now, null).firstOrNull { it.prompt == prompt && it.version == version && (dataset == null || it.dataset == dataset) }
+            ?.let { evaluations(listOf(it), now).single() }
 
     /** Newest first. */
     private fun runs(now: Instant, name: String?): List<Run> = langfuse.experiments(now.minus(EXPERIMENT_LOOKBACK), name).mapNotNull { node ->

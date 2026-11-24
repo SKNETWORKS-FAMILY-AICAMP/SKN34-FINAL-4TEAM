@@ -68,8 +68,9 @@ data class PromptVersion(
 /**
  * In the list [versions] are only the production and seed versions (#786: two Langfuse reads per prompt however many versions); the detail has them all.
  * [candidates] counts the versions with their own candidate label other than the production version, from the labels Langfuse lists for the prompt.
+ * [evaluationDataset] is the evaluation set a version must pass to become a candidate (#787); null means no evaluation is needed.
  */
-data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0)
+data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0, val evaluationDataset: String? = null)
 
 data class PromptListResponse(val items: List<Prompt>)
 

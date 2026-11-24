@@ -38,6 +38,10 @@ class OperationsExceptionHandler {
     fun candidateRequired(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("CANDIDATE_REQUIRED", "Only a candidate prompt version can be promoted."))
 
+    @ExceptionHandler(EvaluationRequiredException::class)
+    fun evaluationRequired(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(409).body(OperationsErrorResponse("EVALUATION_REQUIRED", "A passing regression evaluation on the prompt's evaluation set is required."))
+
     // Every Spring ErrorResponse (ResponseStatusException, validation and missing-parameter errors, framework 404/405) reaches
     // unexpected() and is answered here by its status, so none of them needs a handler of its own.
     fun responseStatus(error: ErrorResponse, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> = when (error.statusCode.value()) {
