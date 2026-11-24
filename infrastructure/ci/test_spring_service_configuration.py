@@ -188,6 +188,21 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertIn("docker/setup-buildx-action@", system)
         self.assertIn("crazy-max/ghaction-github-runtime@", system)
 
+    def test_cd_publish_reads_the_ci_layer_cache_and_never_writes_it(self):
+        publish = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8").split("\n  deploy:\n", 1)[0]
+        before, images = publish.split("        id: images\n", 1)
+        # type=gha를 읽으려면 이미지 단계보다 먼저 buildx builder와 Actions 캐시 토큰(CI system job과 같은 두 액션)이 있어야 한다.
+        for action in ("docker/setup-buildx-action@", "crazy-max/ghaction-github-runtime@"):
+            self.assertIn(action, before)
+        # CD는 읽기만 한다(서비스별 --cache-from은 publish 실행 시험이 확인한다): CI가 mode=max로 쓰는 같은 scope의 index를
+        # 덮어쓰면 두 빌드 그래프가 어긋날 때 서로의 캐시를 밀어낸다.
+        self.assertNotIn("--cache-to", images)
+        # setup-buildx의 builder는 기본 ~/.docker/buildx에 있다. 자격 증명용 DOCKER_CONFIG를 임시 위치로 바꿔도 찾도록 먼저 고정한다.
+        self.assertLess(images.index("export BUILDX_CONFIG="), images.index('export DOCKER_CONFIG="$scratch"'))
+        # buildx builder는 --load 없이는 이미지를 데몬에 올리지 않아, MinIO 재빌드 경로도 이어지는 docker push가 실패한다.
+        minio = images.split('if ! docker manifest inspect "$minio"', 1)[1].split("\n          fi", 1)[0]
+        self.assertIn("--load", minio)
+
     def test_content_boot_entry_point_is_explicit(self):
         service = ROOT / "backend/content-service"
         build = (service / "build.gradle").read_text(encoding="utf-8")
