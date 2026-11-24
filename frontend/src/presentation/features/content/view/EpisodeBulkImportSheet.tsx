@@ -72,9 +72,9 @@ export function EpisodeBulkImportSheet({ workId, firstEpisodeUnsaved, onClose }:
             aria-describedby={showStartNotice ? startNoticeId : undefined}
             onChange={(event) => vm.setStart(event.currentTarget.value)} />
         </label>}
-        {showStartNotice && <p id={startNoticeId} className="small muted">
+        {showStartNotice && <p id={startNoticeId} className="small">
           1화에 저장한 원고가 없어서 이대로 저장하면 세계관 추출을 시작할 수 없어요.
-          시작 회차를 1로 바꾸거나 집필실에서 1화를 먼저 저장해 주세요.
+          시작 회차를 1로 바꾸거나 집필실에서 1화를 먼저 버전 저장해 주세요.
         </p>}
         {vm.basis && vm.rows.length > 0 && vm.rows[0].number === 0 &&
           <p role="alert">시작 회차를 확인해 주세요. 새 회차는 {vm.basis.lastNumber + 1}화부터 등록할 수 있어요.</p>}
@@ -164,6 +164,7 @@ export function EpisodeBulkImportSheet({ workId, firstEpisodeUnsaved, onClose }:
           <button type="button" className="btn" disabled={vm.busy} onClick={close}>닫기</button>
           {!vm.basis && vm.error && <button type="button" className="btn" onClick={vm.refreshBasis}>회차 정보 다시 읽기</button>}
           {vm.editable && <button type="button" className="btn pri" disabled={!vm.canStart}
+            aria-describedby={showStartNotice ? startNoticeId : undefined}
             onClick={() => { heading.current?.focus(); void vm.submit() }}>회차 저장</button>}
           {vm.failedCount > 0 && <button type="button" className="btn pri" disabled={!vm.canRetry || !vm.rightsConfirmed}
             onClick={() => { heading.current?.focus(); void vm.retryFailed() }}>실패한 {vm.failedCount}개 재시도</button>}

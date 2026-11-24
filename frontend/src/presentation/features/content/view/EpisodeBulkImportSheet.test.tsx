@@ -59,8 +59,10 @@ it.each([
   expect(!!notice).toBe(shown)
   if (shown) {
     const start = screen.getByRole('spinbutton', { name: '시작 회차' })
+    const save = screen.getByRole('button', { name: '회차 저장' }) as HTMLButtonElement
     expect(start.getAttribute('aria-describedby')).toBe(notice!.id)
-    expect((screen.getByRole('button', { name: '회차 저장' }) as HTMLButtonElement).disabled).toBe(false)
+    expect(document.getElementById(save.getAttribute('aria-describedby') ?? '')?.textContent ?? '').toContain('집필실에서 1화를 먼저 버전 저장해 주세요')
+    expect(save.disabled).toBe(false)
   }
 })
 
@@ -74,6 +76,7 @@ it('최초 구축이 끝난 작품은 발행 안내를 상태 메시지로 보�
   const message = '새 회차를 처음 발행하면 세계관 초안에 반영돼요.'
   show({ editable: false, savedCount: 1, worldBuild: { ...rejected, code: 'WORLD_UPDATE_ON_PUBLISH', message } })
   expect(screen.getByRole('status').textContent).toBe(message)
+  expect(screen.queryByText(/세계관 추출을 시작하지 못했어요/)).toBeNull()
   expect(screen.queryByRole('alert')).toBeNull()
   expect(screen.queryByText(NOTICE)).toBeNull()
 })
