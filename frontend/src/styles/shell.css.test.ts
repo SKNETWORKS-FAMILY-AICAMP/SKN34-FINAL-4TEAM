@@ -443,3 +443,13 @@ describe('storyfork.css 실시간 인기(.t10) 순위 목록 계약 (홈 / 과 �
     expect(value('.t10 ol', 'justify-content')).toBe('flex-start')
   })
 })
+
+describe('storyfork.css 상단바(.gnb) 계정 아바타 계약', () => {
+  it('아바타는 상단바가 좁아져도 줄어들지 않는다 — 601~900px에서 메뉴·검색과 한 줄에 놓이면 flex 축소로 38×20 타원이 됐다', () => {
+    expect(sheet.some((r) => r.media === '' && r.selectors.includes('.gnb .avatar') && /flex:\s*none/.test(r.body))).toBe(true)
+  })
+  it('901~1023px에서는 검색 칸이 줄어 한 줄에 맞춘다 — 검색 최소 폭 260px 때문에 테마·아바타가 찌그러지고 가로로 58px 넘쳤다. 테마 버튼도 줄지 않는다', () => {
+    expect(sheet.some((r) => r.media === '(min-width:901px)' && r.selectors.includes('.gnb .search') && /min-width:\s*0/.test(r.body) && /flex:\s*0 1 260px/.test(r.body))).toBe(true)
+    expect(sheet.some((r) => r.media === '' && r.selectors.includes('.gnb .thm') && /flex:\s*none/.test(r.body))).toBe(true)
+  })
+})
