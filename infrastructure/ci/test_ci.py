@@ -535,6 +535,18 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
         self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
 
+    def test_dev_and_langfuse_services_cap_container_logs(self):
+        # 기본 json-file 로그에는 크기 제한이 없어 ClickHouse 로그가 디스크를 71GB까지 채운 적이 있다. 모든 서비스가 같은 제한을 쓴다.
+        for name, anchor in (('docker-compose.dev.yaml', 'logging'), ('docker-compose.langfuse.yaml', 'langfuse-logging')):
+            text = read('infrastructure/' + name)
+            self.assertIn(f'x-{anchor}: &{anchor}\n  driver: json-file\n  options:\n    max-size: "10m"\n    max-file: "3"\n', text)
+            services = '\n' + text.split('\nservices:\n', 1)[1].split('\nvolumes:\n', 1)[0] + '\n'
+            names = re.findall(r'(?m)^  ([a-z][\w-]*):$', services)
+            self.assertGreater(len(names), 3)
+            for service in names:
+                with self.subTest(file=name, service=service):
+                    self.assertIn(f'\n    logging: *{anchor}\n', '\n' + service_block(services, service) + '\n')
+
     def test_ci_and_attachment_callers_keep_source_builds(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
         self.assertIn('for mode in local prod dev; do', workflow)
