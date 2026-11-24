@@ -477,3 +477,12 @@ def test_a_thinking_value_other_than_off_is_a_503_before_any_model_call(monkeypa
     with pytest.raises(SimulationFailure) as error:
         agent.act(SECRET_DOC)
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 act 생각 설정을 확인해 주세요.') and sent == []
+
+
+@pytest.mark.parametrize('name', CALLS)
+def test_each_call_uses_the_model_chosen_in_its_prompt_version(monkeypatch, name):
+    call = CALLS[name][0]
+    sent = provider(monkeypatch)
+    monkeypatch.setattr(tracing, 'prompt', lambda n, default: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    call()
+    assert sent[0].body['model'] == 'gpt-chosen'

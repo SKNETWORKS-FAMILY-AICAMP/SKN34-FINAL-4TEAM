@@ -325,7 +325,7 @@ def build(found: list[dict] = ()):
         managed = tracing.prompt('orchestration.main', INSTRUCTIONS)
     except tracing.PromptUnavailable:
         raise IntentFailure() from None
-    chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
+    chat = ChatOpenAI(model=managed.model or os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
                       reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0, streaming=True, callbacks=[AnswerStream()])
     mcp = mcp_tools.tools(found)
     # respond는 제안 다시 받기(#662)만 쓴다: 실행하지 않고 서버 문구를 거절 표시 없이 그대로 모델에게 준다.

@@ -62,6 +62,7 @@ class Plan:
     instructions: str  # 요청한 버전의 프롬프트 본문
     tolerance: float
     baseline: Baseline | None
+    model: str | None = None  # 요청한 버전이 고른 모델(config.model, #705). 없으면 실행 틀이 OPENAI_MODEL을 쓴다
 
 
 def prepare(request: EvaluationRequest) -> Plan:
@@ -78,14 +79,14 @@ def prepare(request: EvaluationRequest) -> Plan:
         raise EvaluationFailure(422, '텍스트 프롬프트만 평가할 수 있어요.')
     stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     return Plan(request, f'{request.prompt}@v{request.version}-{stamp}-{secrets.token_hex(3)}', dataset, prompt.prompt, tolerance,
-                _baseline(client, dataset, request))
+                _baseline(client, dataset, request), tracing.model_of(prompt.config))
 
 
 def to_job(plan: Plan) -> dict:
     """Celery 태스크(evaluation.run)의 인자: prepare가 확인을 마친 평가 한 건을 JSON으로 만든다. 평가 세트 항목(채점 입력)은 싣지 않고 워커가 이름으로 읽는다.
     프롬프트 본문(instructions)이 들어 있으니 이 값을 로그·오류에 남기지 않는다."""
-    return {'request': plan.request.model_dump(), 'runName': plan.run_name, 'instructions': plan.instructions, 'tolerance': plan.tolerance,
-            'baseline': asdict(plan.baseline) if plan.baseline else None}
+    return {'request': plan.request.model_dump(), 'runName': plan.run_name, 'instructions': plan.instructions, 'model': plan.model,
+            'tolerance': plan.tolerance, 'baseline': asdict(plan.baseline) if plan.baseline else None}
 
 
 def run_job(job: dict) -> None:
@@ -98,7 +99,7 @@ def run_job(job: dict) -> None:
         logger.error('회귀 평가 %s 실패: %s', job['runName'], error)
         raise
     baseline = job['baseline']
-    run(Plan(request, job['runName'], dataset, job['instructions'], job['tolerance'], Baseline(**baseline) if baseline else None))
+    run(Plan(request, job['runName'], dataset, job['instructions'], job['tolerance'], Baseline(**baseline) if baseline else None, job.get('model')))
 
 
 def run(plan: Plan) -> None:
@@ -136,8 +137,8 @@ def _run(plan: Plan) -> None:
     async def execute(*, item, **_):
         # 모델 호출은 블로킹이라 스레드로 보내 항목을 동시에 돌린다(추적 문맥은 to_thread가 복사한다).
         if kind:  # 시뮬레이션 세트는 업무 Agent 틀이 아니라 실제 서비스 호출로 만든다
-            return await asyncio.to_thread(simulation.generate, kind, plan.instructions, _input(item))
-        return await asyncio.to_thread(agent.generate, plan.instructions, _input(item))
+            return await asyncio.to_thread(simulation.generate, kind, plan.instructions, _input(item), plan.model)
+        return await asyncio.to_thread(agent.generate, plan.instructions, _input(item), plan.model)
 
     result = plan.dataset.run_experiment(
         name=f'{request.prompt} v{request.version} 회귀 평가', run_name=plan.run_name,

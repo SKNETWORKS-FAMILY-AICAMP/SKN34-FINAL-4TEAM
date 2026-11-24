@@ -1,4 +1,4 @@
 package ai.storyfork.operations._common.exception
 
-/** Promoting a prompt version needs a passing regression evaluation of that very version (409 EVALUATION_REQUIRED). */
-class EvaluationRequiredException : RuntimeException("A passing regression evaluation is required.")
+/** A prompt with an evaluation set becomes a candidate only once the version's newest run on that set passed (409 EVALUATION_REQUIRED, #787). */
+class EvaluationRequiredException : RuntimeException("A passing regression evaluation on the prompt's evaluation set is required.")

@@ -1350,3 +1350,157 @@ it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 �
   within(activityRows()[0]).getByText('수행자 관리자 · 대상 데모')
   within(activityRows()[0]).getByText(`${chat.w.title} · ${chat.character}`)
 })
+
+it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 수·코드 시드 대기를, 상세는 반영 중인 조합 요약과 버전별 상태·모델, 반영 중인 본문·모델로 채운 조합 폼을 보인다(#705)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([
+    // 목록은 production·seed 버전만 주고 후보 수는 따로 센다(#786).
+    { name: 'orchestration.main', versions: [{ version: 3, labels: ['seed', 'latest'] }, { version: 2, labels: ['production'], model: 'gpt-x' }], candidates: 1 },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }], candidates: 0 },
+  ])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', candidates: 1, models: ['gpt-y', 'gpt-x'], versions: [
+    { version: 4, labels: ['candidate-4'], model: 'gpt-y', prompt: '운영 지시' }, { version: 3, labels: ['seed', 'latest'], prompt: '새 시드' },
+    { version: 2, labels: ['production'], model: 'gpt-x', prompt: '운영 지시' }] })
+  // Langfuse 모델 정의(단가표)에는 AI가 부를 수 없는 모델도 있어 선택지가 아니다(#806).
+  vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm9', modelName: 'claude-sonnet-5-5', matchPattern: 'c' }])
+  const create = vi.spyOn(llm, 'createPromptVersion').mockResolvedValue(undefined)
+  renderAdmin('llm', 'prompts&sub=prompts')
+
+  const table = await screen.findByRole('region', { name: '프롬프트 표' })
+  const cells = (name: string) => [...(within(table).getByRole('button', { name }).closest('tr') as HTMLElement).querySelectorAll('td')].map((td) => td.textContent)
+  expect(cells('orchestration.main')).toEqual(['orchestration.main', '2번 버전', 'gpt-x', '1개', '코드 시드 3번 버전 대기'])
+  expect(cells('decision_guard.judge')).toEqual(['decision_guard.judge', '1번 버전', '기본 모델(환경 설정)', '—', '—'])   // 실제 기본 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808)
+  fireEvent.click(within(table).getByRole('button', { name: 'orchestration.main' }))
+
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  const live = await within(detail).findByRole('group', { name: '서비스 반영 중인 조합' })
+  expect(live.textContent).toContain('2번 버전')
+  expect(live.textContent).toContain('gpt-x')
+  within(detail).getByText(/코드 시드\(3번 버전\)가 서비스 반영 중인 본문과 달라요/)
+  const versions = within(detail).getByRole('region', { name: '프롬프트 버전 표' })
+  expect(within(versions).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['버전', '상태', '모델', '등록', '회귀 평가', '조치'])
+  const row = (version: number) => within(versions).getByRole('cell', { name: String(version) }).closest('tr') as HTMLElement
+  expect([within(row(4)).getByText('후보'), within(row(3)).getByText('코드 시드'), within(row(2)).getByText('서비스 반영 중')]).toHaveLength(3)
+  expect(within(row(3)).queryByText('latest')).toBeNull()   // Langfuse가 관리하는 라벨은 숨긴다
+  within(row(3)).getByRole('cell', { name: '기본 모델(환경 설정)' })
+  within(row(4)).getByRole('button', { name: 'orchestration.main 4번 버전 서비스에 반영' })
+  within(row(3)).getByRole('button', { name: 'orchestration.main 3번 버전 후보 등록' })
+  expect(within(row(2)).queryByRole('button', { name: /후보 등록|서비스에 반영/ })).toBeNull()
+
+  expect((within(detail).getByLabelText('프롬프트 본문') as HTMLTextAreaElement).value).toBe('운영 지시')
+  const model = within(detail).getByLabelText('모델') as HTMLSelectElement
+  expect([...model.options].map((o) => [o.value, o.text])).toEqual([['', '기본 모델(환경 설정)'], ['gpt-x', 'gpt-x'], ['gpt-y', 'gpt-y']])
+  expect(model.value).toBe('gpt-x')
+  fireEvent.change(model, { target: { value: 'gpt-y' } })
+  fireEvent.click(within(detail).getByRole('button', { name: '조합 저장' }))
+  await waitFor(() => expect(create).toHaveBeenCalledWith('orchestration.main', '운영 지시', '', 'gpt-y'))
+})
+
+it('후보 등록과 서비스 반영은 그 버전 행의 버튼으로 하고, 반영은 확인을 받는다(#705)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'] }], candidates: 1 }])
+  let promoted = false
+  vi.spyOn(llm, 'prompt').mockImplementation(async () => ({ name: 'qa', candidates: 1, versions: [
+    { version: 3, labels: [], prompt: '셋' }, { version: 2, labels: promoted ? ['candidate-2', 'production'] : ['candidate-2'], prompt: '둘' },
+    { version: 1, labels: promoted ? [] : ['production'], prompt: '하나' }] }))
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  const candidate = vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)
+  const promote = vi.spyOn(llm, 'promote').mockImplementation(async () => { promoted = true })
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+
+  fireEvent.click(await screen.findByRole('button', { name: 'qa 3번 버전 후보 등록' }))
+  await waitFor(() => expect(candidate).toHaveBeenCalledWith('qa', 3))
+  fireEvent.click(screen.getByRole('button', { name: 'qa 2번 버전 서비스에 반영' }))
+  expect(promote).not.toHaveBeenCalled()   // 확인 창에서 취소
+  fireEvent.click(screen.getByRole('button', { name: 'qa 2번 버전 서비스에 반영' }))
+  await waitFor(() => expect(promote).toHaveBeenCalledWith('qa', 2))
+  expect(confirm).toHaveBeenCalledTimes(2)
+  // 반영하면 그 행의 버튼이 사라지므로 초점은 상세 제목으로 옮긴다(키보드 위치를 잃지 않게).
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'qa 2번 버전 서비스에 반영' })).toBeNull())
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'qa' })))
+})
+
+it('한 프롬프트에서 한 조치의 결과 안내는 다른 프롬프트 상세에 남지 않는다', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'] }], candidates: 0 }, { name: 'other', versions: [{ version: 1, labels: ['production'] }], candidates: 0 }])
+  vi.spyOn(llm, 'prompt').mockImplementation(async (name: string) => ({ name, candidates: 0, versions: [{ version: 2, labels: [], prompt: '둘' }, { version: 1, labels: ['production'], prompt: '하나' }] }))
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'qa 2번 버전 후보 등록' }))
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  await within(detail).findByText(/qa 2번 버전을 후보로 등록했어요/)
+  fireEvent.click(within(detail).getByRole('button', { name: '프롬프트 목록으로' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'other' }))
+  await screen.findByRole('heading', { name: 'other' })
+  expect(within(screen.getByRole('region', { name: '프롬프트 상세' })).queryByText(/qa 2번 버전을 후보로 등록했어요/)).toBeNull()
+})
+
+it('평가 세트가 있는 프롬프트의 상세는 후보 등록 조건을 안내한다(#787)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'], prompt: '답' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  const region = await screen.findByRole('region', { name: '프롬프트 상세' })
+  await within(region).findByText('후보 등록 조건: 평가 세트 qa.grounding의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).')
+})
+
+it('평가 세트가 있는 프롬프트는 통과하지 않은 버전에 후보 등록 대신 이유를 보인다(#787)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [
+    { version: 3, labels: [], prompt: '셋', evaluation: { runId: 'r3', passed: true, createdAt: '2026-11-19T00:00:00Z' } },
+    { version: 2, labels: [], prompt: '둘' },
+    { version: 1, labels: ['production'], prompt: '답' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  await screen.findByRole('button', { name: 'story_context.answer 3번 버전 후보 등록' })
+  expect(screen.queryByRole('button', { name: 'story_context.answer 2번 버전 후보 등록' })).toBeNull()
+  screen.getByText('평가 통과 후 가능')
+})
+
+it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를 수 없다', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'] }] }])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'decision_guard.judge' }))
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  expect((await within(detail).findByLabelText('모델') as HTMLSelectElement).disabled).toBe(true)
+  within(detail).getByText('Decisions API가 gpt-6-luna만 지원해 모델은 고정이에요. 프롬프트만 바꿀 수 있어요.')
+  expect(within(detail).queryByText(/코드 시드\(/)).toBeNull()
+  expect(within(detail).queryByText(/후보 등록 조건/)).toBeNull()   // 평가 세트가 없는 프롬프트
+})
+
+it('반영 중인 모델은 고를 수 있는 목록에 없어도 선택지에 남는다(#806)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-old' }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, models: ['gpt-6-luna'], versions: [{ version: 1, labels: ['production'], model: 'gpt-old', prompt: '지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  const model = await screen.findByLabelText('모델') as HTMLSelectElement
+  expect([...model.options].map((o) => o.value)).toEqual(['', 'gpt-old', 'gpt-6-luna'])
+  expect(model.value).toBe('gpt-old')
+})
+
+it('버전 표의 각 행에서 그 버전의 본문과 변경 메모를 펼쳐 본다(#807)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, versions: [
+    { version: 2, labels: [], prompt: '새 지시', commitMessage: '말투 고침' }, { version: 1, labels: ['production'], prompt: '옛 지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  const versions = await screen.findByRole('region', { name: '프롬프트 버전 표' })
+  const body = within(versions).getByText('2번 버전 본문 · 말투 고침').closest('details') as HTMLDetailsElement
+  expect(body.open).toBe(false)
+  expect(body.querySelector('pre')?.textContent).toBe('새 지시')
+  expect(within(versions).getByText('1번 버전 본문').closest('details')?.querySelector('pre')?.textContent).toBe('옛 지시')
+})

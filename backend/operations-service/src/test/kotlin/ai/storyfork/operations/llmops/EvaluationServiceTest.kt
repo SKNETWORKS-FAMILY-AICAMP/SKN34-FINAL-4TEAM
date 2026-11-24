@@ -244,12 +244,12 @@ class EvaluationServiceTest {
     fun `one version's latest evaluation is scored alone`() {
         givenAllRuns()
 
-        val latest = checkNotNull(service.latest("qa/answer", 3, now))
+        val latest = checkNotNull(service.latest("qa/answer", 3, now = now))
 
         assertEquals(listOf(name(failedNewer), false), listOf(latest.runId, latest.passed))
         assertEquals(listOf<Any?>(listOf("id-b2c3d4")), scoreReads())
-        assertNull(service.latest("qa/answer", 9, now))
-        assertNull(service.latest("other", 3, now))
+        assertNull(service.latest("qa/answer", 9, now = now))
+        assertNull(service.latest("other", 3, now = now))
     }
 
     @Test

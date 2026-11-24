@@ -102,11 +102,12 @@ class SpringServiceConfigurationTest(unittest.TestCase):
 
     def test_manuscript_index_is_always_on_in_every_environment(self):
         # 2026-11-22 사용자 결정: 원고 색인(Elasticsearch)은 끄는 플래그 없이 항상 켠다. local·개발은 elasticsearch 서비스를 항상 띄우고 Content가 healthy를 기다리며,
-        # CI 통합 job은 content일 때 같은 이미지를 service로 띄우고 시스템 overlay는 호스트 포트를 열지 않는다. 운영 overlay는 외부 Elasticsearch 주소를 요구한다.
+        # CI 서비스 job은 content일 때 같은 이미지를 service로 띄우고 시스템 overlay는 호스트 포트를 열지 않는다. 운영 overlay는 외부 Elasticsearch 주소를 요구한다.
         sources = list((ROOT / "backend/content-service/src/main").rglob("*.kt")) + list((ROOT / "backend/content-service/src/main/resources").glob("*.properties"))
         self.assertEqual([], [str(p) for p in sources if "MANUSCRIPT_INDEX_ENABLED" in p.read_text(encoding="utf-8") or "app.manuscript-index.enabled" in p.read_text(encoding="utf-8")])
         files = (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml",
-                 "infrastructure/docker-compose.prod.yaml", "infrastructure/ci/compose.test.yaml", ".github/workflows/ci.yml", ".github/workflows/publish-images.yml")
+                 "infrastructure/docker-compose.prod.yaml", "infrastructure/ci/compose.test.yaml", ".github/workflows/ci.yml",
+                 ".github/workflows/publish-images.yml")
         for path in files:
             self.assertNotIn("MANUSCRIPT_INDEX_ENABLED", (ROOT / path).read_text(encoding="utf-8"), path)
 
@@ -131,7 +132,7 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertIn("SEARCH_INDEX_URL: http://elasticsearch:9200", service(local, "content-service"))
         overlay = (ROOT / "infrastructure/ci/compose.test.yaml").read_text(encoding="utf-8")
         self.assertIn("ports: !reset []", service(overlay, "elasticsearch"))
-        integration = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        integration = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  service:\n", 1)[1].split("\n  system:\n", 1)[0]
         self.assertIn("matrix.service == 'content' && 'docker.elastic.co/elasticsearch/elasticsearch:9.5.6'", integration)
         self.assertIn('ports: ["127.0.0.1:9200:9200"]', integration)
         self.assertIn('"$RUNNER_TEMP/elasticsearch.log"', integration)
@@ -172,7 +173,7 @@ class SpringServiceConfigurationTest(unittest.TestCase):
 
     def test_attachment_integration_tests_run_in_ci_against_minio(self):
         # TEST_ATTACHMENT_*가 없으면 첨부 통합 테스트가 조건부 skip된다. CI가 직접 MinIO·전용 DB를 준비한다.
-        integration = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        integration = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  service:\n", 1)[1].split("\n  system:\n", 1)[0]
         for name in ("TEST_ATTACHMENT_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/attachment_test",
                      "TEST_ATTACHMENT_S3_ENDPOINT: http://127.0.0.1:19087", "AWS_ACCESS_KEY_ID:", "AWS_SECRET_ACCESS_KEY:",
                      "createdb -U content_test attachment_test", "127.0.0.1:19087:9000", "packages: read"):
