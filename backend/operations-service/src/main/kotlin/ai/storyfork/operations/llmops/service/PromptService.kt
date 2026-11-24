@@ -30,11 +30,15 @@ class PromptService(
     private val evaluations: EvaluationService,
     private val activities: AdminActivityService,
 ) {
-    /** ponytail: one Langfuse read per version (the prompt list has no per-version labels), so a very long version history makes it slow. */
+    /**
+     * Prompts are read in parallel: the AI service registers every prompt of every LLM call (#705), and reading them one after another took seconds.
+     * shortcut: still one Langfuse read per version (the prompt list has no per-version labels), so a very long version history makes it slow;
+     * read only the production and seed versions then.
+     */
     fun list(member: OperationsMember): PromptListResponse {
         permissions.requirePermission(member, LLM)
         val latest = evaluations.latestByVersion()
-        return PromptListResponse(langfuse.prompts().map { prompt(it, latest) })
+        return PromptListResponse(langfuse.prompts().parallelStream().map { prompt(it, latest) }.toList())
     }
 
     fun detail(member: OperationsMember, name: String): Prompt {
