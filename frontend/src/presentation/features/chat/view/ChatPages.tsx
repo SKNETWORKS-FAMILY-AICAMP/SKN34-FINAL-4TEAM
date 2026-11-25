@@ -11,10 +11,22 @@ import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useChatListViewModel, useChatViewModel } from '../viewmodel/useChatViewModel'
 import './character-chat.css'
 
-/** 목업 chatPage(wid, cn): 작품 없이 열거나 대화할 수 없으면 목록을 보여 줍니다. */
 export function ChatPage() {
   const { wid, cn } = useParams()
   useDocumentTitle('캐릭터챗')
+
+  if (import.meta.env.MODE !== 'mockup') {
+    return (
+      <>
+        <Gnb on="chat" />
+        <main className="wrap" id="main" tabIndex={-1}>
+          <div className="sec-h"><h1>캐릭터챗</h1></div>
+          <div className="panel"><p>캐릭터챗은 준비 중이에요.</p></div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
   return wid ? <ChatRoom wid={wid} cn={cn} /> : <ChatList />
 }
 

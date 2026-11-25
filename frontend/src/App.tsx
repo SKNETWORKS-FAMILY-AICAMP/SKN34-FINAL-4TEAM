@@ -146,9 +146,9 @@ function App() {
             <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
             <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
             <Route path="/reports" element={<RequireRole><ReportsPage /></RequireRole>} />
-            {/* 캐릭터챗 목록은 비회원도 볼 수 있고, 대화는 회원만 하므로 대화방(/chat/:wid)에만 로그인 가드를 둔다(#506). */}
+            {/* 실서버는 두 주소에서 준비 중을 안내한다(#512). 목업 대화방만 로그인 후 이용한다(#506). */}
             <Route path="/chat" element={<ChatPage />} />
-            <Route path="/chat/:wid/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
+            <Route path="/chat/:wid/:cn?" element={mockup ? <RequireRole><ChatPage /></RequireRole> : <ChatPage />} />
             <Route path="/admin" element={<RequireRole admin><AdminPage /></RequireRole>} />
             <Route path="/me/:sub?" element={<AccountPage />} />
             <Route path="*" element={<NotFoundPage />} />
