@@ -20,7 +20,7 @@ EMPTY_DRAFT = '검수할 초안 본문이 없어요.'
 NO_LINKED_WORLD = '이 작품에 연결된 세계관이 없어 설정 검수를 할 수 없어요.'
 BAD_CONTENT = 'Content 응답을 확인할 수 없습니다.'
 BAD_FINDING = '검수 모델 응답의 위치·근거를 확인할 수 없습니다.'
-DROPPED_FINDINGS = '원고에서 인용·근거를 확인할 수 없어 뺀 지적 {count}개'
+DROPPED_FINDINGS = '인용·분류·근거를 확인할 수 없어 뺀 지적 {count}개'
 
 
 def review(data: ReviewRequest) -> ReviewResponse:
