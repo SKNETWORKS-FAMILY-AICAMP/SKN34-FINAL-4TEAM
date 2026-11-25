@@ -22,7 +22,7 @@ export class LlmDatasetUseCase {
     if (!setName) invalid('올릴 세트를 골라 주세요.')
     if (!isJsonlFile(fileName)) invalid('.jsonl 파일만 올릴 수 있어요.')
     if (!copyrightConfirmed) invalid('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.')
-    const { total, errors } = parseDatasetJsonl(text)
+    const { total, errors } = parseDatasetJsonl(text, setName)   // 올릴 세트 종류의 필수 칸까지
     const tooBig = datasetLimitError(total, new TextEncoder().encode(text).length)
     if (tooBig) invalid(tooBig)
     if (!total) invalid('올릴 문항이 없어요.')

@@ -1,5 +1,5 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
-import { DATASET_PAGE_SIZE, DatasetInvalid, datasetLimitError, parseDatasetJsonl, type DatasetItem, type EvalDataset } from '../../domain/entities/llmDatasets'
+import { DATASET_PAGE_SIZE, DatasetInvalid, datasetKindOf, datasetLimitError, parseDatasetJsonl, poolOf, type DatasetItem, type EvalDataset } from '../../domain/entities/llmDatasets'
 import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import { AGENT_EVALUATIONS, pairedPrompt, setItems } from '../../domain/entities/llmOpsEvalTable'
 import type {
@@ -354,31 +354,40 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   async updateSettings(settings: LlmOpsSettings) { this.setting = { ...settings } }
 }
 
-/** 평가 데이터셋 예시(#868 계약의 메모리 구현): 저장소의 7개 세트를 에이전트별 평가 표의 문항 수에 맞춘 예시 문항으로 보이고, 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다. */
+/**
+ * 평가 데이터셋 예시(#868 계약의 메모리 구현): 저장소의 7개 세트를 에이전트별 평가 표의 문항 수에 맞춘 예시 문항으로, 최적화 풀 3개(optimize.<게이트>)를 풀 파일의 문항 수에 맞춰 보이고,
+ * 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다.
+ */
 const demoItems = (name: string, count: number): DatasetItem[] => Array.from({ length: count }, (_, i) => {
   const n = String(i + 1).padStart(2, '0')
   return { id: `${name}-${n}`, input: { 예시: `${name} 문항 ${n}의 입력(시연용 예시 문장)` }, expectedOutput: `${name} 문항 ${n}의 기대 답변(시연용)`, metadata: { source: '시연용 예시' } }
 })
 const SEED_SOURCE = '저장소 시드(ai-eval-seed)'
+/** 최적화 풀 파일(backend/ai-service/app/evaluation/datasets/optimize/<게이트>.jsonl)의 문항 수. */
+const POOL_ITEMS: Record<string, number> = { 'extraction.extract': 157, 'simulation.act': 126, 'simulation.narrate': 54 }
 const UPLOAD_LIMIT_MESSAGE = '파일이 너무 커요. 500줄·2MB까지 올릴 수 있으니 나눠서 올려 주세요.'
 
 export class InMemoryLlmDatasetRepository implements LlmDatasetRepository {
-  private readonly sets = new Map<string, DatasetItem[]>(
-    AGENT_EVALUATIONS.flatMap((row) => (row.dataset ? [[row.dataset, demoItems(row.dataset, setItems(row) ?? 0)] as const] : [])),
-  )
+  private readonly sets = new Map<string, DatasetItem[]>([
+    ...AGENT_EVALUATIONS.flatMap((row) => (row.dataset ? [[row.dataset, demoItems(row.dataset, setItems(row) ?? 0)] as const] : [])),
+    ...Object.entries(POOL_ITEMS).map(([gate, count]) => [poolOf(gate), demoItems(poolOf(gate), count)] as const),
+  ])
 
   async datasets(): Promise<EvalDataset[]> {
-    return [...this.sets].map(([name, items]) => ({ name, prompt: pairedPrompt(name), itemCount: items.length, description: SEED_SOURCE })).sort((a, b) => a.name.localeCompare(b.name))
+    return [...this.sets].map(([name, items]) => {
+      const prompt = pairedPrompt(name)
+      return { name, kind: datasetKindOf({ name, prompt }), prompt, itemCount: items.length, description: SEED_SOURCE }
+    }).sort((a, b) => a.name.localeCompare(b.name))
   }
   async items(name: string, page: number) { return structuredClone(paged(found(this.sets.get(name)), page, DATASET_PAGE_SIZE)) }
   /** 서버처럼 있는 세트에만 올리고(없으면 404), 저작권 확인·크기·줄 검사를 같은 순서로 다시 하며, 전부 아니면 무입니다. 문항 id는 서버처럼 붙이고 값이 없는 칸은 서버가 주듯 null로 보입니다. */
   async upload(name: string, _fileName: string, text: string, copyrightConfirmed: boolean) {
     const set = found(this.sets.get(name))
     if (!copyrightConfirmed) throw new OperationsRejected('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.')
-    const { total, lines, errors } = parseDatasetJsonl(text)
+    const { total, lines, errors } = parseDatasetJsonl(text, name)
     if (datasetLimitError(total, new TextEncoder().encode(text).length)) throw new OperationsRejected(UPLOAD_LIMIT_MESSAGE)
     if (errors.length) throw new DatasetInvalid(errors)
-    lines.forEach((line) => set.push({ id: `${name}-${String(set.length + 1).padStart(2, '0')}`, input: line.input, expectedOutput: line.expectedOutput ?? null, metadata: line.metadata ?? null }))
+    lines.forEach((line) => set.push({ id: `${name}-${String(set.length + 1).padStart(2, '0')}`, input: line.input, expectedOutput: line.expectedOutput, metadata: line.metadata ?? null }))
     return lines.length
   }
 }

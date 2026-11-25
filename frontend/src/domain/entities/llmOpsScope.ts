@@ -1,4 +1,5 @@
 import type { PipelineFlowKey } from './admin'
+import { POOL_PREFIX, type EvalDataset } from './llmDatasets'
 import type { AgentEvaluation } from './llmOpsEvalTable'
 import { FLOW_DEFS } from './llmOpsFlows'
 
@@ -21,4 +22,15 @@ export function scopePrompts<T extends { name: string }>(rows: T[], key: Pipelin
 export function scopeEvaluations(rows: AgentEvaluation[], key: PipelineFlowKey): AgentEvaluation[] {
   const names = flowPrompts(key)
   return names ? rows.filter((row) => row.dataset && row.prompt && names.includes(row.prompt)) : rows
+}
+
+/**
+ * 평가 데이터셋 목록을 흐름 범위로 거릅니다(#868 정확 구현): 그 흐름 프롬프트들의 평가 게이트 세트와 그 게이트의 최적화 풀(optimize.<게이트>)만 남기고(목록 순서 유지),
+ * 범용 세트(누설·세계관 충돌 등)와 다른 흐름의 세트는 전체에서만 보입니다. 전체는 그대로입니다.
+ */
+export function scopeDatasets(rows: EvalDataset[], key: PipelineFlowKey): EvalDataset[] {
+  const names = flowPrompts(key)
+  if (!names) return rows
+  const gates = new Set(rows.filter((row) => row.prompt && names.includes(row.prompt)).map((row) => row.name))
+  return rows.filter((row) => gates.has(row.name) || (row.kind === 'pool' && gates.has(row.name.slice(POOL_PREFIX.length))))
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DATASET_PAGE_SIZE, DatasetInvalid, type DatasetItem, type EvalDataset } from '../../domain/entities/llmDatasets'
+import { DATASET_PAGE_SIZE, DatasetInvalid, type DatasetItem, type EvalDataset, datasetKindOf } from '../../domain/entities/llmDatasets'
 import type { Dashboard } from '../../domain/entities/operationsDashboard'
 import type { JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
 import type {
@@ -99,7 +99,10 @@ const pipelineRecord = z.object({
 })
 
 // 평가 데이터셋(#868): 목록은 맨 배열이고(`{items}`로 와도 받는다), 문항은 `{items, total}`, 업로드는 `{created}`다.
-const dataset = z.object({ name: z.string(), prompt: text.transform((v) => v ?? null), itemCount: z.number(), description: text.transform((v) => v ?? null) })
+// 종류(kind)는 서버가 준 값이 정본이고, 아직 주지 않았거나 모르는 값이면 계약의 정의로 가른다(datasetKindOf).
+const dataset = z.object({
+  name: z.string(), kind: z.enum(['gate', 'pool', 'general']).nullish().catch(null), prompt: text.transform((v) => v ?? null), itemCount: z.number(), description: text.transform((v) => v ?? null),
+}).transform(({ kind, ...row }) => ({ ...row, kind: kind ?? datasetKindOf(row) }))
 const datasets = z.array(dataset)
 // 문항의 세 값은 Langfuse에 저장된 JSON 그대로라 모양을 따지지 않는다(다른 도구가 만든 문항의 metadata가 객체가 아니어도 쪽 전체를 거부하지 않는다).
 const datasetItem = z.object({ id: z.string(), input: z.unknown().optional(), expectedOutput: z.unknown().optional(), metadata: z.unknown().optional() })

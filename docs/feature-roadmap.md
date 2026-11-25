@@ -686,7 +686,7 @@
 <tr><td>배포 전 평가 통과 여부 확인</td><td>✅</td></tr>
 <tr><td>평가 상세의 문항별 결과(실패 로그) 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/823">#823</a></td></tr>
 <tr><td>에이전트별 평가 모드·세트·지표 표와 세트별 최근 Run 조회(원문 검색은 CI 고정 평가로 표시, 세트 없는 에이전트는 '평가 세트 없음(후속)')</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/837">#837</a></td></tr>
-<tr><td>평가 데이터셋 목록·문항 조회·JSONL 업로드(Langfuse Dataset 연동): 이미 있는 세트에 문항을 더하고, 저작권 확인·전부 아니면 무·500줄 2 MB·활동 기록 <small>(서버 API·화면 HTTP 연결 구현, 실스택 확인 전)</small></td><td>❌ <small>(부분: 실스택 확인 전)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/857">#857</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/868">#868</a></td></tr>
+<tr><td>평가 데이터셋 목록·문항 조회·JSONL 업로드(Langfuse Dataset 연동): 이미 있는 세트에 문항을 더하고, 저작권 확인·전부 아니면 무·500줄 2 MB·활동 기록 <small>(서버 API·화면 HTTP 연결 구현, 실스택 확인 전. 화면에는 세트 종류(평가 게이트·최적화 풀·범용) 표시·거르기·흐름 범위, 세트 종류별 필수 칸·파일 안 중복 검사, 게이트 비용 안내가 먼저 있고 서버의 종류·풀·같은 검사는 구현 전)</small></td><td>❌ <small>(부분: 실스택 확인 전)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/857">#857</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/868">#868</a></td></tr>
 <tr><td rowspan="9">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 시간 초과율 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 비용 지표 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>

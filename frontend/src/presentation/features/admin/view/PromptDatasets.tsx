@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
-import { itemSummary, type DatasetItem } from '../../../../domain/entities/llmDatasets'
+import { PIPELINE_FLOWS } from '../../../../domain/entities/admin'
+import { DATASET_KINDS, GATE_UPLOAD_NOTICE, datasetKindLabel, itemSummary, type DatasetItem, type DatasetKind } from '../../../../domain/entities/llmDatasets'
 import { LLM_FORBIDDEN } from '../../../../domain/entities/llmOps'
 import type { LlmVM, VM } from './LlmOps'
 import { ActionLines, LiveState, Pager, Table } from './OperationsPanels'
@@ -10,21 +11,32 @@ import { PromptName } from './PromptName'
 const SHOWN_ERRORS = 5
 
 /**
- * 프롬프트 상세 ② 평가 세트의 데이터셋(#868, 운영 서버 API): 목록(세트 이름·짝 프롬프트·문항 수·설명), 세트를 고르면 문항(id·요약, 본문은 접기, 20개씩 쪽), 있는 세트에 .jsonl 업로드.
- * 서버가 Langfuse Dataset을 읽고 올립니다(mockup에서는 같은 계약의 메모리 데이터).
+ * 프롬프트 상세 ② 평가 세트의 데이터셋(#868, 운영 서버 API): 목록(세트 이름·종류·짝 프롬프트·문항 수·설명, 종류로 거르기), 세트를 고르면 문항(id·요약, 본문은 접기, 20개씩 쪽), 있는 세트에 .jsonl 업로드.
+ * 사이드바에서 고른 흐름이 있으면 그 흐름 프롬프트의 평가 게이트와 최적화 풀만 보입니다. 서버가 Langfuse Dataset을 읽고 올립니다(mockup에서는 같은 계약의 메모리 데이터).
  */
 export function DatasetPanel({ vm, l }: { vm: VM; l: LlmVM }) {
-  const d = l.dataset, rows = d.datasets.data
+  const d = l.dataset, rows = d.datasets.data && d.rows, flowName = PIPELINE_FLOWS.find(([key]) => key === d.flow)?.[1]
   return (
     <section className="admin-datasets" aria-label="평가 데이터셋">
       <h3>평가 데이터셋</h3>
+      {d.flow !== 'all' && <p className="small muted">{flowName} 흐름의 세트 {d.scopedCount}개만 보여요(평가 게이트·최적화 풀). 전체 세트는 사이드바의 '전체'에서 봐요.</p>}
       <LiveState vm={vm} label="평가 데이터셋 목록" state={d.datasets} forbidden={LLM_FORBIDDEN} />
+      {d.datasets.data && d.scopedCount > 0 && (
+        <label className="admin-inline small">
+          세트 종류
+          <select className="inp" value={d.kind} onChange={(e) => d.setKind(e.target.value as DatasetKind | '')}>
+            <option value="">전체</option>
+            {DATASET_KINDS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </label>
+      )}
       {rows && (rows.length
         ? (
           <Table label="평가 데이터셋 표">
             <thead>
               <tr>
                 <th scope="col">세트 이름</th>
+                <th scope="col">종류</th>
                 <th scope="col">짝 프롬프트</th>
                 <th scope="col">문항 수</th>
                 <th scope="col">설명</th>
@@ -36,6 +48,7 @@ export function DatasetPanel({ vm, l }: { vm: VM; l: LlmVM }) {
                   <td>
                     <button type="button" className="admin-prompt-name" aria-pressed={d.selected === row.name} onClick={() => d.select(d.selected === row.name ? null : row.name)}>{row.name}</button>
                   </td>
+                  <td>{datasetKindLabel(row.kind)}</td>
                   <td>{row.prompt ? <PromptName code={row.prompt} /> : '—'}</td>
                   <td className="admin-num">{row.itemCount}문항</td>
                   <td>{row.description ?? '—'}</td>
@@ -44,7 +57,7 @@ export function DatasetPanel({ vm, l }: { vm: VM; l: LlmVM }) {
             </tbody>
           </Table>
         )
-        : <p className="admin-empty">등록된 평가 데이터셋이 없어요.</p>)}
+        : <p className="admin-empty">{d.scopedCount ? '이 종류의 세트가 없어요.' : d.flow !== 'all' ? '이 흐름에는 평가 데이터셋이 없어요.' : '등록된 평가 데이터셋이 없어요.'}</p>)}
       {d.selected && <DatasetItems vm={vm} l={l} name={d.selected} />}
       <UploadForm vm={vm} l={l} />
     </section>
@@ -92,19 +105,20 @@ function ErrorLines({ errors }: { errors: { line: number; message: string }[] })
  * 서버가 줄을 거절하면 그 줄 목록을 거절 표시로 보입니다.
  */
 function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
-  const { form } = l.dataset, { preview, names } = form
+  const { form } = l.dataset, { preview, sets } = form
   const busy = !!vm.actions['dataset:upload']?.pending
   return (
     <form className="dataset-upload" aria-label="JSONL 업로드" onSubmit={(e) => { e.preventDefault(); void form.submit() }}>
       <h4>JSONL 파일 올리기</h4>
       <ActionLines vm={vm} prefix="dataset:" />
-      <fieldset disabled={busy || !names.length} className="form-grid">
+      <fieldset disabled={busy || !sets.length} className="form-grid">
         <label className="field">
           올릴 세트
           <select className="inp" value={form.target} onChange={(e) => form.setTarget(e.target.value)}>
-            {names.length ? names.map((name) => <option key={name} value={name}>{name}</option>) : <option value="">세트가 없어요</option>}
+            {sets.length ? sets.map((set) => <option key={set.name} value={set.name}>{`${set.name} · ${datasetKindLabel(set.kind)}`}</option>) : <option value="">세트가 없어요</option>}
           </select>
         </label>
+        {form.targetKind === 'gate' && <p className="small muted wide">{GATE_UPLOAD_NOTICE}</p>}
         <label className="field">
           JSONL 파일(.jsonl만)
           <input key={form.inputKey} type="file" accept=".jsonl" onChange={(e) => void form.pick(e.target.files?.[0])} />
@@ -137,7 +151,8 @@ function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
         </label>
         <p className="small muted wide">
           올린 문항은 서버를 거쳐 Langfuse Dataset에 저장되므로 저작권이 있는 원문은 올리지 말고 로컬 평가에서만 써요(시연 화면에서는 메모리에만 쌓여 새로 고치면 사라져요).
-          UTF-8로 저장한 .jsonl이고 줄마다 {'{"input", "expectedOutput", "metadata"}'} 모양의 JSON 객체예요. input만 필수이고(null 불가) expectedOutput·metadata는 선택이며, 문항 id(서버가 붙여요)를 비롯한 다른 칸은 오류예요.
+          UTF-8로 저장한 .jsonl이고 줄마다 {'{"input", "expectedOutput", "metadata"}'} 모양의 JSON 객체예요. input(객체)과 expectedOutput은 필수(null·빈 값 불가)이고 metadata는 선택이며, 문항 id(서버가 붙여요)를 비롯한 다른 칸은 오류예요.
+          세트마다 채점 코드가 읽는 칸이 더 필요하고(시뮬레이션은 input.data·metadata.judge, 추출은 정답표, Q&A는 question·contexts, 범용은 metadata.criteria) 같은 input이 파일 안에 두 번 있어도 오류예요.
           500줄(빈 줄 제외)·2MB까지, 한 줄이라도 틀리면 아무것도 올리지 않아요. 새 세트는 만들 수 없고 위 목록의 세트에만 올려요.
         </p>
         <div className="rowend wide"><button type="submit" className="btn pri" disabled={!form.canSubmit}>{busy ? '올리는 중…' : '업로드'}</button></div>

@@ -416,10 +416,11 @@ describe('HttpLlmOpsRepository AI 파이프라인(DEC-58)', () => {
 describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () => {
   const TEXT = '{"input":"질문","expectedOutput":"정답"}\n{"input":"질문 2","expectedOutput":"정답 2","metadata":{"a":1}}'
 
-  it('목록은 서버가 주는 맨 배열(래퍼 없음)로 읽고, 문항은 쪽을 1부터로 바꿔 size 20과 함께 보내며 합계를 쪽 모양으로 돌려준다', async () => {
-    const row = { name: 'simulation.act', prompt: 'character_simulation.act', itemCount: 24, description: '저장소 시드' }
-    const listed = ok([row, { name: 'leak.spoiler', prompt: null, itemCount: 5, description: null }])
-    expect(await new HttpLlmDatasetRepository(listed).datasets()).toEqual([row, { name: 'leak.spoiler', prompt: null, itemCount: 5, description: null }])
+  it('목록은 서버가 주는 맨 배열(래퍼 없음)로 읽고(세트 종류 kind 포함), 문항은 쪽을 1부터로 바꿔 size 20과 함께 보내며 합계를 쪽 모양으로 돌려준다', async () => {
+    const row = { name: 'simulation.act', kind: 'gate', prompt: 'character_simulation.act', itemCount: 24, description: '저장소 시드' }
+    const rows = [row, { name: 'leak.spoiler', kind: 'general', prompt: null, itemCount: 5, description: null }, { name: 'optimize.simulation.act', kind: 'pool', prompt: null, itemCount: 126, description: null }]
+    const listed = ok(rows)
+    expect(await new HttpLlmDatasetRepository(listed).datasets()).toEqual(rows)
     expect(callsOf(listed)[0][0]).toBe('/api/v1/operations/llmops/datasets')
     await expect(new HttpLlmDatasetRepository(ok({ items: [row] })).datasets()).rejects.toThrow(new OperationsError(FORMAT))   // 서버는 래퍼를 주지 않는다
     const itemsFetcher = ok({ items: [{ id: 'i1', input: { q: 1 }, expectedOutput: '정답', metadata: null }, { id: 'i2', input: '글' }], total: 45 })
@@ -427,6 +428,14 @@ describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () =>
     expect(callsOf(itemsFetcher)[0][0]).toBe('/api/v1/operations/llmops/datasets/simulation.act/items?page=2&size=20')
     expect(page).toEqual({ items: [{ id: 'i1', input: { q: 1 }, expectedOutput: '정답', metadata: null }, { id: 'i2', input: '글' }], page: 1, size: 20, total: 45, unavailable: [] })
     await new HttpLlmDatasetRepository(ok({ items: [], total: 0 })).items('a b/c', 0)
+  })
+
+  it('서버가 세트 종류를 주지 않았거나(#868 첫 응답) 모르는 값을 주면 계약 1의 정의로 가른다: 짝 프롬프트가 있으면 평가 게이트, optimize.로 시작하면 최적화 풀, 그 밖은 범용', async () => {
+    const old = ok([
+      { name: 'simulation.act', prompt: 'character_simulation.act', itemCount: 24, description: null }, { name: 'optimize.simulation.act', prompt: null, itemCount: 126 },
+      { name: 'leak.spoiler', kind: 'surprise', prompt: null, itemCount: 5 }, { name: 'x', kind: null, prompt: null, itemCount: 0 }, { name: 'y', kind: 'pool', prompt: null, itemCount: 0 },
+    ])
+    expect((await new HttpLlmDatasetRepository(old).datasets()).map((r) => [r.name, r.kind])).toEqual([['simulation.act', 'gate'], ['optimize.simulation.act', 'pool'], ['leak.spoiler', 'general'], ['x', 'general'], ['y', 'pool']])   // 서버가 준 값이 정본
   })
 
   it('문항의 세 값은 Langfuse에 저장된 JSON 그대로 받는다: 다른 도구가 만든 문항의 metadata가 객체가 아니거나 input이 null이어도 쪽 전체를 거부하지 않는다', async () => {
