@@ -392,13 +392,17 @@ def cmd_export(args) -> None:
     import orig_run as rn
     corpus = corpus_of('public')
     folder = Path(__file__).resolve().parents[2] / 'app' / 'evaluation' / 'datasets'
+    if args.pool:   # 자동 개선 풀: 게이트 세트가 고르지 않은 나머지(seed가 읽지 않는 하위 폴더)
+        folder = folder / 'optimize'
+        folder.mkdir(exist_ok=True)
     for name, keys in orig_export.SETS.items():
         picked = []
         for key in keys:
             free, scp = orig_export.split_by_license(load_items('public', key))
-            for item in [*orig_export.pick(free, args.per_set), *orig_export.pick(scp, args.per_set)]:
+            items = orig_export.leftover(free, scp, args.per_set) if args.pool else [*orig_export.pick(free, args.per_set), *orig_export.pick(scp, args.per_set)]
+            for item in items:
                 picked.append((item, model_input(key, item, corpus, rn), rn.facts_for(corpus, item, person=item['kind'] != 'narration')))
-        lines = [json.dumps(row, ensure_ascii=False) for row in orig_export.dataset_rows(name, picked)]
+        lines = [json.dumps(row, ensure_ascii=False) for row in (orig_export.pool_rows if args.pool else orig_export.dataset_rows)(name, picked)]
         (folder / f'{name}.jsonl').write_text('\n'.join(lines) + '\n', encoding='utf-8')
         print(f'{name}.jsonl: 항목 {len(lines)}개 · {(folder / f"{name}.jsonl").stat().st_size:,}바이트')
 
@@ -492,7 +496,8 @@ def main(argv=None) -> None:
     report.add_argument('--tag', default=None)
     report.add_argument('--dev', action='store_true')
     export = command('export', cmd_export, '공개 세트 문항을 LLMOps 평가 세트 형식으로(호출 없음)', corpus=False)
-    export.add_argument('--per-set', type=int, default=12, help='세트·라이선스 묶음마다 내보낼 문항 수')
+    export.add_argument('--per-set', type=int, default=12, help='세트·라이선스 묶음마다 내보낼 문항 수(--pool이면 게이트 세트가 이만큼씩 골라 간 것을 뺀다)')
+    export.add_argument('--pool', action='store_true', help='게이트 세트 대신 나머지 문항을 자동 개선 풀(app/evaluation/datasets/optimize/, train·val)로')
     scenes = command('scenes', cmd_scenes, '후보를 해리 포터 고정 장면에서 끝까지(완료율·흐트러짐·속도, 실제 호출)', corpus=False, limit_usd=35.0)
     scenes.add_argument('--runs', nargs='+', required=True, help='후보 이름들(base = 후보 없음, E1+N2처럼 +로 이으면 함께)')
     scenes.add_argument('--ids', default=','.join(SCENE_IDS), help='장면 id(쉼표)')

@@ -3,9 +3,9 @@ import { z } from 'zod'
 import type { Dashboard } from '../../domain/entities/operationsDashboard'
 import type { JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
 import type {
-  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
+  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
-import { CANDIDATE_REQUIRED_MESSAGE, EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import { CANDIDATE_REQUIRED_MESSAGE, EVALUATION_REQUIRED_MESSAGE, OPTIMIZATION_RUNNING_MESSAGE, OPTIMIZATION_UNSUPPORTED_MESSAGE } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineQuery, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import type { OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
@@ -79,6 +79,8 @@ const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.
 const evaluation = z.object({
   runId: z.string(), dataset: z.string(), prompt: z.string(), version: z.number(), status: z.string(), passed: z.boolean().nullish(), createdAt: instant,
   metrics: z.array(z.object({ name: z.string(), score: z.number(), baseline: num, delta: num })).default([]),
+  // 문항별 결과(#823)는 상세에만 오고 목록에는 없다.
+  items: z.array(z.object({ itemId: z.string(), scores: z.record(z.string(), z.number()), failed: z.boolean(), error: text })).nullish(),
 })
 const leakCheck = z.object({ id: z.string(), traceId: z.string(), workId: z.string(), checkedAt: instant, matched: z.array(z.string()), suspected: z.boolean(), reason: text })
 const settings = z.object({ leakSampleRate: z.number() })
@@ -112,6 +114,8 @@ const id = encodeURIComponent
 const changeReason: ServerReason = (status, { code, message }) => {
   if (code === 'CANDIDATE_REQUIRED') return CANDIDATE_REQUIRED_MESSAGE
   if (code === 'EVALUATION_REQUIRED') return EVALUATION_REQUIRED_MESSAGE
+  if (code === 'OPTIMIZATION_RUNNING') return OPTIMIZATION_RUNNING_MESSAGE
+  if (code === 'OPTIMIZATION_UNSUPPORTED') return OPTIMIZATION_UNSUPPORTED_MESSAGE
   return message && [400, 404, 409, 422].includes(status) && (code?.startsWith('UPSTREAM') || /[가-힣]/.test(message)) ? message : undefined
 }
 /** 비어 있는 조건은 서버에 보내지 않습니다. */
@@ -148,6 +152,7 @@ export class HttpLlmOpsRepository extends LlmOpsApi implements LlmOpsRepository 
   }
   candidate(name: string, version: number) { return this.change(`/llmops/prompts/${id(name)}/candidate`, 'PUT', { version }) }
   promote(name: string, version: number) { return this.change(`/llmops/prompts/${id(name)}/production`, 'PUT', { version }) }
+  optimize(name: string, { version, maxMetricCalls }: OptimizationInput) { return this.change(`/llmops/prompts/${id(name)}/optimizations`, 'POST', { version, maxMetricCalls }) }
   models(): Promise<Model[]> { return this.get('/llmops/models', items(model)) }
   createModel(input: ModelInput) { return this.change('/llmops/models', 'POST', input) }
   evaluations(): Promise<Evaluation[]> { return this.get('/llmops/evaluations', items(evaluation)) }

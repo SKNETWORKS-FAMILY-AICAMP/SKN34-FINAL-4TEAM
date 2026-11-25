@@ -385,7 +385,7 @@ export class ReadingUseCase {
       for (const c of baseOf(sw).cast) items.push({ k: '인물', label: c.n, sub: '사전에서 보기', go: at(`view=wiki&q=${encodeURIComponent(c.n)}`) })
     }
     for (const w of works.filter(isPub)) {
-      items.push({ k: '소설', w, label: w.title, sub: `${w.author} · ${w.genre}`, go: `/work/${w.id}` })
+      items.push({ k: '소설', w, label: w.title, sub: [w.author, w.genre].filter(Boolean).join(' · '), go: `/work/${w.id}` })
       if (w.parent) continue
       for (const c of publicCast(w, w.eps.length)) items.push({ k: '인물', w, label: c.n, sub: `${w.title} · ${c.d}`, go: `/work/${w.id}` })
       w.eps.forEach((e, i) => { if (visibleEpisode(w, e, role)) items.push({ k: '회차', w, label: `${w.title} ${i + 1}화 ${e.t}`, sub: '바로 읽기', go: `/read/${w.id}/${i + 1}` }) })

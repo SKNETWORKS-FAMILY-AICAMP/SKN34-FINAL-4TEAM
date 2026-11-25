@@ -226,12 +226,13 @@ def ko() -> str:
     if not data:
         return ''
     k = data['k']
-    rows = [[label, f"{b['known'][f'recall@{k}']:.2f}", f"{b['known'][f'p@{k}']:.2f}", f"{b['setting'][f'recall@{k}']:.2f}",
-             f"{b['setting'][f'p@{k}']:.2f}", f"{b['future']['leak']:.2f}", f"{b['unwitnessed']['leak']:.2f}"]
+    rows = [[label, f"{b['known'][f'recall@{k}']:.2f}", f"{b['known'][f'p@{k}']:.2f}", f"{b['known'][f'mrr@{k}']:.2f}",
+             f"{b['setting'][f'recall@{k}']:.2f}", f"{b['setting'][f'p@{k}']:.2f}", f"{b['setting'][f'mrr@{k}']:.2f}",
+             f"{b['future']['leak']:.2f}", f"{b['unwitnessed']['leak']:.2f}"]
             for c, label in KO_ROWS for b in [data['configs'][c]]]
     kinds = (('known', 'known R@5'), ('setting', 'setting R@5'), ('future', 'future 막음'), ('unwitnessed', 'unwitnessed 막음'))
     pairs = [[label] + [sign(data['paired'][kind].get(key)) for kind, _ in kinds] for key, label in KO_PAIRS]
-    return (table(['구성', 'known R@5', 'known P@5', 'setting R@5', 'setting P@5', 'future 누설', 'unwitnessed 누설'], rows)
+    return (table(['구성', 'known R@5', 'known P@5', 'known MRR@5', 'setting R@5', 'setting P@5', 'setting MRR@5', 'future 누설', 'unwitnessed 누설'], rows)
             + f"\n\n질문 {data['n']}개: " + ', '.join(f'{k} {v}' for k, v in data['by_kind'].items())
             + '\n\n짝 부호 검정(앞 대 뒤, 앞이 나은 질문 : 못한 질문). 값은 known·setting은 Recall@5, future·unwitnessed는 누설을 막은 질문:\n\n'
             + table(['앞 대 뒤'] + [label for _, label in kinds], pairs))

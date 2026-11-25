@@ -14,7 +14,7 @@ import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { CostChart, RequestsChart } from './AdminCharts'
 import { AdminPipeline } from './AdminPipeline'
 import { LlmAlerts } from './LlmAlerts'
-import { AlertRules, Evaluations, LeakSampleRate, Models, Prompts } from './LlmOpsManage'
+import { AgentEvaluations, AlertRules, Evaluations, LeakSampleRate, Models, Prompts } from './LlmOpsManage'
 import { formText } from './formValue'
 import { LiveState, Pager, Table } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -40,7 +40,7 @@ export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
       {page === 'alerts' && <><LlmAlerts vm={vm} /><AlertRules vm={vm} l={l} /></>}
       {page === 'traces' && (l.traceId ? <TraceDetailPanel vm={vm} l={l} /> : <><Traces vm={vm} l={l} /><Metrics vm={vm} l={l} /></>)}
       {page === 'prompts' && <PromptsView vm={vm} l={l} sub={sub} />}
-      {page === 'quality' && <><Evaluations vm={vm} l={l} />{!l.runId && <LeakChecks vm={vm} l={l}><LeakSampleRate vm={vm} l={l} /></LeakChecks>}</>}
+      {page === 'quality' && <>{!l.runId && <AgentEvaluations l={l} />}<Evaluations vm={vm} l={l} />{!l.runId && <LeakChecks vm={vm} l={l}><LeakSampleRate vm={vm} l={l} /></LeakChecks>}</>}
     </section>
   )
 }

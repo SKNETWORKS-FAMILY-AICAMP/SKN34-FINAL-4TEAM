@@ -1,0 +1,188 @@
+"""추출 평가 세트 실행기. 설계·규칙은 docs/evaluation/extraction-set.md.
+
+    cd backend/ai-service
+    uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source public [--raw-dir 위키문헌 원문 폴더] [--workers 4] [--limit N]   # 없는 원문 받기(낮은 속도) + ocx gpt-6.2-sol 정답표(금액 0) → .data/sets/public.jsonl
+    uv run --locked --extra dev python eval/extraction/ex_cli.py export [--gate 30]                                                          # 층화로 나눠 → 게이트 app/evaluation/datasets/extraction.extract.jsonl + 풀 datasets/optimize/(공개 항목만)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source hp [--hp-dir <.data/hp>] [--per-book 2]                       # 로컬 전용 → .data/sets/hp.jsonl(커밋·Langfuse 금지)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source webnovel --novel-dir <웹소설 txt 폴더>                          # 로컬 전용 → .data/sets/webnovel.jsonl(선택표 .data/webnovel/manifest.json, 커밋·Langfuse 금지)
+    set -a; . <키 파일>; set +a                                                                                                               # 이하 OpenAI 호출(유료): 유료 명령마다 같은 명령 안에서 불러온다(키 값은 출력하지 않는다)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/hp.jsonl [--instructions 파일] [--model M] [--tag T] [--limit N]   # 오프라인 채점 → results/extraction-<세트>-<태그>.json(집계만)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/webnovel.jsonl [위와 같은 옵션]                                      # 웹소설 세트도 같은 방법(세트마다 한 번씩 부른다)
+
+시작 때 Langfuse 키를 지워 원문이 Langfuse로 가지 않게 한다. gold는 호출을 ocx로 돌리고 실제 OpenAI 키를 쓰지 않는다. 원문·정답표·응답은 .data(git 무시)에만 두고 results에는 숫자와 항목 id만 둔다.
+저작권 있는 원천(해리 포터·웹소설)의 원문·정답표·선택표도 .data에만 둔다: 커밋·푸시·Langfuse 금지, 평가 세트 폴더(app/evaluation/datasets)에도 두지 않는다.
+"""
+
+import argparse
+import json
+import os
+from concurrent.futures import ThreadPoolExecutor
+from itertools import zip_longest
+from pathlib import Path
+from statistics import fmean
+
+import ex_gold
+import ex_sources
+import ex_webnovel
+from app.evaluation import extraction
+from app.evaluation.errors import EvaluationFailure
+from app.manuscript_extraction import prompt
+from app.manuscript_extraction.errors import PreprocessingFailure
+
+HERE = Path(__file__).resolve().parent
+DATA = HERE / '.data'
+SETS, GOLD, RESULTS = DATA / 'sets', DATA / 'gold', HERE / 'results'
+MANIFEST = DATA / 'webnovel' / 'manifest.json'   # 웹소설 선택표(작품·장르·회차 번호·원본 파일 해시): 로컬 전용
+DATASET = HERE.parents[1] / 'app' / 'evaluation' / 'datasets' / 'extraction.extract.jsonl'
+POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
+GATE_SIZE = 30   # 게이트 세트 회차 수(평가 1회 = 운영 모델 호출 이만큼)
+VAL = 20   # 최적화 풀의 val 문항 수 상한(시뮬레이션 풀 orig_export.VAL과 같다): 기본 호출 상한 150에서 기준 본문의 val 평가가 호출의 큰 몫을 쓰지 않게 작게 둔다
+VAL_SHARE = 0.4   # 풀이 작으면 val은 풀의 이 비율까지만(나머지는 train)
+SIMULATION_DATA = HERE.parent / 'simulation' / '.data'
+
+
+def no_langfuse() -> None:
+    for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY'):
+        os.environ.pop(key, None)
+
+
+def write_items(path: Path, items: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(''.join(json.dumps(item, ensure_ascii=False) + '\n' for item in items), encoding='utf-8')
+
+
+def read_items(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
+
+
+def cmd_gold(args) -> int:
+    """회차 원천 → 정답표 → .data/sets/<source>.jsonl. 호출은 ocx(금액 0)다. 실패한 회차가 있으면 코드를 보이고 1로 끝낸다(된 항목은 쓰고, 같은 명령을 다시 치면 캐시로 이어 간다)."""
+    if args.source == 'webnovel' and not args.novel_dir:
+        raise SystemExit('--novel-dir(웹소설 txt 폴더)가 필요하다.')
+    ex_gold.use_ocx()
+    if args.source == 'public':
+        ex_sources.fetch_public(args.raw_dir)
+    episodes = {'public': lambda: ex_sources.public_episodes(args.raw_dir), 'hp': lambda: ex_sources.hp_episodes(args.hp_dir, args.per_book),
+                'webnovel': lambda: ex_webnovel.episodes(args.novel_dir, MANIFEST)}[args.source]()
+    items, failures = ex_gold.build(episodes[:args.limit], GOLD / args.source, args.workers)
+    write_items(SETS / f'{args.source}.jsonl', items)
+    for item in items:
+        agreement = item['metadata']['gold']['agreement']
+        print(f"{item['id']}: " + ' · '.join(f"{extraction.KINDS[kind]} {'-' if value is None else format(value, '.2f')}" for kind, value in agreement.items()) + ' (일치도)')
+    for episode, label, code in failures:
+        print(f'실패 {episode} {label}: {code}')
+    print(f'항목 {len(items)}개 → {SETS / (args.source + ".jsonl")}')
+    return 1 if failures else 0
+
+
+def split(items: list[dict], gate_size: int) -> tuple[list[dict], list[dict]]:
+    """공개 항목을 게이트 세트(gate_size개)와 최적화 풀(나머지)로 나눈다(층화): 작가를 번갈아 돌며 작품마다 한 회차씩 gate_size개를 채우고(작품이 gate_size보다 많으면 뒤 작품은 풀뿐이다),
+    작품 안에서는 회차를 고르게 뽑는다(하나면 가운데). 입력 순서를 지키고 두 쪽은 겹치지 않는다."""
+    works = {}
+    for item in items:
+        source = item['metadata']['source']
+        works.setdefault((source['author'], source['work']), []).append(item)
+    authors = {}
+    for author, work in works:
+        authors.setdefault(author, []).append((author, work))
+    order = [key for turn in zip_longest(*authors.values()) for key in turn if key]   # 작가를 번갈아 돈 작품 순서
+    quota = dict.fromkeys(order, 0)
+    while sum(quota.values()) < gate_size and any(quota[key] < len(works[key]) for key in order):
+        for key in order:
+            if sum(quota.values()) < gate_size and quota[key] < len(works[key]):
+                quota[key] += 1
+    gate = {works[key][(2 * i + 1) * len(works[key]) // (2 * quota[key])]['id'] for key in order for i in range(quota[key])}
+    return [item for item in items if item['id'] in gate], [item for item in items if item['id'] not in gate]
+
+
+def numbered(gate: list[dict], pool: list[dict]) -> tuple[list[dict], list[dict]]:
+    """최종 id와 풀의 split: 게이트는 extraction.extract-01부터, 풀은 extraction.extract.opt-001부터(시뮬레이션 풀과 같은 규칙)이고, 풀 항목에는 자동 개선이 읽는 metadata.split이 붙는다.
+    val은 풀 전체에서 같은 간격으로 min(VAL, 풀의 VAL_SHARE)개이고 나머지는 train이다."""
+    size = min(VAL, round(len(pool) * VAL_SHARE))
+    val = {n * len(pool) // size for n in range(size)} if size else set()
+    return ([{**item, 'id': f'extraction.extract-{n:02d}'} for n, item in enumerate(gate, 1)],
+            [{**item, 'id': f'extraction.extract.opt-{n + 1:03d}', 'metadata': {**item['metadata'], 'split': 'val' if n in val else 'train'}} for n, item in enumerate(pool)])
+
+
+def cmd_export(args) -> int:
+    """공개 세트(.data/sets/public.jsonl)를 게이트 세트와 최적화 풀로 나눠 저장소에 쓴다. 저작권 만료 공개 항목이 아니면 아무것도 쓰지 않고 멈춘다(해리 포터가 저장소·Langfuse로 가지 않게)."""
+    items = read_items(SETS / 'public.jsonl')
+    bad = [item['id'] for item in items if not (item['id'].startswith('extraction.extract-') and item['metadata']['license'].startswith('저작권 만료'))]
+    if bad:
+        raise SystemExit(f'저작권 만료 공개 항목만 내보낼 수 있다: {", ".join(bad)}')
+    gate, pool = numbered(*split(items, args.gate))
+    write_items(DATASET, gate)
+    write_items(POOL, pool)
+    print(f'게이트 {len(gate)}개 → {DATASET}\n풀 {len(pool)}개 → {POOL}')
+    return 0
+
+
+def score_items(items: list[dict], instructions: str, model: str, workers: int) -> dict:
+    """항목마다 운영 호출(extraction.generate)로 뽑아 정답표와 코드(extraction.score)로 채점한다. 집계는 숫자와 항목 id뿐이다. 실패한 항목은 0점이 아니라 failed(id → 고정 코드)로 두고 평균에 섞지 않는다."""
+    def one(item):
+        try:
+            output = extraction.generate(instructions, item['input'], model)
+            return item['id'], extraction.score(item['input']['body'], output, item['expectedOutput']), None
+        except (PreprocessingFailure, EvaluationFailure) as error:
+            return item['id'], None, str(error)
+
+    with ThreadPoolExecutor(workers) as pool:
+        done = list(pool.map(one, items))
+    rows = [{'id': id, 'recall': got['recall'], 'quote_ok': got['quote_ok'], 'recalls': got['recalls'], 'reference': got['reference']} for id, got, _ in done if got]
+    mean = lambda values: fmean(v for v in values if v is not None) if any(v is not None for v in values) else None  # noqa: E731
+    return {'items': len(items), 'failed': {id: code for id, _, code in done if code}, 'recall': mean([r['recall'] for r in rows]), 'quote_ok': mean([r['quote_ok'] for r in rows]),
+            'recalls': {kind: mean([r['recalls'][kind] for r in rows]) for kind in extraction.KINDS},
+            'reference': {'precision': {kind: mean([r['reference']['precision'][kind] for r in rows]) for kind in extraction.KINDS},
+                          'outside': {kind: mean([r['reference']['outside'][kind] for r in rows]) for kind in extraction.KINDS},
+                          **{name: mean([r['reference'][name] for r in rows]) for name in ('kind_match', 'direction', 'label')}}, 'rows': rows}
+
+
+def cmd_score(args) -> int:
+    """오프라인 채점: 운영 지시문(코드 시드 또는 --instructions 파일)을 운영 모델(OPENAI_MODEL 또는 --model)로 돌려 채점한다. 유료 OpenAI 호출이다."""
+    model = args.model or os.environ.get('OPENAI_MODEL')
+    if not os.environ.get('OPENAI_API_KEY') or not model:
+        raise SystemExit('OPENAI_API_KEY와 모델(OPENAI_MODEL 또는 --model)이 필요하다. 키 파일을 같은 명령 안에서 불러온 뒤 실행한다(값은 출력하지 않는다).')
+    items = read_items(args.items)[:args.limit]
+    instructions = args.instructions.read_text(encoding='utf-8') if args.instructions else prompt.EXTRACT
+    result = {'set': args.items.stem, 'model': model, 'instructions': args.instructions.name if args.instructions else '코드 시드', **score_items(items, instructions, model, args.workers)}
+    path = RESULTS / f'extraction-{args.items.stem}-{args.tag}.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    for row in result['rows']:
+        print(f"{row['id']}: recall {row['recall']:.2f} quote_ok {row['quote_ok']:.2f}")
+    for id, code in result['failed'].items():
+        print(f'실패 {id}: {code}')
+    print(f"recall {result['recall']} quote_ok {result['quote_ok']} (항목 {result['items']}개, 실패 {len(result['failed'])}개) → {path}")
+    return 1 if result['failed'] else 0
+
+
+def main(argv=None) -> int:
+    no_langfuse()
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    commands = parser.add_subparsers(dest='command', required=True)
+    gold = commands.add_parser('gold', help='정답표 만들기(ocx gpt-6.2-sol)')
+    gold.add_argument('--source', choices=('public', 'hp', 'webnovel'), required=True)
+    gold.add_argument('--raw-dir', type=Path, default=DATA / 'raw' / 'wikisource')
+    gold.add_argument('--hp-dir', type=Path, default=SIMULATION_DATA / 'hp')
+    gold.add_argument('--per-book', type=int, default=2)
+    gold.add_argument('--novel-dir', type=Path)
+    gold.add_argument('--limit', type=int)
+    gold.add_argument('--workers', type=int, default=4)
+    gold.set_defaults(run=cmd_gold)
+    export = commands.add_parser('export', help='공개 세트를 게이트 세트와 최적화 풀로 나눠 저장소에')
+    export.add_argument('--gate', type=int, default=GATE_SIZE)
+    export.set_defaults(run=cmd_export)
+    score = commands.add_parser('score', help='오프라인 채점(유료 OpenAI 호출)')
+    score.add_argument('items', type=Path)
+    score.add_argument('--instructions', type=Path)
+    score.add_argument('--model')
+    score.add_argument('--tag', default='base')
+    score.add_argument('--limit', type=int)
+    score.add_argument('--workers', type=int, default=4)
+    score.set_defaults(run=cmd_score)
+    args = parser.parse_args(argv)
+    return args.run(args)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

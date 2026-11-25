@@ -204,7 +204,7 @@ it('확정은 조정한 목록을 보내고 성공·일부 성공·실패를 따
 
 it('등록 버튼 곁에 OpenAI 전송 안내 한 줄을 두고 별도 확인 없이 등록한다', async () => {
   await toPreview()
-  const notice = screen.getByText('업로드한 원고는 세계관 자동 추출을 위해 OpenAI로 전송돼요.')
+  const notice = screen.getByText('세계관을 처음 만들 때는 업로드한 원고가 자동 추출을 위해 OpenAI로 전송돼요.')
   const button = screen.getByRole('button', { name: '3개 회차 등록' })
   expect(notice.closest('fieldset')).toBe(button.closest('fieldset'))
   expect(screen.queryByLabelText(/OpenAI/)).toBeNull()
@@ -225,12 +225,12 @@ it('세계관 추출이 시작되면 등록 결과에 진행을 볼 곳과 작�
   expect(screen.getByText(/3개 중 2개를 저장했고 1개는 저장하지 못했어요/)).toBeTruthy()
 })
 
-it('세계관 추출이 거절되면 서버가 준 사유를 그대로 알리고 등록 결과는 그대로 둔다', async () => {
+it('세계관 추출이 거절되면 등록 결과와 함께 추출을 시작하지 못한 사유를 알린다', async () => {
   await toPreview()
   fakes.manuscriptUseCase.confirm.mockResolvedValue({ ...mixed, worldBuild: rejected })
   fireEvent.click(screen.getByRole('button', { name: '3개 회차 등록' }))
   await screen.findByRole('heading', { name: '등록 결과' })
-  expect(screen.getByText(rejected.message).getAttribute('role')).toBe('alert')
+  expect(screen.getByText(`세계관 추출을 시작하지 못했어요. ${rejected.message}`).getAttribute('role')).toBe('alert')
   expect(screen.queryByText(/세계관 추출을 시작했어요/)).toBeNull()
   expect(screen.queryByRole('link', { name: '작품 관리 세계관 탭 열기' })).toBeNull()
   expect(screen.getByRole('region', { name: '저장한 회차' })).toBeTruthy()

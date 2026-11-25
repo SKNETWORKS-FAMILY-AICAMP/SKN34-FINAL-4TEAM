@@ -89,6 +89,8 @@ export function useLlmOpsViewModel(
       mutate(`prompt:${name}:${version}`, `${name} ${version}번 버전을 후보로 등록했어요. 이제 서비스에 반영할 수 있어요.`, () => useCase.candidate(name, version)),
     promote: (name: string, version: number) =>
       mutate(`prompt:${name}:${version}`, `${name}의 서비스 반영이 ${version}번 버전으로 바뀌었어요.`, () => useCase.promote(name, version)),
+    optimize: (name: string, version: number, maxMetricCalls: number) =>
+      mutate(`prompt:${name}:optimize`, '자동 개선을 요청했어요. 끝나면 새 버전(라벨 없음)과 회귀 평가 결과가 버전 표에 나타나요(수십 분 걸려요).', () => useCase.optimize(name, version, maxMetricCalls)),
     models,
     createModel: (input: { modelName: string; matchPattern: string; inputPerMillion: number; outputPerMillion: number }) =>
       mutate('model:new', '모델 단가를 등록했어요.', () => useCase.createModel(input)),

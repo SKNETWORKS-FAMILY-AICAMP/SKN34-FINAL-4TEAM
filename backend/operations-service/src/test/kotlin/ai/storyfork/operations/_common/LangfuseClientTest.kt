@@ -239,7 +239,7 @@ class LangfuseClientTest {
     fun `a 404 or any other failure on these reads is a 502 and never a not-found`() {
         val reads = listOf<(LangfuseClient) -> Unit>(
             { it.traces(null, null, null, null, null, null, 0, 20) }, { it.allTraces(from, to) }, { it.traceObservations("t-1") },
-            { it.observationUsage(from, to) }, { it.experiments(from, null) }, { it.experimentScores(listOf("e-1")) },
+            { it.observationUsage(from, to) }, { it.experiments(from, null) }, { it.experimentScores(listOf("e-1")) }, { it.experimentItems("e-1", from) },
             { it.observationGroups(from, to, listOf("rating")) }, { it.observationLatencies(from, to, listOf("rating")) },
             { it.pipelineObservations(from, to, "rating", setOf("rating.generation"), null, null, 0, 20) },
         )
@@ -482,12 +482,13 @@ class LangfuseClientTest {
         langfuse.observationUsage(from, to)
         langfuse.experiments(from, null)
         langfuse.experimentScores(listOf("e-1"))
+        langfuse.experimentItems("e-1", from)
         langfuse.observationGroups(from, to, listOf("orchestration"))
         langfuse.observationLatencies(from, to, listOf("orchestration"))
         langfuse.pipelineObservations(from, to, "orchestration", setOf("main_agent"), null, null, 0, 20)
 
         // /api/public/traces, /observations, /sessions, /scores, /v2/scores, /metrics and /datasets/{name}/runs answer 404 on a v4 server.
-        assertEquals(setOf(observations, metrics, "/api/public/experiments", "/api/public/v3/scores"), factory.calls.map { it.uri.path }.toSet())
+        assertEquals(setOf(observations, metrics, "/api/public/experiments", "/api/public/v3/scores", "/api/public/experiment-items"), factory.calls.map { it.uri.path }.toSet())
     }
 
     @Test
@@ -548,5 +549,26 @@ class LangfuseClientTest {
         assertEquals(listOf(HttpMethod.GET, HttpMethod.POST), factory.calls.map { it.method })
         assertEquals(setOf("/api/public/models"), factory.calls.map { it.uri.path }.toSet())
         assertEquals("TOKENS", mapper.readTree(factory.calls[1].body).path("unit").asString())
+    }
+
+    @Test
+    fun `the items of an experiment are read with their scores by experiment id from a start time 100 per page`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"data":[{"id":"o-1","experimentItemId":"simulation.act-01","level":"DEFAULT","scores":[]}],"meta":{}}""") }
+
+        val got = client(factory).experimentItems("e-1", from)
+
+        assertEquals(listOf("simulation.act-01"), got.map { it.path("experimentItemId").asString() })
+        val call = factory.calls.single()
+        // The dataset-run-items read is 404 on a v4 server: the Experiments items API is the way to a run's items.
+        assertEquals("/api/public/experiment-items", call.uri.path)
+        assertEquals(mapOf("experimentId" to listOf("e-1"), "fromStartTime" to listOf("2026-11-18T00:00:00Z"), "fields" to listOf("core,scores"), "limit" to listOf("100")), call.query)
+    }
+
+    @Test
+    fun `an experiment's items stop at 100 even when Langfuse has more`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"data":[${items(100, "i")}],"meta":{"cursor":"more"}}""") }
+
+        assertEquals(100, client(factory).experimentItems("e-1", from).size)
+        assertEquals(1, factory.calls.size)
     }
 }

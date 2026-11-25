@@ -36,3 +36,49 @@ def test_pick_is_even_and_takes_each_item_once_when_fewer_are_left_than_asked():
     assert [i['id'] for i in oe.pick(items, 4)] == ['0', '2', '5', '7']
     assert [i['id'] for i in oe.pick(items[:3], 5)] == ['0', '1', '2']   # 모자라면 전부, 한 번씩(같은 문항이 두 번 실리면 평균에 두 배 가중치가 붙는다)
     assert [i['id'] for i in oe.pick(items, 12)] == [str(i) for i in range(10)]
+
+
+def make(n, kind='classic'):
+    return {**PD, 'id': f'public-1-{n:04d}', 'source': {**PD['source'], 'kind': kind}}
+
+
+def test_the_leftover_is_exactly_what_the_gate_set_did_not_pick_free_items_first_then_scp():
+    free = [make(n) for n in range(1, 11)]
+    scp = [make(n, 'scp') for n in range(11, 16)]
+    gate = {i['id'] for i in [*oe.pick(free, 4), *oe.pick(scp, 4)]}
+
+    left = oe.leftover(free, scp, 4)
+
+    assert not gate & {i['id'] for i in left}   # 게이트 세트와 한 문항도 겹치지 않는다(겹치면 최적화가 게이트 세트를 본 셈이 된다)
+    assert gate | {i['id'] for i in left} == {i['id'] for i in [*free, *scp]}   # 나머지는 전부 풀이다
+    assert [i['source']['kind'] for i in left] == ['classic'] * 6 + ['scp']
+
+
+def test_pool_rows_split_train_and_val_evenly_with_val_capped_at_twenty():
+    picked = [(make(n), {'set': 'dialogue', 'data': {}}, []) for n in range(1, 127)]
+
+    rows = oe.pool_rows('simulation.act', picked)
+
+    assert [r['id'] for r in rows[:2]] == ['simulation.act.opt-001', 'simulation.act.opt-002'] and len(rows) == 126
+    val = [n for n, r in enumerate(rows) if r['metadata']['split'] == 'val']
+    assert len(val) == 20 and {r['metadata']['split'] for r in rows} == {'train', 'val'}
+    gaps = [b - a for a, b in zip(val, val[1:])]
+    assert max(gaps) - min(gaps) <= 1   # 풀 전체에서 같은 간격이라 묶음이 비율대로 섞인다
+
+
+def test_a_small_pool_keeps_most_of_its_items_for_training():
+    picked = [(make(n), {'set': 'narration', 'data': {}}, []) for n in range(1, 55)]
+
+    rows = oe.pool_rows('simulation.narrate', picked)
+
+    assert sum(r['metadata']['split'] == 'val' for r in rows) == 20   # 54개의 40%(22)가 아니라 상한 20
+    assert sum(r['metadata']['split'] == 'train' for r in rows) == 34
+    few = oe.pool_rows('simulation.narrate', picked[:10])
+    assert sum(r['metadata']['split'] == 'val' for r in few) == 4   # 10개의 40%
+
+
+def test_a_pool_row_is_a_gate_row_plus_the_split_and_nothing_else():
+    [row] = oe.pool_rows('simulation.act', [(PD, {'set': 'dialogue', 'data': {'x': 1}}, FACTS)])
+    gate = oe.record(PD, row['id'], {'set': 'dialogue', 'data': {'x': 1}}, FACTS)
+
+    assert row['metadata'].pop('split') in ('train', 'val') and row == gate

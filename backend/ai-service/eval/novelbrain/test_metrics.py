@@ -1,4 +1,4 @@
-"""평가 지표 계산의 단위 테스트: Recall@k·P@k·RRF 입력 변환·EM/F1·채점 응답 파싱·신뢰구간."""
+"""평가 지표 계산의 단위 테스트: Recall@k·P@k·MRR·RRF 입력 변환·EM/F1·채점 응답 파싱·신뢰구간."""
 
 import pytest
 
@@ -10,6 +10,7 @@ from metrics import (
     parse_score,
     precision_at_k,
     recall_at_k,
+    reciprocal_rank,
     sign_test,
     spatiotemporal_score,
     wilson_interval,
@@ -37,11 +38,22 @@ def test_duplicate_ids_count_once_at_their_first_rank():
     assert precision_at_k(['a', 'a', 'b'], {'a'}, 2) == pytest.approx(0.5)
 
 
+def test_reciprocal_rank_is_the_inverse_rank_of_the_first_gold_within_k():
+    ranked = ['a', 'b', 'c', 'd']
+    assert reciprocal_rank(ranked, {'a'}, 5) == 1.0
+    assert reciprocal_rank(ranked, {'c', 'd'}, 5) == pytest.approx(1 / 3)   # 첫 정답만 센다: 뒤의 정답은 점수를 바꾸지 않는다
+    assert reciprocal_rank(ranked, {'d'}, 3) == 0.0                          # 상위 k 밖은 찾지 못한 것
+    assert reciprocal_rank([], {'a'}, 5) == 0.0
+    assert reciprocal_rank(['a', 'a', 'b'], {'b'}, 5) == pytest.approx(1 / 2)  # 같은 근거가 두 칸을 차지하지 않는다(Recall과 같다)
+
+
 def test_empty_gold_is_an_error_not_a_zero():
     with pytest.raises(ValueError):
         recall_at_k(['a'], set(), 5)
     with pytest.raises(ValueError):
         precision_at_k(['a'], set(), 5)
+    with pytest.raises(ValueError):
+        reciprocal_rank(['a'], set(), 5)
 
 
 def test_normalize_answer_follows_squad_rules():

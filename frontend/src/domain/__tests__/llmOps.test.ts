@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { LLM_FORBIDDEN, bodyText, fixedModel, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type PromptVersion } from '../entities/llmOps'
+import {
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type EvaluationItem, type PromptVersion,
+} from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
@@ -115,5 +117,40 @@ describe('권한 안내 문구', () => {
     // 고르지 않은 버전의 실제 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808).
     expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델(환경 설정)', '기본 모델(환경 설정)'])
     expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
+  })
+})
+
+describe('프롬프트 자동 개선 표시 값(#823)', () => {
+  it('자동 개선은 인물 시뮬레이션 대사·나레이션 프롬프트만 켠다', () => {
+    expect([isOptimizable('character_simulation.act'), isOptimizable('character_simulation.narrate')]).toEqual([true, true])
+    // 같은 접두어의 다른 호출·다른 기능·객체 기본 속성 이름은 켜지지 않는다.
+    expect(['character_simulation.direct', 'character_simulation.check', 'story_context.answer', 'toString', ''].map(isOptimizable)).toEqual([false, false, false, false, false])
+  })
+
+  it('예상 OpenAI 호출 수 어림은 2 × 평가 호출 상한 + 2 × 게이트 세트 문항 수다', () => {
+    expect(estimatedCalls('character_simulation.act', 150)).toBe(2 * 150 + 2 * 24)
+    expect(estimatedCalls('character_simulation.narrate', 150)).toBe(2 * 150 + 2 * 46)
+    expect(estimatedCalls('character_simulation.act', 500)).toBe(1048)
+    expect(estimatedCalls('character_simulation.act', 1)).toBe(50)
+  })
+
+  it('실패한 문항의 이유: 항목 오류는 서버 문구, 시점 위반과 0.5 미만 지표는 이름으로, 통과한 문항은 이유가 없다', () => {
+    const item = (over: Partial<EvaluationItem>): EvaluationItem => ({ itemId: 'simulation.act-01', scores: { voice: 0.75, intent: 1, pov_ok: 1 }, failed: false, ...over })
+    expect(itemReason(item({}))).toBeNull()
+    expect(itemReason(item({ failed: true, scores: {}, error: '생성 또는 채점에 실패했어요.' }))).toBe('생성 또는 채점에 실패했어요.')
+    expect(itemReason(item({ failed: true, scores: { voice: 1, intent: 1, pov_ok: 0 } }))).toBe('시점 위반(위반 사실 있음)')
+    expect(itemReason(item({ failed: true, scores: { voice: 0.25, intent: 0.4, pov_ok: 1 } }))).toBe('0.5 미만 지표: voice, intent')
+    expect(itemReason(item({ failed: true, scores: { voice: 0.25, intent: 1, pov_ok: 0 } }))).toBe('시점 위반(위반 사실 있음) · 0.5 미만 지표: voice')
+    // 서버가 실패로 센 이유를 이 규칙으로 찾지 못해도 이유 칸이 비지 않는다.
+    expect(itemReason(item({ failed: true }))).toBe('실패')
+  })
+})
+
+describe('문항별 결과의 진행 중 표시(#823)', () => {
+  it('점수가 아직 없고 실패도 아닌 문항은 진행 중이다', () => {
+    const item = (over: Partial<EvaluationItem>): EvaluationItem => ({ itemId: 'simulation.act-01', scores: {}, failed: false, ...over })
+    expect(itemWaiting(item({}))).toBe(true)
+    // 점수가 있으면 끝난 문항이고, 실패(항목 오류)한 문항은 진행 중이 아니다.
+    expect([itemWaiting(item({ scores: { voice: 0.5 } })), itemWaiting(item({ failed: true, error: '생성 또는 채점에 실패했어요.' }))]).toEqual([false, false])
   })
 })

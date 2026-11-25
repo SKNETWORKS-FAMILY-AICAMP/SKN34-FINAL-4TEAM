@@ -4,6 +4,7 @@
     set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py generate   # 모델로 질문 생성 → datasets/ko_sample.jsonl(커밋)
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py run        # 호출 없음: 구성별 지표·하나씩 빼기·짝 검정 → results/ko-retrieval.json
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko.py snapshot   # 호출 없음: recall 입력(E5 상위 발췌)을 tests/retrieval_eval/fixtures에 고정
 
 질문 종류: known(그 인물이 겪은 사건) · future(기준 회차 뒤 사건) · unwitnessed(그 인물이 나오지 않은 사건) · setting(설정 항목).
 모델이 만든 질문은 규칙(근거 구절이 원문에 있음·질문에 답이 그대로 없음·길이·낱말 겹침·중복)으로 다시 검증하고, 어긋난 것은 버린다.
@@ -26,7 +27,7 @@ from app.novelbrain.models import Card, Relation, WorldSnapshot
 from app.novelbrain.service import _documents, bm25_rank, recall, tokenize
 from embed import best_window, embed_texts, knn
 from llm import CAP, Ledger, Llm, LlmFailure
-from metrics import dedupe, precision_at_k, recall_at_k
+from metrics import dedupe, precision_at_k, recall_at_k, reciprocal_rank
 from prepare import DATA, SEED
 from run import BIG, compare, filtered, fuse
 
@@ -34,6 +35,7 @@ HERE = Path(__file__).resolve().parent
 SAMPLE = HERE.parents[3] / 'infrastructure/sample-data/content'
 DATASET = HERE / 'datasets/ko_sample.jsonl'
 RESULTS = HERE / 'results'
+SNAPSHOT = HERE.parents[1] / 'tests/retrieval_eval/fixtures'   # 고정 스냅샷: CI 단위 테스트(모델 없이)의 입력
 WORKS = ('구운몽', '별빛 서약의 탑', '회색 도시의 우편배달부')   # 회차가 둘 이상인 원작. 홍길동전(1화)은 시점 질문을 만들 수 없다
 QUOTA = {'known': 24, 'future': 14, 'unwitnessed': 14, 'setting': 14}
 CARD_TYPE = {'인물': 'character', '장소': 'location', '규칙': 'rule', '상태': 'object', '지식': 'event'}
@@ -230,35 +232,99 @@ def after_cutoff(evidence: str, episode: int, reveal_of: dict[str, int]) -> bool
     return bool(paragraph) and int(paragraph[1]) > episode
 
 
+def lookups(works: dict) -> tuple[dict, dict]:
+    """채점에 쓰는 표: 작품별 카드 제목 → 카드 id, 카드 id → 공개가 시작되는 회차(공개 회차가 있는 카드만)."""
+    cards_of = {t: {c.title: c.id for c in ko_world(works, t, 1).cards} for t in works}
+    reveal_of = {f"{WORKS.index(t)}:{c['name']}": c['reveal'] for t, w in works.items() for c in w['cards'] if c['reveal']}
+    return cards_of, reveal_of
+
+
+def target_ids(r: dict, cards_of: dict) -> set[str]:
+    """질문이 겨냥한 근거 id: setting은 근거 카드, known·unwitnessed는 근거 문단(future는 겨냥한 근거 없이 기준 회차만 본다)."""
+    if r['kind'] == 'setting':
+        return {cards_of[r['work']][r['gold']['name']]}
+    return {paragraph_id(r['work'], r['gold']['episode'], r['gold']['index'])}
+
+
 def question_score(r: dict, ranked: list[str], cards_of: dict, reveal_of: dict[str, int]) -> dict:
-    """질문 하나의 결과. known·setting은 Recall@5·P@5, future·unwitnessed는 누설(상위 5에 막아야 할 근거가 있으면 1).
+    """질문 하나의 결과. known·setting은 Recall@5·P@5·역순위(MRR@5의 질문별 값), future·unwitnessed는 누설(상위 5에 막아야 할 근거가 있으면 1).
     future의 막아야 할 근거는 기준 회차 뒤 문단과, 공개가 기준 회차 뒤에 시작되는 카드다."""
     if r['kind'] in ('known', 'setting'):
-        gold = ({paragraph_id(r['work'], r['gold']['episode'], r['gold']['index'])} if r['kind'] == 'known'
-                else {cards_of[r['work']][r['gold']['name']]})
-        return {'recall': recall_at_k(ranked, gold, K), 'p': precision_at_k(ranked, gold, K)}
+        gold = target_ids(r, cards_of)
+        return {'recall': recall_at_k(ranked, gold, K), 'p': precision_at_k(ranked, gold, K), 'rr': reciprocal_rank(ranked, gold, K)}
     if r['kind'] == 'future':
         return {'leak': float(any(after_cutoff(i, r['episode'], reveal_of) for i in ranked))}
-    return {'leak': float(paragraph_id(r['work'], r['gold']['episode'], r['gold']['index']) in ranked)}
+    return {'leak': float(bool(target_ids(r, cards_of) & set(ranked)))}
+
+
+def mcp_read(world: WorldSnapshot) -> dict:
+    """스냅샷을 Content MCP `world_studio_read` 응답 모양으로 되돌린다(`novelbrain.world_snapshot`의 역). 고정 스냅샷이 운영 변환을 그대로 거치게 한다."""
+    return {'worldId': world.worldId,
+            'cards': [{'id': c.id, 'cardType': c.cardType, 'title': c.title, 'body': c.text,
+                       **({'semanticMetadata': {'revealFromEpisode': c.revealFromEpisode}} if c.revealFromEpisode else {})} for c in world.cards],
+            'relationships': [{'id': r.id, 'sourceCardId': r.source, 'targetCardId': r.target, 'label': r.label, 'direction': r.direction}
+                              for r in world.relations]}
+
+
+def frozen_inputs(works: dict, rows: list[dict], manuscripts: list[list[Excerpt]]) -> tuple[dict, list[dict]]:
+    """고정 스냅샷: 작품별 세계관(MCP 응답 모양)과 질문별 `recall` 입력(인물 카드 id·기준 회차·질문·E5 상위 발췌).
+    known·setting은 찾아야 할 근거 `gold`, future·unwitnessed는 상위 5에 들면 안 되는 근거 `banned`(future는 기준 회차 뒤 문단·카드,
+    unwitnessed는 근거 문단)를 담아 모델 없이도 `question_score`와 같은 판정을 하게 한다."""
+    cards_of, reveal_of = lookups(works)
+    worlds = {t: mcp_read(ko_world(works, t, 1)) for t in works}
+    questions = []
+    for r, manuscript in zip(rows, manuscripts, strict=True):
+        title = r['work']
+        row = {'id': r['id'], 'kind': r['kind'], 'work': title, 'character': cards_of[title][r['character']], 'episode': r['episode'],
+               'question': r['question'], 'manuscript': [[e.id, e.episode, e.quote] for e in manuscript]}
+        if r['kind'] in ('known', 'setting'):
+            row['gold'] = sorted(target_ids(r, cards_of))
+        elif r['kind'] == 'future':
+            universe = [paragraph_id(title, e, i) for e, ps in works[title]['episodes'].items() for i in range(len(ps))] + list(cards_of[title].values())
+            row['banned'] = sorted(i for i in universe if after_cutoff(i, r['episode'], reveal_of))
+        else:
+            row['banned'] = sorted(target_ids(r, cards_of))
+        questions.append(row)
+    return worlds, questions
+
+
+def excerpts_for(works: dict, rows: list[dict]) -> list[list[Excerpt]]:
+    """질문마다 운영 E5 인코더 kNN 상위 EXCERPTS개 문단을 Content Retrieval 발췌(Excerpt)로 만든다. 평가에서 모델이 필요한 유일한 단계다."""
+    pools = {t: [(e, i, text) for e, ps in sorted(w['episodes'].items()) for i, text in enumerate(ps)] for t, w in works.items()}
+    vectors = {t: embed_texts([text for _, _, text in pool], 'passage') for t, pool in pools.items()}
+    queries = embed_texts([r['question'] for r in rows], 'query')
+    found = []
+    for n, r in enumerate(rows):
+        title, pool = r['work'], pools[r['work']]
+        manuscript = []
+        for i in knn(vectors[title], queries[n], EXCERPTS):
+            e, index, text = pool[i]
+            manuscript.append(Excerpt(id=paragraph_id(title, e, index), episode=e, quote=best_window(text, r['question'])))
+        found.append(manuscript)
+    return found
+
+
+def snapshot() -> None:
+    works = load_works()
+    rows = [json.loads(line) for line in DATASET.read_text().splitlines()]
+    worlds, questions = frozen_inputs(works, rows, excerpts_for(works, rows))
+    SNAPSHOT.mkdir(parents=True, exist_ok=True)
+    (SNAPSHOT / 'ko_worlds.json').write_text(json.dumps(worlds, ensure_ascii=False, indent=1) + '\n')
+    (SNAPSHOT / 'ko_questions.jsonl').write_text(''.join(json.dumps(q, ensure_ascii=False) + '\n' for q in questions))
+    print(f'고정 스냅샷: 세계관 {len(worlds)}개·질문 {len(questions)}개 → {SNAPSHOT}')
 
 
 def run() -> None:
     works = load_works()
     rows = [json.loads(line) for line in DATASET.read_text().splitlines()]
-    pools = {t: [(e, i, text) for e, ps in sorted(w['episodes'].items()) for i, text in enumerate(ps)] for t, w in works.items()}
-    vectors = {t: embed_texts([text for _, _, text in pool], 'passage') for t, pool in pools.items()}
-    queries = embed_texts([r['question'] for r in rows], 'query')
+    manuscripts = excerpts_for(works, rows)
     configs = ('ppr', 'vector', 'bm25', 's1', 's2', 's3', 'no_graph', 'no_vector', 'no_bm25')
     runs: dict[str, dict[str, list[str]]] = {c: {} for c in configs}
     for n, r in enumerate(rows):
         title, episode = r['work'], r['episode']
         world = ko_world(works, title, episode)
         character_id = next(c.id for c in world.cards if c.title == r['character'])
-        pool = pools[title]
-        manuscript = []
-        for i in knn(vectors[title], queries[n], EXCERPTS):
-            e, index, text = pool[i]
-            manuscript.append(Excerpt(id=paragraph_id(title, e, index), episode=e, quote=best_window(text, r['question'])))
+        manuscript = manuscripts[n]
         docs = _documents(world.cards)
         refs = {
             'ppr': [i.ref for i in recall(world, character_id, episode, r['question'], stage=0, k=BIG).items],
@@ -277,8 +343,7 @@ def run() -> None:
                  'no_bm25': keep([refs['ppr'], early])}
         for config, found in refs.items():
             runs[config][r['id']] = evidence_ids(found)[:K]
-    cards_of = {t: {c.title: c.id for c in ko_world(works, t, 1).cards} for t in works}
-    reveal_of = {f"{WORKS.index(t)}:{c['name']}": c['reveal'] for t, w in works.items() for c in w['cards'] if c['reveal']}
+    cards_of, reveal_of = lookups(works)
     scores = {c: {r['id']: question_score(r, runs[c][r['id']], cards_of, reveal_of) for r in rows} for c in configs}
     result = {'n': len(rows), 'k': K, 'excerpts_per_question': EXCERPTS, 'by_kind': {kind: sum(r['kind'] == kind for r in rows) for kind in QUOTA},
               'configs': {}, 'paired': {}}
@@ -286,7 +351,8 @@ def run() -> None:
         block = {}
         for kind in ('known', 'setting'):
             mine = [scores[config][r['id']] for r in rows if r['kind'] == kind]
-            block[kind] = {'n': len(mine), f'recall@{K}': mean(m['recall'] for m in mine), f'p@{K}': mean(m['p'] for m in mine)}
+            block[kind] = {'n': len(mine), f'recall@{K}': mean(m['recall'] for m in mine), f'p@{K}': mean(m['p'] for m in mine),
+                           f'mrr@{K}': mean(m['rr'] for m in mine)}
         for kind in ('future', 'unwitnessed'):
             mine = [scores[config][r['id']] for r in rows if r['kind'] == kind]
             block[kind] = {'n': len(mine), 'leak': mean(m['leak'] for m in mine)}
@@ -300,12 +366,13 @@ def run() -> None:
     (DATA / 'runs').mkdir(exist_ok=True)
     (DATA / 'runs' / 'ko-rankings.json').write_text(json.dumps(runs, ensure_ascii=False))
     for config, b in result['configs'].items():
-        print(f"{config:9s} known R@5={b['known']['recall@5']:.2f} P@5={b['known']['p@5']:.2f} | setting R@5={b['setting']['recall@5']:.2f} "
-              f"P@5={b['setting']['p@5']:.2f} | 미래 누설 {b['future']['leak']:.2f} | 미목격 누설 {b['unwitnessed']['leak']:.2f}")
+        print(f"{config:9s} known R@5={b['known']['recall@5']:.2f} P@5={b['known']['p@5']:.2f} MRR={b['known']['mrr@5']:.2f} | "
+              f"setting R@5={b['setting']['recall@5']:.2f} P@5={b['setting']['p@5']:.2f} MRR={b['setting']['mrr@5']:.2f} | "
+              f"미래 누설 {b['future']['leak']:.2f} | 미목격 누설 {b['unwitnessed']['leak']:.2f}")
 
 
 if __name__ == '__main__':
-    commands = {'generate': generate, 'run': run}
+    commands = {'generate': generate, 'run': run, 'snapshot': snapshot}
     if sys.argv[1:] not in [[c] for c in commands]:
         raise SystemExit(f'사용법: ko.py {"|".join(commands)}')
     commands[sys.argv[1]]()

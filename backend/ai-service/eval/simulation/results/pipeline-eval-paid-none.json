@@ -1,0 +1,1588 @@
+{
+  "config": {
+    "act": {
+      "model": "gpt-6.1-terra",
+      "provider": "openai",
+      "thinking": "default"
+    },
+    "judge": "ocx",
+    "judgeModel": "gpt-6.2-sol",
+    "model": "gpt-6-luna",
+    "reveal": "none",
+    "via": "openai"
+  },
+  "items": {
+    "1": {
+      "docs_missing": 88,
+      "late_card": 12,
+      "no_character": 18,
+      "ok": 32
+    },
+    "3m": {
+      "docs_missing": 16,
+      "late_card": 2,
+      "no_character": 4,
+      "ok": 8
+    },
+    "3n": {
+      "ok": 70
+    }
+  },
+  "itemsByWork": {
+    "c01": {
+      "1": {
+        "docs_missing": 14,
+        "late_card": 1,
+        "no_character": 3
+      },
+      "3m": {
+        "docs_missing": 2,
+        "no_character": 1
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "c02": {
+      "1": {
+        "docs_missing": 7,
+        "late_card": 3,
+        "no_character": 7
+      },
+      "3m": {
+        "docs_missing": 2,
+        "no_character": 1
+      },
+      "3n": {}
+    },
+    "c03": {
+      "1": {},
+      "3m": {
+        "docs_missing": 2,
+        "late_card": 1
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "c04": {
+      "1": {
+        "docs_missing": 7,
+        "late_card": 1,
+        "no_character": 8
+      },
+      "3m": {
+        "late_card": 1,
+        "no_character": 2
+      },
+      "3n": {
+        "ok": 1
+      }
+    },
+    "c05": {
+      "1": {
+        "docs_missing": 7,
+        "late_card": 3,
+        "ok": 6
+      },
+      "3m": {
+        "docs_missing": 2,
+        "ok": 1
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "m01": {
+      "1": {
+        "ok": 6
+      },
+      "3m": {
+        "ok": 3
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "m03": {
+      "1": {
+        "docs_missing": 2,
+        "ok": 6
+      },
+      "3m": {
+        "ok": 2
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "m04": {
+      "1": {
+        "docs_missing": 4
+      },
+      "3m": {},
+      "3n": {}
+    },
+    "m05": {
+      "1": {},
+      "3m": {},
+      "3n": {
+        "ok": 8
+      }
+    },
+    "s01": {
+      "1": {
+        "docs_missing": 2,
+        "late_card": 3,
+        "ok": 10
+      },
+      "3m": {
+        "docs_missing": 1,
+        "ok": 1
+      },
+      "3n": {}
+    },
+    "s02": {
+      "1": {
+        "docs_missing": 16
+      },
+      "3m": {
+        "docs_missing": 2
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "s03": {
+      "1": {
+        "docs_missing": 12
+      },
+      "3m": {
+        "docs_missing": 2
+      },
+      "3n": {
+        "ok": 8
+      }
+    },
+    "s04": {
+      "1": {
+        "docs_missing": 6
+      },
+      "3m": {
+        "docs_missing": 2
+      },
+      "3n": {
+        "ok": 5
+      }
+    },
+    "s05": {
+      "1": {
+        "docs_missing": 11,
+        "late_card": 1,
+        "ok": 4
+      },
+      "3m": {
+        "docs_missing": 1,
+        "ok": 1
+      },
+      "3n": {}
+    }
+  },
+  "simulation": {
+    "1": {
+      "hand": {
+        "skippedBy": {},
+        "summary": {
+          "byKind": {
+            "classic": {
+              "intent": 2.6666666666666665,
+              "n": 6,
+              "voice": 2.1666666666666665
+            },
+            "modern": {
+              "intent": 2.75,
+              "n": 12,
+              "voice": 2.5833333333333335
+            },
+            "scp": {
+              "intent": 2.0714285714285716,
+              "n": 14,
+              "voice": 3.2857142857142856
+            }
+          },
+          "callMs": {
+            "p50": 3395.0,
+            "p95": 4538.55
+          },
+          "errors": 0,
+          "failedJudge": 0,
+          "inputTokens": 2159.96875,
+          "intent": {
+            "ci": [
+              1.9980173954780243,
+              2.8769826045219755
+            ],
+            "mean": 2.4375,
+            "n": 32
+          },
+          "leak": {
+            "ci": [
+              0.005537717362550945,
+              0.15744607800372734
+            ],
+            "n": 32,
+            "rate": 0.03125
+          },
+          "n": 32,
+          "outputTokens": 87.96875,
+          "skipped": 0,
+          "usdPerCall": 0.0025998125,
+          "voice": {
+            "ci": [
+              2.528176028151438,
+              3.096823971848562
+            ],
+            "mean": 2.8125,
+            "n": 32
+          }
+        }
+      },
+      "pipeline": {
+        "skippedBy": {
+          "docs_missing": 88,
+          "late_card": 12,
+          "no_character": 18
+        },
+        "summary": {
+          "byKind": {
+            "classic": {
+              "intent": 2.6666666666666665,
+              "n": 6,
+              "voice": 2.8333333333333335
+            },
+            "modern": {
+              "intent": 2.5,
+              "n": 12,
+              "voice": 2.6666666666666665
+            },
+            "scp": {
+              "intent": 1.9285714285714286,
+              "n": 14,
+              "voice": 3.2857142857142856
+            }
+          },
+          "callMs": {
+            "p50": 3757.5,
+            "p95": 4636.7
+          },
+          "errors": 0,
+          "failedJudge": 0,
+          "inputTokens": 2302.1875,
+          "intent": {
+            "ci": [
+              1.85704016765893,
+              2.70545983234107
+            ],
+            "mean": 2.28125,
+            "n": 32
+          },
+          "leak": {
+            "ci": [
+              0.005537717362550945,
+              0.15744607800372734
+            ],
+            "n": 32,
+            "rate": 0.03125
+          },
+          "n": 150,
+          "outputTokens": 89.6875,
+          "skipped": 118,
+          "usdPerCall": 0.002750625,
+          "voice": {
+            "ci": [
+              2.6705079226642416,
+              3.2669920773357584
+            ],
+            "mean": 2.96875,
+            "n": 32
+          }
+        }
+      },
+      "vsHand": {
+        "applied": {
+          "metrics": {
+            "clean": {
+              "down": 1,
+              "meanDiff": 0.0,
+              "n": 32,
+              "p": 1.0,
+              "tie": 30,
+              "up": 1
+            },
+            "intent": {
+              "down": 6,
+              "meanDiff": -0.15625,
+              "n": 32,
+              "p": 1.0,
+              "tie": 19,
+              "up": 7
+            },
+            "voice": {
+              "down": 5,
+              "meanDiff": 0.15625,
+              "n": 32,
+              "p": 0.3017578125,
+              "tie": 17,
+              "up": 10
+            }
+          },
+          "n": 32
+        },
+        "callMs": {
+          "base": 3395.0,
+          "cand": 3757.5
+        },
+        "metrics": {
+          "clean": {
+            "down": 1,
+            "meanDiff": 0.0,
+            "n": 32,
+            "p": 1.0,
+            "tie": 30,
+            "up": 1
+          },
+          "intent": {
+            "down": 6,
+            "meanDiff": -0.15625,
+            "n": 32,
+            "p": 1.0,
+            "tie": 19,
+            "up": 7
+          },
+          "voice": {
+            "down": 5,
+            "meanDiff": 0.15625,
+            "n": 32,
+            "p": 0.3017578125,
+            "tie": 17,
+            "up": 10
+          }
+        },
+        "tokens": {
+          "base": 2159.96875,
+          "cand": 2302.1875,
+          "ratio": 1.065842966478103
+        }
+      }
+    },
+    "3m": {
+      "hand": {
+        "skippedBy": {},
+        "summary": {
+          "callMs": {
+            "p50": 3204.0,
+            "p95": 6632.200000000001
+          },
+          "errors": 0,
+          "failedJudge": 0,
+          "info": {
+            "ci": [
+              1.0327134463828282,
+              2.4672865536171718
+            ],
+            "mean": 1.75,
+            "n": 8
+          },
+          "inputTokens": 2220.375,
+          "leak": {
+            "ci": [
+              0.02241690886329617,
+              0.4708948057698615
+            ],
+            "n": 8,
+            "rate": 0.125
+          },
+          "n": 8,
+          "outputTokens": 97.375,
+          "skipped": 0,
+          "style": {
+            "ci": [
+              2.016356723191414,
+              2.733643276808586
+            ],
+            "mean": 2.375,
+            "n": 8
+          },
+          "usdPerCall": 0.000560925
+        }
+      },
+      "pipeline": {
+        "skippedBy": {
+          "docs_missing": 16,
+          "late_card": 2,
+          "no_character": 4
+        },
+        "summary": {
+          "callMs": {
+            "p50": 4625.0,
+            "p95": 8248.75
+          },
+          "errors": 0,
+          "failedJudge": 0,
+          "info": {
+            "ci": [
+              0.8900000000000002,
+              2.36
+            ],
+            "mean": 1.625,
+            "n": 8
+          },
+          "inputTokens": 2318.5,
+          "leak": {
+            "ci": [
+              0.0,
+              0.3244156195108769
+            ],
+            "n": 8,
+            "rate": 0.0
+          },
+          "n": 30,
+          "outputTokens": 109.125,
+          "skipped": 22,
+          "style": {
+            "ci": [
+              2.016356723191414,
+              2.733643276808586
+            ],
+            "mean": 2.375,
+            "n": 8
+          },
+          "usdPerCall": 0.0005946500000000002
+        }
+      },
+      "vsHand": {
+        "applied": {
+          "metrics": {
+            "clean": {
+              "down": 0,
+              "meanDiff": 0.125,
+              "n": 8,
+              "p": 1.0,
+              "tie": 7,
+              "up": 1
+            },
+            "info": {
+              "down": 1,
+              "meanDiff": -0.125,
+              "n": 8,
+              "p": 1.0,
+              "tie": 7,
+              "up": 0
+            },
+            "style": {
+              "down": 1,
+              "meanDiff": 0.0,
+              "n": 8,
+              "p": 1.0,
+              "tie": 6,
+              "up": 1
+            }
+          },
+          "n": 8
+        },
+        "callMs": {
+          "base": 3204.0,
+          "cand": 4625.0
+        },
+        "metrics": {
+          "clean": {
+            "down": 0,
+            "meanDiff": 0.125,
+            "n": 8,
+            "p": 1.0,
+            "tie": 7,
+            "up": 1
+          },
+          "info": {
+            "down": 1,
+            "meanDiff": -0.125,
+            "n": 8,
+            "p": 1.0,
+            "tie": 7,
+            "up": 0
+          },
+          "style": {
+            "down": 1,
+            "meanDiff": 0.0,
+            "n": 8,
+            "p": 1.0,
+            "tie": 6,
+            "up": 1
+          }
+        },
+        "tokens": {
+          "base": 2220.375,
+          "cand": 2318.5,
+          "ratio": 1.0441929854191296
+        }
+      }
+    },
+    "3n": {
+      "hand": {
+        "skippedBy": {},
+        "summary": {
+          "callMs": {
+            "p50": 2176.0,
+            "p95": 3231.6
+          },
+          "errors": 0,
+          "failedJudge": 0,
+          "info": {
+            "ci": [
+              1.0495909686874911,
+              1.207551888455366
+            ],
+            "mean": 1.1285714285714286,
+            "n": 70
+          },
+          "inputTokens": 1918.557142857143,
+          "leak": {
+            "ci": [
+              0.0,
+              0.05202487486728348
+            ],
+            "n": 70,
+            "rate": 0.0
+          },
+          "n": 70,
+          "outputTokens": 114.75714285714285,
+          "skipped": 0,
+          "style": {
+            "ci": [
+              1.7954496425289657,
+              2.1188360717567485
+            ],
+            "mean": 1.957142857142857,
+            "n": 70
+          },
+          "usdPerCall": 0.0005214199999999999
+        }
+      },
+      "pipeline": {
+        "skippedBy": {
+          "leak": 1
+        },
+        "summary": {
+          "callMs": {
+            "p50": 2233.0,
+            "p95": 4189.399999999997
+          },
+          "errors": 0,
+          "failedJudge": 0,
+          "info": {
+            "ci": [
+              1.0398459226871204,
+              1.1920381352838942
+            ],
+            "mean": 1.1159420289855073,
+            "n": 69
+          },
+          "inputTokens": 2381.072463768116,
+          "leak": {
+            "ci": [
+              0.002562858644330375,
+              0.07763307335057362
+            ],
+            "n": 69,
+            "rate": 0.014492753623188406
+          },
+          "n": 70,
+          "outputTokens": 111.34782608695652,
+          "skipped": 1,
+          "style": {
+            "ci": [
+              1.7309947592278783,
+              2.066106690047484
+            ],
+            "mean": 1.8985507246376812,
+            "n": 69
+          },
+          "usdPerCall": 0.0006098318840579712
+        }
+      },
+      "vsHand": {
+        "applied": {
+          "metrics": {
+            "clean": {
+              "down": 1,
+              "meanDiff": -0.016666666666666666,
+              "n": 60,
+              "p": 1.0,
+              "tie": 59,
+              "up": 0
+            },
+            "info": {
+              "down": 4,
+              "meanDiff": -0.016666666666666666,
+              "n": 60,
+              "p": 1.0,
+              "tie": 53,
+              "up": 3
+            },
+            "style": {
+              "down": 10,
+              "meanDiff": -0.016666666666666666,
+              "n": 60,
+              "p": 1.0,
+              "tie": 41,
+              "up": 9
+            }
+          },
+          "n": 60
+        },
+        "callMs": {
+          "base": 2188.0,
+          "cand": 2233.0
+        },
+        "metrics": {
+          "clean": {
+            "down": 1,
+            "meanDiff": -0.014492753623188406,
+            "n": 69,
+            "p": 1.0,
+            "tie": 68,
+            "up": 0
+          },
+          "info": {
+            "down": 5,
+            "meanDiff": -0.014492753623188406,
+            "n": 69,
+            "p": 1.0,
+            "tie": 60,
+            "up": 4
+          },
+          "style": {
+            "down": 13,
+            "meanDiff": -0.043478260869565216,
+            "n": 69,
+            "p": 0.6776394844055176,
+            "tie": 46,
+            "up": 10
+          }
+        },
+        "tokens": {
+          "base": 1922.2608695652175,
+          "cand": 2381.072463768116,
+          "ratio": 1.2386833137308122
+        }
+      }
+    }
+  },
+  "tag": "paid-none",
+  "vsTag": null,
+  "works": [
+    "c01",
+    "c02",
+    "c03",
+    "c04",
+    "c05",
+    "m01",
+    "m03",
+    "m04",
+    "m05",
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05"
+  ],
+  "world": {
+    "perWork": {
+      "c01": {
+        "cards": 175,
+        "characters": 76,
+        "coverage": {
+          "found": 18,
+          "names": 26,
+          "rate": 0.6923076923076923
+        },
+        "episodes": 12,
+        "extraction": {
+          "dropped": 84,
+          "episodes": 12,
+          "itemPass": 0.766016713091922,
+          "kept": 275,
+          "quotePass": 0.8885793871866295,
+          "skipped": {
+            "DUPLICATE_LOCAL_ID": 2,
+            "INVALID_MENTION_NAME": 17,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 23,
+            "INVALID_RELATION_ENDPOINT": 6,
+            "KNOWLEDGE_NOT_EXPLICIT": 17,
+            "UNKNOWN_ENTITY": 26,
+            "UNREPRESENTABLE_STATEMENT": 10
+          }
+        },
+        "failures": [],
+        "identityEmpty": 43,
+        "persona": {
+          "characters": 18,
+          "docs": {
+            "goal": {
+              "empty": 14,
+              "grounded": 6,
+              "lines": 6,
+              "named": 2
+            },
+            "identity": {
+              "empty": 8,
+              "grounded": 14,
+              "lines": 14,
+              "named": 7
+            },
+            "memory": {
+              "empty": 17,
+              "grounded": 3,
+              "lines": 3,
+              "named": 3
+            },
+            "soul": {
+              "empty": 18,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 18,
+        "soulEmpty": 76
+      },
+      "c02": {
+        "cards": 23,
+        "characters": 11,
+        "coverage": {
+          "found": 5,
+          "names": 9,
+          "rate": 0.5555555555555556
+        },
+        "episodes": 14,
+        "extraction": {
+          "dropped": 65,
+          "episodes": 13,
+          "itemPass": 0.41964285714285715,
+          "kept": 47,
+          "quotePass": 0.4464285714285714,
+          "skipped": {
+            "INVALID_MENTION_NAME": 1,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 61,
+            "UNKNOWN_ENTITY": 3
+          }
+        },
+        "failures": [
+          [
+            13,
+            "NO_VERIFIED_MENTION"
+          ]
+        ],
+        "identityEmpty": 10,
+        "persona": {
+          "characters": 5,
+          "docs": {
+            "goal": {
+              "empty": 5,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 5,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "memory": {
+              "empty": 2,
+              "grounded": 5,
+              "lines": 5,
+              "named": 5
+            },
+            "soul": {
+              "empty": 5,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 1,
+        "soulEmpty": 11
+      },
+      "c03": {
+        "cards": 94,
+        "characters": 39,
+        "coverage": {
+          "found": 2,
+          "names": 2,
+          "rate": 1.0
+        },
+        "episodes": 10,
+        "extraction": {
+          "dropped": 27,
+          "episodes": 10,
+          "itemPass": 0.8615384615384616,
+          "kept": 168,
+          "quotePass": 0.9230769230769231,
+          "skipped": {
+            "DUPLICATE_RELATION": 1,
+            "DUPLICATE_STATEMENT": 2,
+            "INVALID_MENTION_NAME": 4,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 11,
+            "INVALID_RELATION_ENDPOINT": 2,
+            "KNOWLEDGE_NOT_EXPLICIT": 4,
+            "UNKNOWN_ENTITY": 7
+          }
+        },
+        "failures": [],
+        "identityEmpty": 32,
+        "persona": {
+          "characters": 2,
+          "docs": {
+            "goal": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "memory": {
+              "empty": 1,
+              "grounded": 6,
+              "lines": 6,
+              "named": 6
+            },
+            "soul": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 14,
+        "soulEmpty": 38
+      },
+      "c04": {
+        "cards": 14,
+        "characters": 5,
+        "coverage": {
+          "found": 2,
+          "names": 6,
+          "rate": 0.3333333333333333
+        },
+        "episodes": 10,
+        "extraction": {
+          "dropped": 39,
+          "episodes": 6,
+          "itemPass": 0.3389830508474576,
+          "kept": 20,
+          "quotePass": 0.38983050847457623,
+          "skipped": {
+            "INVALID_OR_AMBIGUOUS_QUOTE": 36,
+            "UNKNOWN_ENTITY": 3
+          }
+        },
+        "failures": [
+          [
+            2,
+            "NO_VERIFIED_MENTION"
+          ],
+          [
+            6,
+            "NO_VERIFIED_MENTION"
+          ],
+          [
+            8,
+            "NO_VERIFIED_MENTION"
+          ],
+          [
+            10,
+            "NO_VERIFIED_MENTION"
+          ]
+        ],
+        "identityEmpty": 3,
+        "persona": {
+          "characters": 2,
+          "docs": {
+            "goal": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "memory": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "soul": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 0,
+        "soulEmpty": 5
+      },
+      "c05": {
+        "cards": 137,
+        "characters": 32,
+        "coverage": {
+          "found": 9,
+          "names": 12,
+          "rate": 0.75
+        },
+        "episodes": 10,
+        "extraction": {
+          "dropped": 59,
+          "episodes": 10,
+          "itemPass": 0.7937062937062938,
+          "kept": 227,
+          "quotePass": 0.9090909090909091,
+          "skipped": {
+            "INVALID_MENTION_NAME": 12,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 14,
+            "INVALID_RELATION_ENDPOINT": 5,
+            "KNOWLEDGE_NOT_EXPLICIT": 13,
+            "UNKNOWN_ENTITY": 23,
+            "UNREPRESENTABLE_STATEMENT": 5
+          }
+        },
+        "failures": [],
+        "identityEmpty": 21,
+        "persona": {
+          "characters": 9,
+          "docs": {
+            "goal": {
+              "empty": 7,
+              "grounded": 5,
+              "lines": 5,
+              "named": 2
+            },
+            "identity": {
+              "empty": 4,
+              "grounded": 6,
+              "lines": 6,
+              "named": 3
+            },
+            "memory": {
+              "empty": 7,
+              "grounded": 14,
+              "lines": 14,
+              "named": 14
+            },
+            "soul": {
+              "empty": 8,
+              "grounded": 1,
+              "lines": 1,
+              "named": 1
+            }
+          },
+          "ready": 1
+        },
+        "relations": 10,
+        "soulEmpty": 31
+      },
+      "m01": {
+        "cards": 42,
+        "characters": 8,
+        "coverage": {
+          "found": 2,
+          "names": 3,
+          "rate": 0.6666666666666666
+        },
+        "episodes": 3,
+        "extraction": {
+          "dropped": 7,
+          "episodes": 3,
+          "itemPass": 0.9027777777777778,
+          "kept": 65,
+          "quotePass": 0.9583333333333334,
+          "skipped": {
+            "INVALID_MENTION_NAME": 2,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 1,
+            "KNOWLEDGE_NOT_EXPLICIT": 1,
+            "UNKNOWN_ENTITY": 3,
+            "UNREPRESENTABLE_STATEMENT": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 4,
+        "persona": {
+          "characters": 2,
+          "docs": {
+            "goal": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 0,
+              "grounded": 2,
+              "lines": 2,
+              "named": 1
+            },
+            "memory": {
+              "empty": 0,
+              "grounded": 6,
+              "lines": 6,
+              "named": 6
+            },
+            "soul": {
+              "empty": 1,
+              "grounded": 2,
+              "lines": 2,
+              "named": 1
+            }
+          },
+          "ready": 1
+        },
+        "relations": 4,
+        "soulEmpty": 7
+      },
+      "m03": {
+        "cards": 52,
+        "characters": 8,
+        "coverage": {
+          "found": 2,
+          "names": 2,
+          "rate": 1.0
+        },
+        "episodes": 3,
+        "extraction": {
+          "dropped": 2,
+          "episodes": 3,
+          "itemPass": 0.9775280898876404,
+          "kept": 87,
+          "quotePass": 0.9887640449438202,
+          "skipped": {
+            "INVALID_MENTION_NAME": 1,
+            "UNKNOWN_ENTITY": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 3,
+        "persona": {
+          "characters": 2,
+          "docs": {
+            "goal": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 0,
+              "grounded": 8,
+              "lines": 8,
+              "named": 4
+            },
+            "memory": {
+              "empty": 0,
+              "grounded": 15,
+              "lines": 15,
+              "named": 15
+            },
+            "soul": {
+              "empty": 1,
+              "grounded": 1,
+              "lines": 1,
+              "named": 1
+            }
+          },
+          "ready": 1
+        },
+        "relations": 4,
+        "soulEmpty": 6
+      },
+      "m04": {
+        "cards": 32,
+        "characters": 9,
+        "coverage": {
+          "found": 2,
+          "names": 3,
+          "rate": 0.6666666666666666
+        },
+        "episodes": 4,
+        "extraction": {
+          "dropped": 12,
+          "episodes": 4,
+          "itemPass": 0.8461538461538461,
+          "kept": 66,
+          "quotePass": 0.9102564102564102,
+          "skipped": {
+            "INVALID_OR_AMBIGUOUS_QUOTE": 7,
+            "INVALID_RELATION_ENDPOINT": 1,
+            "UNKNOWN_ENTITY": 4
+          }
+        },
+        "failures": [],
+        "identityEmpty": 6,
+        "persona": {
+          "characters": 2,
+          "docs": {
+            "goal": {
+              "empty": 1,
+              "grounded": 2,
+              "lines": 2,
+              "named": 0
+            },
+            "identity": {
+              "empty": 1,
+              "grounded": 2,
+              "lines": 2,
+              "named": 2
+            },
+            "memory": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "soul": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 1,
+        "soulEmpty": 8
+      },
+      "m05": {
+        "cards": 82,
+        "characters": 18,
+        "coverage": {
+          "found": 0,
+          "names": 1,
+          "rate": 0.0
+        },
+        "episodes": 8,
+        "extraction": {
+          "dropped": 39,
+          "episodes": 8,
+          "itemPass": 0.7821229050279329,
+          "kept": 140,
+          "quotePass": 0.7932960893854748,
+          "skipped": {
+            "INVALID_OR_AMBIGUOUS_QUOTE": 37,
+            "KNOWLEDGE_NOT_EXPLICIT": 2,
+            "UNKNOWN_ENTITY": 1,
+            "UNREPRESENTABLE_STATEMENT": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 10,
+        "persona": {
+          "characters": 0,
+          "docs": {
+            "goal": {
+              "empty": 0,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 0,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "memory": {
+              "empty": 0,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "soul": {
+              "empty": 0,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 15,
+        "soulEmpty": 17
+      },
+      "s01": {
+        "cards": 38,
+        "characters": 8,
+        "coverage": {
+          "found": 5,
+          "names": 5,
+          "rate": 1.0
+        },
+        "episodes": 3,
+        "extraction": {
+          "dropped": 5,
+          "episodes": 3,
+          "itemPass": 0.9375,
+          "kept": 75,
+          "quotePass": 0.95,
+          "skipped": {
+            "INVALID_MENTION_NAME": 1,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 3,
+            "KNOWLEDGE_NOT_EXPLICIT": 2,
+            "UNREPRESENTABLE_STATEMENT": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 6,
+        "persona": {
+          "characters": 5,
+          "docs": {
+            "goal": {
+              "empty": 5,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 3,
+              "grounded": 5,
+              "lines": 5,
+              "named": 4
+            },
+            "memory": {
+              "empty": 1,
+              "grounded": 10,
+              "lines": 10,
+              "named": 10
+            },
+            "soul": {
+              "empty": 1,
+              "grounded": 5,
+              "lines": 5,
+              "named": 4
+            }
+          },
+          "ready": 2
+        },
+        "relations": 6,
+        "soulEmpty": 4
+      },
+      "s02": {
+        "cards": 32,
+        "characters": 4,
+        "coverage": {
+          "found": 3,
+          "names": 3,
+          "rate": 1.0
+        },
+        "episodes": 3,
+        "extraction": {
+          "dropped": 4,
+          "episodes": 3,
+          "itemPass": 0.948051948051948,
+          "kept": 73,
+          "quotePass": 0.987012987012987,
+          "skipped": {
+            "INVALID_MENTION_NAME": 1,
+            "KNOWLEDGE_NOT_EXPLICIT": 1,
+            "UNKNOWN_ENTITY": 2,
+            "UNREPRESENTABLE_STATEMENT": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 1,
+        "persona": {
+          "characters": 3,
+          "docs": {
+            "goal": {
+              "empty": 3,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 0,
+              "grounded": 4,
+              "lines": 4,
+              "named": 3
+            },
+            "memory": {
+              "empty": 1,
+              "grounded": 4,
+              "lines": 4,
+              "named": 4
+            },
+            "soul": {
+              "empty": 3,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 7,
+        "soulEmpty": 4
+      },
+      "s03": {
+        "cards": 39,
+        "characters": 6,
+        "coverage": {
+          "found": 3,
+          "names": 3,
+          "rate": 1.0
+        },
+        "episodes": 3,
+        "extraction": {
+          "dropped": 1,
+          "episodes": 3,
+          "itemPass": 0.9830508474576272,
+          "kept": 58,
+          "quotePass": 0.9830508474576272,
+          "skipped": {
+            "INVALID_MENTION_NAME": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 2,
+        "persona": {
+          "characters": 3,
+          "docs": {
+            "goal": {
+              "empty": 3,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 0,
+              "grounded": 5,
+              "lines": 5,
+              "named": 3
+            },
+            "memory": {
+              "empty": 1,
+              "grounded": 11,
+              "lines": 11,
+              "named": 11
+            },
+            "soul": {
+              "empty": 3,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 3,
+        "soulEmpty": 6
+      },
+      "s04": {
+        "cards": 46,
+        "characters": 5,
+        "coverage": {
+          "found": 2,
+          "names": 2,
+          "rate": 1.0
+        },
+        "episodes": 3,
+        "extraction": {
+          "dropped": 3,
+          "episodes": 3,
+          "itemPass": 0.9558823529411765,
+          "kept": 65,
+          "quotePass": 0.9705882352941176,
+          "skipped": {
+            "INVALID_OR_AMBIGUOUS_QUOTE": 2,
+            "KNOWLEDGE_NOT_EXPLICIT": 1,
+            "UNREPRESENTABLE_STATEMENT": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 3,
+        "persona": {
+          "characters": 2,
+          "docs": {
+            "goal": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 0,
+              "grounded": 4,
+              "lines": 4,
+              "named": 2
+            },
+            "memory": {
+              "empty": 1,
+              "grounded": 9,
+              "lines": 9,
+              "named": 9
+            },
+            "soul": {
+              "empty": 2,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            }
+          },
+          "ready": 0
+        },
+        "relations": 2,
+        "soulEmpty": 5
+      },
+      "s05": {
+        "cards": 61,
+        "characters": 15,
+        "coverage": {
+          "found": 6,
+          "names": 6,
+          "rate": 1.0
+        },
+        "episodes": 6,
+        "extraction": {
+          "dropped": 20,
+          "episodes": 6,
+          "itemPass": 0.8816568047337278,
+          "kept": 149,
+          "quotePass": 0.9526627218934911,
+          "skipped": {
+            "INVALID_MENTION_NAME": 3,
+            "INVALID_OR_AMBIGUOUS_QUOTE": 5,
+            "INVALID_PRESTORY_MEMORY": 1,
+            "INVALID_RELATION_ENDPOINT": 3,
+            "KNOWLEDGE_NOT_EXPLICIT": 2,
+            "UNKNOWN_ENTITY": 7,
+            "UNREPRESENTABLE_STATEMENT": 1
+          }
+        },
+        "failures": [],
+        "identityEmpty": 8,
+        "persona": {
+          "characters": 6,
+          "docs": {
+            "goal": {
+              "empty": 6,
+              "grounded": 0,
+              "lines": 0,
+              "named": 0
+            },
+            "identity": {
+              "empty": 3,
+              "grounded": 3,
+              "lines": 3,
+              "named": 2
+            },
+            "memory": {
+              "empty": 2,
+              "grounded": 8,
+              "lines": 8,
+              "named": 8
+            },
+            "soul": {
+              "empty": 5,
+              "grounded": 1,
+              "lines": 1,
+              "named": 1
+            }
+          },
+          "ready": 1
+        },
+        "relations": 9,
+        "soulEmpty": 13
+      }
+    },
+    "total": {
+      "cards": 867,
+      "characters": 244,
+      "coverage": {
+        "found": 61,
+        "names": 83,
+        "rate": 0.7349397590361446
+      },
+      "extraction": {
+        "dropped": 367,
+        "episodes": 87,
+        "itemPass": 0.8049946865037194,
+        "kept": 1515,
+        "quotePass": 0.8708820403825717,
+        "skipped": {
+          "DUPLICATE_LOCAL_ID": 2,
+          "DUPLICATE_RELATION": 1,
+          "DUPLICATE_STATEMENT": 2,
+          "INVALID_MENTION_NAME": 43,
+          "INVALID_OR_AMBIGUOUS_QUOTE": 200,
+          "INVALID_PRESTORY_MEMORY": 1,
+          "INVALID_RELATION_ENDPOINT": 17,
+          "KNOWLEDGE_NOT_EXPLICIT": 43,
+          "UNKNOWN_ENTITY": 80,
+          "UNREPRESENTABLE_STATEMENT": 21
+        }
+      },
+      "failures": 5,
+      "identityEmpty": 152,
+      "persona": {
+        "characters": 61,
+        "docs": {
+          "goal": {
+            "empty": 54,
+            "grounded": 13,
+            "lines": 13,
+            "named": 4
+          },
+          "identity": {
+            "empty": 28,
+            "grounded": 53,
+            "lines": 53,
+            "named": 31
+          },
+          "memory": {
+            "empty": 37,
+            "grounded": 91,
+            "lines": 91,
+            "named": 91
+          },
+          "soul": {
+            "empty": 53,
+            "grounded": 10,
+            "lines": 10,
+            "named": 8
+          }
+        },
+        "ready": 6
+      },
+      "relations": 94,
+      "soulEmpty": 231,
+      "works": 14
+    }
+  }
+}

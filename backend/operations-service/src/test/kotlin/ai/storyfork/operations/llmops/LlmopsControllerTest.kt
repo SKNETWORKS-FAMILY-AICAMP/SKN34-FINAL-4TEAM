@@ -20,7 +20,8 @@ class LlmopsControllerTest {
     private val leakChecks = mock(LeakCheckService::class.java)
     private val settings = mock(LlmopsSettingService::class.java)
     private val pipelines = mock(PipelineService::class.java)
-    private val controller = LlmopsController(traces, metrics, prompts, models, evaluations, leakChecks, settings, pipelines)
+    private val optimizations = mock(OptimizationService::class.java)
+    private val controller = LlmopsController(traces, metrics, prompts, models, evaluations, leakChecks, settings, pipelines, optimizations)
     private val member = OperationsMember(UUID.randomUUID(), true)
     private val from = Instant.parse("2026-11-18T00:00:00Z")
     private val to = Instant.parse("2026-11-19T00:00:00Z")
@@ -93,5 +94,14 @@ class LlmopsControllerTest {
         verify(evaluations).start(member, evaluation)
         verify(evaluations).detail(member, "run-1")
         verify(settings).update(member, setting)
+    }
+
+    @Test
+    fun `the optimization route passes the member the prompt name and the request`() {
+        val request = OptimizationRequest(2, 300)
+        val started = OptimizationStartedResponse(true, "character_simulation.act", 2, 300)
+        `when`(optimizations.start(member, "character_simulation.act", request)).thenReturn(started)
+
+        assertSame(started, controller.optimize(member, "character_simulation.act", request))
     }
 }
