@@ -34,11 +34,10 @@ class WorldDocFillService(
         // ponytail: 회차마다 모든 저장 버전을 읽어 마지막 것만 쓴다(최초 구축 입력과 같은 읽기). 버전이 아주 많은 작품은 느려질 수 있다.
         val saved = episodes.list(work, owner.toString()).items.filter { !it.inherited }.mapNotNull { episode -> episode.versions.lastOrNull()?.let { episode.number to it.body } }
         val passages = WorldDocFillInput.passages(WorldDocFillInput.names(card), saved)
-        if (passages.isEmpty()) return WorldDocFillResponse(card.id.toString(), emptyList(), 0, "")
+        if (passages.isEmpty()) return WorldDocFillResponse(emptyList(), 0, "")
         val input = WorldDocFillAiRequest(card.id.toString(), card.title, card.aliases, targets, passages)
         val answer = try { ai.fill(input) } catch (e: InitialWorldCallFailure) { throw failure(e.code) }
-        val output = try { WorldDocFillOutputValidation.parse(input, answer) } catch (_: IllegalArgumentException) { throw failure("AI_OUTPUT_INVALID") }
-        return WorldDocFillResponse(card.id.toString(), output.lines, output.skipped, output.model)
+        return try { WorldDocFillOutputValidation.parse(input, answer) } catch (_: IllegalArgumentException) { throw failure("AI_OUTPUT_INVALID") }
     }
 
     /** 기존 설정집 검토와 같은 오류 코드를 쓴다. 미설정은 503, 시간 초과는 504, 출력 오류와 그 밖(요청 거절·응답 미확인)은 502다. 성공이나 빈 결과로 숨기지 않는다. */

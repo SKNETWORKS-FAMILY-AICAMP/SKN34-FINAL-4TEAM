@@ -28,8 +28,8 @@ class WorldDocFillInputTest {
         assertEquals(listOf("soul"), WorldDocFillInput.targets(person("정체", docs(7))))
     }
 
-    @Test fun `the names are the title and the aliases trimmed, at least two letters and without repeats`() {
-        val card = person(title = " 치삼 ", aliases = listOf("치삼이", "삼", "", "치삼", "  장사꾼  "))
+    @Test fun `the names are the title and the aliases trimmed and at least two letters`() {
+        val card = person(title = " 치삼 ", aliases = listOf("치삼이", "삼", "", "  장사꾼  "))
         assertEquals(listOf("치삼", "치삼이", "장사꾼"), WorldDocFillInput.names(card))
     }
 

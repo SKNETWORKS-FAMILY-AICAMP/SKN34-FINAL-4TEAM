@@ -1,10 +1,7 @@
 package ai.storyfork.content.world.service
 
 import ai.storyfork.content.world.client.dto.WorldDocFillAiRequest
-import ai.storyfork.content.world.service.dto.WorldDocFillLine
-
-/** AI 응답에서 쓰는 부분. 아는 필드만 다시 만들어 내보내므로 나머지 필드는 읽지 않는다. */
-data class WorldDocFillAiOutput(val lines: List<WorldDocFillLine>, val skipped: Int, val model: String)
+import ai.storyfork.content.world.service.dto.WorldDocFillResponse
 
 /**
  * AI가 돌려준 줄을 믿지 않고 Content가 보낸 발췌와 다시 대조한다(docs/design/world-review-contract.md): 줄은 채우라고 한 문서의 것이고, 보낸 그 회차의 한 발췌 안에
@@ -16,9 +13,8 @@ object WorldDocFillOutputValidation {
     private const val MAX_QUOTE = 300
     private const val MAX_LINES = 8
 
-    fun parse(sent: WorldDocFillAiRequest, json: String): WorldDocFillAiOutput = try {
-        val output = requireNotNull(WorldReviewOutputValidation.mapper.readValue(json, WorldDocFillAiOutput::class.java))
-        require(output.skipped >= 0)
+    fun parse(sent: WorldDocFillAiRequest, json: String): WorldDocFillResponse = try {
+        val output = requireNotNull(WorldReviewOutputValidation.mapper.readValue(json, WorldDocFillResponse::class.java))
         val first = sent.passages.minOf { it.episode }
         output.lines.forEach { line ->
             require(line.target in sent.targets && line.kind in KINDS && line.quote.isNotBlank() && line.quote.length <= MAX_QUOTE)

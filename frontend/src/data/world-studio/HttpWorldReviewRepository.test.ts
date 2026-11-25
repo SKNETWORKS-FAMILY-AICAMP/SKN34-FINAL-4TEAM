@@ -195,9 +195,9 @@ describe('HttpWorldReviewRepository 원고로 채우기 제안(#847)', () => {
     { target: 'body', kind: 'description', episode: 2, quote: '키가 작고 얼굴이 검게 탔다.' },
     { target: 'soul', kind: 'fact', episode: 4, quote: '치삼은 말수가 적다.' },
   ]
-  const fillWire = (over: Record<string, unknown> = {}) => ({ cardId: card, lines: LINES, skipped: 1, model: 'gpt-6-luna', ...over })
+  const fillWire = (over: Record<string, unknown> = {}) => ({ lines: LINES, skipped: 1, model: 'gpt-6-luna', ...over })
 
-  it('동의를 싣어 Bearer·CSRF로 카드의 주소에 POST하고 줄과 뺀 줄 수만 읽는다(카드 id·모델은 화면이 쓰지 않는다)', async () => {
+  it('동의를 싣어 Bearer·CSRF로 카드의 주소에 POST하고 줄과 뺀 줄 수만 읽는다(모델은 화면이 쓰지 않는다)', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json(fillWire()))
     const result = await new HttpWorldReviewRepository(fetcher).suggestDocs(world, card)
     const [path, init] = fetcher.mock.calls[0]

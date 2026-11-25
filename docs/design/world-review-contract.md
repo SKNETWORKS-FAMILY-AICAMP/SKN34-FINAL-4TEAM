@@ -134,7 +134,7 @@
 
 응답 200(저장하지 않으며 `Cache-Control: no-store`):
 ```json
-{ "cardId": "<uuid>", "lines": [ { "target": "body|soul", "kind": "fact|description", "episode": 2, "quote": "원고에 글자 그대로 있는 문장" } ], "skipped": 0, "model": "gpt-6-luna" }
+{ "lines": [ { "target": "body|soul", "kind": "fact|description", "episode": 2, "quote": "원고에 글자 그대로 있는 문장" } ], "skipped": 0, "model": "gpt-6-luna" }
 ```
 - `target`은 IDENTITY(카드 본문)=`body`·`soul`, `lines`가 비면 원고에서 근거를 찾지 못한 것이다(AI를 부르지 않은 때는 `model: ""`).
 - Content가 AI 응답을 보낸 발췌와 다시 대조한다: `target`은 채우라고 한 문서, `kind`는 `fact|description`, `quote`는 비어 있지 않은 300자 이하이고 보낸 그 회차의 한 발췌 안에 글자 그대로 있으며, `body` 줄은 첫 등장 회차의 것이고, 문서마다 8줄 이하다. 어긋나면 502 `AI_OUTPUT_INVALID`.

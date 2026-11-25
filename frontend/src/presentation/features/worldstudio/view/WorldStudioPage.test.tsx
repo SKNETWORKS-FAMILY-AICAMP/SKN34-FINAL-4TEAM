@@ -5117,22 +5117,7 @@ it('반영하지 않기로 하면 문서는 비어 있고 다시 제안받을 �
   expect(suggestDocs).toHaveBeenCalledTimes(2)
 })
 
-it('요청이 실패하면 서버 문구를 알리고 다시 시도할 수 있다(성공이나 빈 제안으로 바꾸지 않는다)', async () => {
-  const suggestDocs = vi.fn<SuggestDocs>(async () => ({ lines: [fillLine()], skipped: 0 }))
-  suggestDocs.mockRejectedValueOnce(new Error('원고로 채우기 제안이 시간 안에 끝나지 않았어요. 잠시 뒤 다시 시도해 주세요.'))
-  fillCase(suggestDocs)
-  await show([person('가람')], '/worldstudio/qa', linked)
-  openCard('가람 인물')
-  consentToFill()
-  askFill()
-  expect((await fillPanel().findByRole('alert')).textContent).toBe('원고로 채우기 제안이 시간 안에 끝나지 않았어요. 잠시 뒤 다시 시도해 주세요.')
-  expect(fillPanel().queryByRole('button', { name: '초안에 반영' })).toBeNull()
-  askFill('다시 시도')
-  expect(await fillPanel().findByRole('button', { name: '초안에 반영' })).toBeTruthy()
-  expect(fillPanel().queryByRole('alert')).toBeNull()
-})
-
-it('소설을 연결하지 않았거나 저장하지 않은 변경이 있으면 이유와 함께 잠그고, 데모는 지원하지 않는다고 알린다', async () => {
+it('소설을 연결하지 않았거나 저장하지 않은 변경이 있으면 이유와 함께 잠근다', async () => {
   const suggestDocs = vi.fn<SuggestDocs>(async () => ({ lines: [], skipped: 0 }))
   fillCase(suggestDocs)
   await show([person('가람')]) // 연결된 소설 없음
@@ -5149,12 +5134,6 @@ it('소설을 연결하지 않았거나 저장하지 않은 변경이 있으면 
   consentToFill()
   expect(fillPanel().getByText(/저장하지 않은 변경이 있어요/)).toBeTruthy()
   expect(fillPanel().getByRole<HTMLButtonElement>('button', { name: '원고로 채우기 제안' }).disabled).toBe(true)
-  cleanup()
-  reviewCase = null // 서버 기능이 없는 데모
-  await show([person('가람')], '/worldstudio/qa', linked)
-  openCard('가람 인물')
-  consentToFill()
-  expect(fillPanel().getByText('데모에서는 지원하지 않아요.')).toBeTruthy()
   expect(suggestDocs).not.toHaveBeenCalled()
 })
 

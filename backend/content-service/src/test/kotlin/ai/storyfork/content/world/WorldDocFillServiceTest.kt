@@ -84,7 +84,7 @@ class WorldDocFillServiceTest {
 
         val result = service.fill(world, hero.id, owner, true)
 
-        assertEquals(WorldDocFillResponse(hero.id.toString(), listOf(WorldDocFillLine("body", "description", 2, look)), 1, "gpt-6-luna"), result)
+        assertEquals(WorldDocFillResponse(listOf(WorldDocFillLine("body", "description", 2, look)), 1, "gpt-6-luna"), result)
         verify(ai, times(1)).fill(sent)
     }
 
@@ -103,7 +103,7 @@ class WorldDocFillServiceTest {
 
         val result = service.fill(world, hero.id, owner, true)
 
-        assertEquals(WorldDocFillResponse(hero.id.toString(), emptyList(), 0, ""), result)
+        assertEquals(WorldDocFillResponse(emptyList(), 0, ""), result)
         verifyNoInteractions(ai)
     }
 

@@ -169,9 +169,6 @@ def fill(data: FillRequest) -> FillResponse:
     first = min(p.episode for p in data.passages)
     with tracing.observe('world_review.fill', as_type='chain', input=data.refs()):
         result, meta = agent.fill(data)
-    texts: dict[int, list[str]] = {}
-    for passage in data.passages:
-        texts.setdefault(passage.episode, []).append(passage.text)
     kept, seen, skipped = [], set(), 0
     for line in result.lines:
         quote = line.quote.strip()
@@ -179,7 +176,7 @@ def fill(data: FillRequest) -> FillResponse:
             continue
         seen.add((line.target, quote))
         verified = (line.target in data.targets and (line.target != 'body' or line.episode == first) and 0 < len(quote) <= MAX_QUOTE
-                    and any(quote in text for text in texts.get(line.episode, [])))
+                    and any(p.episode == line.episode and quote in p.text for p in data.passages))
         if verified and sum(other.target == line.target for other in kept) < MAX_FILL_LINES:
             kept.append(line.model_copy(update={'quote': quote}))
         else:

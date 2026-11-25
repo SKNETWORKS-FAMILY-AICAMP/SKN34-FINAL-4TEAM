@@ -26,7 +26,7 @@ class WorldDocFillControllerTest {
     private val card = UUID.randomUUID()
     private val owner = UUID.randomUUID()
     private val principal = Principal { owner.toString() }
-    private val result = WorldDocFillResponse(card.toString(), emptyList(), 0, "gpt-6-luna")
+    private val result = WorldDocFillResponse(emptyList(), 0, "gpt-6-luna")
 
     @Test fun `hands the verified member, the card and the consent flag to the service and never caches the answer`() {
         `when`(service.fill(world, card, owner, true)).thenReturn(result)

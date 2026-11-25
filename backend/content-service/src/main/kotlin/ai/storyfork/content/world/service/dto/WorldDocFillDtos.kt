@@ -7,7 +7,7 @@ package ai.storyfork.content.world.service.dto
 data class WorldDocFillLine(val target: String, val kind: String, val episode: Int, val quote: String)
 
 /**
- * 인물 문서 채우기 응답(docs/design/world-review-contract.md). [lines]가 비면 원고에서 근거를 찾지 못한 것이다(오류가 아니다). [skipped]는 AI가 원고에서
- * 확인하지 못해 뺀 줄 수이고 [model]은 응답한 모델이다(AI를 부르지 않았으면 빈 글). 제안만 돌려주며 카드를 바꾸지도, 결과를 저장하지도 않는다.
+ * 인물 문서 채우기 응답(docs/design/world-review-contract.md)이자 AI 응답에서 읽는 부분이다(아는 필드만 읽고 나머지는 버린다). [lines]가 비면 원고에서 근거를 찾지 못한 것이다(오류가 아니다).
+ * [skipped]는 AI가 원고에서 확인하지 못해 뺀 줄 수이고 [model]은 응답한 모델이다(AI를 부르지 않았으면 빈 글). 제안만 돌려주며 카드를 바꾸지도, 결과를 저장하지도 않는다.
  */
-data class WorldDocFillResponse(val cardId: String, val lines: List<WorldDocFillLine>, val skipped: Int, val model: String)
+data class WorldDocFillResponse(val lines: List<WorldDocFillLine>, val skipped: Int, val model: String)

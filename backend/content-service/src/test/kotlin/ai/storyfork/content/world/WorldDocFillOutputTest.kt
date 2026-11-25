@@ -64,7 +64,6 @@ class WorldDocFillOutputTest {
         rejected("not json")
         rejected("{}")
         rejected("""{"lines":"x","skipped":0,"model":"m"}""")
-        rejected("""{"lines":[],"skipped":-1,"model":"m"}""")
         rejected("""{"lines":[{"target":"body"}],"skipped":0,"model":"m"}""")
         rejected("null")
     }

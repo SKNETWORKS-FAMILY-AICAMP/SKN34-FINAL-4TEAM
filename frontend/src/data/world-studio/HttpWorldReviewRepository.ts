@@ -31,7 +31,7 @@ const review = z.object({
   basis: z.record(uuid, basisCard),
 })
 
-// 원고로 채우기 제안(#847): 줄의 문장은 비어 있지 않고 회차는 1 이상이다. 카드 id·모델은 화면이 쓰지 않아 읽지 않는다.
+// 원고로 채우기 제안(#847): 줄의 문장은 비어 있지 않고 회차는 1 이상이다. 모델은 화면이 쓰지 않아 읽지 않는다.
 const docFill = z.object({
   lines: z.array(z.object({ target: z.enum(['body', 'soul']), kind: z.enum(['fact', 'description']), episode: z.number().int().min(1), quote: z.string().min(1) })),
   skipped: count,

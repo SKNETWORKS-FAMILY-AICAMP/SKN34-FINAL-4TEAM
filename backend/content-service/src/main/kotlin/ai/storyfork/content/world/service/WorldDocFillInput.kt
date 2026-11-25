@@ -21,8 +21,8 @@ object WorldDocFillInput {
         "soul".takeIf { ((card.semanticMetadata["characterDocs"] as? Map<*, *>)?.get("soul") as? String).isNullOrBlank() },
     )
 
-    /** 원고에서 찾을 이름: 제목과 별칭을 다듬고 두 글자 이상만, 같은 이름은 한 번만. */
-    fun names(card: CardPayload): List<String> = (listOf(card.title) + card.aliases).map(String::trim).filter { it.length >= MIN_NAME }.distinct()
+    /** 원고에서 찾을 이름: 제목과 별칭을 다듬고 두 글자 이상만. */
+    fun names(card: CardPayload): List<String> = (listOf(card.title) + card.aliases).map(String::trim).filter { it.length >= MIN_NAME }
 
     /** [episodes](회차 번호 → 저장 원고)에서 [names]가 나온 곳의 발췌를 회차 순서대로. 합계가 [MAX_PASSAGE_CHARS]를 넘기 전의 앞쪽만 담는다. */
     fun passages(names: List<String>, episodes: List<Pair<Int, String>>): List<WorldDocFillAiPassage> {

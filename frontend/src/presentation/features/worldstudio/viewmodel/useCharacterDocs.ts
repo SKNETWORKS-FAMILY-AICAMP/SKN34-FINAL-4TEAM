@@ -114,7 +114,7 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
     notice: notice?.card === cardId ? notice.lines : [],
     /**
      * 비어 있는 정체성·성격·말투 문서의 '원고로 채우기 제안'(#847). 그 밖의 문서에는 없다(null). `proposal`은 요청 전이면 null이고, 받았으면 원고 문장 줄(근거가 없으면 빈 목록)이다.
-     * `apply`는 줄이 있을 때 이 문서의 글을 그 줄들로 바꾼다(제안은 문서가 비어 있을 때만 보인다: 작가가 쓴 글을 덮어쓰지 않는다). `decline`은 반영하지 않기로 한다(초안은 그대로). `busy`는 저장 중이라 반영할 수 없는 때다.
+     * `apply`는 줄이 있을 때 이 문서의 글을 그 줄들로 바꾼다(제안은 문서가 비어 있을 때만 보인다: 작가가 쓴 글을 덮어쓰지 않는다). `decline`은 반영하지 않기로 한다(초안은 그대로). `busy`는 저장 중이라 화면이 반영 버튼을 잠그는 때다.
      */
     fill: target && missing.includes(doc) ? {
       consent: fill.consent,
@@ -126,7 +126,7 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
       busy: studio.busy,
       request: () => void fill.request(cardId),
       apply: () => {
-        if (!proposal?.lines.length || studio.busy) return
+        if (!proposal?.lines.length) return
         write(doc, docFillText(proposal.lines))
         setRevision((n) => n + 1)
         setNotice({ card: cardId, lines: [`원고에서 찾은 ${proposal.lines.length}줄을 초안에 반영했어요. 세계관을 저장해야 서버에 반영돼요.`] })
