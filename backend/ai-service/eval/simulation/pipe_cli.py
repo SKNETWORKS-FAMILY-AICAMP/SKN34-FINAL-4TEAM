@@ -36,7 +36,8 @@ COST_PIPE, COST_OCX = PIPE / 'cost-pipeline.jsonl', PIPE / 'cost-ocx.jsonl'   # 
 SETS = ('1', '3n', '3m')
 EVALUATE = {'1': rn.evaluate_dialogue, '3n': rn.evaluate_narration, '3m': rn.evaluate_narration}
 SUMMARIZE = {'1': rn.summarize_dialogue, '3n': rn.summarize_narration, '3m': rn.summarize_narration}
-STATUS = {'world_failed': '작품 ① 실패', 'no_character': '화자 카드 없음', 'late_card': '카드가 기준 회차보다 늦게 생김', 'docs_missing': 'SOUL 없음(운영이 시작 거절)'}
+STATUS = {'world_failed': '작품 ① 실패', 'no_character': '화자 카드 없음', 'late_card': '카드가 기준 회차보다 늦게 생김', 'docs_missing': 'IDENTITY·SOUL 없음(운영이 시작 거절)'}
+GAPS = {'IDENTITY': 'IDENTITY만', 'SOUL': 'SOUL만', 'IDENTITY+SOUL': '둘 다'}   # docs_missing 문항에서 빈 문서
 
 
 # ---- 순수 부분 ----
@@ -83,6 +84,24 @@ def availability(statuses: dict[str, list[tuple[str, str]]]) -> tuple[dict, dict
             {w: {key: dict(Counter(s for x, s in rows if x == w)) for key, rows in statuses.items()} for w in works})
 
 
+def gap_counts(corpus, rows: dict[str, list[dict]]) -> dict:
+    """세트마다 docs_missing 문항의 빈 필수 문서 내역({'IDENTITY'·'SOUL'·'IDENTITY+SOUL': 문항 수}): 어느 문서가 시작을 막는지."""
+    return {key: dict(Counter(corpus.gaps(i) for i in items if corpus.status(i) == 'docs_missing')) for key, items in rows.items()}
+
+
+def soul_exposure(corpus, works: dict[str, dict], rows: dict[str, list[dict]]) -> dict:
+    """돌 수 있는 인물 문항(대사·독백)의 화자 SOUL에 기준 회차보다 뒤에서만 나온 줄이 얼마나 섞였나: {items, withFuture(그런 줄이 있는 문항), lines(SOUL 줄), futureLines}. 인물 문항이 없으면 {}."""
+    total = Counter()
+    for items in rows.values():
+        for i in items:
+            if i['kind'] == 'narration' or corpus.status(i) != 'ok':
+                continue
+            card = find_character(corpus.worlds[i['work']].payload.cards, i['speaker'])
+            lines, future = ps.soul_future(card, {e['number']: e['text'] for e in works[i['work']]['episodes']}, i['base'])
+            total.update(items=1, withFuture=bool(future), lines=lines, futureLines=future)
+    return dict(total)
+
+
 def claim_run(folder: Path, meta: dict) -> None:
     """한 기록 폴더 = 한 설정. 처음이면 설정을 적고, 다른 설정으로 이어 받으려 하면 호출 전에 멈춘다(공개 회차·모델·채점이 섞인 기록을 막는다)."""
     path = folder / 'meta.json'
@@ -104,7 +123,7 @@ def world_report(work: dict, built, names: set[str]) -> dict:
     """한 작품의 세계관 단·페르소나 단 보고(개수·비율, 원문·카드 본문 없음). names = 이 작품의 평가 문항에 나오는 인물 이름."""
     cards = built.payload.cards
     sources = {e['number']: e['text'] for e in work['episodes']}
-    characters = [c for c in cards if c.cardType == 'character']   # 평가 문항에 안 나온 인물까지 모두: 문서 공백(운영 시뮬레이션이 거절하는 SOUL 없음, 이름으로 채운 IDENTITY)의 기준선
+    characters = [c for c in cards if c.cardType == 'character']   # 평가 문항에 안 나온 인물까지 모두: 문서 공백(SOUL 없음·IDENTITY 빔)의 기준선. identityEmpty는 줄이 없는 IDENTITY라 #839 전(이름으로 채움)·뒤(빈 문자열)가 같은 지표다
     return {'episodes': len(work['episodes']), 'cards': len(cards), 'characters': len(characters), 'soulEmpty': sum(not c.characterDocs.soul.strip() for c in characters),
             'identityEmpty': sum(not ps.LABEL.match(c.body) for c in characters), 'relations': len(built.payload.relations),
             'failures': [[n, code] for n, code in built.failures], 'extraction': ps.extraction_stats(built.extractions.values()),
@@ -135,13 +154,19 @@ def render(result: dict) -> str:
     grounded = lambda *names: ps.ratio(sum(persona['docs'][n]['grounded'] for n in names), sum(persona['docs'][n]['lines'] for n in names))  # noqa: E731
     out = [f"[{result['tag']}] 작품 {total['works']}편 · 카드 {total['cards']}(인물 {total['characters']}) · 관계 {total['relations']} · 추출 실패 회차 {total['failures']}",
            f"인물 카드 {total['characters']}장 중 SOUL 없음 {total['soulEmpty']}장({pct(ps.ratio(total['soulEmpty'], total['characters']))}) · "
-           f"IDENTITY를 이름으로 채움 {total['identityEmpty']}장({pct(ps.ratio(total['identityEmpty'], total['characters']))})",
+           f"IDENTITY 빔 {total['identityEmpty']}장({pct(ps.ratio(total['identityEmpty'], total['characters']))})",
            f"세계관: 인용 통과율 {pct(ex['quotePass'])} · 항목 통과율 {pct(ex['itemPass'])}(남은 {ex['kept']} / 제안 {ex['kept'] + ex['dropped']}) · "
            f"평가 인물 포함률 {pct(total['coverage']['rate'])}({total['coverage']['found']}/{total['coverage']['names']})",
            f"페르소나: 평가 인물 {persona['characters']}명 중 IDENTITY·SOUL이 줄로 있는 인물 {persona['ready']}명 · IDENTITY·SOUL 줄 원문 근거 {pct(grounded('identity', 'soul'))} · "
            f"이름 명시 {pct(ps.ratio(sum(persona['docs'][n]['named'] for n in ('identity', 'soul')), sum(persona['docs'][n]['lines'] for n in ('identity', 'soul'))))}"]
     for key, counts in result['items'].items():
         out.append(f"문항 {oc.NAMES[key]}: " + ' · '.join(f'{STATUS.get(k, k)} {n}({pct(n / sum(counts.values()))})' for k, n in sorted(counts.items(), key=lambda kv: kv[0] != 'ok')))
+    for key, counts in result.get('docGaps', {}).items():
+        if counts:
+            out.append(f"  없는 문서({oc.NAMES[key]}): " + ' · '.join(f'{label} {counts[k]}' for k, label in GAPS.items() if k in counts))
+    if future := result.get('soulFuture'):
+        out.append(f"  SOUL 뒤 회차 노출: 돌 수 있는 인물 문항 {future['items']}개 중 {future['withFuture']}개({pct(ps.ratio(future['withFuture'], future['items']))})의 SOUL에 기준 회차보다 뒤에서만 나온 줄이 있다"
+                   f"(SOUL 줄 {future['lines']}개 중 {future['futureLines']}개, {pct(ps.ratio(future['futureLines'], future['lines']))})")
     for key, sides in result['simulation'].items():
         for kind in ('pipeline', 'hand'):
             if kind in sides:
@@ -269,7 +294,7 @@ def cmd_report(args) -> None:
     entries = [(works[w], b, {name for items in every.values() for i in items if i['work'] == w for name in i['ids']}) for w, b in built.items() if b]
     items, items_by_work = availability({key: [(i['work'], corpus.status(i)) for i in rows] for key, rows in every.items()})
     result = {'tag': args.tag, 'vsTag': args.vs_tag, 'config': json.loads((folder / 'meta.json').read_text()) if (folder / 'meta.json').exists() else None, 'works': sorted(works),
-              'world': world_section(entries), 'items': items, 'itemsByWork': items_by_work, 'simulation': {}}
+              'world': world_section(entries), 'items': items, 'itemsByWork': items_by_work, 'docGaps': gap_counts(corpus, every), 'soulFuture': soul_exposure(corpus, works, every), 'simulation': {}}
     for key in sets:
         done = {kind: list(rn.load_done(rn.run_path(folder, key, kind)).values()) for kind in ('pipeline', 'hand')}
         other = {kind: list(rn.load_done(rn.run_path(RUNS / args.vs_tag, key, kind)).values()) for kind in ('pipeline', 'hand')} if args.vs_tag else None

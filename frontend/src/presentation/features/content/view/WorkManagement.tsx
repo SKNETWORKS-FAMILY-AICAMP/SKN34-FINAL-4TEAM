@@ -155,7 +155,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               coverRevision={vm.coverRevision}
               onMediaBusy={setMediaBusy}
               onSaveInfo={vm.updateWork}
-              onSuggestTags={vm.suggestTags}
               editing={editing}
               onEditingChange={setEditing}
               serialOn={serialLocked}

@@ -201,7 +201,10 @@ jobs:
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull missing --wait --wait-timeout 180 postgres mailpit
           # Neo4j·RabbitMQ·MinIO·Langfuse를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
           # 첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨므로 대기 제한을 600초로 둔다(위 postgres·mailpit만 올릴 때는 180초).
-          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull missing --wait --wait-timeout 600
+          # 1회성 ai-eval-seed는 이 up에서 0개로 둔다. compose --wait는 끝난 컨테이너를 exit 0이어도 실패('exited (0)')로 봐서, seed가 확인 전에 끝나면 배포가 실패한다.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull missing --wait --wait-timeout 600 --scale ai-eval-seed=0
+          # healthy가 된 뒤 seed를 시작만 한다. 실패해도 배포는 실패시키지 않고 `docker compose logs ai-eval-seed`에 남는다.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --no-deps ai-eval-seed
           # 원고 검색 인덱스는 Content 시작 때 생성·검증된다(실패하면 위 --wait가 실패). 고정 리비전 E5 모델은
           # 이 서버 CPU에서 한 번 실제로 실행해 확인한다. 실패하면 이전 이미지를 지우지 않고 CD를 실패시킨다.
           # 이 스크립트는 ssh의 `bash -se` stdin으로 읽히므로, exec가 stdin을 넘기면 남은 줄(마지막 prune)을 먹는다. </dev/null로 막는다.

@@ -4,7 +4,7 @@ app/evaluation/datasets/ 바로 아래에 두면 seed.load()가 Langfuse Dataset
 metadata(license·source·judge)다. metadata.judge가 원문 평가와 같은 채점 입력이다: 인물·직전 장면(모델 입력의 장면은 줄여 있어 채점용 전체 장면을 따로 둔다)·시점 위반 정답표(그 인물이 아직 모르는 사실).
 고전·근대 소설(저작권 만료)과 SCP(CC BY-SA 3.0)는 한 파일에 섞이고 항목마다 metadata.source·license에 출처와 라이선스가 있다.
 
---pool(자동 개선 #823): 게이트 세트가 고르지 않은 나머지 문항을 app/evaluation/datasets/optimize/(seed가 올리지 않는 하위 폴더)에 train·val로 내보낸다.
+--pool(자동 개선 #823): 게이트 세트가 고르지 않은 나머지 문항을 app/evaluation/datasets/optimize/(seed가 Dataset optimize.<세트>로 등록하는 하위 폴더, #868)에 train·val로 내보낸다.
 게이트 세트는 그대로 두고(바꾸면 기준 Run을 다시 만든다) 풀과 한 문항도 겹치지 않아, 게이트 세트가 최적화가 한 번도 보지 못한 검증 세트가 된다.
 """
 

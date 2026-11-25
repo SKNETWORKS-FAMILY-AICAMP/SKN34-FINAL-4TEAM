@@ -9,7 +9,15 @@ from app.optimization import service
 PUBLIC = {'qa.grounding', 'world.conflict', 'writing.fix', 'leak.spoiler'}
 SIMULATION = {'simulation.act', 'simulation.narrate'}
 EXTRACTION = {'extraction.extract'}
-NAMES = PUBLIC | SIMULATION | EXTRACTION
+POOLS = {'optimize.simulation.act', 'optimize.simulation.narrate', 'optimize.extraction.extract'}   # 최적화 풀(#868): Langfuse에는 optimize.<게이트 세트 이름>으로 올라간다
+NAMES = PUBLIC | SIMULATION | EXTRACTION | POOLS
+
+
+@pytest.fixture(autouse=True)
+def offline(monkeypatch):
+    """Langfuse 키가 주입된 셸에서도 풀 읽기(service.load_pool)는 저장소 파일이다."""
+    monkeypatch.delenv('LANGFUSE_PUBLIC_KEY', raising=False)
+    monkeypatch.delenv('LANGFUSE_SECRET_KEY', raising=False)
 
 
 class Langfuse:
@@ -23,6 +31,23 @@ class Langfuse:
 
     def create_dataset_item(self, *, dataset_name, id, input, expected_output, metadata):
         self.items[id] = (dataset_name, input, expected_output, metadata)
+
+
+def test_the_optimization_pools_are_seeded_as_datasets_named_optimize_dot_the_gate_set():
+    data = seed.load()
+
+    assert {name: len(data[name]) for name in POOLS} == {'optimize.simulation.act': 126, 'optimize.simulation.narrate': 54, 'optimize.extraction.extract': 157}
+    for name in POOLS:   # 파일 하나가 Dataset 하나다: 항목 id는 풀 규칙(<게이트 세트>.opt-NNN), 풀이라 모두 train 또는 val이다
+        assert all(it['id'].startswith(name.removeprefix('optimize.') + '.opt-') and it['metadata']['split'] in ('train', 'val') for it in data[name])
+
+
+def test_no_pool_input_is_also_an_input_of_its_gate_set():
+    """업로드가 같은 input을 거절하는 규칙(시험 문제를 학습에 섞지 않는다)의 바탕: 올라가는 기본 세트부터 게이트와 풀이 같은 input을 갖지 않는다."""
+    data = seed.load()
+    canonical = lambda it: json.dumps(it['input'], ensure_ascii=False, sort_keys=True)  # noqa: E731
+
+    for gate in ('simulation.act', 'simulation.narrate', 'extraction.extract'):
+        assert not {canonical(it) for it in data[gate]} & {canonical(it) for it in data[f'optimize.{gate}']}
 
 
 def test_the_four_fixed_sets_are_small_and_sourced_from_expired_copyright_works():
@@ -62,7 +87,7 @@ def test_the_simulation_sets_are_the_public_original_eval_items_one_set_per_inst
         assert len(set(contents)) == len(contents)   # 같은 문항을 두 번 싣지 않는다(평균에 두 배 가중치가 붙는다)
 
 
-POOL = seed.DATASETS / 'optimize' / 'extraction.extract.jsonl'   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
+POOL = seed.DATASETS / 'optimize' / 'extraction.extract.jsonl'   # 최적화 풀: seed가 optimize.extraction.extract Dataset으로 올린다
 HARRY_POTTER = ('해리 포터', '호그와트', '덤블도어', '헤르미온느', '볼드모트')   # 번역본은 저작권이 있어 로컬 오프라인 평가 전용이다
 
 
@@ -130,6 +155,17 @@ def test_register_is_idempotent():
 
     assert first == second and set(first) == NAMES
     assert (langfuse.datasets, langfuse.items) == state and len(langfuse.items) == sum(first.values())
+
+
+def test_register_puts_each_pool_item_in_its_own_optimize_dataset():
+    langfuse = Langfuse()
+
+    seed.register(langfuse)
+
+    assert POOLS <= set(langfuse.datasets)
+    name, input, expected, metadata = langfuse.items['simulation.act.opt-001']
+    assert name == 'optimize.simulation.act' and metadata['split'] in ('train', 'val') and metadata['judge']['facts'] is not None
+    assert langfuse.items['extraction.extract.opt-001'][0] == 'optimize.extraction.extract' and langfuse.items['extraction.extract-01'][0] == 'extraction.extract'
 
 
 def test_register_sends_the_fixed_item_id_input_expected_output_and_metadata():

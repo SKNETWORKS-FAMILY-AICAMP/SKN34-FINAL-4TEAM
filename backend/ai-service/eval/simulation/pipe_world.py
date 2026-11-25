@@ -111,9 +111,14 @@ class PipelineCorpus:
     def facts(self, wid: str, person: dict | None, ep: dict) -> list[dict]:
         return self.hand.facts(wid, person, ep)
 
+    def gaps(self, item: dict) -> str:
+        """화자 카드에서 빈 필수 인물 문서: 'IDENTITY'·'SOUL', 둘 다면 'IDENTITY+SOUL', 모두 있거나 카드를 못 이었으면 ''. 운영 `_filled`와 같은 판정이다(공백뿐인 문서도 빈 문서)."""
+        card = find_character(self.worlds[item['work']].payload.cards, item['speaker'])
+        return '+'.join(n for n, text in (('IDENTITY', card.body), ('SOUL', card.characterDocs.soul)) if not text.strip()) if card else ''
+
     def status(self, item: dict) -> str:
         """이 문항을 파이프라인 세계관으로 돌릴 수 있는가: ok, 아니면 이유 — world_failed(작품의 ①이 실패), no_character(화자 카드를 못 이음),
-        late_card(카드의 첫 등장 회차가 기준 회차보다 늦어 인물 문서에 뒤 회차 글이 든다), docs_missing(필수 인물 문서가 비어 운영 시뮬레이션이 시작을 거절한다)."""
+        late_card(카드의 첫 등장 회차가 기준 회차보다 늦어 인물 문서에 뒤 회차 글이 든다), docs_missing(IDENTITY·SOUL이 비어 운영 시뮬레이션이 시작을 거절한다: #839 뒤 정체 진술이 없는 인물의 IDENTITY는 빈 문자열이다)."""
         pw = self.worlds.get(item['work'])
         if pw is None:
             return 'world_failed'

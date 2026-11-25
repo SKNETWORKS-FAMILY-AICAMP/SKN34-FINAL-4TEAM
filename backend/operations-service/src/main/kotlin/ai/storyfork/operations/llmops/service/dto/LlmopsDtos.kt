@@ -121,15 +121,21 @@ data class EvaluationStartedResponse(val runId: String, val dataset: String, val
 
 // Evaluation datasets (#868): the sets of Langfuse the regression evaluation reads.
 
-/** [prompt] is the prompt that names the set as its evaluation set (the candidate gate), null for a set no prompt names; [itemCount] is all items of the set. */
-data class EvalDataset(val name: String, val prompt: String?, val itemCount: Long, val description: String?)
+/**
+ * [prompt] is the prompt that names the set as its evaluation set (the candidate gate), null for a set no prompt names; [itemCount] is all items of the set.
+ * [kind] is gate (a prompt's evaluation set), pool (optimize.<gate>: what the prompt improvement trains on) or general (any other name).
+ * [lastItemAt] is when the newest item of the set was created (the largest createdAt of its items, null for a set without items or times): a baseline Run that started
+ * before it has not seen the whole set, so the evaluation service does not take it as the baseline (the same maximum, #868).
+ */
+data class EvalDataset(val name: String, val prompt: String?, val kind: String, val itemCount: Long, val lastItemAt: Instant?, val description: String?)
 
 /** One item as Langfuse stores it; the three values are JSON as stored, null when the item has none. */
 data class DatasetItem(val id: String, val input: JsonNode?, val expectedOutput: JsonNode?, val metadata: JsonNode?)
 
 data class DatasetItemPage(val items: List<DatasetItem>, val total: Long)
 
-data class DatasetUploadResponse(val created: Int)
+/** [notice] is a warning for the screen: only an upload to a gate set has one (it makes the next evaluation evaluate the baseline version again). */
+data class DatasetUploadResponse(val created: Int, val kind: String, val notice: String?)
 
 data class LeakCheck(
     val id: UUID, val traceId: String, val workId: String, val checkedAt: Instant, val matched: List<String>, val suspected: Boolean, val reason: String?,

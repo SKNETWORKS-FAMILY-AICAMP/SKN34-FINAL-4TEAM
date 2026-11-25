@@ -73,7 +73,8 @@ describe('결제 내역 (U33)', () => {
     await heldCredits()
     fireEvent.click(screen.getByRole('button', { name: '정책 안내' }))
     const policy = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
-    expect(policy.textContent).toContain('실제 결제나 차감은 없습니다.')
+    expect(policy.textContent).toContain('보유 크레딧과 사용 내역은 이 결제 내역 화면에서 볼 수 있어요.')
+    expect(policy.textContent).not.toContain('실제 결제나 차감은 없습니다.')
   })
 
   it('불러오지 못하면 숨기지 않고 알린 뒤 다시 불러올 수 있다', async () => {

@@ -1,6 +1,6 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
 import type { StorageUsage } from '../entities/storageUsage'
-import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
+import type {WorkRegistration,WorkTaxonomy,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 import type { WorkSettings, WritingMode } from '../entities/operatingSettings'
 
@@ -24,8 +24,6 @@ export interface EpisodeRepository {
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
   workSettings(id: string, signal?: AbortSignal): Promise<WorkSettings>
   updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal): Promise<WorkSettings>
-  /** 작가 본인 작품의 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다. 저장은 하지 않는다. */
-  suggestWorkTags(id: string, signal?: AbortSignal): Promise<WorkTagSuggestion>
   stopForkPublication(id: string, signal?: AbortSignal): Promise<void>
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
   /** 작품과 내 세계관의 1:1 연결(DEC-46). worldId가 null이면 해제한다. */
