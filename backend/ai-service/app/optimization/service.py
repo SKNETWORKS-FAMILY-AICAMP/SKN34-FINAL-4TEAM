@@ -30,7 +30,7 @@ from app.simulation.prompt import SAFETY
 logger = logging.getLogger(__name__)
 
 OPTIMIZABLE = {'character_simulation.act': 'simulation.act', 'character_simulation.narrate': 'simulation.narrate'}   # 프롬프트 → 게이트 세트(최적화 풀 파일 이름도 같다)
-POOLS = Path(__file__).parents[1] / 'evaluation' / 'datasets' / 'optimize'   # seed.load()는 datasets/*.jsonl만 읽으므로 이 하위 폴더는 Langfuse에 올라가지 않는다
+POOLS = Path(__file__).parents[1] / 'evaluation' / 'datasets' / 'optimize'   # 풀 파일(seed가 Dataset optimize.<세트>로 올린다). Langfuse 키가 없는 오프라인 평가는 이 파일을 읽는다
 MIN_GAIN = 0.05   # 최고 후보가 시드보다 이만큼 나아야 저장한다: 지표 표준오차가 0.03~0.08이라 여럿 중 최고가 잡음만으로 시드를 넘는 일을 막는다
 MAX_GROWTH = 2   # 저장할 지시문 길이 상한(기준 본문의 배수)
 UNSUPPORTED = '자동 개선을 지원하지 않는 프롬프트예요.'
@@ -69,15 +69,30 @@ def hold(prompt_name: str):
 
 
 def load_pool(dataset: str) -> tuple[list[dict], list[dict]]:
-    """최적화 풀(게이트 세트와 겹치지 않는 나머지 문항)을 metadata.split으로 (train, val)로 나눈다. 없거나 한쪽이 비면 실행하지 않는다."""
-    try:
-        rows = [json.loads(line) for line in (POOLS / f'{dataset}.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
-    except OSError:
-        raise OptimizationFailure(503, '최적화 풀을 읽을 수 없어요.') from None
+    """최적화 풀(게이트 세트와 겹치지 않는 나머지 문항)을 metadata.split으로 (train, val)로 나눈다. 없거나 한쪽이 비면 실행하지 않는다.
+    Langfuse 키가 있으면 Dataset optimize.<세트>에서 읽는다(운영 화면에서 올린 문항 포함, #868). 읽지 못하면 저장소 파일로 몰래 바꾸지 않고 실패한다.
+    키가 없으면(로컬 오프라인 평가) 지금처럼 저장소 파일이다."""
+    rows = _langfuse_pool(dataset) if tracing.enabled() else _file_pool(dataset)
     train, val = ([row for row in rows if row['metadata'].get('split') == split] for split in ('train', 'val'))
     if not train or not val:
         raise OptimizationFailure(503, '최적화 풀에 train·val 문항이 모두 있어야 해요.')
     return train, val
+
+
+def _file_pool(dataset: str) -> list[dict]:
+    try:
+        return [json.loads(line) for line in (POOLS / f'{dataset}.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
+    except OSError:
+        raise OptimizationFailure(503, '최적화 풀을 읽을 수 없어요.') from None
+
+
+def _langfuse_pool(dataset: str) -> list[dict]:
+    """Dataset optimize.<세트>의 항목을 풀 파일 한 줄과 같은 모양({id, input, expectedOutput, metadata})으로 돌려준다."""
+    try:
+        items = tracing.client().get_dataset(f'optimize.{dataset}').items
+    except Exception:   # 없는 Dataset(NotFoundError)도 포함한다. 외부 SDK 예외 메시지는 입력을 담을 수 있어 고정 문구로만 알린다
+        raise OptimizationFailure(503, f'최적화 풀(optimize.{dataset})을 Langfuse에서 읽을 수 없어요. 세트가 없으면 ai-eval-seed를 다시 실행해 주세요.') from None
+    return [{'id': item.id, 'input': item.input, 'expectedOutput': item.expected_output, 'metadata': item.metadata or {}} for item in items]
 
 
 def rejection(candidate: str, base: str) -> str | None:
@@ -161,12 +176,13 @@ def _optimize(request: OptimizationRequest) -> None:
 
 
 def _ensure_baseline(client, dataset: str, prompt_name: str) -> None:
-    """게이트 세트에 production 버전의 끝난 기준 Run이 없으면 먼저 평가한다: 기준 Run이 없으면 새 버전이 실패 항목만 없어도 통과해 무엇이든 후보가 된다."""
+    """게이트 세트에 production 버전의 유효한 기준 Run(끝났고, 세트의 마지막 문항이 만들어진 뒤에 시작한 Run)이 없으면 먼저 평가한다: 기준 Run이 없으면 새 버전이
+    실패 항목만 없어도 통과해 무엇이든 후보가 된다. production 버전 자신의 평가는 기준과 비교하지 않으니(그 Run이 곧 기준) prepare의 baseline이 아니라 규칙 함수로 묻는다."""
     production = _read(client, prompt_name, label='production', missing=None)
     if production is None:
         return
     plan = evaluation.prepare(EvaluationRequest(dataset=dataset, prompt=prompt_name, version=production.version))
-    if plan.baseline is None:
+    if evaluation.baseline_run(client, plan.dataset, prompt_name, dataset, production) is None:
         _note(baselineRun=plan.run_name)
         _evaluate(plan)
 

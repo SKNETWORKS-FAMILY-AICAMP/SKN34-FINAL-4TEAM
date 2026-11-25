@@ -6,7 +6,9 @@ DeepEval GEval(항목 metadata.criteria)로 채점한다. 항목 input은 객체
 시뮬레이션 세트만 업무 Agent 틀 대신 실제 서비스 호출(app/simulation/agent의 act·narrate에 그 버전 본문)로 만든다(app/evaluation/simulation.py).
 추출 세트(extraction.extract)도 실제 서비스 호출(manuscript_extraction.service.extract에 그 버전 본문)로 만들고 채점 모델 없이 정답표와 코드로 대조한다(recall·quote_ok, app/evaluation/extraction.py).
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
-기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이며 없으면 지표를 비교하지 않는다.
+기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이고, 그 평가 세트의 **마지막 문항이 만들어진 뒤에 시작한** Run만
+유효하다(문항이 더해지면 옛 Run의 점수는 새 문항을 보지 못한 점수라 기준이 아니다, #868). 유효한 기준이 없으면 지표 비교를 건너뛰지 않고 **같은 작업 안에서 production 버전을 먼저 평가해**
+기준을 만든 뒤 후보와 비교한다(그 평가 한 번의 모델 호출·채점 비용이 더 든다). production 버전 자신을 평가하는 요청은 기준과 비교하지 않는다: 그 Run이 곧 기준이다.
 실패한 항목(모델·채점 실패, 입력 형식 오류)은 0점으로 평균에 섞지 않고 점수 없는 실패로 두며 passed는 false다.
 입력·응답 본문은 오류와 로그에 넣지 않는다.
 """
@@ -16,7 +18,7 @@ import json
 import logging
 import os
 import secrets
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from time import sleep
@@ -64,6 +66,7 @@ class Plan:
     tolerance: float
     baseline: Baseline | None
     model: str | None = None  # 요청한 버전이 고른 모델(config.model, #705). 없으면 실행 틀이 OPENAI_MODEL을 쓴다
+    base_version: int | None = None  # 유효한 기준 Run이 없어 이 Run에 앞서 평가할 production 버전(_run이 먼저 평가해 기준을 만든다). 기준이 있거나 production 자신이면 None
 
 
 def name_run(prompt: str, version: int) -> str:
@@ -86,15 +89,15 @@ def prepare(request: EvaluationRequest, run_name: str | None = None) -> Plan:
     prompt = _fetch(client.get_prompt, request.prompt, version=request.version, missing='프롬프트 버전을 찾을 수 없어요.')
     if not isinstance(prompt.prompt, str):  # 채팅 프롬프트는 메시지 목록이라 지시문으로 쓸 수 없다
         raise EvaluationFailure(422, '텍스트 프롬프트만 평가할 수 있어요.')
-    return Plan(request, run_name or name_run(request.prompt, request.version), dataset, prompt.prompt, tolerance,
-                _baseline(client, dataset, request), tracing.model_of(prompt.config))
+    baseline, base_version = _compare_with(client, dataset, request, _fetch(client.get_prompt, request.prompt, label='production'))
+    return Plan(request, run_name or name_run(request.prompt, request.version), dataset, prompt.prompt, tolerance, baseline, tracing.model_of(prompt.config), base_version)
 
 
 def to_job(plan: Plan) -> dict:
     """Celery 태스크(evaluation.run)의 인자: prepare가 확인을 마친 평가 한 건을 JSON으로 만든다. 평가 세트 항목(채점 입력)은 싣지 않고 워커가 이름으로 읽는다.
     프롬프트 본문(instructions)이 들어 있으니 이 값을 로그·오류에 남기지 않는다."""
     return {'request': plan.request.model_dump(), 'runName': plan.run_name, 'instructions': plan.instructions, 'model': plan.model,
-            'tolerance': plan.tolerance, 'baseline': asdict(plan.baseline) if plan.baseline else None}
+            'tolerance': plan.tolerance, 'baseline': asdict(plan.baseline) if plan.baseline else None, 'baseVersion': plan.base_version}
 
 
 def run_job(job: dict) -> None:
@@ -107,7 +110,7 @@ def run_job(job: dict) -> None:
         logger.error('회귀 평가 %s 실패: %s', job['runName'], error)
         raise
     baseline = job['baseline']
-    run(Plan(request, job['runName'], dataset, job['instructions'], job['tolerance'], Baseline(**baseline) if baseline else None, job.get('model')))
+    run(Plan(request, job['runName'], dataset, job['instructions'], job['tolerance'], Baseline(**baseline) if baseline else None, job.get('model'), job.get('baseVersion')))
 
 
 def run(plan: Plan) -> None:
@@ -138,7 +141,10 @@ def leak_check(data: LeakCheckRequest) -> LeakCheckResponse:
     return LeakCheckResponse(suspected=score >= LEAK_THRESHOLD, reason=reason)
 
 
-def _run(plan: Plan) -> None:
+def _run(plan: Plan) -> dict[str, float]:
+    """Run 하나를 만들고 지표 평균을 돌려준다. 기준이 될 Run이 없으면(base_version) production 버전을 먼저 평가해 그 평균을 기준으로 삼는다."""
+    if plan.base_version is not None:
+        plan = replace(plan, baseline=_make_baseline(plan), base_version=None)
     request, baseline = plan.request, plan.baseline
     qa, kind, code = request.dataset.startswith(QA_PREFIX), simulation.KINDS.get(request.dataset), request.dataset == extraction.DATASET
 
@@ -157,11 +163,21 @@ def _run(plan: Plan) -> None:
         max_concurrency=MAX_CONCURRENCY,
         metadata={'prompt': request.prompt, 'version': str(request.version), 'dataset': request.dataset, 'tolerance': str(plan.tolerance),
                   'baselineRun': baseline.run if baseline else '', 'baselineVersion': str(baseline.version) if baseline else ''})
-    _record(tracing.client(), plan, result, _metrics(request.dataset))
+    return _record(tracing.client(), plan, result, _metrics(request.dataset))
 
 
-def _record(client, plan: Plan, result, metrics: tuple[str, ...]) -> None:
-    """Run 수준 점수를 남긴다. 지표를 모두 채점받은 항목만 평균에 넣고 나머지는 실패로 센다."""
+def _make_baseline(plan: Plan) -> Baseline:
+    """유효한 기준 Run이 없을 때 같은 작업 안에서 production 버전을 먼저 평가해 기준을 만든다. 이 Run은 기준과 비교하지 않는다(그 Run이 곧 기준이다).
+    점수를 하나도 남기지 못하면 비교할 기준이 없으니 후보를 평가하지 않고 실패로 끝낸다(기준 없이 지표 비교를 건너뛰지 않는다)."""
+    base = replace(prepare(EvaluationRequest(dataset=plan.request.dataset, prompt=plan.request.prompt, version=plan.base_version)), baseline=None, base_version=None)
+    averages = _run(base)
+    if not averages:
+        raise EvaluationFailure(502, '기준(production) 평가가 점수를 하나도 남기지 못해 비교할 수 없어요.')
+    return Baseline(base.run_name, base.request.version, averages)
+
+
+def _record(client, plan: Plan, result, metrics: tuple[str, ...]) -> dict[str, float]:
+    """Run 수준 점수를 남기고 지표 평균을 돌려준다. 지표를 모두 채점받은 항목만 평균에 넣고 나머지는 실패로 센다."""
     run_id = _run_id(client, plan, result)
     done = [r for r in result.item_results if set(metrics) <= {e.name for e in r.evaluations}]
     total = len(plan.dataset.items)
@@ -172,10 +188,11 @@ def _record(client, plan: Plan, result, metrics: tuple[str, ...]) -> None:
         client.create_score(dataset_run_id=run_id, name=name, value=average, data_type='NUMERIC',
                             metadata={'baseline': baseline.metrics.get(name) if baseline else None, 'delta': deltas.get(name), 'tolerance': plan.tolerance})
     client.create_score(dataset_run_id=run_id, name='passed', value=float(passed), data_type='BOOLEAN',
-                        comment=None if baseline else '기준 Run이 없어 지표를 비교하지 않았습니다.',
+                        comment=None if baseline else '기준 Run과 비교하지 않았습니다(production 버전 자신이거나 기준 Run이 없어요).',
                         metadata={'failedItems': total - len(done), 'totalItems': total, 'tolerance': plan.tolerance,
                                   'baselineRun': baseline.run if baseline else None, 'baselineVersion': baseline.version if baseline else None})
     client.flush()
+    return averages
 
 
 def _run_id(client, plan: Plan, result) -> str:
@@ -277,19 +294,27 @@ def _experiments(client, **query) -> list:
         raise EvaluationFailure(502, LANGFUSE_FAILED) from None
 
 
-def _baseline(client, dataset, request: EvaluationRequest) -> Baseline | None:
-    """기준 Run: 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은(passed 점수와 지표 점수가 모두 있는) Run. production 라벨이나
-    그런 Run이 없으면 None이다.
+def _compare_with(client, dataset, request: EvaluationRequest, production) -> tuple[Baseline | None, int | None]:
+    """(기준 Run, 먼저 평가할 production 버전). production 라벨이 없거나 production 버전 자신을 평가하면 비교하지 않는다(자신의 Run이 곧 기준).
+    그 밖에 유효한 기준 Run이 없으면 production 버전을 같은 작업에서 먼저 평가한다(_run)."""
+    if production is None or production.version == request.version:
+        return None, None
+    baseline = baseline_run(client, dataset, request.prompt, request.dataset, production)
+    return baseline, None if baseline else production.version
 
-    ponytail: 최근 100개 실험만 본다. 같은 세트의 Run이 그보다 많으면 기준을 못 찾아 비교하지 않으니 그때 cursor 페이지를 더한다.
+
+def baseline_run(client, dataset, prompt: str, dataset_name: str, production) -> Baseline | None:
+    """기준 Run: production 버전의 가장 최근에 끝나고 지표 평균이 남은(passed 점수와 지표 점수가 모두 있는) Run 가운데 **평가 세트의 마지막 문항이 만들어진 뒤에 시작한** 것.
+    마지막 문항을 보지 못한 Run의 점수는 기준이 아니다(같은 시각도 뒤가 아니다). 그런 Run이 없으면 None이다. 자동 개선(app/optimization)도 같은 규칙으로 기준 유무를 본다.
+
+    ponytail: 최근 100개 실험만 본다. 같은 세트의 Run이 그보다 많으면 기준을 못 찾아 production 버전을 다시 평가하니 그때 cursor 페이지를 더한다.
     """
-    production = _fetch(client.get_prompt, request.prompt, label='production')
-    if production is None:
-        return None
-    metrics = _metrics(request.dataset)
-    prefix = f'{request.prompt}@v{production.version}-'  # Run 이름(prepare가 정한 형식)으로 찾는다
+    newest = max((item.created_at for item in dataset.items), default=None)
+    metrics = _metrics(dataset_name)
+    prefix = f'{prompt}@v{production.version}-'  # Run 이름(prepare가 정한 형식)으로 찾는다
     for found in _experiments(client, dataset_id=dataset.id, fields='core,scores', limit=100):  # 최근 활동 순
         scores = {s.name: s.value for s in found.scores or []}
-        if found.name.startswith(prefix) and 'passed' in scores and set(metrics) <= scores.keys():
+        if (found.name.startswith(prefix) and 'passed' in scores and set(metrics) <= scores.keys()
+                and (newest is None or (found.start_time is not None and found.start_time > newest))):
             return Baseline(found.name, production.version, {m: float(scores[m]) for m in metrics})
     return None
