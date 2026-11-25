@@ -36,6 +36,7 @@ it('안내는 첫 문장(비공개 원고 포함)과 보조색 세부 문단뿐�
  expect(screen.getByText(/최초 구축을 마친 뒤 새 회차를 처음 발행하면, 세계관 초안 업데이트를 자동으로 요청해요\./).className).toBe('ep-muted')
  expect(screen.queryByText(/서버에서 저장된 원고가 있는지/)).toBeNull()
  expect(screen.queryByText(/저장된 비공개 원고도 대상이에요/)).toBeNull()
+ expect(screen.queryByText(/새 회차도 자동 반영하지 않아요/)).toBeNull()
  expect(screen.getByText(/기존 카드가 있는 세계관은 자동으로 합치지 않아요/).className).toBe('ep-muted')
 })
 it('실패 이유와 동일 작업 재개를 표시하고 완료 후 기존 작업실을 연다',async()=>{
