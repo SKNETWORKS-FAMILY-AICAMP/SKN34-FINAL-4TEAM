@@ -76,8 +76,17 @@ def test_unpassed_tool_error_keeps_502_but_leaves_original_status_and_code_in_lo
         with pytest.raises(ContentMcpFailure) as error:
             service.call('episode_read', {'id': 'work', 'number': 3})
     assert (error.value.status, str(error.value)) == (502, 'Content 작업에 실패했습니다.')
-    assert 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE' in caplog.text and '가' * 300 not in caplog.text
-    assert updates[0]['metadata']['contentError'].startswith('HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE')  # status_message는 observe가 덮는다
+    assert 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE' in caplog.text and '관계 저장' not in caplog.text  # detail은 남기지 않는다
+    assert updates[0]['metadata']['contentError'] == 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE'  # status_message는 observe가 덮는다
+
+
+def test_a_non_http_tool_error_is_logged_without_its_text(monkeypatch, caplog):
+    monkeypatch.setattr(service.tracing, 'client', lambda: type('C', (), {'update_current_span': lambda self, **kw: None})())
+    content(monkeypatch, {'episode_read': (True, 'Error invoking method: cannot deserialize "원고 문장"')})
+    with caplog.at_level('WARNING', logger=service.logger.name):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.call('episode_read', {'id': 'work', 'number': 3})
+    assert error.value.status == 502 and '원고 문장' not in caplog.text and 'HTTP 형식이 아닌 도구 오류' in caplog.text
 
 
 def test_passed_4xx_tool_error_is_not_logged_as_a_warning(monkeypatch, caplog):
