@@ -17,7 +17,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1] / 'novelbrain'))   # met
 from metrics import wilson_interval  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-DATA = HERE / '.data'
+DATA = Path(os.environ.get('EVAL_DATA', HERE / '.data'))   # v2 차수는 .data/v2로 돌려 기준선 캡처·장부를 덮지 않는다
 AI = HERE.parents[1]                                   # backend/ai-service
 HP = AI / 'eval' / 'simulation' / '.data' / 'hp'        # 해리 포터 회차·세계관(hp_episodes.py)
 ENV = Path(os.environ.get('STORYFORK_ENV', AI.parents[1] / '.env'))

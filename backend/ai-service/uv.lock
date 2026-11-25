@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11, <3.15"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
@@ -11,6 +11,18 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform == 'win32'",
     "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+
+[[package]]
+name = "agentevals"
+version = "0.0.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "openevals" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/31/ce/ebc8548e37d7352954980bb791594f262e084405c0bf29e749e44c8b341e/agentevals-0.0.9.tar.gz", hash = "sha256:35131a5e4b60d2a6ac3203d3d15983aa5f9162b8acb1b8700f9b2c777df1150d", size = 40136, upload-time = "2025-07-24T17:46:16.483Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7f/57/d5c3f161dcb74a2d853d44e02850be4341c92a3865d0562c10eca4ffc901/agentevals-0.0.9-py3-none-any.whl", hash = "sha256:4da425c1183fe8d24600e4316a31baca74e2bdc4d5e03d202fc1b314ece4cb02", size = 27453, upload-time = "2025-07-24T17:46:15.27Z" },
 ]
 
 [[package]]
@@ -2146,6 +2158,22 @@ wheels = [
 ]
 
 [[package]]
+name = "openevals"
+version = "0.2.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain" },
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+    { name = "langsmith" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/93/37/40e096d98e34ba8ad128a5951fc5fb197f6540c2f80eaaa0267ffb063269/openevals-0.2.5.tar.gz", hash = "sha256:faa9059142654735ff1f5687a970928f781ba92b59ffdf6681182e2d07490d5a", size = 148956, upload-time = "2026-11-12T20:18:50.611Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f2/78/3775e9d959c1033d7ca637d2dff6f460d1fb92ca60b69323b3634786021d/openevals-0.2.5-py3-none-any.whl", hash = "sha256:60478e53d9ece176c90564dff84f4568b45d92ce40015b1738384f5a9665a03d", size = 112609, upload-time = "2026-11-12T20:18:48.993Z" },
+]
+
+[[package]]
 name = "opentelemetry-api"
 version = "1.45.2"
 source = { registry = "https://pypi.org/simple" }
@@ -3774,6 +3802,7 @@ dev = [
     { name = "pytest" },
 ]
 eval = [
+    { name = "agentevals" },
     { name = "deepeval" },
     { name = "gepa" },
     { name = "ragas" },
@@ -3787,6 +3816,7 @@ manuscript = [
 
 [package.metadata]
 requires-dist = [
+    { name = "agentevals", marker = "extra == 'eval'", specifier = ">=0.0.9" },
     { name = "boto3", specifier = ">=1.40,<2" },
     { name = "celery", specifier = ">=5.6,<5.7" },
     { name = "deepeval", marker = "extra == 'eval'", specifier = ">=4.3.4,<5" },

@@ -14,6 +14,7 @@
 
 import argparse
 import importlib
+import os
 import json
 import sys
 import time
@@ -21,7 +22,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parents[1]))                 # backend/ai-service (app 패키지)
+sys.path.insert(0, os.environ.get('EVAL_APP_ROOT', str(HERE.parents[1])))   # app 패키지: 기본은 이 워크트리, v2는 develop+#826 실행 트리
 
 import common  # noqa: E402
 from common import rate  # noqa: E402,F401  대상 모듈이 run.rate로도 쓴다
