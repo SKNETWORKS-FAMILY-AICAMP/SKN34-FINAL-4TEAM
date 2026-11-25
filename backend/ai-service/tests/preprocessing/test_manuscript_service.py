@@ -270,6 +270,7 @@ def test_unconfirmed_alias_keeps_both_cards_without_suggestion(four):
     rows = extract_four(four)
     identity = service.resolve(rows)
     assert identity.mapping['1:m1'] != identity.mapping['1:m2']
+    assert identity.skippedLinks == 0
     assert service.organize(identity, rows).identityCandidates == []
 
 
@@ -278,6 +279,7 @@ def test_a_link_whose_quote_lacks_both_names_is_dropped_alone(four):
     rows = extract_four(four); identity = service.resolve(rows)
     assert all(d.link.basis != 'explicit_alias' for d in identity.decisions)
     assert identity.mapping['1:m1'] == identity.mapping['4:m1']  # 나머지 링크는 그대로 적용된다
+    assert identity.skippedLinks == 1
     assert service.organize(identity, rows).identityCandidates == []
 
 

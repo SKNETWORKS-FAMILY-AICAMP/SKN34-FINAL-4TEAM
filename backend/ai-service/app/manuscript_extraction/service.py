@@ -189,6 +189,7 @@ def _resolution(rows, proposed):
                 and left.name in link.quote and right.name in link.quote and left.kind == right.kind
                 and (link.basis != 'same_name' or left.name == right.name))
     links = sorted((link for link in proposed.links if sound(link)), key=lambda l: (l.confirmedAt, min(l.left, l.right), max(l.left, l.right)))
+    skipped_links = len(proposed.links) - len(links)
     distinct = [frozenset((l.left, l.right)) for l in links if l.basis == 'distinct']
     decisions = []
     pairs = set()
@@ -206,6 +207,7 @@ def _resolution(rows, proposed):
             else:
                 a, b = sorted((root(link.left), root(link.right)))
                 if any({root(r) for r in p} <= {a, b} for p in distinct):
+                    skipped_links += 1
                     continue  # 다른 대상이라고 가른 쌍을 합치게 되는 링크
                 parent[b] = a
                 status, reason = 'merged', link.basis
@@ -238,7 +240,7 @@ def _resolution(rows, proposed):
             break
     decisions.sort(key=lambda d: (d.link.confirmedAt, min(d.link.left, d.link.right), max(d.link.left, d.link.right)))
     return IdentityResolution(inputHashes={n: _hash(json.dumps(row.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':'))) for n, row in rows.items()},
-                              mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions)
+                              mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions, skippedLinks=skipped_links)
 
 
 def resolve(extractions: dict[int, object]) -> IdentityResolution:
@@ -256,7 +258,8 @@ def organize(identities: object, extractions: dict[int, object]) -> LoadPayload:
         rows = _inputs(extractions)
         identity = IdentityResolution.model_validate(identities)
         checked = _resolution(rows, ProposedResolution(links=[d.link for d in identity.decisions]))
-        _require(identity == checked, 'IDENTITY_INPUT_MISMATCH')
+        # 제외한 링크는 결정 목록에 없으므로 재구성 검증에서 건수만 비교하지 않는다.
+        _require(identity == checked.model_copy(update={'skippedLinks': identity.skippedLinks}), 'IDENTITY_INPUT_MISMATCH')
         return _organize(identity, rows)
     except (ValidationError, ValueError, TypeError, KeyError):
         raise PreprocessingFailure('INVALID_LOAD_PAYLOAD') from None
