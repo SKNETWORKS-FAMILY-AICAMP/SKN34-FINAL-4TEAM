@@ -1,7 +1,11 @@
 package ai.storyfork.operations._common
 
 import ai.storyfork.operations._common.client.UpstreamRejection
+import ai.storyfork.operations._common.exception.CopyrightConfirmRequiredException
+import ai.storyfork.operations._common.exception.DatasetInvalidException
+import ai.storyfork.operations._common.exception.DatasetTooLargeException
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
+import ai.storyfork.operations._common.service.dto.DatasetLineError
 import ai.storyfork.operations._common.service.dto.OperationsErrorResponse
 import ai.storyfork.operations.notice.repository.NoticeRepository
 import ai.storyfork.operations.notice.service.NoticeService
@@ -49,9 +53,11 @@ import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /** Calls the advice directly or through a bare exception resolver; no Spring Boot context or HTTP dispatcher. */
@@ -319,5 +325,37 @@ class OperationsExceptionHandlerTest {
     @Test
     fun `optimizing a prompt that cannot be optimized is a 422 with its own code`() {
         assertError(handler.optimizationUnsupported(), 422, "OPTIMIZATION_UNSUPPORTED", "This prompt cannot be optimized automatically.")
+    }
+
+    @Test
+    fun `a dataset upload without the copyright confirmation is a 400 and a too large one is a 413, each with its own code`() {
+        assertError(handler.copyrightConfirmRequired(), 400, "COPYRIGHT_CONFIRM_REQUIRED", "Confirm that the file contains no copyrighted text.")
+        assertError(handler.datasetTooLarge(), 413, "DATASET_TOO_LARGE", "A dataset file may have 500 lines and 2 MB at most.")
+        val mapping = OperationsExceptionHandler::class.java.declaredMethods
+            .filter { it.isAnnotationPresent(ExceptionHandler::class.java) }
+            .flatMap { method -> method.getAnnotation(ExceptionHandler::class.java).value.map { it.java to method.name } }
+            .toMap()
+        assertEquals("copyrightConfirmRequired", mapping[CopyrightConfirmRequiredException::class.java])
+        // The size limit of the multipart parser fires before a controller exists, and it is the same answer as the line limit.
+        assertEquals("datasetTooLarge", mapping[DatasetTooLargeException::class.java])
+        assertEquals("datasetTooLarge", mapping[MaxUploadSizeExceededException::class.java])
+    }
+
+    @Test
+    fun `the real resolver answers a malformed dataset with every line and reason and an oversized body before any controller`() {
+        val resolver = adviceResolver()
+        fun answer(failure: Exception, status: Int): JsonNode {
+            val response = MockHttpServletResponse()
+            assertNotNull(resolver.resolveException(MockHttpServletRequest("POST", "/api/v1/operations/llmops/datasets/x/items"), response, null, failure))
+            assertEquals(status, response.status)
+            return mapper.readTree(response.getContentAsString(StandardCharsets.UTF_8))
+        }
+
+        val invalid = answer(DatasetInvalidException(listOf(DatasetLineError(3, "JSON으로 읽을 수 없어요."), DatasetLineError(7, "input이 필요해요."))), 400)
+        assertEquals(
+            mapper.readTree("""{"code":"DATASET_INVALID","message":"The dataset file has invalid lines.","errors":[{"line":3,"message":"JSON으로 읽을 수 없어요."},{"line":7,"message":"input이 필요해요."}]}"""),
+            invalid,
+        )
+        assertEquals("DATASET_TOO_LARGE", answer(MaxUploadSizeExceededException(2L * 1024 * 1024), 413)["code"].asString())
     }
 }

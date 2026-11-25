@@ -105,5 +105,6 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 | 경로 | 내용 |
 |---|---|
 | `POST /internal/v1/jobs` `{runId, kind}` | 운영 스케줄러가 접수시킨 정기 작업 실행을 큐(`jobs`)에 올리고 `202`를 돌려줍니다(올리지 못하면 503). 워커가 운영 내부 `POST /internal/v1/jobs/runs/{runId}/execute`를 불러 운영이 기존 handler를 실행하고 상태를 기록합니다. 운영이 거절·장애로 답하면 태스크가 실패로 남고 자동으로 다시 하지 않습니다 |
+| `GET /internal/v1/prompts/default-models` | 프롬프트 버전이 모델을 고르지 않았을 때 각 프롬프트가 실제로 쓰는 모델을 `{models: {<프롬프트 이름>: <모델|null>}}`로 돌려줍니다(#868). 기동 때 등록하는 모든 프롬프트(`app/prompts.py` SEEDS)가 있고 값은 호출 코드가 모델을 정하는 규칙의 환경·상수 쪽 그대로입니다: 대부분 `OPENAI_MODEL`(비면 `null`), 인물 시뮬레이션 호출은 `simulation.agent`가 정하는 값(act는 `SIMULATION_ACT_MODEL`, 비면 `ACT_MODEL`), Decisions를 부르는 `decision_guard.judge`·`character_simulation.direct`는 코드의 고정 모델입니다. 모델·Langfuse를 부르지 않고 운영이 프롬프트 화면의 `effectiveModel`을 채우려고 읽습니다 |
 
 설정은 `INTERNAL_TOKEN`(운영이 AI를 부를 때와 워커가 운영을 부를 때 모두 `X-Internal-Token`)·`OPERATIONS_SERVICE_BASE_URL`(워커가 운영을 부르는 주소)·`AI_CELERY_BROKER_URL`이고 선택 `AI_JOBS_CONCURRENCY`가 있습니다.

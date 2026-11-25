@@ -67,4 +67,15 @@ class ApplicationPropertiesTest {
         // A broker outage must not hold a scheduled check for the 60 second default.
         assertEquals("5s", properties.getProperty("spring.rabbitmq.connection-timeout"))
     }
+
+    @Test
+    fun `an evaluation dataset upload may be 2 MB and the request around it 3 MB`() {
+        val properties = Properties()
+        checkNotNull(javaClass.getResourceAsStream("/application.properties")).use(properties::load)
+
+        // The one multipart route of this service (contract: 500 lines and 2 MB at most). Spring's default of 1 MB would refuse a legal file; the edge
+        // proxy needs the same room (client_max_body_size, checked by infrastructure/ci/test_ci.py).
+        assertEquals("2MB", properties.getProperty("spring.servlet.multipart.max-file-size"))
+        assertEquals("3MB", properties.getProperty("spring.servlet.multipart.max-request-size"))
+    }
 }

@@ -9,6 +9,7 @@ import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import org.springframework.mock.web.MockMultipartFile
 
 /** Spring context나 HTTP 서버 없이 인증 회원 전달과 서비스 인자를 확인한다. */
 class LlmopsControllerTest {
@@ -21,7 +22,8 @@ class LlmopsControllerTest {
     private val settings = mock(LlmopsSettingService::class.java)
     private val pipelines = mock(PipelineService::class.java)
     private val optimizations = mock(OptimizationService::class.java)
-    private val controller = LlmopsController(traces, metrics, prompts, models, evaluations, leakChecks, settings, pipelines, optimizations)
+    private val datasets = mock(DatasetService::class.java)
+    private val controller = LlmopsController(traces, metrics, prompts, models, evaluations, leakChecks, settings, pipelines, optimizations, datasets)
     private val member = OperationsMember(UUID.randomUUID(), true)
     private val from = Instant.parse("2026-11-18T00:00:00Z")
     private val to = Instant.parse("2026-11-19T00:00:00Z")
@@ -103,5 +105,20 @@ class LlmopsControllerTest {
         `when`(optimizations.start(member, "character_simulation.act", request)).thenReturn(started)
 
         assertSame(started, controller.optimize(member, "character_simulation.act", request))
+    }
+
+    @Test
+    fun `the dataset routes pass the member the set name the page and the uploaded file`() {
+        val sets = listOf(EvalDataset("simulation.act", "character_simulation.act", 24, null))
+        val page = DatasetItemPage(emptyList(), 0)
+        val uploaded = DatasetUploadResponse(3)
+        val file = MockMultipartFile("file", "set.jsonl", "application/octet-stream", """{"input":"a"}""".toByteArray())
+        `when`(datasets.list(member)).thenReturn(sets)
+        `when`(datasets.items(member, "simulation.act", 2, 50)).thenReturn(page)
+        `when`(datasets.upload(member, "simulation.act", file, true)).thenReturn(uploaded)
+
+        assertSame(sets, controller.datasets(member))
+        assertSame(page, controller.datasetItems(member, "simulation.act", 2, 50))
+        assertSame(uploaded, controller.uploadDatasetItems(member, "simulation.act", file, true))
     }
 }

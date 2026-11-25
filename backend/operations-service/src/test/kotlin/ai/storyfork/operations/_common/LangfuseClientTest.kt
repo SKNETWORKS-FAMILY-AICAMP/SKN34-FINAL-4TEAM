@@ -571,4 +571,81 @@ class LangfuseClientTest {
         assertEquals(100, client(factory).experimentItems("e-1", from).size)
         assertEquals(1, factory.calls.size)
     }
+
+    @Test
+    fun `datasets are listed page by page through the v2 datasets API`() {
+        val factory = RecordingRequestFactory { call ->
+            val page = call.query.getValue("page").single()
+            Reply(200, """{"data":[{"id":"d-$page","name":"set-$page","description":null}],"meta":{"page":$page,"limit":100,"totalItems":2,"totalPages":2}}""")
+        }
+
+        val datasets = client(factory).datasets()
+
+        assertEquals(listOf("set-1", "set-2"), datasets.map { it.path("name").asString() })
+        assertEquals(setOf("/api/public/v2/datasets"), factory.calls.map { it.uri.path }.toSet())
+        assertEquals(listOf("1", "2"), factory.calls.map { it.query.getValue("page").single() })
+        assertEquals(listOf("100"), factory.calls[0].query["limit"])
+    }
+
+    @Test
+    fun `a dataset is read by its name as a URI variable and a missing one stays 404`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"id":"d-1","name":"a/b"}""") }
+
+        assertEquals("d-1", client(factory).dataset("a/b").path("id").asString())
+
+        // A slash in the name is encoded, so a name can never add a path segment.
+        assertEquals("/api/public/v2/datasets/a%2Fb", factory.calls.single().uri.rawPath)
+        assertEquals(404, status { client(RecordingRequestFactory { Reply(404) }).dataset("nope") })
+        assertEquals(502, status { client(RecordingRequestFactory { Reply(500) }).dataset("nope") })
+    }
+
+    @Test
+    fun `a page of dataset items is read by dataset name page and limit and carries the total`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"data":[{"id":"i-1"},{"id":"i-2"}],"meta":{"page":2,"limit":20,"totalItems":57,"totalPages":3}}""") }
+
+        val page = client(factory).datasetItems("simulation.act", 2, 20)
+
+        assertEquals(listOf("i-1", "i-2"), page.items.map { it.path("id").asString() })
+        assertEquals(57L, page.total)
+        val call = factory.calls.single()
+        assertEquals(HttpMethod.GET, call.method)
+        assertEquals("/api/public/dataset-items", call.uri.path)
+        assertEquals(mapOf("datasetName" to listOf("simulation.act"), "page" to listOf("2"), "limit" to listOf("20")), call.query)
+    }
+
+    @Test
+    fun `an item is created in a named dataset with only the fields it has and its id comes back`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"id":"item-9","datasetName":"simulation.act"}""") }
+        val langfuse = client(factory)
+
+        assertEquals("item-9", langfuse.createDatasetItem("simulation.act", mapper.readTree("""{"q":1}"""), null, null))
+        langfuse.createDatasetItem("simulation.act", mapper.readTree("\"질문\""), mapper.readTree("\"답\""), mapper.readTree("""{"source":"x"}"""))
+
+        val (bare, full) = factory.calls
+        assertEquals(HttpMethod.POST, bare.method)
+        assertEquals("/api/public/dataset-items", bare.uri.path)
+        assertEquals("application/json", bare.headers.contentType.toString())
+        assertEquals(mapper.readTree("""{"datasetName":"simulation.act","input":{"q":1}}"""), mapper.readTree(bare.body))
+        assertEquals(mapper.readTree("""{"datasetName":"simulation.act","input":"질문","expectedOutput":"답","metadata":{"source":"x"}}"""), mapper.readTree(full.body))
+    }
+
+    @Test
+    fun `an answer without the created id is a broken Langfuse answer and a refused write keeps 400 404 and 409`() {
+        assertEquals(502, status { client(RecordingRequestFactory { Reply(200, """{"datasetName":"x"}""") }).createDatasetItem("x", mapper.readTree("1"), null, null) })
+        for ((refused, expected) in listOf(400 to 400, 404 to 404, 409 to 409, 401 to 502, 500 to 502)) {
+            assertEquals(expected, status { client(RecordingRequestFactory { Reply(refused) }).createDatasetItem("x", mapper.readTree("1"), null, null) }, refused.toString())
+        }
+    }
+
+    @Test
+    fun `an item is deleted by its id`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"message":"deleted"}""") }
+
+        client(factory).deleteDatasetItem("item/9")
+
+        val call = factory.calls.single()
+        assertEquals(HttpMethod.DELETE, call.method)
+        assertEquals("/api/public/dataset-items/item%2F9", call.uri.rawPath)
+        assertEquals(502, status { client(RecordingRequestFactory { Reply(500) }).deleteDatasetItem("x") })
+    }
 }

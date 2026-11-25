@@ -3,8 +3,10 @@ package ai.storyfork.operations._common.client
 import java.net.URI
 import java.time.Instant
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriBuilder
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -14,6 +16,9 @@ data class ObservationUsage(val traceId: String, val model: String?, val inputTo
 
 /** One page of observations, newest first (a root per trace for the trace list, the observations of a node for the pipeline), and how many match in all. */
 class TraceRoots(val items: List<JsonNode>, val total: Long)
+
+/** One page of the items of a dataset and how many it has in all. */
+class DatasetItems(val items: List<JsonNode>, val total: Long)
 
 /** How many observations carry one name at one level under one prompt (the prompt of the model call, if any). */
 data class ObservationGroup(val name: String, val level: String, val promptName: String?, val count: Long)
@@ -66,7 +71,7 @@ private fun window(from: Instant?, to: Instant?) =
  * Langfuse Public API (Basic auth with the project keys, see [langfuseRestClient]): the v4 read APIs (Observations v2, Metrics v2, Experiments, Scores v3;
  * the traces, sessions, v1 metrics and dataset-run endpoints answer 404 there). Responses stay [JsonNode]: the services read only the fields a screen
  * needs. Every user-controlled value goes in as a URI variable, so reserved characters can never add or change a parameter. A 404 on a prompt read is a
- * missing record and keeps its status, and 400/404/409 on writes; every other failure, a 404 of the v4 read APIs included (it means a server or URL
+ * missing record (so does one on a dataset read) and keeps its status, and 400/404/409 on writes; every other failure, a 404 of the v4 read APIs included (it means a server or URL
  * that does not serve them), and a bad key (401/403) is a 502, not the admin's own 401.
  */
 class LangfuseClient(private val http: RestClient, private val mapper: JsonMapper) {
@@ -169,6 +174,30 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
         send(HttpMethod.PATCH, "/api/public/v2/prompts/{name}/versions/{version}", mapOf("name" to name, "version" to version), mapOf("newLabels" to labels))
 
     fun models(): List<JsonNode> = pages("/api/public/models")
+
+    /** Every dataset of the project (the evaluation sets the AI service registers and the ones uploaded since), 100 per page. */
+    fun datasets(): List<JsonNode> = pages("/api/public/v2/datasets")
+
+    /** One dataset by name; a missing one is a 404, which is how a write to an unknown set is refused. */
+    fun dataset(name: String): JsonNode = get("/api/public/v2/datasets/{name}", mapOf("name" to name))
+
+    /** A page (1-based) of the items of one dataset in Langfuse's order, with the dataset's total from the pagination meta. */
+    fun datasetItems(name: String, page: Int, limit: Int): DatasetItems {
+        val body = get("/api/public/dataset-items", params = listOf("datasetName" to name, "page" to page, "limit" to limit))
+        return DatasetItems(body.path("data").values().toList(), body.path("meta").path("totalItems").asLong())
+    }
+
+    /** Creates one item without an id of ours (Langfuse makes one) and returns it, so that an upload that fails halfway can take back what it made. */
+    fun createDatasetItem(dataset: String, input: JsonNode, expectedOutput: JsonNode?, metadata: JsonNode?): String {
+        val body = mutableMapOf<String, Any?>("datasetName" to dataset, "input" to input)
+        expectedOutput?.let { body["expectedOutput"] = it }
+        metadata?.let { body["metadata"] = it }
+        return send(HttpMethod.POST, "/api/public/dataset-items", emptyMap(), body).path("id").textOrNull() ?: throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
+    }
+
+    fun deleteDatasetItem(id: String) {
+        upstream { http.delete().uri { uri(it, "/api/public/dataset-items/{id}", mapOf("id" to id), emptyList()) }.retrieve().toBodilessEntity() }
+    }
 
     fun createModel(body: Map<String, Any?>): JsonNode = send(HttpMethod.POST, "/api/public/models", emptyMap(), body)
 

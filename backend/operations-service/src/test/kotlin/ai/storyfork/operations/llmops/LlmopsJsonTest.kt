@@ -76,7 +76,7 @@ class LlmopsJsonTest {
     @Test
     fun `a prompt with its versions and evaluation has the contract fields`() {
         val tree = tree(PromptListResponse(listOf(Prompt("qa/answer", listOf(
-            PromptVersion(2, listOf("production"), at, PromptEvaluation("run-1", true, at), "gpt-x", json("\"지시\"")), PromptVersion(1, emptyList(), null, null),
+            PromptVersion(2, listOf("production"), at, PromptEvaluation("run-1", true, at), "gpt-x", json("\"지시\""), null, "gpt-x", "version"), PromptVersion(1, emptyList(), null, null),
         ), 2, "qa.grounding"))))
 
         val prompt = tree.path("items").path(0)
@@ -87,7 +87,10 @@ class LlmopsJsonTest {
         assertEquals(listOf(2, "qa.grounding"), listOf(prompt.path("candidates").asInt(), prompt.path("evaluationDataset").asString()))
         // model is the version's config.model and prompt the body (detail only); both are null when absent (#705).
         // commitMessage is the version's note, detail only like prompt (#807).
-        assertEquals(listOf("version", "labels", "createdAt", "evaluation", "model", "prompt", "commitMessage"), prompt.path("versions").path(0).names())
+        // effectiveModel is the model the version really runs on and modelSource where that comes from (#868); both are null when the AI service could not say.
+        assertEquals(listOf("version", "labels", "createdAt", "evaluation", "model", "prompt", "commitMessage", "effectiveModel", "modelSource"), prompt.path("versions").path(0).names())
+        assertEquals(listOf("gpt-x", "version"), listOf(prompt.path("versions").path(0).path("effectiveModel").asString(), prompt.path("versions").path(0).path("modelSource").asString()))
+        assertTrue(prompt.path("versions").path(1).path("effectiveModel").isNull && prompt.path("versions").path(1).path("modelSource").isNull)
         assertEquals(listOf("gpt-x", "지시"), listOf(prompt.path("versions").path(0).path("model").asString(), prompt.path("versions").path(0).path("prompt").asString()))
         assertTrue(prompt.path("versions").path(1).path("model").isNull && prompt.path("versions").path(1).path("prompt").isNull)
         assertEquals(listOf("runId", "passed", "createdAt"), prompt.path("versions").path(0).path("evaluation").names())
