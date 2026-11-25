@@ -114,7 +114,7 @@ const occurrences = (text: string, part: string) => (part === '' ? [...text].len
  * identity·soul·goal 문서의 진술, 두 끝점이 모두 설정 대상이고 한쪽이 인물인 관계입니다(extraction.py의 partition과 같다).
  */
 function hasSettingCore(body: string, { mentions, statements, relationships }: Gold) {
-  const isSetting = ({ name, kind, aliases }: Mention) => kind !== 'object' || Math.max(...[name, ...aliases].map((word) => occurrences(body, word))) >= MIN_OBJECT_MENTIONS
+  const isSetting = ({ name, kind, aliases }: Mention) => kind !== 'object' || [name, ...aliases].some((word) => occurrences(body, word) >= MIN_OBJECT_MENTIONS)
   const byName = new Map(mentions.map((mention) => [mention.name, mention]))   // 같은 이름이 둘이면 뒤의 대상이다(채점기의 by_name과 같다)
   return mentions.some((mention) => mention.core && isSetting(mention)) || statements.some((statement) => statement.core && SETTING_DOCUMENTS.includes(statement.document)) ||
     relationships.some(({ source, target, core }) => {

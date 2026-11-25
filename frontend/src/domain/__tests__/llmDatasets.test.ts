@@ -272,6 +272,13 @@ describe('세트 종류별 필수 칸(세트 이름으로 정하고 최적화 �
     expect(check('😀😀', '😀')).toEqual([])
   })
 
+  it('별칭이 아주 많아도(2MB 안의 한 줄에 수십만 개) 검사가 예외 없이 끝난다: 이름·별칭을 인자로 펼쳐 최댓값을 구하지 않고 하나라도 두 번 이상 나오면 설정으로 센다', () => {
+    const aliases = Array.from({ length: 300_000 }, () => '')
+    const table = gold({ mentions: [mention('x', 'object', true, aliases)] })
+    expect(goldProblem(table, { ...EPISODE, body: 'xx' })).toEqual([])
+    expect(goldProblem(table, { ...EPISODE, body: '' })).toEqual([MSG.noCore])   // 빈 본문에서는 이름(x)이 0번, 빈 별칭도 글자 수 + 1 = 1번뿐이라 설정이 아니다
+  })
+
   it('Q&A 세트(qa.로 시작: 게이트 qa.grounding과 이름이 qa.로 시작하는 세트, 풀 포함)는 input.question(비지 않은 글)과 input.contexts(비지 않은 글 목록)가 필요하다', () => {
     for (const bad of [{ contexts: ['근거'] }, { question: ' ', contexts: ['근거'] }, { question: 3, contexts: ['근거'] }]) expect([JSON.stringify(bad), problem('qa.grounding', { ...QA, input: bad })]).toEqual([JSON.stringify(bad), [MSG.question]])
     for (const bad of [{ question: '질문' }, { question: '질문', contexts: [] }, { question: '질문', contexts: '근거' }, { question: '질문', contexts: ['근거', 3] }, { question: '질문', contexts: ['근거', ' '] }]) {
