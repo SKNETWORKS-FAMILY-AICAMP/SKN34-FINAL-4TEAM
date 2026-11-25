@@ -1,0 +1,169 @@
+{
+ "target": "editing",
+ "mode": "G",
+ "source": "editing-G.jsonl",
+ "cases": 80,
+ "captures": 80,
+ "usd": {
+  "total": 0.126,
+  "note": "공유 장부의 대상 태그 합계(생성+채점). 병렬 워커가 같은 장부를 써 사례별 차이값은 버렸다"
+ },
+ "ms_p50": 5643,
+ "summary": {
+  "measured": {
+   "n": 80,
+   "of": 80
+  },
+  "constraints": {
+   "k": 60,
+   "n": 60,
+   "value": 1.0,
+   "low": 0.9398,
+   "high": 1.0
+  },
+  "exact": {
+   "k": 16,
+   "n": 20,
+   "value": 0.8,
+   "low": 0.584,
+   "high": 0.9193
+  },
+  "fn": {
+   "mean": 0.2,
+   "n": 10
+  },
+  "fp": {
+   "mean": 0.2,
+   "n": 10
+  },
+  "out_of_scope_chars": {
+   "mean": 0.3,
+   "n": 20
+  },
+  "quality": {
+   "mean": 3.8889,
+   "n": 45
+  },
+  "tp": {
+   "mean": 1.8,
+   "n": 10
+  },
+  "untouched_outside": {
+   "k": 16,
+   "n": 20,
+   "value": 0.8,
+   "low": 0.584,
+   "high": 0.9193
+  },
+  "violation": {
+   "k": 7,
+   "n": 45,
+   "value": 0.1556,
+   "low": 0.0775,
+   "high": 0.2878
+  },
+  "by_family": {
+   "draft": {
+    "constraints": {
+     "k": 15,
+     "n": 15,
+     "value": 1.0,
+     "low": 0.7961,
+     "high": 1.0
+    },
+    "quality": {
+     "mean": 3.9333,
+     "n": 15
+    },
+    "violation": {
+     "k": 3,
+     "n": 15,
+     "value": 0.2,
+     "low": 0.0705,
+     "high": 0.4519
+    }
+   },
+   "patch": {
+    "constraints": {
+     "k": 10,
+     "n": 10,
+     "value": 1.0,
+     "low": 0.7225,
+     "high": 1.0
+    },
+    "exact": {
+     "k": 16,
+     "n": 20,
+     "value": 0.8,
+     "low": 0.584,
+     "high": 0.9193
+    },
+    "fn": {
+     "mean": 0.2,
+     "n": 10
+    },
+    "fp": {
+     "mean": 0.2,
+     "n": 10
+    },
+    "out_of_scope_chars": {
+     "mean": 0.3,
+     "n": 20
+    },
+    "quality": {
+     "mean": 4.4,
+     "n": 10
+    },
+    "tp": {
+     "mean": 1.8,
+     "n": 10
+    },
+    "untouched_outside": {
+     "k": 16,
+     "n": 20,
+     "value": 0.8,
+     "low": 0.584,
+     "high": 0.9193
+    },
+    "violation": {
+     "k": 1,
+     "n": 10,
+     "value": 0.1,
+     "low": 0.0179,
+     "high": 0.4042
+    }
+   },
+   "plan": {
+    "constraints": {
+     "k": 20,
+     "n": 20,
+     "value": 1.0,
+     "low": 0.8389,
+     "high": 1.0
+    },
+    "quality": {
+     "mean": 3.6,
+     "n": 20
+    },
+    "violation": {
+     "k": 3,
+     "n": 20,
+     "value": 0.15,
+     "low": 0.0524,
+     "high": 0.3604
+    }
+   },
+   "revise_plan": {
+    "constraints": {
+     "k": 15,
+     "n": 15,
+     "value": 1.0,
+     "low": 0.7961,
+     "high": 1.0
+    }
+   }
+  },
+  "spelling_f1": 0.9
+ },
+ "failed_cases": []
+}

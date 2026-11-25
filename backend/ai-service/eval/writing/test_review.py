@@ -41,3 +41,10 @@ def test_inserted_errors_are_at_the_recorded_positions_of_the_changed_text():
     assert len(spans) == 3 and changed != text
     for s in spans:
         assert changed[s['start']:s['end']] == s['wrong'] and s['wrong'] != s['correct']
+
+
+def test_recall_by_category_counts_only_contradiction_rows_even_when_controls_share_the_category():
+    cases = {'a': {'family': 'contradiction', 'category': 'x'}, 'b': {'family': 'control', 'category': 'x'}}
+    scored = [('a', 0, {}, {'measured': 1, 'detected': 1, 'detected_confirmed': 1}),
+              ('b', 0, {}, {'measured': 1, 'false_alarm_confirmed': 0, 'false_alarm_suspected': 0})]
+    assert review.summary(cases, scored)['recall_by_category']['x']['n'] == 1

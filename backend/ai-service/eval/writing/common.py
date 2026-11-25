@@ -46,10 +46,17 @@ class Ledger:
 
     def __init__(self, path: Path, limit: float = LIMIT_USD):
         self.path, self.limit, self.tag = Path(path), limit, ''
+        self.own = 0.0   # 이 프로세스가 쓴 몫. 장부는 병렬 워커와 함께 쓰므로 사례별 비용은 spent() 차이가 아니라 이것으로 센다
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def rows(self) -> list[dict]:
-        return [json.loads(line) for line in self.path.read_text(encoding='utf-8').splitlines() if line.strip()] if self.path.exists() else []
+        rows = []
+        for line in self.path.read_text(encoding='utf-8').splitlines() if self.path.exists() else []:
+            try:
+                rows.append(json.loads(line))
+            except ValueError:   # 워커 여럿이 같은 장부에 쓰다 끊긴 줄은 건너뛴다
+                pass
+        return rows
 
     def spent(self) -> float:
         return sum(r['usd'] for r in self.rows())
@@ -61,6 +68,7 @@ class Ledger:
     def charge(self, usage: tuple[int, int, int], model: str, kind: str) -> float:
         tokens_in, tokens_out, cached = usage
         cost = ((tokens_in - cached) * PRICE_IN + cached * PRICE_CACHED + tokens_out * PRICE_OUT) / 1_000_000
+        self.own += cost
         with self.path.open('a', encoding='utf-8') as file:
             file.write(json.dumps({'ts': round(time.time()), 'kind': kind, 'model': model, 'in': tokens_in, 'out': tokens_out,
                                    'cached': cached, 'usd': cost, 'tag': self.tag}) + '\n')

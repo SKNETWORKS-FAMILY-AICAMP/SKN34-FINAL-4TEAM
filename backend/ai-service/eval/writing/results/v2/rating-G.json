@@ -2,144 +2,294 @@
  "target": "rating",
  "mode": "G",
  "source": "rating-G.jsonl",
- "cases": 3,
- "captures": 3,
+ "cases": 74,
+ "captures": 74,
  "usd": {
-  "generate": 0.028,
-  "judge": 0
+  "total": 0.108,
+  "note": "공유 장부의 대상 태그 합계(생성+채점). 병렬 워커가 같은 장부를 써 사례별 차이값은 버렸다"
  },
- "ms_p50": 15058,
+ "ms_p50": 7480,
  "summary": {
   "measured": {
-   "n": 3,
-   "of": 3
+   "n": 64,
+   "of": 74
   },
   "adult_case": {
-   "k": 1,
-   "n": 3,
-   "value": 0.3333,
-   "low": 0.0615,
-   "high": 0.7923
+   "k": 11,
+   "n": 64,
+   "value": 0.1719,
+   "low": 0.0988,
+   "high": 0.2821
   },
   "correct": {
-   "k": 2,
-   "n": 3,
-   "value": 0.6667,
-   "low": 0.2077,
-   "high": 0.9385
+   "k": 43,
+   "n": 64,
+   "value": 0.6719,
+   "low": 0.55,
+   "high": 0.7743
   },
   "missed_adult": {
-   "k": 0,
-   "n": 3,
-   "value": 0.0,
-   "low": 0.0,
-   "high": 0.5615
+   "k": 5,
+   "n": 64,
+   "value": 0.0781,
+   "low": 0.0338,
+   "high": 0.1702
   },
   "over_rated": {
-   "k": 1,
-   "n": 3,
-   "value": 0.3333,
-   "low": 0.0615,
-   "high": 0.7923
+   "k": 16,
+   "n": 64,
+   "value": 0.25,
+   "low": 0.1601,
+   "high": 0.3682
   },
   "by_family": {
    "fixed": {
     "adult_case": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 2,
+     "n": 4,
+     "value": 0.5,
+     "low": 0.15,
+     "high": 0.85
     },
     "correct": {
-     "k": 1,
-     "n": 1,
+     "k": 4,
+     "n": 4,
      "value": 1.0,
-     "low": 0.2065,
+     "low": 0.5101,
      "high": 1.0
     },
     "missed_adult": {
      "k": 0,
-     "n": 1,
+     "n": 4,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.4899
     },
     "over_rated": {
      "k": 0,
-     "n": 1,
+     "n": 4,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.4899
     }
    },
    "hp-calm": {
     "adult_case": {
      "k": 0,
-     "n": 1,
+     "n": 20,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.1611
     },
     "correct": {
-     "k": 0,
-     "n": 1,
-     "value": 0.0,
-     "low": 0.0,
-     "high": 0.7935
+     "k": 10,
+     "n": 20,
+     "value": 0.5,
+     "low": 0.2993,
+     "high": 0.7007
     },
     "missed_adult": {
      "k": 0,
-     "n": 1,
+     "n": 20,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.1611
+    },
+    "over_rated": {
+     "k": 10,
+     "n": 20,
+     "value": 0.5,
+     "low": 0.2993,
+     "high": 0.7007
+    }
+   },
+   "hp-violent": {
+    "adult_case": {
+     "k": 0,
+     "n": 7,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.3543
+    },
+    "correct": {
+     "k": 6,
+     "n": 7,
+     "value": 0.8571,
+     "low": 0.4869,
+     "high": 0.9743
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 7,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.3543
     },
     "over_rated": {
      "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "n": 7,
+     "value": 0.1429,
+     "low": 0.0257,
+     "high": 0.5131
+    }
+   },
+   "language-clean": {
+    "adult_case": {
+     "k": 0,
+     "n": 4,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.4899
+    },
+    "correct": {
+     "k": 1,
+     "n": 4,
+     "value": 0.25,
+     "low": 0.0456,
+     "high": 0.6994
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 4,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.4899
+    },
+    "over_rated": {
+     "k": 3,
+     "n": 4,
+     "value": 0.75,
+     "low": 0.3006,
+     "high": 0.9544
     }
    },
    "language-heavy": {
     "adult_case": {
      "k": 0,
-     "n": 1,
+     "n": 2,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.6576
     },
     "correct": {
-     "k": 1,
-     "n": 1,
+     "k": 2,
+     "n": 2,
      "value": 1.0,
-     "low": 0.2065,
+     "low": 0.3424,
      "high": 1.0
     },
     "missed_adult": {
      "k": 0,
-     "n": 1,
+     "n": 2,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.6576
     },
     "over_rated": {
      "k": 0,
-     "n": 1,
+     "n": 2,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.6576
+    }
+   },
+   "synthetic-adult": {
+    "adult_case": {
+     "k": 9,
+     "n": 9,
+     "value": 1.0,
+     "low": 0.7008,
+     "high": 1.0
+    },
+    "correct": {
+     "k": 4,
+     "n": 9,
+     "value": 0.4444,
+     "low": 0.1888,
+     "high": 0.7334
+    },
+    "missed_adult": {
+     "k": 5,
+     "n": 9,
+     "value": 0.5556,
+     "low": 0.2666,
+     "high": 0.8112
+    },
+    "over_rated": {
+     "k": 0,
+     "n": 9,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2992
+    }
+   },
+   "synthetic-border": {
+    "adult_case": {
+     "k": 0,
+     "n": 8,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.3244
+    },
+    "correct": {
+     "k": 8,
+     "n": 8,
+     "value": 1.0,
+     "low": 0.6756,
+     "high": 1.0
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 8,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.3244
+    },
+    "over_rated": {
+     "k": 0,
+     "n": 8,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.3244
+    }
+   },
+   "synthetic-general": {
+    "adult_case": {
+     "k": 0,
+     "n": 10,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2775
+    },
+    "correct": {
+     "k": 8,
+     "n": 10,
+     "value": 0.8,
+     "low": 0.4902,
+     "high": 0.9433
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 10,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2775
+    },
+    "over_rated": {
+     "k": 2,
+     "n": 10,
+     "value": 0.2,
+     "low": 0.0567,
+     "high": 0.5098
     }
    }
   },
   "adult_recall": {
-   "k": 1,
-   "n": 1,
-   "value": 1.0,
-   "low": 0.2065,
-   "high": 1.0
+   "k": 6,
+   "n": 11,
+   "value": 0.5455,
+   "low": 0.2801,
+   "high": 0.7873
   },
   "human_kappa": {
    "value": null,
@@ -147,6 +297,36 @@
   }
  },
  "failed_cases": [
-  "rating.hp-calm-001"
+  "rating.hp-calm-001",
+  "rating.hp-calm-002",
+  "rating.hp-calm-004",
+  "rating.hp-calm-008",
+  "rating.hp-calm-009",
+  "rating.hp-calm-011",
+  "rating.hp-calm-013",
+  "rating.hp-calm-014",
+  "rating.hp-calm-015",
+  "rating.hp-calm-018",
+  "rating.hp-violent-001",
+  "rating.hp-violent-004",
+  "rating.hp-violent-007",
+  "rating.hp-violent-009",
+  "rating.language-clean-001",
+  "rating.language-clean-002",
+  "rating.language-clean-003",
+  "rating.language-clean-005",
+  "rating.language-heavy-002",
+  "rating.language-heavy-003",
+  "rating.language-heavy-004",
+  "rating.synthetic-crime-adult-001",
+  "rating.synthetic-crime-adult-002",
+  "rating.synthetic-crime-border-002",
+  "rating.synthetic-drug-adult-002",
+  "rating.synthetic-language-adult-002",
+  "rating.synthetic-language-border-002",
+  "rating.synthetic-sexual-adult-001",
+  "rating.synthetic-sexual-adult-002",
+  "rating.synthetic-sexual-general-001",
+  "rating.synthetic-sexual-general-002"
  ]
 }

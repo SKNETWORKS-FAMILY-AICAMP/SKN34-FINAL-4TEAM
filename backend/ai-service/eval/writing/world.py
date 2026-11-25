@@ -44,7 +44,7 @@ def _review(request, titles: dict) -> list[dict]:
 def generate(case: dict, mode: str) -> dict:
     if mode != 'G':
         raise SystemExit('세계관은 G·R 모드만 쓴다')
-    from app import content_mcp
+    from app.content_mcp import service as content_mcp
     from app.world_review import service
     request, world_id, revision = service.linked_world(common.WORK_ID)
     titles = {c.id: c.title for c in request.cards}

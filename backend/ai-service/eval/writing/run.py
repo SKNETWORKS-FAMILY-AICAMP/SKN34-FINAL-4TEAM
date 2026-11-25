@@ -27,6 +27,7 @@ sys.path.insert(0, os.environ.get('EVAL_APP_ROOT', str(HERE.parents[1])))   # ap
 import common  # noqa: E402
 from common import rate  # noqa: E402,F401  대상 모듈이 run.rate로도 쓴다
 
+REPREPARE_S = 20 * 60   # 개발 작가 토큰이 30분에 끝나 긴 실행 중에는 prepare(로그인)를 다시 부른다
 RESULTS = HERE / 'results' / ('v2' if os.environ.get('EVAL_DATA') else '')   # v2 차수는 기준선 결과를 덮지 않는다
 
 
@@ -53,6 +54,7 @@ def _judge(module, case: dict, capture: dict) -> None:
 def generate(module, target: str, mode: str, cases: dict, reps: int, ledger: common.Ledger) -> None:
     path = capture_path(target, mode)
     done = {(r['id'], r['rep']) for r in common.jsonl(path) if r['error'] is None} if path.exists() else set()   # 실패한 사례는 다시 시도한다
+    prepared = time.time()
     if hasattr(module, 'prepare'):
         module.prepare(mode)
     with common.metered(ledger):
@@ -60,7 +62,10 @@ def generate(module, target: str, mode: str, cases: dict, reps: int, ledger: com
             for rep in range(reps):
                 if (cid, rep) in done:
                     continue
-                ledger.tag, before, started = f'{target}:{mode}:{cid}', ledger.spent(), time.time()
+                if hasattr(module, 'prepare') and time.time() - prepared > REPREPARE_S:
+                    module.prepare(mode)
+                    prepared = time.time()
+                ledger.tag, before, started = f'{target}:{mode}:{cid}', ledger.own, time.time()
                 try:
                     output, error = module.generate(case, mode), None
                 except common.BudgetExceeded:
@@ -68,11 +73,11 @@ def generate(module, target: str, mode: str, cases: dict, reps: int, ledger: com
                 except Exception as exc:  # 대상 실패는 미측정으로 남긴다(본문은 넣지 않는다)
                     output, error = None, f'{type(exc).__name__}: {str(exc)[:200]}'
                 capture = {'id': cid, 'rep': rep, 'mode': mode, 'output': output, 'error': error, 'ms': round((time.time() - started) * 1000)}
-                capture['usd_generate'] = round(ledger.spent() - before, 6)
+                capture['usd_generate'] = round(ledger.own - before, 6)
                 if output is not None and hasattr(module, 'judge'):
-                    mark = ledger.spent()
+                    mark = ledger.own
                     _judge(module, case, capture)
-                    capture['usd_judge'] = round(ledger.spent() - mark, 6)
+                    capture['usd_judge'] = round(ledger.own - mark, 6)
                 _append(path, capture)
                 print(f'{cid} rep{rep} {"ok" if error is None else "fail"} {capture["ms"]}ms', flush=True)
 

@@ -1,0 +1,183 @@
+{
+ "target": "research",
+ "mode": "G",
+ "source": "research-G.jsonl",
+ "cases": 45,
+ "captures": 45,
+ "usd": {
+  "total": 0.2946,
+  "note": "공유 장부의 대상 태그 합계(생성+채점). 병렬 워커가 같은 장부를 써 사례별 차이값은 버렸다"
+ },
+ "ms_p50": 27334,
+ "summary": {
+  "measured": {
+   "n": 42,
+   "of": 45
+  },
+  "answered": {
+   "k": 21,
+   "n": 22,
+   "value": 0.9545,
+   "low": 0.782,
+   "high": 0.9919
+  },
+  "empty_ok": {
+   "k": 2,
+   "n": 2,
+   "value": 1.0,
+   "low": 0.3424,
+   "high": 1.0
+  },
+  "gap_flagged": {
+   "k": 1,
+   "n": 8,
+   "value": 0.125,
+   "low": 0.0224,
+   "high": 0.4709
+  },
+  "premise_corrected": {
+   "k": 10,
+   "n": 10,
+   "value": 1.0,
+   "low": 0.7225,
+   "high": 1.0
+  },
+  "private_leak": {
+   "k": 0,
+   "n": 12,
+   "value": 0.0,
+   "low": 0.0,
+   "high": 0.2425
+  },
+  "raw_unlisted": {
+   "mean": 0.0583,
+   "n": 30
+  },
+  "served_unlisted": {
+   "k": 0,
+   "n": 30,
+   "value": 0.0,
+   "low": 0.0,
+   "high": 0.1135
+  },
+  "support": {
+   "mean": 0.7639,
+   "n": 22
+  },
+  "world_recall": {
+   "mean": 1.0,
+   "n": 10
+  },
+  "by_family": {
+   "platform-hit": {
+    "private_leak": {
+     "k": 0,
+     "n": 10,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2775
+    },
+    "world_recall": {
+     "mean": 1.0,
+     "n": 10
+    }
+   },
+   "platform-none": {
+    "empty_ok": {
+     "k": 2,
+     "n": 2,
+     "value": 1.0,
+     "low": 0.3424,
+     "high": 1.0
+    },
+    "private_leak": {
+     "k": 0,
+     "n": 2,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.6576
+    }
+   },
+   "web-fact": {
+    "answered": {
+     "k": 11,
+     "n": 12,
+     "value": 0.9167,
+     "low": 0.6461,
+     "high": 0.9851
+    },
+    "raw_unlisted": {
+     "mean": 0.125,
+     "n": 12
+    },
+    "served_unlisted": {
+     "k": 0,
+     "n": 12,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2425
+    },
+    "support": {
+     "mean": 0.7083,
+     "n": 12
+    }
+   },
+   "web-false": {
+    "answered": {
+     "k": 10,
+     "n": 10,
+     "value": 1.0,
+     "low": 0.7225,
+     "high": 1.0
+    },
+    "premise_corrected": {
+     "k": 10,
+     "n": 10,
+     "value": 1.0,
+     "low": 0.7225,
+     "high": 1.0
+    },
+    "raw_unlisted": {
+     "mean": 0.025,
+     "n": 10
+    },
+    "served_unlisted": {
+     "k": 0,
+     "n": 10,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2775
+    },
+    "support": {
+     "mean": 0.8306,
+     "n": 10
+    }
+   },
+   "web-gap": {
+    "gap_flagged": {
+     "k": 1,
+     "n": 8,
+     "value": 0.125,
+     "low": 0.0224,
+     "high": 0.4709
+    },
+    "raw_unlisted": {
+     "mean": 0.0,
+     "n": 8
+    },
+    "served_unlisted": {
+     "k": 0,
+     "n": 8,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.3244
+    }
+   }
+  }
+ },
+ "failed_cases": [
+  "research.platform-hit-002",
+  "research.platform-hit-003",
+  "research.platform-hit-005"
+ ]
+}

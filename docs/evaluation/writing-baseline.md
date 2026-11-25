@@ -1,5 +1,7 @@
 # 집필 AI 기준선 평가 (초기 설정, 2026-11-24)
 
+> 후속: 설계 분량 전체로 다시 잰 결과는 [집필 AI 평가 v2](writing-v2.md)에 있다.
+
 LLMOps 구현 전에 평가 대상·지표·데이터셋을 정하려고 **설계 분량의 20~30%**로 돌린 첫 측정이다(사용자 결정: 비용 상한 10달러, 인물 시뮬레이션 제외).
 실행기·채점은 [`backend/ai-service/eval/writing`](../../backend/ai-service/eval/writing/), 집계는 `results/*.json`이다.
 해리 포터·TimeChara 원문·문항·응답은 저장소에 없다(로컬 `.data`·self-host Langfuse만, 사용자 결정 2026-11-24).

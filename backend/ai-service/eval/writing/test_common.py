@@ -24,6 +24,14 @@ def test_ledger_prices_calls_and_refuses_once_the_limit_is_reached(tmp_path):
     assert c.Ledger(tmp_path / 'cost.jsonl', limit=1).spent() == pytest.approx(ledger.spent())
 
 
+def test_ledger_skips_a_line_torn_by_a_concurrent_writer(tmp_path):
+    ledger = c.Ledger(tmp_path / 'cost.jsonl', limit=1)
+    ledger.charge((1000, 0, 0), 'gpt-6-luna', 'responses')
+    with ledger.path.open('a', encoding='utf-8') as file:
+        file.write('9"}\n')   # 다른 워커의 쓰기와 겹쳐 잘린 조각
+    assert ledger.spent() == pytest.approx(1000 * 0.20 / 1_000_000)
+
+
 def test_openai_http_calls_are_metered_and_other_hosts_are_not(tmp_path):
     ledger = c.Ledger(tmp_path / 'cost.jsonl', limit=1)
     body = {'model': 'gpt-6-luna', 'usage': {'input_tokens': 10, 'output_tokens': 2}}
@@ -51,3 +59,4 @@ def test_openai_sdk_transport_httpx2_is_metered_too(tmp_path):
     with c.metered(ledger), httpx2.Client(transport=transport) as client:
         client.post('https://api.openai.com/v1/decisions', json={})
     assert [(r['kind'], r['in']) for r in ledger.rows()] == [('decisions', 3)]
+

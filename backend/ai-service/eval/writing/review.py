@@ -120,8 +120,8 @@ def summary(cases: dict, scored: list) -> dict:
     spell = [s for c, s in rows if c['family'] == 'spelling']
     if spell:
         out['spelling_f1'] = f1(*(sum(s[k] for s in spell) for k in ('tp', 'fp', 'fn')))
-    out['recall_by_category'] = {cat: common.rate(sum(s['detected'] for c, s in rows if c.get('category') == cat),
-                                                  sum(1 for c, s in rows if c.get('category') == cat))
+    out['recall_by_category'] = {cat: common.rate(sum(s['detected'] for c, s in rows if c['family'] == 'contradiction' and c.get('category') == cat),
+                                                  sum(1 for c, s in rows if c['family'] == 'contradiction' and c.get('category') == cat))
                                  for cat in sorted({c['category'] for c, _ in rows if c['family'] == 'contradiction'})}
     return out
 

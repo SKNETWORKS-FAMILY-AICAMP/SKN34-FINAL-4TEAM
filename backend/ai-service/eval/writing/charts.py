@@ -4,23 +4,30 @@
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE.parents[3] / 'docs' / 'evaluation' / 'assets' / 'writing-baseline'
+V2 = bool(os.environ.get('EVAL_DATA'))   # run.py와 같이 v2 차수는 results/v2에서 읽어 따로 그린다
+OUT = HERE.parents[3] / 'docs' / 'evaluation' / 'assets' / ('writing-v2' if V2 else 'writing-baseline')
 TARGETS = ['guard', 'main', 'qa', 'review', 'world', 'editing', 'research', 'rating', 'pipeline']
 LABELS = {'guard': 'Decision Guard', 'main': '메인 에이전트', 'qa': '작품 Q&A', 'review': '원고 검수', 'world': '세계관', 'editing': '기획·집필·수정',
           'research': '고증 조사', 'rating': '심의 등급', 'pipeline': '전체 파이프라인'}
 APPLIES = {'S': {'qa'}}   # 검색만 평가를 쓰는 대상(검수 문맥 조립·세계관 impact·파이프라인 검색 점수는 다음 차수)
-# 대상별 대표 지표(설계안 §3). main은 pipeline 캡처를 메인 관점 지표로 읽는다.
-HEADLINE = {'guard': ['accuracy', 'attack_false_allow', 'normal_false_block', 'consistency'], 'main': ['tools_ok', 'conditional_ok', 'first_status_ok'],
-            'qa': ['correct', 'false_abstain', 'citation_hit', 'supported'], 'qa-S': ['recall@1', 'recall@3', 'recall@8', 'leak', 'card_found'],
-            'review': ['detected', 'false_alarm', 'typo_recall'], 'world': ['detected', 'valid'], 'editing': ['exact', 'preserved', 'constraints'],
-            'research': ['answered', 'premise_corrected'], 'rating': ['correct', 'adult_recall', 'over_rated'], 'pipeline': ['pass', 'final_ok', 'no_write']}
+# 대상별 대표 지표(v2 설계안). 0~1 비율·점수만 막대로 그린다(5점 품질 같은 척도는 표로만).
+HEADLINE = {'guard': ['attack_false_allow', 'normal_false_block', 'indirect_contamination', 'pass_k', 'capabilities_precision', 'capabilities_recall'],
+            'main': ['trajectory', 'args', 'tool_precision', 'tool_recall', 'injection_followed', 'faithfulness'],
+            'qa': ['correctness', 'faithfulness', 'false_abstain', 'abstain_ok', 'noise_cited', 'memorized'],
+            'qa-S': ['recall@8', 'rr', 'card_recall@8', 'leak'],
+            'review': ['detected', 'detected_confirmed', 'false_alarm_confirmed', 'false_alarm_suspected', 'spelling_f1'],
+            'world': ['detected', 'false_alarm', 'valid', 'fact_kept', 'forbidden', 'new_conflicts', 'impact_precision', 'impact_recall'],
+            'editing': ['constraints', 'exact', 'untouched_outside', 'spelling_f1', 'violation'],
+            'research': ['answered', 'premise_corrected', 'gap_flagged', 'private_leak', 'served_unlisted', 'support', 'world_recall'],
+            'rating': ['correct', 'adult_recall', 'over_rated', 'missed_adult'], 'pipeline': ['pass', 'tools_ok', 'first_status_ok', 'final_ok', 'no_write', 'conditional_ok']}
 
 
-def load(results_dir: Path = HERE / 'results') -> dict:
+def load(results_dir: Path = HERE / 'results' / ('v2' if V2 else '')) -> dict:
     return {tuple(p.stem.rsplit('-', 1)): json.loads(p.read_text(encoding='utf-8')) for p in results_dir.glob('*.json')}
 
 
@@ -42,9 +49,17 @@ def status_grid(results: dict, targets: list[str]) -> dict:
 
 
 def headline(summary: dict, keys: list[str]) -> list[tuple]:
-    """비율 지표만 (이름, 값, 하한, 상한, n). 평균 지표와 없는 키는 뺀다."""
-    return [(k, summary[k]['value'], summary[k]['low'], summary[k]['high'], summary[k]['n'])
-            for k in keys if isinstance(summary.get(k), dict) and summary[k].get('value') is not None]
+    """(이름, 값, 하한, 상한, n). 비율은 Wilson 구간, 0~1 평균·점수는 구간 없이(하한=상한=값). 1을 넘는 평균과 없는 키는 뺀다."""
+    rows = []
+    for k in keys:
+        v = summary.get(k)
+        if isinstance(v, dict) and v.get('value') is not None:
+            rows.append((k, v['value'], v['low'], v['high'], v['n']))
+        elif isinstance(v, dict) and 'mean' in v and 0 <= v['mean'] <= 1:
+            rows.append((k, v['mean'], v['mean'], v['mean'], v['n']))
+        elif isinstance(v, (int, float)) and not isinstance(v, bool) and 0 <= v <= 1:
+            rows.append((k, v, v, v, None))
+    return rows
 
 
 def draw() -> None:
@@ -55,10 +70,6 @@ def draw() -> None:
     plt.rcParams['axes.unicode_minus'] = False
     OUT.mkdir(parents=True, exist_ok=True)
     results = load()
-    if ('pipeline', 'G') in results:
-        results[('main', 'G')] = results[('pipeline', 'G')]
-    if ('pipeline', 'R') in results:
-        results[('main', 'R')] = results[('pipeline', 'R')]
 
     # ① 대상 × 모드 상태판
     grid = status_grid(results, TARGETS)
@@ -86,22 +97,38 @@ def draw() -> None:
         ys = range(len(rows))
         ax.barh(list(ys), [r[1] for r in rows], color='#4c78a8', height=.55)
         ax.errorbar([r[1] for r in rows], list(ys), xerr=[[r[1] - r[2] for r in rows], [r[3] - r[1] for r in rows]], fmt='none', ecolor='#333', capsize=3)
-        ax.set_yticks(list(ys), [f'{r[0]} (n={r[4]})' for r in rows], fontsize=8)
+        ax.set_yticks(list(ys), [f'{r[0]} (n={r[4]})' if r[4] is not None else r[0] for r in rows], fontsize=8)
         ax.set_xlim(0, 1), ax.invert_yaxis()
         for y, r in zip(ys, rows):
             ax.text(min(r[1] + .02, .9), y, f'{r[1]:.2f}', va='center', fontsize=8)
         ax.set_title(f'{LABELS[t]} · {mode}', fontsize=9, loc='left')
     fig.tight_layout(), fig.savefig(OUT / 'headline.png', dpi=150), plt.close(fig)
 
-    # ③ 비용: 대상별 생성·채점(장부 기준, 파이프라인은 장부 밖)
-    costs = [(LABELS[t], results[(t, m)]['usd']['generate'], results[(t, m)]['usd']['judge']) for t, m in
-             [('guard', 'G'), ('qa', 'G'), ('review', 'G'), ('world', 'G'), ('editing', 'G'), ('research', 'G'), ('rating', 'G')] if (t, m) in results]
+    # ③ 비용: 대상별 생성+채점 합계(장부 기준, 파이프라인은 장부 밖)
+    usd = lambda r: r['usd']['total'] if 'total' in r['usd'] else r['usd']['generate'] + r['usd']['judge']   # v2는 장부 태그 합계만 있다
+    costs = [(LABELS[t] + ('·S' if m == 'S' else ''), usd(results[(t, m)])) for t, m in
+             [('guard', 'G'), ('main', 'G'), ('qa', 'S'), ('qa', 'G'), ('review', 'G'), ('world', 'G'), ('editing', 'G'), ('research', 'G'), ('rating', 'G')]
+             if (t, m) in results]
     fig, ax = plt.subplots(figsize=(7, 3))
-    ax.bar([c[0] for c in costs], [c[1] for c in costs], label='생성', color='#4c78a8')
-    ax.bar([c[0] for c in costs], [c[2] for c in costs], bottom=[c[1] for c in costs], label='의미 채점', color='#f58518')
-    ax.set_ylabel('USD(추정)'), ax.legend(), ax.set_title('대상별 실행 비용(gpt-5.6-luna 단가로 추정, Guard는 계측 수정 전이라 0)')
+    ax.bar([c[0] for c in costs], [c[1] for c in costs], color='#4c78a8')
+    for i, c in enumerate(costs):
+        ax.text(i, c[1], f'{c[1]:.2f}', ha='center', va='bottom', fontsize=8)
+    ax.set_ylabel('USD(추정)'), ax.set_title('대상별 실행 비용: 생성+채점(gpt-5.6-luna 단가로 추정, 웹 검색 도구 요금 제외)', fontsize=9)
     plt.xticks(rotation=20, fontsize=8)
     fig.tight_layout(), fig.savefig(OUT / 'cost.png', dpi=150), plt.close(fig)
+
+    # ④ 작품 Q&A 검색 Recall@k 곡선
+    if ('qa', 'S') in results and results[('qa', 'S')]['summary'].get('recall_curve'):
+        curve = results[('qa', 'S')]['summary']['recall_curve']
+        ks = sorted(curve, key=int)
+        vals = [curve[k] for k in ks]
+        fig, ax = plt.subplots(figsize=(5, 3))
+        ax.plot([int(k) for k in ks], vals, marker='o', color='#4c78a8')
+        for k, v in zip(ks, vals):
+            ax.annotate(f'{v:.2f}', (int(k), v), textcoords='offset points', xytext=(0, 6), ha='center', fontsize=8)
+        ax.set_xticks([int(k) for k in ks]), ax.set_ylim(0, 1), ax.set_xlabel('k (상위 k개 검색 결과)')
+        ax.set_title('작품 Q&A 원문 검색 Recall@k', fontsize=10)
+        fig.tight_layout(), fig.savefig(OUT / 'qa-recall-curve.png', dpi=150), plt.close(fig)
     print('그림:', ', '.join(p.name for p in OUT.glob('*.png')))
 
 

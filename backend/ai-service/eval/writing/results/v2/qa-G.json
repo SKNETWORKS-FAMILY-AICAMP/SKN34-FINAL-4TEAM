@@ -2,206 +2,293 @@
  "target": "qa",
  "mode": "G",
  "source": "qa-G.jsonl",
- "cases": 4,
- "captures": 4,
+ "cases": 200,
+ "captures": 200,
  "usd": {
-  "generate": 0.0017,
-  "judge": 0.0035
+  "total": 0.3998,
+  "note": "공유 장부의 대상 태그 합계(생성+채점). 병렬 워커가 같은 장부를 써 사례별 차이값은 버렸다"
  },
- "ms_p50": 8787,
+ "ms_p50": 11029,
  "summary": {
   "measured": {
-   "n": 4,
-   "of": 4
+   "n": 199,
+   "of": 200
   },
   "abstain_ok": {
-   "k": 1,
-   "n": 1,
-   "value": 1.0,
-   "low": 0.2065,
-   "high": 1.0
+   "k": 48,
+   "n": 60,
+   "value": 0.8,
+   "low": 0.6822,
+   "high": 0.8817
   },
   "correctness": {
-   "k": 3,
-   "n": 3,
-   "value": 1.0,
-   "low": 0.4385,
-   "high": 1.0
+   "k": 129,
+   "n": 139,
+   "value": 0.9281,
+   "low": 0.8726,
+   "high": 0.9605
   },
   "faithfulness": {
-   "mean": 0.6667,
-   "n": 3
+   "mean": 0.913,
+   "n": 151
   },
   "false_abstain": {
    "k": 0,
-   "n": 3,
+   "n": 139,
    "value": 0.0,
    "low": 0.0,
-   "high": 0.5615
+   "high": 0.0269
   },
   "memorized": {
-   "k": 3,
-   "n": 4,
-   "value": 0.75,
-   "low": 0.3006,
-   "high": 0.9544
+   "k": 89,
+   "n": 179,
+   "value": 0.4972,
+   "low": 0.4248,
+   "high": 0.5697
   },
   "noise_cited": {
-   "mean": 0.0,
-   "n": 3
+   "mean": 0.1494,
+   "n": 139
   },
   "by_family": {
    "future": {
     "abstain_ok": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 31,
+     "n": 40,
+     "value": 0.775,
+     "low": 0.625,
+     "high": 0.8768
+    },
+    "faithfulness": {
+     "mean": 0.7778,
+     "n": 9
     },
     "memorized": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 22,
+     "n": 40,
+     "value": 0.55,
+     "low": 0.3983,
+     "high": 0.6929
+    }
+   },
+   "multi": {
+    "correctness": {
+     "k": 22,
+     "n": 29,
+     "value": 0.7586,
+     "low": 0.5789,
+     "high": 0.8778
+    },
+    "faithfulness": {
+     "mean": 0.869,
+     "n": 29
+    },
+    "false_abstain": {
+     "k": 0,
+     "n": 29,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.117
+    },
+    "memorized": {
+     "k": 12,
+     "n": 29,
+     "value": 0.4138,
+     "low": 0.2551,
+     "high": 0.5926
+    },
+    "noise_cited": {
+     "mean": 0.127,
+     "n": 29
+    }
+   },
+   "none": {
+    "abstain_ok": {
+     "k": 17,
+     "n": 20,
+     "value": 0.85,
+     "low": 0.6396,
+     "high": 0.9476
+    },
+    "faithfulness": {
+     "mean": 1.0,
+     "n": 3
     }
    },
    "setting": {
     "correctness": {
-     "k": 1,
-     "n": 1,
+     "k": 30,
+     "n": 30,
      "value": 1.0,
-     "low": 0.2065,
+     "low": 0.8865,
      "high": 1.0
     },
     "faithfulness": {
-     "mean": 1.0,
-     "n": 1
+     "mean": 0.9389,
+     "n": 30
     },
     "false_abstain": {
      "k": 0,
-     "n": 1,
+     "n": 30,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.1135
     },
     "memorized": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 24,
+     "n": 30,
+     "value": 0.8,
+     "low": 0.6269,
+     "high": 0.905
     },
     "noise_cited": {
-     "mean": 0.0,
-     "n": 1
+     "mean": 0.5194,
+     "n": 30
     }
    },
    "single": {
     "correctness": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 57,
+     "n": 60,
+     "value": 0.95,
+     "low": 0.863,
+     "high": 0.9829
     },
     "faithfulness": {
-     "mean": 1.0,
-     "n": 1
+     "mean": 0.9417,
+     "n": 60
     },
     "false_abstain": {
      "k": 0,
-     "n": 1,
+     "n": 60,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.0602
     },
     "memorized": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 30,
+     "n": 60,
+     "value": 0.5,
+     "low": 0.3773,
+     "high": 0.6227
     },
     "noise_cited": {
-     "mean": 0.0,
-     "n": 1
+     "mean": 0.0167,
+     "n": 60
     }
    },
    "subst": {
     "correctness": {
-     "k": 1,
-     "n": 1,
+     "k": 20,
+     "n": 20,
      "value": 1.0,
-     "low": 0.2065,
+     "low": 0.8389,
      "high": 1.0
     },
     "faithfulness": {
-     "mean": 0.0,
-     "n": 1
+     "mean": 0.9,
+     "n": 20
     },
     "false_abstain": {
      "k": 0,
-     "n": 1,
+     "n": 20,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.7935
+     "high": 0.1611
     },
     "memorized": {
-     "k": 0,
-     "n": 1,
-     "value": 0.0,
-     "low": 0.0,
-     "high": 0.7935
+     "k": 1,
+     "n": 20,
+     "value": 0.05,
+     "low": 0.0089,
+     "high": 0.2361
     },
     "noise_cited": {
-     "mean": 0.0,
-     "n": 1
+     "mean": 0.025,
+     "n": 20
     }
    }
   },
   "by_split": {
-   "dev": {},
-   "test": {
+   "dev": {
     "abstain_ok": {
-     "k": 1,
-     "n": 1,
-     "value": 1.0,
-     "low": 0.2065,
-     "high": 1.0
+     "k": 16,
+     "n": 21,
+     "value": 0.7619,
+     "low": 0.5491,
+     "high": 0.8937
     },
     "correctness": {
-     "k": 3,
-     "n": 3,
-     "value": 1.0,
-     "low": 0.4385,
-     "high": 1.0
+     "k": 38,
+     "n": 40,
+     "value": 0.95,
+     "low": 0.835,
+     "high": 0.9862
     },
     "faithfulness": {
-     "mean": 0.6667,
-     "n": 3
+     "mean": 0.8765,
+     "n": 45
     },
     "false_abstain": {
      "k": 0,
-     "n": 3,
+     "n": 40,
      "value": 0.0,
      "low": 0.0,
-     "high": 0.5615
+     "high": 0.0876
     },
     "memorized": {
-     "k": 3,
-     "n": 4,
-     "value": 0.75,
-     "low": 0.3006,
-     "high": 0.9544
+     "k": 32,
+     "n": 54,
+     "value": 0.5926,
+     "low": 0.4597,
+     "high": 0.7132
     },
     "noise_cited": {
-     "mean": 0.0,
-     "n": 3
+     "mean": 0.1696,
+     "n": 40
+    }
+   },
+   "test": {
+    "abstain_ok": {
+     "k": 32,
+     "n": 39,
+     "value": 0.8205,
+     "low": 0.6733,
+     "high": 0.9102
+    },
+    "correctness": {
+     "k": 91,
+     "n": 99,
+     "value": 0.9192,
+     "low": 0.8486,
+     "high": 0.9585
+    },
+    "faithfulness": {
+     "mean": 0.9286,
+     "n": 106
+    },
+    "false_abstain": {
+     "k": 0,
+     "n": 99,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.0374
+    },
+    "memorized": {
+     "k": 57,
+     "n": 125,
+     "value": 0.456,
+     "low": 0.3713,
+     "high": 0.5433
+    },
+    "noise_cited": {
+     "mean": 0.1412,
+     "n": 99
     }
    }
   }
  },
- "failed_cases": []
+ "failed_cases": [
+  "qa.multi-014"
+ ]
 }

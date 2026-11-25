@@ -32,3 +32,17 @@ def test_impact_compares_cards_and_relationships_ignoring_relationship_direction
     affected = [{'kind': 'card', 'ref': '해리 포터'}, {'kind': 'relationship', 'ref': '제임스 포터→해리 포터'}, {'kind': 'card', 'ref': '론'},
                 {'kind': 'episode', 'ref': '3'}]
     assert world.impact_counts(gold, affected) == {'impact_tp': 2, 'impact_predicted': 3, 'impact_gold': 3, 'other_affected': 1}
+
+
+def test_impact_reads_context_through_the_content_mcp_service_call(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.content_mcp import service as content_mcp
+    from app.world_review import service
+    calls = []
+    monkeypatch.setattr(content_mcp, 'call', lambda tool, args: calls.append(tool) or {})
+    request = SimpleNamespace(cards=[], relationships=[])
+    monkeypatch.setattr(service, 'linked_world', lambda work: (request, 'w', 1))
+    monkeypatch.setattr(service, 'impact', lambda *a: SimpleNamespace(affected=[], conflicts=[], gaps=[]))
+    assert world.generate({'family': 'impact', 'request': '바꾼다'}, 'G') == {'affected': [], 'conflicts': [], 'gaps': []}
+    assert calls == ['work_context_read', 'story_plan_list']

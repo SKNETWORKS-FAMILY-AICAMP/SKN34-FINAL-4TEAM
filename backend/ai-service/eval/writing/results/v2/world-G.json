@@ -1,0 +1,160 @@
+{
+ "target": "world",
+ "mode": "G",
+ "source": "world-G.jsonl",
+ "cases": 81,
+ "captures": 81,
+ "usd": {
+  "total": 0.9951,
+  "note": "공유 장부의 대상 태그 합계(생성+채점). 병렬 워커가 같은 장부를 써 사례별 차이값은 버렸다"
+ },
+ "ms_p50": 30656,
+ "summary": {
+  "measured": {
+   "n": 80,
+   "of": 81
+  },
+  "detected": {
+   "k": 26,
+   "n": 29,
+   "value": 0.8966,
+   "low": 0.7361,
+   "high": 0.9642
+  },
+  "fact_kept": {
+   "mean": 0.9442,
+   "n": 20
+  },
+  "false_alarm": {
+   "k": 2,
+   "n": 11,
+   "value": 0.1818,
+   "low": 0.0514,
+   "high": 0.477
+  },
+  "findings": {
+   "mean": 4.0,
+   "n": 1
+  },
+  "forbidden": {
+   "mean": 0.15,
+   "n": 20
+  },
+  "impact_gold": {
+   "mean": 2.75,
+   "n": 20
+  },
+  "impact_predicted": {
+   "mean": 4.0,
+   "n": 20
+  },
+  "impact_tp": {
+   "mean": 2.55,
+   "n": 20
+  },
+  "new_conflicts": {
+   "mean": 0.1,
+   "n": 20
+  },
+  "other_affected": {
+   "mean": 0.35,
+   "n": 20
+  },
+  "valid": {
+   "k": 20,
+   "n": 20,
+   "value": 1.0,
+   "low": 0.8389,
+   "high": 1.0
+  },
+  "by_family": {
+   "clean": {
+    "false_alarm": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "findings": {
+     "mean": 4.0,
+     "n": 1
+    }
+   },
+   "conflict": {
+    "detected": {
+     "k": 26,
+     "n": 29,
+     "value": 0.8966,
+     "low": 0.7361,
+     "high": 0.9642
+    }
+   },
+   "consistent": {
+    "false_alarm": {
+     "k": 1,
+     "n": 10,
+     "value": 0.1,
+     "low": 0.0179,
+     "high": 0.4042
+    }
+   },
+   "enrich": {
+    "fact_kept": {
+     "mean": 0.9442,
+     "n": 20
+    },
+    "forbidden": {
+     "mean": 0.15,
+     "n": 20
+    },
+    "new_conflicts": {
+     "mean": 0.1,
+     "n": 20
+    },
+    "valid": {
+     "k": 20,
+     "n": 20,
+     "value": 1.0,
+     "low": 0.8389,
+     "high": 1.0
+    }
+   },
+   "impact": {
+    "impact_gold": {
+     "mean": 2.75,
+     "n": 20
+    },
+    "impact_predicted": {
+     "mean": 4.0,
+     "n": 20
+    },
+    "impact_tp": {
+     "mean": 2.55,
+     "n": 20
+    },
+    "other_affected": {
+     "mean": 0.35,
+     "n": 20
+    }
+   }
+  },
+  "impact_precision": {
+   "k": 51,
+   "n": 80,
+   "value": 0.6375,
+   "low": 0.5281,
+   "high": 0.7343
+  },
+  "impact_recall": {
+   "k": 51,
+   "n": 55,
+   "value": 0.9273,
+   "low": 0.8274,
+   "high": 0.9714
+  }
+ },
+ "failed_cases": [
+  "world.conflict-012"
+ ]
+}

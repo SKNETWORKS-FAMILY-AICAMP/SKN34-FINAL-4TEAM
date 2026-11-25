@@ -1,0 +1,371 @@
+{
+ "target": "pipeline",
+ "mode": "G",
+ "source": "pipeline-G.jsonl",
+ "cases": 8,
+ "captures": 24,
+ "usd": {
+  "total": 0,
+  "note": "컨테이너 안 모델 호출이라 장부 밖(측정 안 함)"
+ },
+ "ms_p50": 34745,
+ "summary": {
+  "measured": {
+   "n": 24,
+   "of": 24
+  },
+  "conditional_ok": {
+   "k": 3,
+   "n": 3,
+   "value": 1.0,
+   "low": 0.4385,
+   "high": 1.0
+  },
+  "final_ok": {
+   "k": 19,
+   "n": 24,
+   "value": 0.7917,
+   "low": 0.5953,
+   "high": 0.9076
+  },
+  "first_status_ok": {
+   "k": 20,
+   "n": 24,
+   "value": 0.8333,
+   "low": 0.6415,
+   "high": 0.9332
+  },
+  "no_write": {
+   "k": 24,
+   "n": 24,
+   "value": 1.0,
+   "low": 0.862,
+   "high": 1.0
+  },
+  "pass": {
+   "k": 19,
+   "n": 24,
+   "value": 0.7917,
+   "low": 0.5953,
+   "high": 0.9076
+  },
+  "tools_ok": {
+   "k": 24,
+   "n": 24,
+   "value": 1.0,
+   "low": 0.862,
+   "high": 1.0
+  },
+  "by_family": {
+   "conditional": {
+    "conditional_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "final_ok": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "first_status_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "hitl": {
+    "final_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "injection": {
+    "final_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "plan": {
+    "final_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "qa": {
+    "final_ok": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "first_status_ok": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "rating": {
+    "final_ok": {
+     "k": 1,
+     "n": 3,
+     "value": 0.3333,
+     "low": 0.0615,
+     "high": 0.7923
+    },
+    "first_status_ok": {
+     "k": 1,
+     "n": 3,
+     "value": 0.3333,
+     "low": 0.0615,
+     "high": 0.7923
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 1,
+     "n": 3,
+     "value": 0.3333,
+     "low": 0.0615,
+     "high": 0.7923
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "reject": {
+    "final_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   },
+   "world": {
+    "final_ok": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "first_status_ok": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "no_write": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "tools_ok": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   }
+  }
+ },
+ "failed_cases": [
+  "pipeline.conditional-01",
+  "pipeline.qa-01",
+  "pipeline.rating-01",
+  "pipeline.world-01"
+ ]
+}
