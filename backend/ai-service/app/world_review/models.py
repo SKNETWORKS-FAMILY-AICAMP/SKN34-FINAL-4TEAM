@@ -17,6 +17,7 @@ MAX_CARD_CHARS = 4000  # 카드 하나의 본문과 모든 인물 문서의 글�
 CardType = Literal['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other']
 AreaCode = Literal['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict']
 MAX_FIXES = 5  # enrich가 한 번에 제안하는 칸 수의 상한(하한은 1)
+MAX_FILL_CHARS = 12000  # fill이 한 번에 받는 원고 발췌의 글자 수 합(Content가 보내는 상한과 같다)
 
 Kind = Literal['contradiction', 'doc_role', 'missing_info', 'other']
 Target = Literal['body', 'soul', 'goal', 'episode']
@@ -126,6 +127,57 @@ class EnrichResponse(BaseModel):
     revision: int
     fixes: list[CardFix]
     note: str
+    model: str
+
+
+FillTarget = Literal['body', 'soul']  # 채우는 필수 문서: IDENTITY(카드 본문)·SOUL. GOAL은 선택 문서라 채우지 않는다
+
+
+class Passage(BaseModel):
+    """원고 발췌 하나. episode는 회차 번호(1 이상), text는 그 회차 원고에서 인물 이름이 나온 곳의 앞뒤 글이다."""
+    episode: int = Field(ge=1)
+    text: str = Field(min_length=1)
+
+
+class FillRequest(BaseModel):
+    """인물 카드 하나의 비어 있는 문서(targets)를 채울 근거를 찾기 위한 요청(Content가 만든다). aliases는 카드의 다른 호칭이다."""
+    cardId: str = Field(min_length=1, max_length=100)
+    title: str = Field(min_length=1)
+    aliases: list[str] = []
+    targets: list[FillTarget] = Field(min_length=1, max_length=2)
+    passages: list[Passage] = Field(min_length=1)
+
+    @field_validator('passages')
+    @classmethod
+    def within_chars(cls, passages):
+        if sum(len(p.text) for p in passages) > MAX_FILL_CHARS:
+            raise ValueError(f'원고 발췌 합계는 {MAX_FILL_CHARS}자 이하여야 합니다.')
+        return passages
+
+    def refs(self) -> dict:
+        """추적에 남기는 참조. 원고 발췌와 인물 이름은 추적 결정 범위 밖이라 카드 id·대상·회차 번호만 남긴다."""
+        return {'cardId': self.cardId, 'targets': self.targets, 'episodes': sorted({p.episode for p in self.passages})}
+
+
+class FillLine(BaseModel):
+    """채울 문서의 줄 하나: 원고 발췌의 문장(quote)과 그 회차. kind는 인물을 단정한 서술(fact)인지 겉모습·말투를 보여 주는 묘사·대사(description)인지다."""
+    model_config = ConfigDict(extra='forbid')
+    target: FillTarget
+    kind: Literal['fact', 'description']
+    episode: int
+    quote: str
+
+
+class FillResult(BaseModel):
+    """fill 모델 structured output. 줄이 발췌에 있는 문장인지·문서별 줄 수는 service가 다시 검증한다."""
+    model_config = ConfigDict(extra='forbid')
+    lines: list[FillLine]
+
+
+class FillResponse(BaseModel):
+    """검증을 통과한 줄만 담는다. skipped는 원고에서 확인하지 못해 뺀 줄 수이고, 근거가 없어 줄이 하나도 없는 것은 오류가 아니라 빈 목록이다."""
+    lines: list[FillLine]
+    skipped: int
     model: str
 
 

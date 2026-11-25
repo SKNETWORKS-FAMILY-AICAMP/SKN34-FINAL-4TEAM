@@ -7,6 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { cardLinkMarkdown } from '../../../../domain/entities/cardLinks'
+import type { DocFill, DocFillLine } from '../../../../domain/entities/characterDocs'
 import { createAppStore } from '../../../../app/store'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import type { Work } from '../../../../domain/entities/content'
@@ -80,7 +81,7 @@ beforeEach(() => {
   // '소설 연결' 탭의 Fork 목록은 운영과 같은 작품 목록 조회라 서버를 부르지 않게 비워 둔다(탭을 보는 테스트가 따로 정한다).
   vi.spyOn(appContainer.resolve('readingUseCase'), 'forksOf').mockResolvedValue([])
   revisions = noRevisions()
-  reviewCase = new WorldReviewUseCase({ review: vi.fn(async () => { throw new Error('이 테스트는 설정집 검토를 요청하지 않아요.') }), latest: vi.fn(async () => null) })
+  reviewCase = new WorldReviewUseCase({ review: vi.fn(async () => { throw new Error('이 테스트는 설정집 검토를 요청하지 않아요.') }), latest: vi.fn(async () => null), suggestDocs: vi.fn(async () => { throw new Error('이 테스트는 원고로 채우기 제안을 요청하지 않아요.') }) })
   objectUrls.created = 0
   objectUrls.createObjectURL = vi.fn(() => `blob:cover-${++objectUrls.created}`)
   objectUrls.revokeObjectURL = vi.fn()
@@ -3165,7 +3166,7 @@ const reviewing = (result: WorldReview | Error | Promise<WorldReview> = reviewOf
     if (last instanceof Error) throw last
     return last
   })
-  reviewCase = new WorldReviewUseCase({ review, latest })
+  reviewCase = new WorldReviewUseCase({ review, latest, suggestDocs: vi.fn(async () => { throw new Error('이 테스트는 원고로 채우기 제안을 요청하지 않아요.') }) })
   return Object.assign(review, { latest })
 }
 const objectCard = (title: string): StudioSetting => {
@@ -5049,4 +5050,102 @@ it('개요 폼은 기본 정보·공개 설정·표지·세계관 삭제 구획 
   expect(form.querySelectorAll('fieldset.world-publish')).toHaveLength(1)
   expect(within(form).getAllByRole('button', { name: '저장' })).toHaveLength(1) // 저장 버튼은 카드마다가 아니라 하나다
   expect(outer.lastElementChild).toBe(zone) // 삭제 구획은 여전히 폼의 맨 끝이다
+})
+
+// ── 인물 문서 '원고로 채우기 제안'(#847): 소설을 연결한 세계관의 비어 있는 정체성·성격을 원고 문장으로 채운다(제안 → 초안에 반영 → 세계관 저장) ──────────
+const fillLine = (over: Partial<DocFillLine> = {}): DocFillLine => ({ target: 'body', kind: 'description', episode: 2, quote: '키가 작고 얼굴이 검게 탔다.', ...over })
+const soulLine = fillLine({ target: 'soul', kind: 'fact', episode: 4, quote: '가람은 말수가 적다.' })
+type SuggestDocs = (world: string, card: string, signal?: AbortSignal) => Promise<DocFill>
+/** 원고로 채우기만 시험하는 UseCase: 설정집 검토는 요청하지 않는다. */
+const fillCase = (suggestDocs: SuggestDocs) => {
+  reviewCase = new WorldReviewUseCase({ review: vi.fn(async () => { throw new Error('이 테스트는 설정집 검토를 요청하지 않아요.') }), latest: vi.fn(async () => null), suggestDocs })
+}
+const fillPanel = () => within(editor().getByRole('region', { name: '원고로 채우기 제안' }))
+const noFillPanel = () => editor().queryByRole('region', { name: '원고로 채우기 제안' })
+const consentToFill = () => fireEvent.click(fillPanel().getByRole('checkbox', { name: /OpenAI로 보내고/ }))
+const askFill = (label = '원고로 채우기 제안') => fireEvent.click(fillPanel().getByRole('button', { name: label }))
+const linked = { linkedWorkId: 'w1' }
+
+it('소설을 연결한 세계관의 빈 정체성·성격은 원고로 채우기를 제안받고, 초안에 반영해도 세계관을 저장해야 서버에 닿는다', async () => {
+  const row = person('가람')
+  const suggestDocs = vi.fn<SuggestDocs>(async () => ({ lines: [fillLine(), soulLine], skipped: 1 }))
+  fillCase(suggestDocs)
+  const { saveStudio } = await show([row], '/worldstudio/qa', linked)
+  openCard('가람 인물')
+  expect(fillPanel().getByRole<HTMLButtonElement>('button', { name: '원고로 채우기 제안' }).disabled).toBe(true) // OpenAI로 보내는 데 동의하기 전에는 보낼 수 없다
+  consentToFill()
+  askFill()
+  await waitFor(() => expect(suggestDocs).toHaveBeenCalledWith('qa', row.item.id, expect.any(AbortSignal)))
+  // 정체성 탭에는 정체성 줄만, 회차와 함께 보인다. 제안이 온 것은 저장도 반영도 아니다.
+  expect(await fillPanel().findByText(/\[묘사\] 키가 작고 얼굴이 검게 탔다\./)).toBeTruthy()
+  expect(fillPanel().getByText('2화')).toBeTruthy()
+  expect(fillPanel().queryByText(/가람은 말수가 적다/)).toBeNull()
+  expect(fillPanel().getByText(/원고에서 확인하지 못한 1줄은 뺐어요/)).toBeTruthy()
+  expect(docBody('IDENTITY.md').value).toBe('')
+  expect(saveStudio).not.toHaveBeenCalled()
+  fireEvent.click(fillPanel().getByRole('button', { name: '초안에 반영' }))
+  expect(docBody('IDENTITY.md').value).toBe('[묘사] 키가 작고 얼굴이 검게 탔다.')
+  expect(noFillPanel()).toBeNull() // 비어 있지 않으니 제안은 사라진다
+  expect(editor().getByText(/원고에서 찾은 1줄을 초안에 반영했어요/)).toBeTruthy()
+  expect(saveStudio).not.toHaveBeenCalled() // 초안만 바뀌었다
+  // 성격·말투 탭에는 성격 줄이 남아 있다.
+  pickDoc('SOUL.md 정리 필요')
+  expect(await fillPanel().findByText(/\[사실\] 가람은 말수가 적다\./)).toBeTruthy()
+  expect(fillPanel().getByText('4화')).toBeTruthy()
+  fireEvent.click(fillPanel().getByRole('button', { name: '초안에 반영' }))
+  expect(docBody('SOUL.md').value).toBe('[사실] 가람은 말수가 적다.')
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  const saved = saveStudio.mock.calls[0][0].settings[0]
+  expect([saved.item.text, saved.characterDocs?.soul]).toEqual(['[묘사] 키가 작고 얼굴이 검게 탔다.', '[사실] 가람은 말수가 적다.'])
+})
+
+it('반영하지 않기로 하면 문서는 비어 있고 다시 제안받을 수 있으며, 근거가 없으면 제안 없이 그 사실을 알린다', async () => {
+  const suggestDocs = vi.fn<SuggestDocs>(async () => ({ lines: [fillLine()], skipped: 0 }))
+  fillCase(suggestDocs)
+  await show([person('가람')], '/worldstudio/qa', linked)
+  openCard('가람 인물')
+  consentToFill()
+  askFill()
+  fireEvent.click(await fillPanel().findByRole('button', { name: '반영하지 않기' }))
+  expect(docBody('IDENTITY.md').value).toBe('') // 초안은 그대로다
+  suggestDocs.mockResolvedValueOnce({ lines: [], skipped: 0 })
+  askFill() // 처리한 제안은 사라지고 다시 요청할 수 있다(동의는 이 화면에서 유지한다)
+  expect(await fillPanel().findByText('원고에서 근거가 되는 문장을 찾지 못했어요. 직접 써 주세요.')).toBeTruthy()
+  expect(fillPanel().queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  expect(docBody('IDENTITY.md').value).toBe('') // 근거가 없으면 아무것도 채우지 않는다
+  expect(suggestDocs).toHaveBeenCalledTimes(2)
+})
+
+it('소설을 연결하지 않았거나 저장하지 않은 변경이 있으면 이유와 함께 잠근다', async () => {
+  const suggestDocs = vi.fn<SuggestDocs>(async () => ({ lines: [], skipped: 0 }))
+  fillCase(suggestDocs)
+  await show([person('가람')]) // 연결된 소설 없음
+  openCard('가람 인물')
+  consentToFill()
+  expect(fillPanel().getByText(/연결된 소설이 없어요/)).toBeTruthy()
+  expect(fillPanel().getByRole<HTMLButtonElement>('button', { name: '원고로 채우기 제안' }).disabled).toBe(true)
+  cleanup()
+  await show([person('가람')], '/worldstudio/qa', linked)
+  openCard('가람 인물')
+  pickDoc('SOUL.md 정리 필요')
+  fireEvent.change(docBody('SOUL.md'), { target: { value: '말수가 적다' } }) // 저장하지 않은 변경
+  pickDoc('IDENTITY.md 정리 필요')
+  consentToFill()
+  expect(fillPanel().getByText(/저장하지 않은 변경이 있어요/)).toBeTruthy()
+  expect(fillPanel().getByRole<HTMLButtonElement>('button', { name: '원고로 채우기 제안' }).disabled).toBe(true)
+  expect(suggestDocs).not.toHaveBeenCalled()
+})
+
+it('이미 채워진 정체성·성격과 목표·회차 기억, 인물이 아닌 설정에는 원고로 채우기 제안이 없다', async () => {
+  fillCase(vi.fn<SuggestDocs>(async () => ({ lines: [], skipped: 0 })))
+  await show([withDocs(person('가람', '본문'), { soul: '성격', episodes: { 1: '' } }), place('항구')], '/worldstudio/qa', linked)
+  openCard('가람 인물')
+  expect(noFillPanel()).toBeNull() // 정체성·성격이 모두 채워져 있다
+  pickDoc('GOAL.md')
+  expect(noFillPanel()).toBeNull() // 목표는 선택 문서라 채우지 않는다
+  pickDoc('01회차.md')
+  expect(noFillPanel()).toBeNull()
+  fireEvent.click(rail().getByRole('button', { name: '항구 장소' }))
+  expect(noFillPanel()).toBeNull()
 })

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(assignableTypes = [
     WorldStudioController::class, InitialWorldAnalysisController::class, InitialWorldApplicationController::class,
-    WorldReviewController::class, ManuscriptBuildController::class, PreprocessingController::class,
+    WorldReviewController::class, WorldDocFillController::class, ManuscriptBuildController::class, PreprocessingController::class,
     CoverReferenceController::class, ImageJobController::class, ImageJobInternalController::class,
 ])
 class WorldStudioExceptionHandler {

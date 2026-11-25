@@ -29,7 +29,7 @@ from app.work_tags import router as work_tags
 from app.work_tags.errors import SuggestionFailure
 from app.world_review import router as world_review
 from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import WorldReviewRequest
+from app.world_review.models import FillRequest, WorldReviewRequest
 from app.writing import router as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest
@@ -54,6 +54,9 @@ CASES = {
     'world_review': (lambda auth='': world_review.review(WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[]),
                                                           TOKEN, auth),
                      (world_review.service, 'review'), WorldReviewFailure(502, '검토 실패')),
+    'world_review/fill': (lambda auth='': world_review.fill(FillRequest(cardId='card-1', title='치삼', targets=['body'], passages=[{'episode': 2, 'text': '치삼이 왔다.'}]),
+                                                             TOKEN, auth),
+                          (world_review.service, 'fill'), WorldReviewFailure(502, '채우기 실패')),
     'work_tags': (lambda auth='': work_tags.suggest_work_tags(SimpleNamespace(), TOKEN, auth), (work_tags, 'suggest'),
                   SuggestionFailure(502, '추천 실패')),
     'writing_editing': (lambda auth='': writing.draft(DraftRequest(episodeNumber=1, plan='계획'), TOKEN, auth), (writing.agent, 'draft'),
@@ -146,6 +149,7 @@ def test_without_a_usable_bearer_the_request_is_served_and_the_trace_stays_anony
 
 
 TRACED_PATHS = ['/internal/v1/proposals', '/internal/v1/initial-world/extractions', '/internal/v1/research/web', '/internal/v1/world-reviews',
+                '/internal/v1/world-reviews/fill',
                 '/internal/v1/writing/drafts', '/internal/v1/writing/patches', '/internal/v1/work-tags/suggestions',
                 '/internal/v1/manuscript-reviews', '/internal/v1/ratings', '/internal/v1/orchestrations', '/internal/v1/orchestrations/stream']
 

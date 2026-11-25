@@ -5,9 +5,10 @@ import pytest
 from app.content_mcp.errors import ContentMcpFailure
 from app.world_review import service
 from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import MAX_CARD_CHARS, MAX_CARDS, EnrichResult, ImpactResult, WorldReviewResult
+from app.world_review.models import MAX_CARD_CHARS, MAX_CARDS, EnrichResult, FillResult, ImpactResult, WorldReviewResult
 
-from .stubs import CONTEXT, PLANS, REL, affected, card, fake_agent, fake_enrich, fake_impact, fake_openai, finding, fix, request
+from .stubs import (CONTEXT, PLANS, REL, affected, card, fake_agent, fake_enrich, fake_fill, fake_impact, fake_openai, fill_line, fill_request, finding,
+                    fix, request)
 
 
 def test_a_valid_review_is_returned_with_the_reviewed_card_count_and_model(monkeypatch):
@@ -365,3 +366,87 @@ def test_impact_trace_keeps_the_request_and_refs_and_never_the_setting_bodies(mo
     recorded = {s.name: json.loads(s.attributes['langfuse.observation.input']) for s in spans() if 'langfuse.observation.input' in s.attributes}
     assert recorded['world_review.impact'] == {'request': '서윤의 나이를 바꾸면?', 'cards': ['seoyun', 'war', 'rule'], 'relationships': ['rel-1']}
     assert '남매가 다시 만난다' not in json.dumps(recorded, ensure_ascii=False)
+
+
+# --- fill: 한 인물의 비어 있는 IDENTITY·SOUL을 원고 발췌의 문장으로 채운다(근거 없는 줄은 만들 수 없다) -----------------------------------
+
+BODY = fill_line('body', 'description', 2, '키가 작고 얼굴이 검게 탔다.')               # 2화(첫 등장)의 문장이라 IDENTITY에 쓸 수 있다
+SOUL = fill_line('soul', 'description', 4, '"됐어, 난 안 할 거야." 치삼이 퉁명스럽게 말했다.')  # 4화의 문장은 SOUL에만 쓸 수 있다
+
+
+def test_fill_keeps_the_lines_whose_quote_is_in_the_stated_episode_in_the_models_order(monkeypatch):
+    seen = fake_fill(monkeypatch, SOUL, BODY)
+
+    result = service.fill(fill_request())
+
+    assert result.lines == [SOUL, BODY] and (result.skipped, result.model) == (0, 'resolved-model')
+    assert seen['data'] == fill_request()
+
+
+def test_fill_without_any_evidence_is_an_empty_result_not_an_error(monkeypatch):
+    fake_fill(monkeypatch)
+
+    result = service.fill(fill_request())
+
+    assert (result.lines, result.skipped) == ([], 0)
+
+
+LONG = '가' * 400
+TWO = [{'episode': 2, 'text': '키가 작다.'}, {'episode': 2, 'text': '얼굴이 검다.'}]
+SENTENCES = [f'치삼은 {n}번째 버릇이 있다.' for n in range(9)]
+
+
+@pytest.mark.parametrize('request_patch, good, bad', [
+    ({}, BODY, fill_line('body', 'fact', 2, '키가 크고 힘이 세다.')),                                    # 발췌에 없는 문장(지어냄)
+    ({}, BODY, fill_line('soul', 'description', 2, SOUL.quote)),                                        # 문장은 4화에 있는데 2화라고 했다
+    ({}, SOUL, fill_line('body', 'description', 4, SOUL.quote)),                                        # IDENTITY는 첫 등장 회차(2화)의 발췌에서만
+    ({'targets': ['body']}, BODY, SOUL),                                                                # 채우라고 하지 않은 문서
+    ({'passages': [{'episode': 2, 'text': LONG}]}, fill_line('soul', 'fact', 2, '가' * 10), fill_line('soul', 'fact', 2, LONG)),  # 한 줄 300자 초과
+    ({}, BODY, fill_line('soul', 'fact', 2, '  \n')),                                                  # 읽을 문장이 없다
+    ({'passages': TWO}, fill_line('soul', 'fact', 2, '키가 작다.'), fill_line('soul', 'fact', 2, '키가 작다.얼굴이 검다.')),  # 두 발췌를 이어 붙인 문장은 원문이 아니다
+    ({}, BODY, fill_line('soul', 'fact', 9, SOUL.quote)),                                               # 보내지 않은 회차
+])
+def test_fill_drops_a_line_it_cannot_verify_and_counts_it(monkeypatch, request_patch, good, bad):
+    fake_fill(monkeypatch, good, bad)
+
+    result = service.fill(fill_request(**request_patch))
+
+    assert result.lines == [good] and result.skipped == 1
+
+
+def test_fill_when_every_proposed_line_is_unverifiable_the_model_output_is_not_trusted(monkeypatch):
+    fake_fill(monkeypatch, fill_line('body', 'fact', 2, '키가 크고 힘이 세다.'), fill_line('soul', 'fact', 4, '지어낸 말투'))
+
+    with pytest.raises(WorldReviewFailure) as error:
+        service.fill(fill_request())
+
+    assert error.value.status == 502
+
+
+def test_fill_keeps_at_most_8_lines_per_document(monkeypatch):
+    text = ' '.join(SENTENCES)
+    fake_fill(monkeypatch, *[fill_line('soul', 'description', 3, sentence) for sentence in SENTENCES])
+
+    result = service.fill(fill_request(passages=[{'episode': 3, 'text': text}], targets=['soul']))
+
+    assert [line.quote for line in result.lines] == SENTENCES[:8] and result.skipped == 1
+
+
+def test_fill_trims_the_quote_and_a_repeated_line_is_kept_once_without_counting(monkeypatch):
+    padded = fill_line('body', 'description', 2, '  키가 작고 얼굴이 검게 탔다.\n')
+    fake_fill(monkeypatch, padded, BODY, SOUL)
+
+    result = service.fill(fill_request())
+
+    assert result.lines == [BODY, SOUL] and result.skipped == 0
+
+
+def test_fill_trace_keeps_refs_and_never_the_manuscript_or_the_names(monkeypatch, spans):
+    fake_openai(monkeypatch, FillResult(lines=[BODY]))
+
+    service.fill(fill_request())
+
+    recorded = {s.name: json.loads(s.attributes['langfuse.observation.input']) for s in spans() if 'langfuse.observation.input' in s.attributes}
+    refs = {'cardId': 'chisam', 'targets': ['body', 'soul'], 'episodes': [2, 4]}
+    assert recorded['world_review.fill'] == refs and recorded['world_review.fill.generation'] == refs
+    assert '소금장수' not in json.dumps(recorded, ensure_ascii=False) and '치삼' not in json.dumps(recorded, ensure_ascii=False)
