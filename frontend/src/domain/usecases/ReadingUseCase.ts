@@ -148,9 +148,28 @@ export class ReadingUseCase {
     return work.canonical && isPub(work) ? this.workSearchRepository?.episodeViews(work.id, signal) : undefined
   }
 
-  private async load(id: string) {
+  /**
+   * 작품 관리 개요의 독자 지표: 공개 상세의 좋아요 수와 회차별 누적 회원 조회 수의 합계. 공개 작품이 아니면(null) 집계가 없고, 저장소가 없는 데모도 null이다.
+   * 읽지 못하면 0으로 채우지 않고 던진다(화면이 구획 안에서 실패를 알린다).
+   * ponytail: 같은 GET /public/works/{id}를 좋아요·조회로 두 번 읽는다. 느려지면 공개 상세 한 번에 둘을 받는 저장소 메서드로 합친다.
+   */
+  async readerStats(workId: string, signal?: AbortSignal): Promise<{ likes: number; views: number } | null> {
+    if (!this.workLikeRepository || !this.workSearchRepository) return null
+    const like = await this.workLikeRepository.read(workId)
+    if (!like) return null
+    const views = await this.workSearchRepository.episodeViews(workId, signal)
+    return { likes: like.likes, views: Object.values(views).reduce((sum, n) => sum + n, 0) }
+  }
+
+  /** 운영자 열람 모드 판정용: ID로 읽은 작품의 소유자 회원 ID. ID로 읽는 저장소가 아니면(데모) null이다. */
+  async ownerOf(id: string) { return (await this.workRepository.readWork?.(id))?.owner ?? null }
+
+  private async load(id: string, role: Role = null) {
     const [works, worlds, progress] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds(), this.readingRepository.getProgress()])
-    return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
+    // 운영자는 목록에 없는 남의 비공개 작품도 연다. 서버 작품 ID(UUID)일 때만 한 건을 더 읽는다.
+    const listed = works.find((x) => x.id === id || x.slug === id)
+    const w = listed ?? (role === 'admin' && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? await this.workRepository.readWork?.(id) : undefined)
+    return { works, worlds, progress, w }
   }
 
   /**
@@ -172,7 +191,7 @@ export class ReadingUseCase {
    * 없으면 최신 회차 기준이다. 맞춘 기준 회차는 upto로 돌려준다.
    */
   async getWork(id: string, role: Role, upto?: number) {
-    const { works, worlds, progress, w: loaded } = await this.load(id)
+    const { works, worlds, progress, w: loaded } = await this.load(id, role)
     if (!canView(loaded, role)) return null
     const last = epsOf(loaded).length
     const n = upto && upto >= 1 ? Math.min(Math.floor(upto), last) : last
@@ -240,7 +259,7 @@ export class ReadingUseCase {
    * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).
    */
   async openEpisode(id: string, at: number, role: Role) {
-    const { works, worlds, w: loaded } = await this.load(id)
+    const { works, worlds, w: loaded } = await this.load(id, role)
     if (!canView(loaded, role)) return null
     const eps = epsOf(loaded)
     const n = loaded.canonical ? at : Math.max(1, Math.min(+at || 1, eps.length))
@@ -366,7 +385,7 @@ export class ReadingUseCase {
       for (const c of baseOf(sw).cast) items.push({ k: '인물', label: c.n, sub: '사전에서 보기', go: at(`view=wiki&q=${encodeURIComponent(c.n)}`) })
     }
     for (const w of works.filter(isPub)) {
-      items.push({ k: '소설', w, label: w.title, sub: `${w.author} · ${w.genre}`, go: `/work/${w.id}` })
+      items.push({ k: '소설', w, label: w.title, sub: [w.author, w.genre].filter(Boolean).join(' · '), go: `/work/${w.id}` })
       if (w.parent) continue
       for (const c of publicCast(w, w.eps.length)) items.push({ k: '인물', w, label: c.n, sub: `${w.title} · ${c.d}`, go: `/work/${w.id}` })
       w.eps.forEach((e, i) => { if (visibleEpisode(w, e, role)) items.push({ k: '회차', w, label: `${w.title} ${i + 1}화 ${e.t}`, sub: '바로 읽기', go: `/read/${w.id}/${i + 1}` }) })

@@ -7,6 +7,7 @@ import ai.storyfork.operations._common.client.instant
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.dto.Evaluation
+import ai.storyfork.operations.llmops.service.dto.EvaluationItem
 import ai.storyfork.operations.llmops.service.dto.EvaluationListResponse
 import ai.storyfork.operations.llmops.service.dto.EvaluationMetric
 import ai.storyfork.operations.llmops.service.dto.EvaluationRequest
@@ -31,6 +32,13 @@ private val STALE_AFTER = Duration.ofHours(2)
 
 /** Langfuse needs a lower time bound to list experiments. ponytail: a prompt version whose last evaluation is older than this needs a new one to be promoted. */
 private val EXPERIMENT_LOOKBACK = Duration.ofDays(365)
+
+/** An item's experiment events start just after the run's start time; a minute of slack keeps the first one inside the window Langfuse requires. */
+private val ITEM_LOOKBACK = Duration.ofMinutes(1)
+
+/** A metric below this fails the item (contract: an item fails on a pov_ok of 0, a metric under 0.5 or an item error; pov_ok is 0 or 1). */
+private const val ITEM_PASS_SCORE = 0.5
+private const val ITEM_ERROR = "생성 또는 채점에 실패했어요."
 
 /** The AI service names a run "<prompt>@v<version>-<UTC time yyyymmddTHHMMSSZ>-<6 hex digits>"; the prompt may contain "@v" itself. */
 private val RUN_NAME = Regex("""^(.+)@v(\d+)-\d{8}T\d{6}Z-[0-9a-f]{6}$""")
@@ -70,7 +78,9 @@ class EvaluationService(
     /** [runId] is the run name, which Langfuse filters by itself. */
     internal fun detail(member: OperationsMember, runId: String, now: Instant): Evaluation {
         permissions.requirePermission(member, LLM)
-        return runs(now, runId).firstOrNull { it.name == runId }?.let { evaluations(listOf(it), now).single() } ?: throw NoSuchElementException("Evaluation not found.")
+        val run = runs(now, runId).firstOrNull { it.name == runId } ?: throw NoSuchElementException("Evaluation not found.")
+        val evaluation = evaluations(listOf(run), now).single()
+        return evaluation.copy(items = items(run, evaluation.status))
     }
 
     /** The AI service answers 202 and keeps running; the result shows up in the run list. */
@@ -90,13 +100,18 @@ class EvaluationService(
         return EvaluationStartedResponse(started.runName, request.dataset, request.prompt, request.version, "running")
     }
 
-    /** The newest run of each prompt version, for the prompt screens; only those runs are scored (in one read). */
-    internal fun latestByVersion(now: Instant = Instant.now()): Map<Pair<String, Int>, Evaluation> =
-        evaluations(runs(now, null).distinctBy { it.prompt to it.version }, now).associateBy { it.prompt to it.version }
+    /**
+     * The newest run of each prompt version, for the prompt screens; only those runs are scored (in one read). A prompt named in [sets] counts only its
+     * runs on that set, so the screen shows the run the candidate gate reads (#787).
+     */
+    internal fun latestByVersion(now: Instant = Instant.now(), sets: Map<String, String> = emptyMap()): Map<Pair<String, Int>, Evaluation> =
+        evaluations(runs(now, null).filter { run -> sets[run.prompt].let { it == null || it == run.dataset } }.distinctBy { it.prompt to it.version }, now)
+            .associateBy { it.prompt to it.version }
 
-    /** The newest run of one prompt version (scored alone): the production gate reads its verdict. */
-    internal fun latest(prompt: String, version: Int, now: Instant = Instant.now()): Evaluation? =
-        runs(now, null).firstOrNull { it.prompt == prompt && it.version == version }?.let { evaluations(listOf(it), now).single() }
+    /** The newest run of one prompt version (scored alone), on [dataset] when given: the candidate gate reads its verdict. */
+    internal fun latest(prompt: String, version: Int, dataset: String? = null, now: Instant = Instant.now()): Evaluation? =
+        runs(now, null).firstOrNull { it.prompt == prompt && it.version == version && (dataset == null || it.dataset == dataset) }
+            ?.let { evaluations(listOf(it), now).single() }
 
     /** Newest first. */
     private fun runs(now: Instant, name: String?): List<Run> = langfuse.experiments(now.minus(EXPERIMENT_LOOKBACK), name).mapNotNull { node ->
@@ -107,6 +122,19 @@ class EvaluationService(
         val dataset = metadata.path("dataset").textOrNull() ?: node.path("datasetId").textOrNull().orEmpty()
         Run(node.path("id").asString(), node.path("name").asString(), dataset, prompt, version, node.path("startTime").instant())
     }.sortedByDescending { it.createdAt }
+
+    /**
+     * The run's items from the Experiments items API (item scores, no text), failed ones first and then by item id. An item that errored while generating has level ERROR,
+     * one that generated but was never scored (a scoring failure) has no scores; both are failed with the fixed reason. While the run is [status] running an item without
+     * scores is not failed: it is still being generated or scored, so it comes as waiting (no scores, not failed, no error); only a run that is over turns it into a failure.
+     */
+    private fun items(run: Run, status: String): List<EvaluationItem> = langfuse.experimentItems(run.id, run.createdAt.minus(ITEM_LOOKBACK)).map { node ->
+        val scores = node.path("scores").values().filter { it.path("dataType").asString() == "NUMERIC" }
+            .mapNotNull { score -> score.path("value").doubleOrNull()?.let { score.path("name").asString() to it } }.toMap()
+        val errored = node.path("level").asString() == "ERROR" || (scores.isEmpty() && status != "running")
+        // A pov_ok of 0 (a violated fact) is below the pass score too, so one comparison covers "a violation or a low metric".
+        EvaluationItem(node.path("experimentItemId").asString(), scores, errored || scores.values.any { it < ITEM_PASS_SCORE }, if (errored) ITEM_ERROR else null)
+    }.sortedWith(compareByDescending<EvaluationItem> { it.failed }.thenBy { it.itemId })
 
     /** The runs with their evaluation, all scored by one Scores API read: a score belongs to the experiment its subject names. */
     private fun evaluations(runs: List<Run>, now: Instant): List<Evaluation> {

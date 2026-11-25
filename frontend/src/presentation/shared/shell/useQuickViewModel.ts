@@ -8,7 +8,7 @@ import type { PublicWorldUseCase } from '../../../domain/usecases/PublicWorldUse
 import type { ReadingUseCase } from '../../../domain/usecases/ReadingUseCase'
 import { useAsyncData } from '../useAsyncData'
 import { requestLeave } from '../events'
-import { CARD_KIND } from '../worldBoard'
+import { kindOf } from '../worldBoard'
 
 /** 이동 후보 한 줄. `w`(표지)는 작품 후보에만 있다. */
 type QuickItem = { k: string; w?: Work; label: string; sub: string; go: string }
@@ -59,7 +59,7 @@ export function useQuickViewModel(readingUseCase: ReadingUseCase = appContainer.
 
   const found: QuickItem[] = [
     ...(near?.worlds ?? []).map((w) => ({ k: '세계관', label: w.name, sub: `${w.authorNickname} · 설정 카드 ${w.cardCount}개`, go: `/worlds/${w.id}` })),
-    ...(near?.cards ?? []).map((card) => ({ k: '설정 카드', label: card.title, sub: `${card.worldName} · ${CARD_KIND[card.cardType]}`, go: `/worlds/${card.worldId}/cards/${card.cardId}` })),
+    ...(near?.cards ?? []).map((card) => ({ k: '설정 카드', label: card.title, sub: `${card.worldName} · ${kindOf(card.cardType)}`, go: `/worlds/${card.worldId}/cards/${card.cardId}` })),
   ]
   const list: QuickItem[] = query
     ? [{ k: '검색', label: `‘${query}’ 검색 결과 모두 보기`, sub: 'Enter · 작품·세계관·설정 카드에서 찾기', go: `/search?q=${encodeURIComponent(query)}` }, ...items.filter((x) => (x.label + x.sub).includes(query)).slice(0, 7), ...found]

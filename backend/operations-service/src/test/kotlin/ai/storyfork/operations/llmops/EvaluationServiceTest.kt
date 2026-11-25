@@ -20,10 +20,12 @@ class EvaluationServiceTest {
     // The experiments Langfuse knows (its name filter is exact, like the real one) and the scores of each, found by experiment id.
     private var experiments: List<JsonNode> = emptyList()
     private val scores = mutableMapOf<String, List<JsonNode>>()
+    private val items = mutableMapOf<String, List<JsonNode>>()   // the experiment items of each experiment id (Experiments items API)
     private val langfuse = mock(LangfuseClient::class.java) { call ->
         when (call.method.name) {
             "experiments" -> experiments.filter { call.arguments[1] == null || it.path("name").asString() == call.arguments[1] }
             "experimentScores" -> (call.arguments[0] as List<*>).flatMap { scores[it].orEmpty() }
+            "experimentItems" -> items[call.arguments[0]].orEmpty()
             else -> null
         }
     }
@@ -244,12 +246,12 @@ class EvaluationServiceTest {
     fun `one version's latest evaluation is scored alone`() {
         givenAllRuns()
 
-        val latest = checkNotNull(service.latest("qa/answer", 3, now))
+        val latest = checkNotNull(service.latest("qa/answer", 3, now = now))
 
         assertEquals(listOf(name(failedNewer), false), listOf(latest.runId, latest.passed))
         assertEquals(listOf<Any?>(listOf("id-b2c3d4")), scoreReads())
-        assertNull(service.latest("qa/answer", 9, now))
-        assertNull(service.latest("other", 3, now))
+        assertNull(service.latest("qa/answer", 9, now = now))
+        assertNull(service.latest("other", 3, now = now))
     }
 
     @Test
@@ -305,5 +307,82 @@ class EvaluationServiceTest {
         `when`(ai.startEvaluation("d", "p", 1)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.start(operators.llm, EvaluationRequest("d", "p", 1)) }.statusCode)
         verifyNoInteractions(activities)
+    }
+
+    /** An item as the Experiments items API answers it with the core and scores groups: [itemId] is the dataset item id, [scores] are item scores (NUMERIC). */
+    private fun experimentItem(experimentId: String, itemId: String, scores: Map<String, Double>, level: String = "DEFAULT") = json(
+        """{"id":"obs-$itemId","traceId":"trace-$itemId","startTime":"2026-11-19T01:00:05Z","endTime":"2026-11-19T01:00:09Z","level":"$level","environment":"default",
+            "experimentId":"$experimentId","experimentName":"run","experimentItemId":"$itemId","scores":[${scores.entries.joinToString(",") { (name, value) ->
+            """{"id":"s-$itemId-$name","projectId":"p","name":"$name","source":"API","timestamp":"2026-11-19T01:00:08Z","environment":"default","createdAt":"2026-11-19T01:00:08Z",
+            "updatedAt":"2026-11-19T01:00:08Z","dataType":"NUMERIC","value":$value,"subject":{"kind":"observation","id":"obs-$itemId","traceId":"trace-$itemId"}}""" }}]}""")
+
+    private val good = mapOf("voice" to 0.75, "intent" to 1.0, "pov_ok" to 1.0)
+
+    @Test
+    fun `the detail lists every item with its scores and fails the ones with a violation a low metric or an error, failed first`() {
+        givenAllRuns()
+        items["id-a1b2c3"] = listOf(
+            experimentItem("id-a1b2c3", "simulation.act-04", good),
+            experimentItem("id-a1b2c3", "simulation.act-03", good + ("pov_ok" to 0.0)),      // a violated fact: failed
+            experimentItem("id-a1b2c3", "simulation.act-02", good + ("voice" to 0.25)),      // one metric below 0.5: failed
+            experimentItem("id-a1b2c3", "simulation.act-01", good + ("intent" to 0.5)),      // exactly 0.5 is not below it
+            experimentItem("id-a1b2c3", "simulation.act-06", emptyMap(), level = "ERROR"),   // the item failed while generating
+            experimentItem("id-a1b2c3", "simulation.act-05", emptyMap()),                    // generated but never scored
+        )
+
+        val got = service.detail(operators.llm, name(finished), now).items!!
+
+        assertEquals(listOf("simulation.act-02", "simulation.act-03", "simulation.act-05", "simulation.act-06", "simulation.act-01", "simulation.act-04"), got.map { it.itemId })
+        assertEquals(listOf(true, true, true, true, false, false), got.map { it.failed })
+        assertEquals(mapOf("voice" to 0.25, "intent" to 1.0, "pov_ok" to 1.0), got[0].scores)
+        assertEquals(listOf(null, null, "생성 또는 채점에 실패했어요.", "생성 또는 채점에 실패했어요.", null, null), got.map { it.error })   // only an item error has a reason
+        assertEquals(emptyMap<String, Double>(), got[3].scores)
+    }
+
+    @Test
+    fun `the items are read for the run's experiment from just before its start and carry no text of the item`() {
+        givenAllRuns()
+        items["id-a1b2c3"] = listOf(experimentItem("id-a1b2c3", "simulation.act-01", good))
+
+        val got = service.detail(operators.llm, name(finished), now).items!!
+
+        val read = mockingDetails(langfuse).invocations.single { it.method.name == "experimentItems" }
+        assertEquals(listOf<Any?>("id-a1b2c3", Instant.parse("2026-11-19T00:59:00Z")), read.arguments.toList())
+        assertEquals(setOf("itemId", "scores", "failed", "error"), testMapper.convertValue(got.single(), Map::class.java).keys)   // 입력·출력·정답 본문은 응답에 없다
+    }
+
+    @Test
+    fun `a run without items has an empty list and the list never reads items`() {
+        givenAllRuns()
+
+        assertEquals(emptyList<Any>(), service.detail(operators.llm, name(finished), now).items)
+        assertNull(service.list(operators.llm, now).items.first().items)
+        assertEquals(1, mockingDetails(langfuse).invocations.count { it.method.name == "experimentItems" })   // 상세만 읽는다
+    }
+
+    @Test
+    fun `in a running run an item without scores is waiting not failed and an errored one still fails`() {
+        givenAllRuns()
+        items["id-c3d4e5"] = listOf(
+            experimentItem("id-c3d4e5", "simulation.act-01", good),
+            experimentItem("id-c3d4e5", "simulation.act-02", emptyMap()),                   // still generating or being scored
+            experimentItem("id-c3d4e5", "simulation.act-03", emptyMap(), level = "ERROR"),  // its generation failed
+        )
+
+        val got = service.detail(operators.llm, name(running), now).items!!.associateBy { it.itemId }
+
+        assertEquals(listOf(false, false, true), listOf("simulation.act-01", "simulation.act-02", "simulation.act-03").map { got.getValue(it).failed })
+        assertNull(got.getValue("simulation.act-02").error)
+        assertEquals("생성 또는 채점에 실패했어요.", got.getValue("simulation.act-03").error)
+    }
+
+    @Test
+    fun `once a run is over an item without scores is a scoring failure`() {
+        givenAllRuns()
+        items["id-d4e5f6"] = listOf(experimentItem("id-d4e5f6", "simulation.act-01", emptyMap()))   // the stale run has no verdict after two hours: failed
+
+        val item = service.detail(operators.llm, name(stale), now).items!!.single()
+
+        assertEquals(listOf(true, "생성 또는 채점에 실패했어요."), listOf(item.failed, item.error))
     }
 }

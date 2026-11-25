@@ -23,7 +23,7 @@ def action(prose='"갑시다."', observed='가자고 했다'):
 def test_generate_calls_the_service_act_with_the_version_body_and_returns_the_normalized_line(monkeypatch):
     seen = {}
 
-    def act(data, instructions=None):
+    def act(data, instructions=None, model=None):
         seen.update(data=data, instructions=instructions)
         return action('  「가자.」 그가 말했다.  ')
     monkeypatch.setattr(agent, 'act', act)
@@ -36,7 +36,7 @@ def test_generate_calls_the_service_act_with_the_version_body_and_returns_the_no
 def test_generate_calls_the_service_narrate_and_keeps_the_monologue_without_observed(monkeypatch, kind):
     seen = {}
 
-    def narrate(data, instructions=None):
+    def narrate(data, instructions=None, model=None):
         seen.update(data=data, instructions=instructions)
         return Narration.model_construct(prose='  문이 열렸다.  ', observed='' if kind == 'monologue' else '문이 열렸다')
     monkeypatch.setattr(agent, 'narrate', narrate)
@@ -46,7 +46,7 @@ def test_generate_calls_the_service_narrate_and_keeps_the_monologue_without_obse
 
 
 def test_a_narration_without_observed_is_an_invalid_response_but_a_monologue_is_not(monkeypatch):
-    monkeypatch.setattr(agent, 'narrate', lambda data, instructions=None: Narration.model_construct(prose='문이 열렸다.', observed=''))
+    monkeypatch.setattr(agent, 'narrate', lambda data, instructions=None, model=None: Narration.model_construct(prose='문이 열렸다.', observed=''))
 
     with pytest.raises(SimulationFailure):   # 서비스와 같은 응답 확인(service.narrated)
         simulation.generate('narrate', '본문', {'set': 'narration', 'data': DATA})
@@ -145,3 +145,19 @@ def test_an_item_without_the_answer_or_the_judge_inputs_fails_without_asking_the
         asyncio.run(simulation.evaluate('act', ACT_INPUT, '"갑시다."', expected, metadata))
 
     assert error.value.status == 422 and calls == []
+
+
+def test_grade_returns_the_zero_to_one_scores_and_the_violated_fact_ids_for_a_caller_that_does_not_record_scores(monkeypatch):
+    graded(monkeypatch, {'voice': 4, 'intent': 2, 'leaked': ['f1']})   # 자동 개선(app/optimization)의 안쪽 평가가 Langfuse 점수 없이 쓴다
+
+    scores, leaked = asyncio.run(simulation.grade('act', ACT_INPUT, '"갑시다."', '"가자."', META))
+
+    assert scores == {'voice': 0.75, 'intent': 0.25, 'pov_ok': 0.0} and leaked == ['f1']
+
+
+def test_grade_of_a_narration_has_the_narration_metrics_and_no_violation(monkeypatch):
+    graded(monkeypatch, {'style': 3, 'info': 5, 'leaked': []})
+
+    scores, leaked = asyncio.run(simulation.grade('narrate', {'set': 'narration', 'data': DATA}, '문이 열렸다.', '다음 문단', META))
+
+    assert scores == {'style': 0.5, 'info': 1.0, 'pov_ok': 1.0} and leaked == []

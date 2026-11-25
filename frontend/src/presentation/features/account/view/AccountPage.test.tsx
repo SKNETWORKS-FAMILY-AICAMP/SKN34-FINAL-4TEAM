@@ -156,6 +156,29 @@ describe('문의하기 폼 (U34)', () => {
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' }).disabled).toBe(false)
   })
 
+  it('[D1] 전송 중 버튼이 잠겨 초점을 잃어도, 끝나면 제출하던 버튼으로 돌려준다', async () => {
+    let finish!: () => void
+    vi.spyOn(support(), 'create').mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    fireEvent.change(field('제목'), { target: { value: '포크 질문' } })
+    fireEvent.change(field('내용'), { target: { value: '어떻게 하나요?' } })
+    const button = screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' })
+    button.focus()
+    fireEvent.submit(document.getElementById('iqf')!)
+    await waitFor(() => expect(button.disabled).toBe(true))
+    dropFocus()
+    await act(async () => { finish() })
+    await waitFor(() => expect(document.activeElement).toBe(button))
+    expect(button.disabled).toBe(false)
+  })
+
+  it('[D4] 내용 칸은 최소 160px 높이로 시작한다 — 전역 .ta의 90px는 문의 본문을 쓰기엔 낮다', async () => {
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    expect(field('내용').style.minHeight).toBe('160px')
+  })
+
   it('전송이 거절되면 입력을 그대로 두고 서버가 알려 준 이유를 경고로 보여 준다', async () => {
     vi.spyOn(support(), 'create').mockRejectedValueOnce(new OperationsError('이 작업을 할 권한이 없어요.'))
     setup('/me/inquiry')
@@ -220,11 +243,21 @@ describe('내 문의 목록 (U34)', () => {
     const answered = (await screen.findByText('[계정] 답변된 문의')).closest('.rp') as HTMLElement
     within(answered).getByText('답변 완료')
     expect([...answered.querySelectorAll('.inquiry-reply')].map((p) => p.textContent)).toEqual(['운영팀 답변 1첫 답변\n줄2', '운영팀 답변 2둘째 답변'])
+    // [P1] 전역 p가 margin:0라 답변 상자가 본문·서로 맞닿던 것 — 상자 위에 8px(.rp .a와 같은 값)
+    expect([...answered.querySelectorAll<HTMLElement>('.inquiry-reply')].map((p) => p.style.marginTop)).toEqual(['8px', '8px'])
     expect(within(answered).getByText('첫 줄 둘째 줄').textContent).toBe('첫 줄\n둘째 줄')
     const waiting = screen.getByText('[계정] 기다리는 문의').closest('.rp') as HTMLElement
     within(waiting).getByText('답변 대기')
     expect(waiting.querySelector('.inquiry-reply')).toBeNull()
     screen.getByRole('heading', { name: '내 문의 2' })
+  })
+
+  it('[F1·F2] 안내문 아래와 목록 제목 위·아래에 간격을 직접 둔다 — 전역 h1~h4·p가 margin:0이라 폼 카드·목록 카드에 붙는다', async () => {
+    vi.spyOn(support(), 'listMine').mockResolvedValue([])
+    setup('/me/inquiry')
+    const title = await screen.findByRole('heading', { name: '내 문의 0' })
+    expect(screen.getByText(/^운영팀 답변은 아래 내 문의에서/).style.marginBottom).toBe('12px')
+    expect([title.style.marginTop, title.style.marginBottom]).toEqual(['22px', '10px'])
   })
 })
 
@@ -280,14 +313,34 @@ describe('계정 화면 구조', () => {
   })
 })
 
-describe('계정 문서 제목', () => {
+describe('계정 하위 주소', () => {
   it.each([
+    ['/me', '프로필'],
     ['/me/profile', '프로필'],
+    ['/me/liked', '관심 소설'],
+    ['/me/storage', '저장 공간'],
+    ['/me/pay', '결제 내역'],
     ['/me/inquiry', '문의하기'],
     ['/me/notice', '공지사항'],
-    ['/me/unknown', '계정'],
-  ])('%s의 탭 제목은 하위 탭 이름(없으면 계정)이다', async (path, name) => {
+    ['/me/event', '이벤트'],
+  ])('%s의 화면 제목과 문서 제목은 %s이다', async (path, name) => {
     setup(path)
-    await waitFor(() => expect(document.title).toBe(`${name} · STORYFORK`))
+    await screen.findByRole('heading', { level: 2, name: new RegExp(`^${name}`) })
+    expect(document.title).toBe(`${name} · STORYFORK`)
+  })
+
+  it.each(['/me/unknown', '/me/notifications', '/me/constructor'])('%s 경로에서 공통 404 화면을 보여 준다', async (path) => {
+    setup(path)
+    await screen.findByRole('heading', { level: 1, name: '페이지를 찾을 수 없어요' })
+    expect(document.title).toBe('페이지를 찾을 수 없어요 · STORYFORK')
+  })
+
+  it('비로그인 방문자의 /me/pay는 돌아갈 주소를 보존하고 로그인으로 보낸다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) =>
+      url.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: 401 })))
+    const { store } = renderApp('/me/pay')
+
+    await screen.findByRole('heading', { level: 1, name: '로그인' })
+    expect(store.getState().session).toMatchObject({ next: '/me/pay', loginMsg: '로그인이 필요한 화면이에요.' })
   })
 })

@@ -3,9 +3,9 @@ import { z } from 'zod'
 import type { Dashboard } from '../../domain/entities/operationsDashboard'
 import type { JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
 import type {
-  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
+  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
-import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import { CANDIDATE_REQUIRED_MESSAGE, EVALUATION_REQUIRED_MESSAGE, OPTIMIZATION_RUNNING_MESSAGE, OPTIMIZATION_UNSUPPORTED_MESSAGE } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineQuery, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import type { OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
@@ -71,12 +71,16 @@ const prompt = z.object({
   versions: z.array(z.object({
     version: z.number(), labels: z.array(z.string()), createdAt: instant.nullish(),
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
+    model: text, prompt: z.unknown().optional().transform((value) => (typeof value === 'string' ? value : undefined)), commitMessage: text,
   })).default([]),
+  candidates: z.number().default(0), evaluationDataset: text, models: z.array(z.string()).nullish(),
 })
 const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num })
 const evaluation = z.object({
   runId: z.string(), dataset: z.string(), prompt: z.string(), version: z.number(), status: z.string(), passed: z.boolean().nullish(), createdAt: instant,
   metrics: z.array(z.object({ name: z.string(), score: z.number(), baseline: num, delta: num })).default([]),
+  // 문항별 결과(#823)는 상세에만 오고 목록에는 없다.
+  items: z.array(z.object({ itemId: z.string(), scores: z.record(z.string(), z.number()), failed: z.boolean(), error: text })).nullish(),
 })
 const leakCheck = z.object({ id: z.string(), traceId: z.string(), workId: z.string(), checkedAt: instant, matched: z.array(z.string()), suspected: z.boolean(), reason: text })
 const settings = z.object({ leakSampleRate: z.number() })
@@ -103,11 +107,15 @@ const schedule = z.object({
 const MESSAGES_UPSTREAM = { ...MESSAGES, 422: MESSAGES[400], 502: '연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.' }
 const id = encodeURIComponent
 /**
- * 변경 요청의 오류 안내. 서버의 영문 고정 문구("Invalid request." 등)는 상태별 한국어 안내(MESSAGES)로 바꾸고, 승격이 평가 미통과로 막힌 409는 code(EVALUATION_REQUIRED)로 정해진 한국어 문구를 보입니다.
+ * 변경 요청의 오류 안내. 서버의 영문 고정 문구("Invalid request." 등)는 상태별 한국어 안내(MESSAGES)로 바꾸고, 후보가 아닌 버전의 서비스 반영(CANDIDATE_REQUIRED)·
+ * 평가 통과 전 후보 등록(EVALUATION_REQUIRED)이 막힌 409는 code로 정해진 한국어 문구를 보입니다.
  * 상위 서비스(Content 등)가 준 안내는 그대로 보입니다: code가 UPSTREAM…이거나 한글로 쓴 문구인 경우이고, 서버가 상위 서비스 거절을 일반 오류와 같은 code로 주고 문구만 바꾸기 때문에 한글 여부도 함께 봅니다.
  */
 const changeReason: ServerReason = (status, { code, message }) => {
+  if (code === 'CANDIDATE_REQUIRED') return CANDIDATE_REQUIRED_MESSAGE
   if (code === 'EVALUATION_REQUIRED') return EVALUATION_REQUIRED_MESSAGE
+  if (code === 'OPTIMIZATION_RUNNING') return OPTIMIZATION_RUNNING_MESSAGE
+  if (code === 'OPTIMIZATION_UNSUPPORTED') return OPTIMIZATION_UNSUPPORTED_MESSAGE
   return message && [400, 404, 409, 422].includes(status) && (code?.startsWith('UPSTREAM') || /[가-힣]/.test(message)) ? message : undefined
 }
 /** 비어 있는 조건은 서버에 보내지 않습니다. */
@@ -138,8 +146,13 @@ export class HttpLlmOpsRepository extends LlmOpsApi implements LlmOpsRepository 
   metrics({ from, to, groupBy }: MetricsQuery): Promise<Metrics> { return this.get(withQuery('/llmops/metrics', { from, to, groupBy }), metrics) }
   prompts(): Promise<Prompt[]> { return this.get('/llmops/prompts', items(prompt)) }
   prompt(name: string): Promise<Prompt> { return this.get(`/llmops/prompts/${id(name)}`, prompt) }
-  createPromptVersion(name: string, input: PromptVersionInput) { return this.change(`/llmops/prompts/${id(name)}`, 'POST', input) }
+  createPromptVersion(name: string, { prompt, commitMessage, model }: PromptVersionInput) {
+    // 모델을 고르지 않은 버전은 config 없이 등록돼 AI 서비스의 환경 변수 기본 모델로 돈다(#705).
+    return this.change(`/llmops/prompts/${id(name)}`, 'POST', { prompt, commitMessage, ...(model ? { config: { model } } : {}) })
+  }
+  candidate(name: string, version: number) { return this.change(`/llmops/prompts/${id(name)}/candidate`, 'PUT', { version }) }
   promote(name: string, version: number) { return this.change(`/llmops/prompts/${id(name)}/production`, 'PUT', { version }) }
+  optimize(name: string, { version, maxMetricCalls }: OptimizationInput) { return this.change(`/llmops/prompts/${id(name)}/optimizations`, 'POST', { version, maxMetricCalls }) }
   models(): Promise<Model[]> { return this.get('/llmops/models', items(model)) }
   createModel(input: ModelInput) { return this.change('/llmops/models', 'POST', input) }
   evaluations(): Promise<Evaluation[]> { return this.get('/llmops/evaluations', items(evaluation)) }

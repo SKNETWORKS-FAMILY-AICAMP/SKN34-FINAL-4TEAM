@@ -4,10 +4,10 @@ import { Link, useSearchParams } from 'react-router'
 import { LINK_PATH_MAX } from '../../../../domain/entities/event'
 import { ADMIN_PERMISSIONS, LLM_PAGES, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref } from '../../../../domain/entities/admin'
 import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
-import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
+import { REPORT_STATUSES, reportKindLabel, reportStatusLabel, reportTargetTitle, reportTargetTypeLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
 import { commentWorkOptions, filterOperationsComments } from '../../../../domain/entities/operationsComment'
-import type { OperationsWork } from '../../../../domain/entities/operationsWork'
+import { rightsLabel } from '../../../../domain/entities/operationsWork'
 import { SUPPORT_STATUSES, supportStatusLabel, type SupportReply } from '../../../../domain/entities/supportInquiry'
 import { ofKind } from '../../../../domain/entities/work'
 import { kstDateTime, kstPeriod } from '../../../shared/format'
@@ -21,7 +21,12 @@ import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
+import { useFeedbackReportsViewModel } from '../viewmodel/useFeedbackReportsViewModel'
+import { AdminCardCategories } from './AdminCardCategories'
+import { AdminFeedbackReports } from './AdminFeedbackReports'
 import { AdminGenres } from './AdminGenres'
+import { AdminWorkDetail } from './AdminWorkDetail'
+import { AdminWorlds } from './AdminWorlds'
 import { CreditsOperations } from './CreditsOperations'
 import { JobMonitor } from './JobMonitor'
 import { LlmOps } from './LlmOps'
@@ -38,7 +43,7 @@ type Data = NonNullable<VM['data']>
  */
 const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
-  ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗'], ['genres', '장르']]],
+  ['콘텐츠 관리', [['works', '작품'], ['worlds', '세계관'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗'], ['genres', '장르'], ['cardCategories', '카드 카테고리']]],
   ['소통 관리', [['feedback', '제보·문의'], ['notices', '공지'], ['events', '이벤트']]],
   ['LLM Ops', LLM_PAGES.map(([page, label]): [AdminTab, string, LlmPage] => ['llm', label, page])],
   ['서비스 운영', [['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
@@ -47,15 +52,17 @@ const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
 const LLM_TITLES: Record<LlmPage, [string, string]> = {
   alerts: ['LLM Ops · 경고', '운영 경고를 확인하고 조치하며, 경고 기준과 켜고 끄기를 정합니다.'],
   traces: ['LLM Ops · 추적·지표', 'Langfuse 기준 AI 요청 추적과 기간별 품질·비용 지표를 확인합니다.'],
-  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트 버전과 production 승격, 모델 단가를 관리합니다.'],
+  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트·모델 조합의 후보 등록과 서비스 반영, 모델 단가를 관리합니다.'],
   quality: ['LLM Ops · 평가·누설 검사', '회귀 평가를 실행해 결과를 확인하고, 정보 누설 검사 기록과 표본 비율을 관리합니다.'],
 }
 const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
   data: ['관리 개요', '서비스 지표와 회원·AI 사용·작업·미처리 업무 현황을 확인합니다.'],
-  rights: ['신고·권리 관리', '운영 신고를 검토하고 대상 작품 제한·권리 증빙 요청을 기록합니다.'],
+  rights: ['신고·권리 관리', '운영 신고를 검토하고 대상(작품·회차·세계관) 제한·권리 증빙 요청을 기록합니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
-  works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다.'],
+  works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다. 작품 상세에서 회차를 확인하고 제한합니다.'],
+  worlds: ['세계관 관리', '공개 세계관을 조회하고 공개 경로 운영 제한·해제를 요청합니다.'],
+  cardCategories: ['카드 카테고리 관리', '세계관 카드의 분류를 추가하고 이름·아이콘·숨김·순서를 관리합니다.'],
   genres: ['장르 관리', '작품·세계관이 함께 쓰는 장르를 추가하고 이름·아이콘·숨김·홈 노출·순서를 관리합니다.'],
   characterChats: [
     '캐릭터챗 관리',
@@ -64,7 +71,7 @@ const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
   comments: ['댓글 관리', '독자 댓글을 조회하고 숨김·게시 복구를 요청합니다.'],
   feedback: [
     '제보·문의',
-    '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 시연용 데이터예요.',
+    '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 열람만 하고, 처리는 작가가 해요.',
   ],
   jobs: ['정기 작업', '원고 전처리와 운영 정기 작업의 실행 기록을 보고 실패 작업과 일정을 관리합니다.'],
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
@@ -75,15 +82,12 @@ const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
 /** 데모 조회를 쓰지 않는 운영 API 탭: 상단 '목록 새로고침'(데모 조회만 다시 읽음) 대신 자기 패널의 새로고침·조회를 씁니다. */
-const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres', 'credits']
-/** 작품 탭의 권리 표시값. 검색도 화면에 보이는 이 문구로 합니다. */
-const rightsLabel = (w: OperationsWork) =>
-  `${w.creationType === 'external_derivative' ? '외부 2차 창작' : '원작'} · ${w.rightsConfirmed ? '권리 확인됨' : '권리 미확인'}`
+const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres', 'credits', 'worlds', 'cardCategories']
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
-/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit']
+/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리·관리자 계정 생성과 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode', 'admin']
 const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
@@ -93,7 +97,7 @@ function actionTarget(vm: VM, key: string): string | undefined {
   if (kind === 'work') { const w = live?.works.find((x) => x.workId === id); return w && `「${w.title}」` }
   if (kind === 'comment') { const c = live?.comments.find((x) => x.commentId === id); return c && `${c.authorName} 님의 댓글` }
   if (kind === 'chat') { const c = vm.data?.chats.find((x) => x.id === id); return c ? `${c.w.title} · ${c.character}` : id === 'new' ? '캐릭터챗 추가' : undefined }
-  return kind === 'admin' ? '관리자 계정 생성' : undefined
+  return undefined
 }
 /**
  * 이 키의 조치 상태가 지금 화면의 폼 안에 그려지는지. 그려지면 완료 문구가 폼 안에 보이므로 화면 위 완료 줄에 같은 문구를 또 두지 않습니다.
@@ -101,7 +105,7 @@ function actionTarget(vm: VM, key: string): string | undefined {
  */
 function shownInForm(vm: VM, tab: AdminTab, key: string) {
   const [kind, id, , replyId] = key.split(':')
-  // 대시보드·LLMOps·작업 감시 패널은 자기 조치 안내(ActionLines)를 패널 안에 그립니다.
+  // 대시보드·LLMOps·작업 감시 패널(ActionLines)과 관리자 계정 폼(AdminActionStatus)은 자기 조치 안내를 패널·폼 안에 그립니다.
   if (OPS_PANEL_KINDS.includes(kind)) return true
   // 공지·이벤트 폼은 새로 쓰는 중이거나 고른 항목이 목록에 있을 때만 그려집니다.
   const open = (selection: string | null, rows: { id: string }[] = []) => id === selection && (id === 'new' || rows.some((row) => row.id === id))
@@ -174,7 +178,8 @@ export function AdminPage() {
       </Go>
     )
   }
-  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab)
+  // 새 공지·이벤트 폼은 목록이 보이지 않아 새로고침해도 화면이 안 바뀌므로 숨깁니다(목록·기존 글 상세에서는 다시 읽는 수단).
+  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab) && !((tab === 'events' || tab === 'notices') && vm.recordSelection[tab] === 'new')
   return (
     <>
     <div className='adm'>
@@ -190,7 +195,7 @@ export function AdminPage() {
       </a>
       <div className='admin-side'>
         <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
-          <b className='admin-brand'>STORYFORK 관리자</b>
+          <Go to='/' className='admin-brand' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
           {navLink('data', '개요')}
           {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
           {GROUPS.map(([g, items]) => (
@@ -204,8 +209,8 @@ export function AdminPage() {
       </div>
       <div className='admin-col'>
         <div className='top'>
-          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. */}
-          <b className='admin-brand-top'>STORYFORK 관리자</b>
+          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. 두 브랜드 모두 메인(/)으로 나가는 링크입니다. */}
+          <Go to='/' className='admin-brand-top' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
           <PopMenu
             className='admin-who'
             label={`${vm.me.nick} 님 계정 메뉴`}
@@ -336,7 +341,7 @@ function Controls(
           {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </label>
-      <button className='btn pri' type='submit'>검색</button>
+      <button className='btn' type='submit'>검색</button>
     </form>
   )
 }
@@ -347,6 +352,8 @@ function Body(p: BodyProps) {
   if (tab === 'llm') return <LlmOps vm={vm} page={p.page} />
   if (tab === 'jobs') return <JobMonitor vm={vm} />
   if (tab === 'genres') return <AdminGenres vm={vm} />
+  if (tab === 'worlds') return <AdminWorlds vm={vm} />
+  if (tab === 'cardCategories') return <AdminCardCategories vm={vm} />
   if (tab === 'credits') return <CreditsOperations vm={vm} />
   if (tab === 'rights') return <Rights {...p} />
   if (tab === 'admins') return <Admins vm={vm} />
@@ -355,7 +362,7 @@ function Body(p: BodyProps) {
   if (tab === 'works') return <Works {...p} />
   if (tab === 'comments') return <Comments {...p} />
   if (tab === 'audit') return <Audit vm={vm} />
-  // 운영 API 탭이라 데모 조회(d) 없이 그린다(Feedback의 시연용 제보 표만 d가 있을 때 붙는다).
+  // 운영 API 탭이라 데모 조회(d) 없이 그린다(Feedback의 서버 없는 시연(`--mode mockup`) 제보 표만 d가 있을 때 붙는다).
   if (tab === 'feedback') return <Feedback {...p} />
   if (tab === 'events') return <Events vm={vm} />
   if (tab === 'notices') {
@@ -381,7 +388,7 @@ function Body(p: BodyProps) {
     T = (
       <>
         <ChatForm d={d} vm={vm} />
-        <div className='panel' style={{ marginTop: 14 }}>
+        <div className='panel'>
           <div className='table-head'>
             <h2 className='panel-title'>캐릭터챗 목록</h2>
             <span className='demo'>작품·캐릭터 연결</span>
@@ -484,6 +491,14 @@ function Works(p: BodyProps) {
   const integrity = useForkIntegrity()
   // 점검 결과를 열면 결과 제목으로, 닫으면 누른 점검 버튼으로 포커스를 옮깁니다(목록 크기는 보지 않아 검색 중 포커스를 뺏지 않습니다).
   const root = useAdminDetailFocus(integrity.target?.id ?? null)
+  // 작품 상세 드로어(결정 C): 행을 누르거나 ⋮ 메뉴의 '상세'를 고르면 열린다. 목록 검색·정렬이 바뀌어도 열린 채 두려고 전체 목록에서 찾는다.
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const detail = (vm.live.data?.works ?? []).find((w) => w.workId === detailId)
+  const closeDetail = () => {
+    // 닫으면 초점이 body로 떨어지지 않게 그 줄의 ⋮ 버튼으로 돌려준다.
+    root.current?.querySelector<HTMLElement>(`[data-record-id="${detailId}"] button`)?.focus()
+    setDetailId(null)
+  }
   const check = integrity.report.data
   const rows = (vm.live.data?.works ?? [])
     .filter((w) => (f.category === 'all' || w.originKind === f.category) && has(f.query, w.title, w.authorName, rightsLabel(w)))
@@ -507,7 +522,7 @@ function Works(p: BodyProps) {
           <tbody>
             {rows.length
               ? rows.map((w) => (
-                <tr key={w.workId} className={integrity.target?.id === w.workId ? 'sel' : undefined}>
+                <tr key={w.workId} className={`click${integrity.target?.id === w.workId || detailId === w.workId ? ' sel' : ''}`} onClick={() => setDetailId(w.workId)}>
                   <td>
                     <b>{w.title}</b>
                   </td>
@@ -519,8 +534,10 @@ function Works(p: BodyProps) {
                       {w.restricted ? '운영 제한' : w.visibility === 'public' ? '공개' : '비공개'}
                     </span>
                   </td>
-                  <td className='act-menu' data-record-id={w.workId}>
+                  {/* 행을 누르면 작품 상세가 열리므로, ⋮ 메뉴를 여는 누름은 행까지 올라가지 않게 한다. */}
+                  <td className='act-menu' data-record-id={w.workId} onClick={(e) => e.stopPropagation()}>
                     <PopMenu className='row-menu' label={`「${w.title}」 조치`} icon={<MoreVerticalIcon />}>
+                      <button type='button' role='menuitem' aria-current={detailId === w.workId ? 'true' : undefined} onClick={() => setDetailId(w.workId)}>상세</button>
                       <button
                         type='button'
                         role='menuitem'
@@ -539,6 +556,9 @@ function Works(p: BodyProps) {
                           포크 정합성 점검
                         </button>
                       )}
+                      {/* 운영자는 소유권 없이 모든 작품을 연다(2026-11-23 사용자 결정). */}
+                      <Link role='menuitem' to={`/work/${w.workId}`}>소설 보기</Link>
+                      <Link role='menuitem' to={`/studio/${w.workId}`}>집필실 보기</Link>
                     </PopMenu>
                   </td>
                 </tr>
@@ -551,6 +571,7 @@ function Works(p: BodyProps) {
           </tbody>
         </Table>
       )}
+      {detail && <AdminWorkDetail vm={vm} work={detail} onClose={closeDetail} />}
       {integrity.target && (
         <section className='panel admin-operations' aria-label='포크 정합성 점검 결과'>
           <h2 tabIndex={-1}>{integrity.target.title} 정합성 점검</h2>
@@ -577,7 +598,7 @@ function Works(p: BodyProps) {
       )}
       <p className='admin-note'>
         운영 제한한 작품은 공개 작품 목록·상세·회차 열람에서 보이지 않아요. 제한을 해제하면 작가가 정한 공개 상태로 돌아가요.
-        이 조치는 신고 사건에는 남기지 않고 활동 로그에만 기록해요.
+        이 조치는 신고 사건에는 남기지 않고 활동 로그에만 기록해요. 작품 행을 누르거나 ⋮ 메뉴의 ‘상세’를 고르면 회차 목록·연결 세계관이 열리고 회차 단위로도 제한할 수 있어요.
       </p>
     </section>
   )
@@ -683,7 +704,7 @@ function Users({ vm, f, setF }: BodyProps) {
             <option value='oldest'>가입 오래된순</option>
           </select>
         </label>
-        <button className='btn pri' type='submit'>검색</button>
+        <button className='btn' type='submit'>검색</button>
       </form>
       <LiveState vm={vm} label='회원 목록' />
       {vm.live.data && (rows.length
@@ -782,11 +803,12 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
             <Table label='운영 신고 표' style={{ marginTop: 10 }}>
               <thead>
                 <tr>
-                  <th scope='col'>작품</th>
+                  <th scope='col'>대상</th>
+                  <th scope='col'>대상 종류</th>
                   <th scope='col'>종류</th>
                   <th scope='col'>사유</th>
                   <th scope='col'>상태</th>
-                  <th scope='col'>작품 제한</th>
+                  <th scope='col'>대상 제한</th>
                   <th scope='col'>접수</th>
                   <th scope='col' className='act act-menu'><span className='sr-only'>처리</span></th>
                 </tr>
@@ -795,8 +817,9 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
                 {rows.map((x) => (
                   <tr key={x.id} className={`click ${sel === x.id ? 'sel' : ''}`} onClick={() => setSel(x.id)}>
                     <td>
-                      <b>{x.workTitle}</b>
+                      <b>{reportTargetTitle(x)}</b>
                     </td>
+                    <td>{reportTargetTypeLabel(x.targetType)}</td>
                     <td>{reportKindLabel(x.kind)}</td>
                     <td>{x.reason}</td>
                     <td>
@@ -806,7 +829,7 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
                     <td className='admin-date'>{kstDateTime(x.createdAt)}</td>
                     {/* 행을 누르면 신고가 선택되므로, ⋮ 메뉴를 여는 누름은 행까지 올라가지 않게 한다. */}
                     <td className='act-menu' onClick={(e) => e.stopPropagation()}>
-                      <PopMenu className='row-menu' label={`「${x.workTitle} 신고」 조치`} icon={<MoreVerticalIcon />}>
+                      <PopMenu className='row-menu' label={`「${reportTargetTitle(x)} 신고」 조치`} icon={<MoreVerticalIcon />}>
                         <button type='button' role='menuitem' aria-current={sel === x.id ? 'true' : undefined} onClick={() => setSel(x.id)}>
                           {sel === x.id ? '검토 중' : '검토'}
                         </button>
@@ -820,7 +843,7 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
           : <p className='admin-empty'>조건에 맞는 신고가 없어요.</p>)}
       </div>
       {sel && (
-        <div className='panel admin-operations' style={{ marginTop: 14 }} id='a04'>
+        <div className='panel admin-operations' id='a04'>
           {detail.isError && (
             <div className='admin-action-error' role='alert'>
               <p>신고 상세를 불러오지 못했어요. 목록을 새로고침한 뒤 다시 선택해 주세요.</p>
@@ -830,25 +853,27 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
           {!r && !detail.isError && <p role='status'>신고 상세를 불러오고 있어요.</p>}
           {r && (
             <>
-              <h2 ref={heading} tabIndex={-1} className='admin-section-title'>신고 상세 · {r.workTitle}</h2>
+              <h2 ref={heading} tabIndex={-1} className='admin-section-title'>신고 상세 · {reportTargetTitle(r)}</h2>
               <dl className='ai'>
+                <dt>대상 종류</dt>
+                <dd>{reportTargetTypeLabel(r.targetType)}</dd>
                 <dt>종류</dt>
                 <dd>{reportKindLabel(r.kind)}</dd>
                 <dt>상태</dt>
                 <dd>
                   <div className='report-state'>
-                    <span>{reportStatusLabel(r.status)} · 작품 {r.contentRestricted ? '제한 중' : '공개 유지'}</span>
+                    <span>{reportStatusLabel(r.status)} · {reportTargetTypeLabel(r.targetType)} {r.contentRestricted ? '제한 중' : '공개 유지'}</span>
                     <button
                       type='button'
                       className='btn sm'
                       disabled={busy}
                       onClick={() => {
-                        if (r.contentRestricted || window.confirm(`「${r.workTitle}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
+                        if (r.contentRestricted || window.confirm(`「${reportTargetTitle(r)}」을(를) 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
                           void vm.live.setContentRestriction(r.id, !r.contentRestricted)
                         }
                       }}
                     >
-                      {r.contentRestricted ? '작품 제한 해제' : '작품 제한'}
+                      {r.contentRestricted ? `${reportTargetTypeLabel(r.targetType)} 제한 해제` : `${reportTargetTypeLabel(r.targetType)} 제한`}
                     </button>
                   </div>
                   <AdminActionStatus state={vm.actions[`${key}:restrict`]} />
@@ -959,7 +984,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
             onChange={(e) => setForm({ ...form, workId: e.target.value, character: '' })}
           >
             {available.map(({ w }) => (
-              <option key={w.id} value={w.id}>{w.title}{w.parent ? ' · 포크' : ' · 원작'}</option>
+              <option key={w.id} value={w.id}>{w.title}{form.kind === 'all' ? (w.parent ? ' · 포크' : ' · 원작') : ''}</option>
             ))}
           </select>
         </label>
@@ -971,7 +996,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
             onChange={(e) =>
               setForm({ ...form, workId: sw?.w.id ?? '', character: e.target.value })}
           >
-            {cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>)}
+            {cast.length ? cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>) : <option value=''>선택할 수 있는 캐릭터가 없어요</option>}
           </select>
         </label>
       </div>
@@ -1152,13 +1177,13 @@ function Events({ vm }: { vm: VM }) {
         )}
       <p className='admin-note'>
         진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
-        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요. 이동 경로는 관련 기능으로 가는 버튼만 만들어요.
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
       </p>
     </section>
   )
 }
 
-/** 67 고객지원 문의: 회원이 보낸 문의 목록·상세와 답변 등록·수정·삭제. 작가 검토 제보는 기존 데모를 그대로 둡니다. */
+/** 67 고객지원 문의: 회원이 보낸 문의 목록·상세와 답변 등록·수정·삭제. 그 아래 작가 검토 제보는 운영 API의 독자 제보를 읽기만 하고(#750), 서버 없는 `--mode mockup`만 기존 메모리 데모 표를 그대로 둡니다. */
 function Feedback({ d, vm, f, setF }: BodyProps) {
   const selection = vm.recordSelection.inquiries
   const list = vm.live.inquiries
@@ -1168,6 +1193,7 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
   const root = useAdminDetailFocus(selection, !!row, rows.length)
   const replyHeading = useRef<HTMLHeadingElement>(null)
   const adding = vm.actions[`inquiry:${selection}:reply`]
+  const authorReports = useFeedbackReportsViewModel()
   return (
     <>
       <section className='panel admin-operations' aria-label='회원 고객지원 문의' ref={root}>
@@ -1276,8 +1302,8 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
             </>
           )}
       </section>
-      {d && (
-        <div className='panel' style={{ marginTop: 14 }}>
+      {authorReports ? <AdminFeedbackReports vm={vm} reports={authorReports} /> : d && (
+        <div className='panel'>
           <h2 className='panel-title'>작가 검토 제보</h2>
           <p className='small muted'>
             원고 반영은 작가가 검토합니다. 위 회원 문의와는 별도의 시연용 제보예요.
@@ -1388,7 +1414,7 @@ function Admins({ vm }: { vm: VM }) {
         <h2 className='panel-title'>관리자 계정 생성</h2>
         <p className='admin-note'>모든 항목은 필수예요. 권한은 한 가지 이상 골라 주세요.</p>
         <div className='form-grid' style={{ marginTop: 12 }}>
-          <label className='field'>
+          <label className='field wide'>
             이메일<input className='inp' name='email' type='email' maxLength={254} autoComplete='off' required />
           </label>
           <label className='field'>
@@ -1415,11 +1441,12 @@ function Admins({ vm }: { vm: VM }) {
             {vm.actions['admin:new']?.pending ? '추가 중…' : '관리자 계정 추가'}
           </button>
         </div>
+        <AdminActionStatus state={vm.actions['admin:new']} />
         <p className='admin-note'>
           계정 생성 후 권한 저장이 실패하면 권한 없는 관리자 계정이 남을 수 있어요. 결과는 아래 목록에서 확인해 주세요.
         </p>
       </form>
-      <div className='panel' style={{ marginTop: 14 }}>
+      <div className='panel'>
         <div className='table-head'>
           <h2 className='panel-title'>관리자 계정</h2>
         </div>
@@ -1438,11 +1465,11 @@ function Admins({ vm }: { vm: VM }) {
               <tbody>
                 {rows.map((a) => (
                   <tr key={a.id}>
-                    <td>
+                    <td className='admin-nowrap'>
                       <b>{a.nickname}</b>
                       {a.restricted && <span className='chip wait'>이용 제한</span>}
                     </td>
-                    <td>{a.email}</td>
+                    <td className='admin-nowrap'>{a.email}</td>
                     <td>
                       {ADMIN_PERMISSIONS.filter(([k]) => a.permissions.includes(k)).map(([, l]) => l).join(', ') || '없음'}
                     </td>

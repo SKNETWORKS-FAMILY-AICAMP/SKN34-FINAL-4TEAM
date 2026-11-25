@@ -19,18 +19,25 @@ BAD_INPUT = '시뮬레이션 평가 항목의 input.data(객체)가 필요합니
 BAD_ITEM = '시뮬레이션 평가 항목에 정답(expectedOutput)과 metadata.judge(character·scene·facts)가 필요합니다.'
 
 
-def generate(kind: str, instructions: str, item_input: dict) -> str:
-    """항목 입력(input.data는 서비스가 그 호출에 보내는 값 그대로)을 서비스 호출로 실행해 응답 글을 돌려준다."""
+def generate(kind: str, instructions: str, item_input: dict, model: str | None = None) -> str:
+    """항목 입력(input.data는 서비스가 그 호출에 보내는 값 그대로)을 서비스 호출로 실행해 응답 글을 돌려준다. model은 평가하는 버전의 모델이다."""
     data = item_input.get('data')
     if not isinstance(data, dict):
         raise EvaluationFailure(422, BAD_INPUT)
     if kind == 'act':
-        return service.normalize_quotes(service.acted(agent.act(data, instructions)).prose.strip())
-    return service.narrated(agent.narrate(data, instructions), monologue=item_input.get('set') == 'monologue').prose.strip()
+        return service.normalize_quotes(service.acted(agent.act(data, instructions, model)).prose.strip())
+    return service.narrated(agent.narrate(data, instructions, model), monologue=item_input.get('set') == 'monologue').prose.strip()
 
 
 async def evaluate(kind: str, item_input: dict, output: str, expected, metadata) -> list[Evaluation]:
     """응답 글(output)을 정답과 견줘 루브릭 한 번으로 채점한 지표들(METRICS[kind])."""
+    scores, leaked = await grade(kind, item_input, output, expected, metadata)
+    return [Evaluation(name=name, value=scores[name]) for name in METRICS[kind][:2]] + [
+        Evaluation(name='pov_ok', value=scores['pov_ok'], comment='시점 위반 사실 id: ' + ', '.join(leaked) if leaked else None)]   # 사실 본문은 남기지 않는다
+
+
+async def grade(kind: str, item_input: dict, output: str, expected, metadata) -> tuple[dict[str, float], list[str]]:
+    """루브릭 채점 한 번: (지표 → 0~1 점수, 시점 위반 사실 id 목록). Langfuse 점수를 남기지 않는 호출(자동 개선 app/optimization의 안쪽 평가)도 쓴다."""
     character, scene, facts = _judge_inputs(expected, metadata)
     if kind == 'act':
         instructions, schema, payload = rubric.DIALOGUE_JUDGE, rubric.DialogueGrade, rubric.dialogue_payload(character, scene, expected, output, facts)
@@ -41,8 +48,8 @@ async def evaluate(kind: str, item_input: dict, output: str, expected, metadata)
         payload = rubric.narration_payload(item_input['set'], character, scene, expected, output, facts)
     grade = await scoring.rubric_grade(instructions, payload, schema)
     leaked = grade.pop('leaked')
-    scores = [Evaluation(name=name, value=(grade[name] - 1) / 4) for name in METRICS[kind][:2]]   # 1~5점을 0~1에 기록한다(Ragas·GEval과 같은 눈금이라 허용 오차를 함께 쓴다)
-    return scores + [Evaluation(name='pov_ok', value=float(not leaked), comment='시점 위반 사실 id: ' + ', '.join(leaked) if leaked else None)]   # 사실 본문은 남기지 않는다
+    scores = {name: (grade[name] - 1) / 4 for name in METRICS[kind][:2]}   # 1~5점을 0~1에 기록한다(Ragas·GEval과 같은 눈금이라 허용 오차를 함께 쓴다)
+    return {**scores, 'pov_ok': float(not leaked)}, leaked
 
 
 def _judge_inputs(expected, metadata) -> tuple[str, list[dict], list[dict]]:

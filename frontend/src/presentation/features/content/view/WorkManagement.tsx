@@ -3,6 +3,7 @@ import { SERIAL_LOCK_NOTICE, serialEpisodeLocked } from '../../../../domain/enti
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import { worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
 import { ManuscriptBody } from '../../../shared/media/MediaPanel'
@@ -22,6 +23,7 @@ import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { ManuscriptBuildPanel } from './ManuscriptBuildPanel'
 import { ForkInfo, WorkDelete, WorkPolicy } from './WorkOperations'
+import { WorkDashboard } from './WorkDashboard'
 import { WorkOverview, type WorkEditing } from './WorkOverview'
 import { WorkBrief } from './WorkBrief'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
@@ -41,14 +43,14 @@ type Props = {
   onMenuOpenChange: (open: boolean) => void
   /** 맨 위 알림(오류·상태). 사이드바 위에 끼면 화면 높이를 쓰는 사이드바가 아래로 밀리므로 내용 열 맨 위에 그린다. */
   notices?: ReactNode
-  /** AI 자율 집필이 켜져 있는지(EpisodePage가 읽는다). 켜져 있으면 서버가 1화 외의 원고 쓰기를 막으므로, 공개 회차 탭의 2화부터의 집필실 링크(수정하기·작성 중인 초안)를 잠그고 이유를 알린다. */
+  /** AI 자율 집필이 켜져 있는지(EpisodePage가 읽는다). 켜져 있으면 서버가 1화 외의 원고 쓰기를 막으므로, 공개 회차 탭의 2화부터의 집필실 링크(수정하기)를 잠그고 이유를 알린다. */
   serialLocked?: boolean
   /** 운영 설정의 집필 방식을 저장했을 때(AI 자율 집필을 켜고 껐을 수 있어 호출 측이 서버 값을 다시 읽는다) */
   onSerialSaved?: () => void
 }
 
 /**
- * 고른 내 작품의 관리 영역: 왼쪽 사이드바(공용 ManageMenu: 로고·돌아가기 링크·메뉴(개요·회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·내 댓글·제보·운영 설정·이력)·알림·테마·계정)와 오른쪽 내용 열(맨 위 알림, 그 아래 고른 메뉴의 내용). 히어로(표지·제목·소개)는 맨 앞 '개요' 탭의 내용이고 그 탭이 기본이다.
+ * 고른 내 작품의 관리 영역: 왼쪽 사이드바(공용 ManageMenu: 로고·돌아가기 링크·메뉴(개요·회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·내 제보·수정 제안·운영 설정·이력)·알림·테마·계정)와 오른쪽 내용 열(맨 위 알림, 그 아래 고른 메뉴의 내용). 히어로(표지·제목·소개)는 맨 앞 '개요' 탭의 내용이고 그 탭이 기본이다.
  * 분기 정책(분기 작품은 포크 정보)과 작품 삭제는 모든 탭 위가 아니라 운영 설정 탭 안에 있다(분기 정책 아래 맨 끝이 삭제): 고른 탭의 내용이 첫 화면 안에서 시작하게.
  * 공용 상단바(Gnb)는 없고 사이드바가 그 역할을 한다. 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
  */
@@ -106,10 +108,20 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     ['fork', '이야기 분기'],
     ['serial', 'AI 집필'],
     ['feedback', '받은 피드백'],
-    ['reports', '내 댓글·제보'],
+    ['reports', '내 제보·수정 제안'],
     ['settings', '운영 설정'],
     ['history', '저장·AI·발행 이력'],
   ] as const
+  // 탭을 옮긴다(탭 내용 머리로 스크롤하고 이력 탭은 이력을 읽기 시작한다).
+  const openTab = (value: typeof tabs[number][0]) => {
+    picked.current = true
+    setTab(value)
+    if (value === 'history') void vm.loadHistory()
+  }
+  // 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다.
+  // 헤딩 순서는 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 묶음 제목(h3)이다: 다른 탭은 위의 요약 머리가 h1이라 탭 내용 맨 앞에 그리고, 작품 제목(h1)이 탭 내용 안(히어로)에 있는 개요는 히어로 다음에 그린다.
+  // 개요는 사이드바에서 이미 '개요'가 골라져 있고 바로 아래 지표 구획(h3)이 이름을 말하므로 제목 줄은 화면 밖에 둔다(세계관 관리 개요와 같다. 헤딩 순서는 그대로다).
+  const heading = <h2 className={tab === 'overview' ? 'sr-only' : undefined}>{tabs.find(([value]) => value === tab)![1]}</h2>
   return (
     <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
       <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }}>
@@ -120,12 +132,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               // 요청 중이거나 편집 폼이 열려 있는 동안(작품 정보·표지는 개요 탭, 분기 정책은 운영 설정 탭 안에 있어 탭을 떠나면 입력이 사라진다)에는 다른 탭으로 옮기지 못하게 잠그되, 지금 탭은 두어 방금 누른 버튼에서 키보드 초점이 사라지지 않게 한다(이력 탭은 누르면 곧 요청이 시작된다).
               disabled={(locked || editing !== null) && tab !== value}
               aria-current={tab === value ? 'page' : undefined}
-              onClick={() => {
-                // 좁은 화면의 메뉴 줄은 줄바꿈이라 잘린 탭이 없다. 세로는 위 effect가 탭 내용 머리로 옮긴다.
-                picked.current = true
-                setTab(value)
-                if (value === 'history') void vm.loadHistory()
-              }}
+              // 좁은 화면의 메뉴 줄은 줄바꿈이라 잘린 탭이 없다. 세로는 위 effect가 탭 내용 머리로 옮긴다.
+              onClick={() => openTab(value)}
             >
               {label}
             </button>
@@ -135,27 +143,41 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
       <div id='ep-content' tabIndex={-1} className='ep-content'>
         {notices}
         {/* 개요 밖 탭 위에는 짧은 작품 요약만 둔다(세계관 관리와 같은 모양). 작품 정보·표지 편집은 개요 탭에서만 한다. */}
-        {tab !== 'overview' && <WorkBrief key={`${w.id}-${vm.coverRevision}`} work={w} draftCount={vm.writing ? drafts?.length : null} />}
+        {tab !== 'overview' && <WorkBrief key={`${w.id}-${vm.coverRevision}`} work={w} draftCount={vm.writing ? drafts?.length : null} serialOn={serialLocked} />}
         {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. 상단바가 없어 scroll-margin은 위 여백만이다(회차 목록과 같은 값). */}
         <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 16 }}>
-          {/* 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다. */}
-          <h2>{tabs.find(([value]) => value === tab)![1]}</h2>
+          {tab !== 'overview' && heading}
           {tab === 'overview' && (
             <WorkOverview
               work={w}
               locked={locked}
               busy={vm.busy}
-              draftCount={vm.writing ? drafts?.length : null}
               coverRevision={vm.coverRevision}
               onMediaBusy={setMediaBusy}
               onSaveInfo={vm.updateWork}
               onSuggestTags={vm.suggestTags}
               editing={editing}
               onEditingChange={setEditing}
+              serialOn={serialLocked}
             />
           )}
-          {tab === 'settings' && (
+          {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·바로가기(집필실·소설 상세). 이동 잠금은 메뉴와 같은 규칙이다. 탭 제목(h2)은 작품 제목(h1)을 그리는 히어로 다음, 이 현황(h3 구획) 앞이다. */}
+          {tab === 'overview' && (
             <>
+              {heading}
+              <WorkDashboard
+                work={w}
+                draftCount={vm.writing ? drafts?.length : null}
+                forkCounts={forkCounts}
+                mockup={mockup}
+                disabled={locked || editing !== null}
+                useCase={useCase}
+              />
+            </>
+          )}
+          {tab === 'settings' && (
+            // 설정 카드·분기 정책(포크 정보)·작품 삭제가 한 카드 틀이다: 넓은 화면은 왼쪽에 집필 방식(두 줄)·오른쪽에 자동 처리·설정 변경 이력이고, 그 아래 분기 정책(포크 정보)과 맨 끝 삭제(위험 구역)는 전체 폭이다(episode.css .ep-settings-cards).
+            <div className='ep-settings-cards'>
               {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
               {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} />}
               {w.source
@@ -166,57 +188,61 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                     <WorkDelete blocked={blocked} onDelete={deleteWork} />
                   </>
                 )}
-            </>
+            </div>
           )}
           {tab === 'world' && (
             <>
               {!mockup && <ManuscriptBuildPanel key={w.id} work={w} />}
               <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} onDetach={vm.detachWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} detachError={vm.origin === 'detach' ? vm.error : ''} useCase={useCase} />
-              <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} />
+              <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} linkedWorldId={w.worldStudioId} onDetach={vm.detachWorld} detachError={vm.origin === 'detach' ? vm.error : ''} />
             </>
           )}
           {tab === 'history' && (
-            <section className='ep-reading'>
+            <section className='ep-reading ep-history'>
               <p>저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.</p>
               {/* 이력 요청의 진행·실패는 맨 위 알림(탭 머리로 스크롤하면 화면 밖)이 아니라 여기서 알린다. 다른 요청과 섞이지 않게 origin이 history일 때만 보인다. */}
               {vm.origin === 'history' && vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
               {vm.origin === 'history' && vm.busy && !vm.history && <p role='status'>이력을 불러오고 있어요…</p>}
               {vm.history && (
                 <>
-                  <h3>발행 이력</h3>
-                  {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
-                    {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · {savedVersion(event.episode, event.versionId)}
-                  </li>)}</ol>:<p>발행 이력이 없어요.</p>}
-                  <h3>원고 저장본</h3>
-                  {vm.history.versions.length === 0 && (
-                    <p>
-                      아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.
-                    </p>
-                  )}
-                  {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} label={savedVersion(v.episode, v.id)} />)}
-                  <h3>AI 요청·제안</h3>
-                  {vm.history.proposals.length === 0 && <p>아직 AI 제안이 없어요.</p>}
-                  {vm.history.proposals.map((p) => (
-                    <article key={p.id}>
-                      <h4>
-                        {p.model} · {p.status === 'accepted' ? '적용 완료' : '검토 대기'}
-                      </h4>
-                      <p>{p.prompt ?? '지시문 기록 없음'}</p>
-                      {p.baseBody !== undefined && (
-                        <details>
-                          <summary>요청 당시 원고</summary>
-                          <div>{p.baseBody}</div>
-                        </details>
-                      )}
-                      {p.context && (
-                        <details>
-                          <summary>요청 당시 설정·문맥 근거</summary>
-                          <ContextPreview value={p.context} />
-                        </details>
-                      )}
-                      <div>{p.text}</div>
-                    </article>
-                  ))}
+                  <HistoryCard title='발행 이력'>
+                    {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
+                      {event.episode}화 · {publicationActionLabel[event.action]} · {savedVersion(event.episode, event.versionId)}{' '}
+                      <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time>
+                    </li>)}</ol>:<p>발행 이력이 없어요.</p>}
+                  </HistoryCard>
+                  <HistoryCard title='원고 저장본'>
+                    {vm.history.versions.length === 0 && (
+                      <p>
+                        아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.
+                      </p>
+                    )}
+                    {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} label={savedVersion(v.episode, v.id)} />)}
+                  </HistoryCard>
+                  <HistoryCard title='AI 요청·제안'>
+                    {vm.history.proposals.length === 0 && <p>아직 AI 제안이 없어요.</p>}
+                    {vm.history.proposals.map((p) => (
+                      <article key={p.id}>
+                        <h4>
+                          {p.model} · {p.status === 'accepted' ? '적용 완료' : '검토 대기'}
+                        </h4>
+                        <p>{p.prompt ?? '지시문 기록 없음'}</p>
+                        {p.baseBody !== undefined && (
+                          <details>
+                            <summary>요청 당시 원고</summary>
+                            <div>{p.baseBody}</div>
+                          </details>
+                        )}
+                        {p.context && (
+                          <details>
+                            <summary>요청 당시 설정·문맥 근거</summary>
+                            <ContextPreview value={p.context} />
+                          </details>
+                        )}
+                        <div>{p.text}</div>
+                      </article>
+                    ))}
+                  </HistoryCard>
                 </>
               )}
             </section>
@@ -224,29 +250,11 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           {tab === 'read' && (
             <>
               {!mockup && <WorldBuildBadge key={buildCheck} work={w} />}
-              {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. */}
-              <p><Go to={`/studio/${w.id}`} className='btn sm'>집필실 열기</Go></p>
+              {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. 이 탭의 주 행동이라 채운 버튼이다(아래 가져오기 계열은 작은 보조 버튼). */}
+              <p className='ep-list-head'><Go to={`/studio/${w.id}`} className='btn pri'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
-              {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(작성 중인 초안·수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
+              {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
               {serialLocked && <div className='ep-notes'><p id={lockNote} role='status'>{SERIAL_LOCK_NOTICE}</p></div>}
-              {!!drafts?.length && (
-                <section className="ep-drafts">
-                  <h3>작성 중인 초안</h3>
-                  <ul role="list">
-                    {drafts.map(e => (
-                      <li key={e.number}>
-                        {serialEpisodeLocked(serialLocked, e.number)
-                          ? <>{e.number}화 · {e.draft.title}</>
-                          : (
-                            <Go to={`/studio/${w.id}?ep=${e.number}`}>
-                              {e.number}화 · {e.draft.title}
-                            </Go>
-                          )}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
               <div className='ep-notes'>
                 <p>
                   {w.visibility === 'public'
@@ -279,7 +287,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                             : serialEpisodeLocked(serialLocked, e.number)
                             ? <button type='button' className='btn sm' disabled aria-describedby={lockNote} aria-label={`${e.number}화 ${e.title} 수정하기`}>수정하기</button>
                             : (
-                              <Go to={`/studio/${w.id}?ep=${e.number}`} className='btn sm' aria-label={`${e.number}화 ${e.title} 수정하기`}>
+                              <Go to={`/studio/${w.id}?ep=${e.number}`} className='btn sm ep-row-link' aria-label={`${e.number}화 ${e.title} 수정하기`}>
                                 수정하기
                               </Go>
                             )}
@@ -299,14 +307,18 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {!mockup && (
                 <div className='ep-list-foot'>
                   {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
-                  <button type='button' className='btn' disabled={locked} onClick={openWorld}>원고로 세계관 만들기</button>
-                  <button type="button" className="btn" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
+                  <button type='button' className='btn sm' disabled={locked} onClick={openWorld}>원고로 세계관 만들기</button>
+                  <button type="button" className="btn sm" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
                 </div>
               )}
-              {bulkImportOpen && <EpisodeBulkImportSheet workId={w.id} onClose={(refresh) => {
-                setBulkImportOpen(false)
-                if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }
-              }} />}
+              {bulkImportOpen && <EpisodeBulkImportSheet
+                workId={w.id}
+                firstEpisodeUnsaved={vm.writing?.rows?.some(e => e.number === 1 && !e.inherited && e.versions.length === 0) ?? false}
+                onClose={(refresh) => {
+                  setBulkImportOpen(false)
+                  if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }
+                }}
+              />}
             </>
           )}
           {tab === 'fork' && (
@@ -373,7 +385,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             </section>
           )}
           {/* AI 집필(UC-18)은 서버 기능이라 서버 없는 시연(목업)에서는 지원하지 않는다고만 알린다. */}
-          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} />)}
+          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} onOpenSettings={blocked ? undefined : () => openTab('settings')} />)}
           {tab === 'reports' && (
             // 내가 남긴 제보·수정 제안과 데모 피드백(계정 메뉴의 /content?view=reports 화면과 같은 내용). 탭 제목(h2)이 이미 있어 쪽 제목(h1)은 빼고(embedded), 틀은 받은 피드백 탭(.ep-feedback)과 같다.
             <div className='ep-feedback'><MyCommentsReports embedded /></div>
@@ -403,17 +415,29 @@ function WorldBuildBadge({ work }: { work: Pick<Work, 'id' | 'worldStudioId'> })
   return label ? <div className='ep-notes'><p><span className='chip wait'>{label}</span></p></div> : null
 }
 
+/** 이력 탭의 한 묶음(발행 이력·원고 저장본·AI 요청·제안): 제목(h3)이 이름인 카드 구획이다(세계관·설정집 탭의 카드와 같은 `tcard ep-card`). */
+function HistoryCard({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId()
+  return (
+    <section className='tcard ep-card' aria-labelledby={id}>
+      <h3 id={id}>{title}</h3>
+      {children}
+    </section>
+  )
+}
+
 /**
  * 이력 탭의 저장 버전 한 건. 제목과 저장 시각만 먼저 보이고 본문은 '원고 보기'로 펼칠 때 그린다.
  * 저장본이 쌓여도 모든 본문과 그 안의 이미지를 한꺼번에 그리거나 내려받지 않는다.
+ * 제목·시각은 왼쪽, '원고 보기' 버튼은 오른쪽 끝이고 펼친 원고는 전체 폭 새 줄이다(`.ep-version` 격자, episode.css).
  */
 function SavedVersion({ workId, version: v, label }: { workId: string; version: Version; label: string }) {
   const [open, setOpen] = useState(false)
   const title = useId()
   return (
-    <article>
+    <article className='ep-version'>
       <h4 id={title}>{v.episode}화 · {label} · {v.title}</h4>
-      <p><time>{new Date(v.savedAt).toLocaleString('ko-KR')}</time></p>
+      <p><time dateTime={v.savedAt}>{kstDateTime(v.savedAt)}</time></p>
       <p>
         <button type='button' className='btn sm' aria-expanded={open} aria-describedby={title} onClick={() => setOpen((shown) => !shown)}>
           {open ? '원고 접기' : '원고 보기'}

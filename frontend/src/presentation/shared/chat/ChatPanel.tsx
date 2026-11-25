@@ -4,7 +4,7 @@ import { attachmentKind, type AttachmentCheck } from '../../../domain/entities/c
 import { CardMarkdown } from '../CardMarkdown'
 import { MicIcon, PlusIcon, SendIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
-import { keepFiles } from './keepFiles'
+import { isFileDrag, keepFiles } from './keepFiles'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
@@ -137,7 +137,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
       setPending(false)
     }
   }
-  // 파일 끌어다 놓기: 첨부가 켜져 있으면 패널 어디에 놓아도(대화 영역 포함, 잠긴 동안에도) 기본 동작을 막는다.
+  // 파일 끌어다 놓기: 첨부가 켜져 있으면 패널 어디에 놓아도(대화 영역 포함, 잠긴 동안에도) 기본 동작을 막는다. 글자 끌기는 막지 않는다(#706).
   // 첨부로 받는 곳은 입력 카드뿐이고 잠기지 않았을 때만 받는다.
   return <div className="chat-panel" {...(checkFile && keepFiles)}>
     <div ref={log} className="chat-log" role="log" aria-label="대화 내용" aria-live="polite"
@@ -163,7 +163,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     </div>
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
       {note && <p id={noteId} className="chat-note">{note}</p>}
-      <div className={`chat-card${locked ? ' locked' : ''}`} onDrop={attachOff ? undefined : e => add([...e.dataTransfer.files])}>
+      <div className={`chat-card${locked ? ' locked' : ''}`} onDrop={attachOff ? undefined : e => { if (isFileDrag(e)) add([...e.dataTransfer.files]) }}>
         {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.file.name}-${i}`} className="chip">
           <span className="chat-chip-name">{kinds[p.kind].label} · {p.file.name}</span><button type="button" className="chat-chip-x" aria-label={`${p.file.name} 빼기`} onClick={() => remove(i)}>×</button>
         </li>)}</ul>}

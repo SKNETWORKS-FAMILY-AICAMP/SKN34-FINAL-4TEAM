@@ -79,9 +79,10 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     return { repo, dialog, text: first.textContent! }
   }
 
-  it('고른 문장을 변경 전으로 채운 시트에서 고친 문장과 사유를 보내면 서버에 등록하고 시트를 닫는다', async () => {
+  it('수정 제안을 등록하면 시트에서 접수 결과와 내역 링크를 보이고 확인에 초점을 둔다', async () => {
     const { repo, dialog, text } = await openSheet()
     expect(dialog.querySelector('.quote')!.textContent).toBe(text)
+    within(dialog).getByText(/원문이 없거나 여러 곳에 있으면 작가가 직접 확인해요/)
     const box = within(dialog).getByLabelText<HTMLTextAreaElement>('고친 문장')
     expect(box.value).toBe(text)
     expect(document.activeElement).toBe(box)
@@ -89,9 +90,29 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     fireEvent.change(within(dialog).getByLabelText('사유 (선택)'), { target: { value: ' 맞춤법 ' } })
     fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
     await waitFor(() => expect(repo.create).toHaveBeenCalledWith('guunmong', 2, { beforeText: text, afterText: `${text} (고침)`, reason: '맞춤법' }))
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull())
-    expect(toastText()).toContain('수정 제안을 보냈어요')
-    expect(toastText()).toContain('작가가 승인해야 원고에 반영되고')
+    const receipt = await within(dialog).findByRole('status')
+    const confirm = within(dialog).getByRole('button', { name: '확인' })
+    expect(receipt.textContent).toContain('수정 제안을 보냈어요')
+    // 접수 칩은 내역 목록과 같은 이름이고, 보낸 글은 읽기 전용으로 남아 무엇을 보냈는지 다시 볼 수 있다.
+    expect(within(receipt).getByText('검토 대기').className).toContain('wait')
+    expect(box.readOnly).toBe(true)
+    expect(box.value).toBe(` ${text} (고침) `)
+    expect(within(receipt).getByRole('link', { name: '내 제보·수정 제안' }).getAttribute('href')).toBe('/content?view=reports')
+    expect(confirm.getAttribute('aria-describedby')).toBe(receipt.id)
+    expect(document.activeElement).toBe(confirm)
+    expect(toastText()).not.toContain('수정 제안을 보냈어요')
+    fireEvent.click(confirm)
+    expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull()
+  })
+
+  it('접수 결과의 내역 링크로 가면 그 화면에서 읽던 회차로 돌아갈 수 있다', async () => {
+    const { dialog, text } = await openSheet()
+    fireEvent.change(within(dialog).getByLabelText('고친 문장'), { target: { value: `${text} (고침)` } })
+    fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
+    fireEvent.click(within(await within(dialog).findByRole('status')).getByRole('link', { name: '내 제보·수정 제안' }))
+    await screen.findByRole('heading', { level: 1, name: '내 제보·수정 제안' })
+    expect(screen.getByRole('link', { name: '회차로 돌아가기' }).getAttribute('href')).toBe('/read/guunmong/2')
+    expect(screen.queryByRole('link', { name: '내가 쓰는 소설' })).toBeNull()
   })
 
   it('서버가 거절하면 시트 안에서만 알리고 시트와 입력을 그대로 둔다', async () => {
@@ -293,9 +314,14 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     within(c).getByText('승인됨 · 반영 실패')
     expect(within(c).getByText(/반영 실패: 초안에서 고칠 문장을 찾을 수 없어요/).classList.contains('note')).toBe(true)
     expect(within(c).queryByText(/발행은 집필실에서 할 수 있어요/)).toBeNull()
-    expect(within(c).getByRole('link', { name: '집필실에서 직접 고치기' }).getAttribute('href')).toBe('/studio/w1')
+    within(c).getByText(/초안을 수정했다면 저장 후 다시 시도해 주세요/)
+    const studio = within(c).getByRole('link', { name: '3화 집필실 열기' })
+    const retry = within(c).getByRole('button', { name: '다시 반영 시도' })
+    expect(studio.getAttribute('href')).toBe('/studio/w1?ep=3')
+    expect(studio.classList.contains('pri')).toBe(true)
+    expect(retry.classList.contains('pri')).toBe(false)
     expect(within(c).queryByRole('button', { name: '거절' })).toBeNull()
-    fireEvent.click(within(c).getByRole('button', { name: '다시 반영 시도' }))
+    fireEvent.click(retry)
     await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
     await within(await card()).findByText('발행은 집필실에서 할 수 있어요.')
   })
@@ -310,7 +336,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     within(c).getByText('검토 대기')
     expect(within(c).getByRole('button', { name: '승인하고 초안에 반영' }).hasAttribute('disabled')).toBe(false)
     // 다음 행동: 바뀐 발행본은 집필실에서 확인한다.
-    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1')
+    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1?ep=3')
   })
 
   it('기준 변경이 아닌 처리 실패에는 집필실 링크를 붙이지 않는다', async () => {

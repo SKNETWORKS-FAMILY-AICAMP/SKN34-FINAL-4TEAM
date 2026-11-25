@@ -1,5 +1,5 @@
 import { cleanSimulation } from '../entities/characterSimulation'
-import { cleanScene, type ChatEvent, type ChatMessageInput } from '../entities/writingChat'
+import { cleanScene, type ChatEvent, type ChatFeedback, type ChatMessageInput } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 
 /** 집필 AI 채팅. 새 대화는 open으로 id를 받은 뒤 첫 메시지를 보내면 AI 체크포인터에 생긴다. */
@@ -16,6 +16,7 @@ export class WritingChatUseCase {
   }
   remove(workId: string, threadId: string) { return this.repository.remove(workId, threadId) }
   truncate(workId: string, threadId: string, index: number) { return this.repository.truncate(workId, threadId, index) }
+  feedback(workId: string, threadId: string, index: number, value: ChatFeedback | null) { return this.repository.feedback(workId, threadId, index, value) }
   async send(workId: string, threadId: string, input: ChatMessageInput, onEvent: (event: ChatEvent) => void, signal?: AbortSignal, editIndex?: number) {
     if ('request' in input && !input.request.trim()) throw new Error('보낼 내용을 적어 주세요.')
     return this.repository.send(workId, threadId, checked(input), onEvent, signal, editIndex)

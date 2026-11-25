@@ -58,7 +58,7 @@ export function GraphKeyboardList({ nodes, links, names, selected, folded, onFoc
       <p className="small muted">↑↓ 설정 고르기 · Enter 정보 편집 · Delete 삭제 · 메뉴 키(Shift+F10) 메뉴 · Tab 관계 목록</p>
       <ul aria-label="설정 목록">
         {nodes.map((n) => {
-          const kind = cardTypes.find((t) => t.id === n.type)?.label ?? '설정'
+          const kind = cardTypes.find((t) => t.id === n.type)?.label ?? (n.type ? '기타' : '설정')
           const mine = n.id === current ? links.filter((l) => endId(l.source) === n.id || endId(l.target) === n.id) : []
           return (
             <li key={n.id} onFocus={(e) => focused(e, n.id)} onBlur={blurred}>

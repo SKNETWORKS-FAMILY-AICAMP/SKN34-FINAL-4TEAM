@@ -34,3 +34,20 @@ describe('관리 개요 배치 계약', () => {
     for (const chart of ['FunnelChart', 'ReactionsChart']) expect(metrics, chart).toMatch(new RegExp(`<${chart} [^>]*lead=\\{`))
   })
 })
+
+describe('서비스 지표 차트의 눈금·숫자 자리 (#803)', () => {
+  const from = (name: string) => charts.slice(charts.indexOf(`export function ${name}`))
+  const funnelBar = /<Bar [^>]*>/.exec(from('FunnelChart'))?.[0] ?? ''
+
+  // 눈금 글자의 오른쪽 끝은 축 폭 − 8(Recharts tickSize 6 + tickMargin 2)이다. 12px에서 '0.0105'는 숫자 5개(≤ 7.4px)+점(≤ 3.6px) ≈ 41px라 폭 40(자리 32px)에서는 앞의 0이 잘려 '.0105'였다.
+  it('회차당 반응 축은 소수 눈금(0.0105)이 들어가는 폭이다', () => {
+    const width = Number(/<YAxis[^>]*\swidth=\{(\d+)\}/.exec(from('ReactionsChart'))?.[1])
+    expect(width - 8).toBeGreaterThanOrEqual(5 * 7.4 + 3.6)
+  })
+
+  // Recharts는 폭 0 막대와 그 막대에서 만드는 숫자(LabelList)를 그리지 않고, 숫자는 막대 애니메이션이 끝나야 보인다(showLabels = !isAnimating).
+  it('단계 막대는 값 0인 단계도 숫자를 남기고 애니메이션을 기다리지 않는다', () => {
+    expect(Number(/minPointSize=\{(\d+)\}/.exec(funnelBar)?.[1])).toBeGreaterThan(0)
+    expect(funnelBar).toContain('isAnimationActive={false}')
+  })
+})

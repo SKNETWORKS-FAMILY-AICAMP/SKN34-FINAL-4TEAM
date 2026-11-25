@@ -183,8 +183,9 @@ class ContentBoundaryTest {
         // V42 adds genre management columns to the V1 genre table (active·position·featured·emoji, UNIQUE name; DEC-56),
         // V43 adds the preprocessing job kind (initial|update) so a completed initial build and its update jobs can coexist (preprocessing leaf),
         // V44 adds the AI serial tables (settings, boards, choices, proposals, votes, summaries; work leaf, #659),
-        // and V45 adds the autonomous writing mode to the V40 work_automation_version CHECK (work leaf, #659).
-        assertEquals((1..23) + (25..31) + (36..45), versions.sorted())
+        // V45 adds the autonomous writing mode to the V40 work_automation_version CHECK (work leaf, #659),
+        // V46 adds the operator's episode restriction (episode leaf), and V47 adds image generation jobs (proposal leaf, #332).
+        assertEquals((1..23) + (25..31) + (36..47), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

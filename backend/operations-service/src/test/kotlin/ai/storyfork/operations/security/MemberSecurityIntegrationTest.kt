@@ -2,7 +2,7 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
-import ai.storyfork.operations._common.exception.EvaluationRequiredException
+import ai.storyfork.operations._common.exception.CandidateRequiredException
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.comment.controller.CommentController
@@ -18,9 +18,15 @@ import ai.storyfork.operations.alert.service.dto.AlertActRequest
 import ai.storyfork.operations.alert.service.dto.AlertListResponse
 import ai.storyfork.operations.alert.service.dto.AlertRuleListResponse
 import ai.storyfork.operations.alert.service.dto.AlertRuleRequest
+import ai.storyfork.operations.cardcategory.controller.CardCategoryController
+import ai.storyfork.operations.cardcategory.service.CardCategoryService
+import ai.storyfork.operations.cardcategory.service.dto.CardCategoryCreateRequest
+import ai.storyfork.operations.cardcategory.service.dto.CardCategoryOrderRequest
+import ai.storyfork.operations.cardcategory.service.dto.CardCategoryUpdateRequest
 import ai.storyfork.operations.credit.controller.CreditController
 import ai.storyfork.operations.credit.service.CreditService
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
+import ai.storyfork.operations.credit.service.dto.CreditBalancesRequest
 import ai.storyfork.operations.dashboard.controller.DashboardController
 import ai.storyfork.operations.dashboard.service.DashboardService
 import ai.storyfork.operations.llmops.controller.LlmopsController
@@ -29,12 +35,15 @@ import ai.storyfork.operations.llmops.service.LeakCheckService
 import ai.storyfork.operations.llmops.service.LlmopsSettingService
 import ai.storyfork.operations.llmops.service.MetricsService
 import ai.storyfork.operations.llmops.service.ModelService
+import ai.storyfork.operations.llmops.service.OptimizationService
 import ai.storyfork.operations.llmops.service.PipelineService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.TraceService
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
 import ai.storyfork.operations.llmops.service.dto.TracePage
 import ai.storyfork.operations.event.controller.AdminEventController
+import ai.storyfork.operations.feedbackreport.controller.FeedbackReportController
+import ai.storyfork.operations.feedbackreport.service.FeedbackReportService
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
@@ -50,6 +59,8 @@ import ai.storyfork.operations.report.service.dto.ReportListResponse
 import ai.storyfork.operations.work.controller.WorkController
 import ai.storyfork.operations.work.service.WorkService
 import ai.storyfork.operations.work.service.dto.OperationsWorkList
+import ai.storyfork.operations.worldstudio.controller.WorldStudioController
+import ai.storyfork.operations.worldstudio.service.WorldStudioService
 import java.time.Instant
 import java.math.BigDecimal
 import java.util.UUID
@@ -74,7 +85,8 @@ import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
 @WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class,
-    DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class, CreditController::class], properties = [
+    DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class, CreditController::class,
+    CardCategoryController::class, WorldStudioController::class, FeedbackReportController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -93,6 +105,9 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var works: WorkService
     @MockitoBean lateinit var genres: GenreService
     @MockitoBean lateinit var credits: CreditService
+    @MockitoBean lateinit var cardCategories: CardCategoryService
+    @MockitoBean lateinit var worldStudios: WorldStudioService
+    @MockitoBean lateinit var feedbackReports: FeedbackReportService
     @MockitoBean lateinit var comments: CommentService
     @MockitoBean lateinit var adminActivities: AdminActivityService
     @MockitoBean lateinit var dashboard: DashboardService
@@ -102,6 +117,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var models: ModelService
     @MockitoBean lateinit var pipelines: PipelineService
     @MockitoBean lateinit var evaluations: EvaluationService
+    @MockitoBean lateinit var optimizations: OptimizationService
     @MockitoBean lateinit var leakChecks: LeakCheckService
     @MockitoBean lateinit var llmopsSettings: LlmopsSettingService
     @MockitoBean lateinit var alerts: AlertService
@@ -305,6 +321,35 @@ class MemberSecurityIntegrationTest {
     }
 
     @Test
+    fun `feedback report routes require a Core verified Bearer and ignore the service token`() {
+        val response = mvc.perform(get("/api/v1/operations/feedback-reports").header("X-Operations-Service-Token", serviceToken))
+            .andExpect(status().isUnauthorized()).andReturn().response
+        assertEquals("UNAUTHORIZED", code(response.contentAsString))
+        assertNull(response.getHeader("Set-Cookie"))
+        verifyNoInteractions(core, feedbackReports)
+    }
+
+    @Test
+    fun `verified member reaches the feedback report controller as principal with the filter and gets Content's JSON as is`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val page = mapper.readTree("""{"items":[{"id":"r1","workTitle":"작품","status":"checked"}],"page":1,"size":5,"totalElements":6,"totalPages":2}""")
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(feedbackReports.list(member, "checked", 1, 5)).thenReturn(page)
+        `when`(feedbackReports.list(member, null, null, null)).thenReturn(page)
+
+        mvc.perform(get("/api/v1/operations/feedback-reports?status=checked&page=1&size=5").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].workTitle").value("작품")).andExpect(jsonPath("$.totalPages").value(2))
+        mvc.perform(get("/api/v1/operations/feedback-reports").header("Authorization", bearer)).andExpect(status().isOk())
+        // The author handles a reader report, so the operator has no write route.
+        mvc.perform(post("/api/v1/operations/feedback-reports").header("Authorization", bearer)).andExpect(status().isMethodNotAllowed())
+        // A page that is not a number is the common 400 and never reaches the service.
+        mvc.perform(get("/api/v1/operations/feedback-reports?page=x").header("Authorization", bearer)).andExpect(status().isBadRequest())
+        verify(feedbackReports).list(member, "checked", 1, 5)
+        verify(feedbackReports).list(member, null, null, null)
+        verifyNoMoreInteractions(feedbackReports)
+    }
+
+    @Test
     fun `credits routes require a Core verified Bearer and ignore the service token`() {
         val id = UUID.randomUUID()
         for (builder in listOf(
@@ -336,6 +381,70 @@ class MemberSecurityIntegrationTest {
             .content("""{"amount":500,"reason":"이벤트 보상"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(1700))
         mvc.perform(post("/api/v1/operations/credits/members/$id/revocations").header("Authorization", bearer).contentType("application/json")
             .content("""{"amount":200,"reason":"오지급 회수"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(1700))
+    }
+
+    @Test
+    fun `world studio, card category, episode and credit balance routes require a Core verified Bearer and ignore the service token`() {
+        val id = UUID.randomUUID()
+        for (builder in listOf(
+            get("/api/v1/operations/world-studios"), put("/api/v1/operations/world-studios/$id/restriction"), delete("/api/v1/operations/world-studios/$id/restriction"),
+            get("/api/v1/operations/card-categories"), post("/api/v1/operations/card-categories"),
+            patch("/api/v1/operations/card-categories/object"), put("/api/v1/operations/card-categories/order"),
+            get("/api/v1/operations/works/$id/episodes"), put("/api/v1/operations/works/$id/episodes/2/restriction"),
+            delete("/api/v1/operations/works/$id/episodes/2/restriction"), post("/api/v1/operations/credits/balances"),
+        )) {
+            val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
+                .andExpect(status().isUnauthorized()).andReturn().response
+            assertEquals("UNAUTHORIZED", code(response.contentAsString))
+            assertNull(response.getHeader("Set-Cookie"))
+        }
+        verifyNoInteractions(core, worldStudios, cardCategories, works, credits)
+    }
+
+    @Test
+    fun `verified member reaches the world studio, card category, episode and balance routes and gets their JSON as is`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val id = UUID.randomUUID()
+        val worlds = mapper.readTree("""[{"worldId":"$id","name":"별빛 세계","ownerName":"작가","linkedWorkId":null,"restricted":false}]""")
+        val world = mapper.readTree("""{"worldId":"$id","name":"별빛 세계","restricted":true}""")
+        val categories = mapper.readTree("""[{"code":"object","name":"물건","icon":null,"active":true,"position":6,"cardCount":2}]""")
+        val category = mapper.readTree("""{"code":"card-category-9","name":"도구"}""")
+        val episodes = mapper.readTree("""[{"number":1,"title":"1화","publicationStatus":"published","restricted":false,"inherited":false}]""")
+        val episode = mapper.readTree("""{"number":2,"title":"2화","publicationStatus":"published","restricted":true,"inherited":false}""")
+        val balances = mapper.readTree("""[{"memberId":"$id","total":1200}]""")
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(worldStudios.list(member)).thenReturn(worlds)
+        `when`(worldStudios.restrict(member, id)).thenReturn(world)
+        `when`(worldStudios.unrestrict(member, id)).thenReturn(world)
+        `when`(cardCategories.list(member)).thenReturn(categories)
+        `when`(cardCategories.create(member, CardCategoryCreateRequest("도구", "🔧"))).thenReturn(category)
+        `when`(cardCategories.update(member, "card-category-9", CardCategoryUpdateRequest(active = false))).thenReturn(category)
+        `when`(cardCategories.reorder(member, CardCategoryOrderRequest(listOf("object", "character")))).thenReturn(categories)
+        `when`(works.episodes(member, id)).thenReturn(episodes)
+        `when`(works.restrictEpisode(member, id, 2)).thenReturn(episode)
+        `when`(works.unrestrictEpisode(member, id, 2)).thenReturn(episode)
+        `when`(credits.balances(member, bearer, CreditBalancesRequest(listOf(id)))).thenReturn(balances)
+
+        mvc.perform(get("/api/v1/operations/world-studios").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].ownerName").value("작가"))
+        mvc.perform(put("/api/v1/operations/world-studios/$id/restriction").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.restricted").value(true))
+        mvc.perform(delete("/api/v1/operations/world-studios/$id/restriction").header("Authorization", bearer)).andExpect(status().isOk())
+        mvc.perform(get("/api/v1/operations/card-categories").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].cardCount").value(2))
+        mvc.perform(post("/api/v1/operations/card-categories").header("Authorization", bearer).contentType("application/json")
+            .content("""{"name":"도구","icon":"🔧"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.code").value("card-category-9"))
+        mvc.perform(patch("/api/v1/operations/card-categories/card-category-9").header("Authorization", bearer).contentType("application/json")
+            .content("""{"active":false}""")).andExpect(status().isOk()).andExpect(jsonPath("$.name").value("도구"))
+        mvc.perform(put("/api/v1/operations/card-categories/order").header("Authorization", bearer).contentType("application/json")
+            .content("""{"codes":["object","character"]}""")).andExpect(status().isOk())
+        mvc.perform(get("/api/v1/operations/works/$id/episodes").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].inherited").value(false))
+        mvc.perform(put("/api/v1/operations/works/$id/episodes/2/restriction").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.restricted").value(true))
+        mvc.perform(delete("/api/v1/operations/works/$id/episodes/2/restriction").header("Authorization", bearer)).andExpect(status().isOk())
+        mvc.perform(post("/api/v1/operations/credits/balances").header("Authorization", bearer).contentType("application/json")
+            .content("""{"memberIds":["$id"]}""")).andExpect(status().isOk()).andExpect(jsonPath("$[0].total").value(1200))
     }
 
     @Test
@@ -382,7 +491,7 @@ class MemberSecurityIntegrationTest {
         for (builder in listOf(
             get("/api/v1/operations/dashboard"), get("/api/v1/operations/llmops/traces"), get("/api/v1/operations/llmops/traces/t-1"),
             get("/api/v1/operations/llmops/metrics"), get("/api/v1/operations/llmops/prompts"), put("/api/v1/operations/llmops/prompts/qa-answer/production"),
-            get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
+            post("/api/v1/operations/llmops/prompts/qa-answer/optimizations"), get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
             get("/api/v1/operations/llmops/settings"), get("/api/v1/operations/alerts"), put("/api/v1/operations/alerts/$id"),
             get("/api/v1/operations/alerts/rules"), put("/api/v1/operations/alerts/rules/ai_failure_rate"),
         )) {
@@ -419,15 +528,15 @@ class MemberSecurityIntegrationTest {
     }
 
     @Test
-    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
+    fun `promoting a prompt version that is not a candidate is a 409 with its own code`() {
         val member = OperationsMember(UUID.randomUUID(), true)
         `when`(core.verify(bearer)).thenReturn(member)
-        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(EvaluationRequiredException())
+        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(CandidateRequiredException())
 
         val response = mvc.perform(put("/api/v1/operations/llmops/prompts/qa-answer/production").header("Authorization", bearer)
             .contentType("application/json").content("""{"version":3}""")).andExpect(status().isConflict()).andReturn().response
 
-        assertEquals("EVALUATION_REQUIRED", code(response.contentAsString))
+        assertEquals("CANDIDATE_REQUIRED", code(response.contentAsString))
     }
 
     @Test

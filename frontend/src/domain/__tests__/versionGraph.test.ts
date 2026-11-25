@@ -60,3 +60,43 @@ describe('버전 그래프 행', () => {
     expect(versionGraphRows({ versions: [], publishedVersionId: 'source', inherited: true, hasDraft: true }, true).some(r => r.unsaved)).toBe(false)
   })
 })
+
+describe('버전 그래프의 현재 위치', () => {
+  // 편집기가 지금 보여 주는 내용(제목·본문·작가의 말)이 저장 버전과 같으면 현재 위치는 그 버전이고, 한 글자라도 다르면 작업 초안이다(#730 후속).
+  // 저장해 둔 값이 아니라 비교해서 구하므로 고치면 작업 초안으로 돌아오고 버전 저장 직후에는 새 버전이 현재다.
+  const saved = (n: number, patch: Partial<Version> = {}): Version => ({ ...version(n), title: '제목', body: '본문', authorNote: '말', ...patch })
+  const current = { title: '제목', body: '본문', authorNote: '말' }
+  const heads = (versions: Version[], now: { title: string; body: string; authorNote?: string } | null = current, patch: Partial<typeof episode> = {}) =>
+    versionGraphRows({ ...episode, ...patch, versions }, false, now ?? undefined).filter(r => r.head).map(r => r.id)
+
+  it('편집기 내용이 저장 버전과 같으면 현재 위치가 작업 초안에서 그 버전으로 옮겨 간다', () => {
+    expect(heads([saved(1), saved(2, { body: '다른 본문' })])).toEqual(['v1'])
+  })
+
+  it('제목·본문·작가의 말 중 한 글자라도 다르면 작업 초안이 현재 위치다', () => {
+    expect(heads([saved(1, { title: '제목!' }), saved(2, { body: '본문!' }), saved(3, { authorNote: '말!' })])).toEqual(['draft'])
+  })
+
+  it('내용이 같은 저장 버전이 여럿이면 가장 최신 하나만 현재다', () => {
+    expect(heads([saved(1), saved(2, { body: '다른 본문' }), saved(3)])).toEqual(['v3'])
+    expect(heads([saved(1), saved(2)])).toEqual(['v2'])
+  })
+
+  it('작가의 말이 없는 것과 빈 문자열은 같게 본다', () => {
+    expect(heads([saved(1, { authorNote: undefined })], { title: '제목', body: '본문', authorNote: '' })).toEqual(['v1'])
+    expect(heads([saved(1, { authorNote: '' })], { title: '제목', body: '본문' })).toEqual(['v1'])
+  })
+
+  it('편집기 내용을 주지 않으면 지금까지처럼 작업 초안이 현재 위치다', () => {
+    expect(heads([saved(1)], null)).toEqual(['draft'])
+  })
+
+  it('원작 기준 회차는 기준 노드가 현재 위치로 남는다', () => {
+    expect(heads([saved(1)], current, { inherited: true, publishedVersionId: 'source' })).toEqual(['base'])
+  })
+
+  it('초안을 삭제한 회차는 같은 저장 버전이 있으면 그 버전이 현재이고 없으면 현재 노드가 없다', () => {
+    expect(heads([saved(1)], current, { hasDraft: false })).toEqual(['v1'])
+    expect(heads([saved(1, { body: '다른 본문' })], current, { hasDraft: false })).toEqual([])
+  })
+})

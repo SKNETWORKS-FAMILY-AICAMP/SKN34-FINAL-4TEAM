@@ -186,6 +186,15 @@ class ManuscriptImportServiceTest {
         assertTrue(sequences(versions, "saveWithVersion").max() < sequences(preprocessing, "start").single(), "저장이 끝난 뒤에 접수한다")
     }
 
+    @Test fun `an upload after initial build reports what to publish without attempting a new build`() {
+        `when`(preprocessing.completedInitialBuild("work", requireNotNull(linkedWorld))).thenReturn(true)
+        val response = confirm(novel(1), item(1, 1))
+        assertEquals(1, response.succeeded)
+        assertEquals(ManuscriptImportWorldBuild("rejected", null, "WORLD_UPDATE_ON_PUBLISH",
+            "새 회차를 처음 발행하면 세계관 초안에 반영돼요."), response.worldBuild)
+        assertTrue(buildRequests().isEmpty())
+    }
+
     @Test fun `an unlinked work starts the build with a new world and every import gets its own key`() {
         linkedWorld = null
         confirm(novel(1), item(1, 1))

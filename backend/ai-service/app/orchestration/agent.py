@@ -166,7 +166,12 @@ class DynamicToolMiddleware(AgentMiddleware):
         if request.tool_call['name'] not in _allowed(request.state):
             return _blocked(call)
         if call['name'] in mcp_tools.NAMES:  # 쓰기는 HumanInTheLoopMiddleware가 승인을 받은 뒤 여기까지 온다
-            return await mcp_tools.execute(request)
+            result = await mcp_tools.execute(request)
+            # 다시 묻는 승인(work_update 409, #687)은 WriteApproval을 지나지 않으므로 이어 가는 요청의 새 조회 토큰(#678)을 여기서 저장한다.
+            # 쓰기에만 싣는다: 읽기는 병렬로 함께 실행돼 같은 단계에서 둘이 쓰면 LangGraph가 거절한다(#725). 쓰기는 항상 단독이다.
+            if call['name'] in mcp_tools.WRITE and (scope := get_config()['configurable'].get(RESUME_SCOPE)):
+                result.update['retrievalScope'] = scope
+            return result
         result = await handler(request)
         # 도구는 항상 Command로 답한다. 오류 ToolMessage만 왔다면 ToolNode가 인자 검증 실패를 돌려준 것이라 그 기능 단계를 실패로 남긴다.
         if isinstance(result, ToolMessage) and result.status == 'error':
@@ -320,7 +325,7 @@ def build(found: list[dict] = ()):
         managed = tracing.prompt('orchestration.main', INSTRUCTIONS)
     except tracing.PromptUnavailable:
         raise IntentFailure() from None
-    chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
+    chat = ChatOpenAI(model=managed.model or os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
                       reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0, streaming=True, callbacks=[AnswerStream()])
     mcp = mcp_tools.tools(found)
     # respond는 제안 다시 받기(#662)만 쓴다: 실행하지 않고 서버 문구를 거절 표시 없이 그대로 모델에게 준다.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { OperationsError, OperationsRejected } from '../entities/operations'
-import type { ForkIntegrity, OperationsWork } from '../entities/operationsWork'
+import type { ForkIntegrity, OperationsEpisode, OperationsWork } from '../entities/operationsWork'
 import type { OperationsWorkRepository } from '../repositories/OperationsWorkRepository'
 import { OperationsWorkUseCase } from '../usecases/OperationsWorkUseCase'
 
@@ -10,6 +10,7 @@ const row: OperationsWork = {
   rightsConfirmed: true, visibility: 'public', restricted: false,
 }
 
+const episode: OperationsEpisode = { number: 1, title: '1화', publicationStatus: 'published', restricted: false, inherited: false }
 const report: ForkIntegrity = { basisEpisode: 2, forkHash: 'a'.repeat(64), sourceHash: 'b'.repeat(64), matches: false, characterStateStatus: 'unavailable' }
 
 /** 호출 인자만 기록하는 Fake Repository */
@@ -19,6 +20,8 @@ function setup(forkIntegrity: OperationsWorkRepository['forkIntegrity'] = async 
     list: async () => { calls.push(['list']); return [row] },
     forkIntegrity: async (id) => { calls.push(['forkIntegrity', id]); return forkIntegrity(id) },
     setRestriction: async (id, restricted) => { calls.push(['setRestriction', id, restricted]) },
+    episodes: async (id) => { calls.push(['episodes', id]); return [episode] },
+    setEpisodeRestriction: async (id, number, restricted) => { calls.push(['setEpisodeRestriction', id, number, restricted]) },
   }
   return { calls, uc: new OperationsWorkUseCase(repository) }
 }
@@ -35,6 +38,14 @@ describe('OperationsWorkUseCase (74 운영 작품 조회)', () => {
     await uc.setRestriction('w1', true)
     await uc.setRestriction('w1', false)
     expect(calls).toEqual([['setRestriction', 'w1', true], ['setRestriction', 'w1', false]])
+  })
+
+  it('작품 상세의 회차 목록과 회차 제한·해제는 작품·번호·값 그대로 위임한다', async () => {
+    const { uc, calls } = setup()
+    expect(await uc.episodes('w1')).toEqual([episode])
+    await uc.setEpisodeRestriction('w1', 3, true)
+    await uc.setEpisodeRestriction('w1', 3, false)
+    expect(calls).toEqual([['episodes', 'w1'], ['setEpisodeRestriction', 'w1', 3, true], ['setEpisodeRestriction', 'w1', 3, false]])
   })
 
   it('포크 정합성 점검 결과는 점검 가능 상태로 돌려준다', async () => {

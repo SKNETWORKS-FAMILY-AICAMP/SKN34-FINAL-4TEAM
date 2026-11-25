@@ -16,9 +16,9 @@ const ACTIONS: [string, string][] = [
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
 ]
 
-/** DEC-55 관리자 변경 조치 12종: LLMOps 8종은 조각 2 서버 코드의 이름, 작업 감시 4종(JOB_*)은 조각 3이 확정한 이름이다. EVALUATION_REQUIRED는 조치가 아니라 승격의 409 오류 code라 여기에 없다 */
+/** DEC-55 관리자 변경 조치 13종: LLMOps 9종(#705의 후보 등록 포함)은 서버 코드의 이름, 작업 감시 4종(JOB_*)은 조각 3이 확정한 이름이다. CANDIDATE_REQUIRED는 조치가 아니라 반영의 409 오류 code라 여기에 없다 */
 const LLMOPS_ACTIONS: [string, string][] = [
-  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_PROMOTE', '프롬프트 승격·복원'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
+  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_CANDIDATE', '프롬프트 후보 등록'], ['PROMPT_PROMOTE', '프롬프트 서비스 반영'], ['PROMPT_OPTIMIZE', '프롬프트 자동 개선 실행'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
   ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
   ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
 ]
@@ -29,8 +29,8 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     for (const [code, label] of ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
-  it('운영 대시보드·LLMOps·작업 감시의 조치 12종도 한국어 이름으로 보인다', () => {
-    expect(LLMOPS_ACTIONS).toHaveLength(12)
+  it('운영 대시보드·LLMOps·작업 감시의 조치 14종도 한국어 이름으로 보인다', () => {
+    expect(LLMOPS_ACTIONS).toHaveLength(14)
     for (const [code, label] of LLMOPS_ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
@@ -114,5 +114,26 @@ describe('관리자 활동 기록 내역 표시 (72)', () => {
   it('활동 기록을 볼 수 없을 때의 안내는 조회에 필요한 관리자 계정 관리 권한 이름을 쓴다', () => {
     expect(ACTIVITY_FORBIDDEN).toBe("활동 로그를 보려면 '관리자 계정 관리' 권한이 필요해요.")
     expect(ADMIN_PERMISSIONS).toContainEqual(['admins', '관리자 계정 관리'])
+  })
+})
+
+describe('운영자 콘텐츠 관리 조치(회차·세계관 제한, 카드 카테고리 관리)', () => {
+  it('조치 7종은 한국어 이름으로 보인다', () => {
+    const labels = [['episode.restrict', '회차 운영 제한'], ['episode.unrestrict', '회차 운영 제한 해제'], ['world.restrict', '세계관 운영 제한'], ['world.unrestrict', '세계관 운영 제한 해제'],
+      ['card_category.create', '카드 카테고리 추가'], ['card_category.update', '카드 카테고리 수정'], ['card_category.reorder', '카드 카테고리 순서 변경']]
+    for (const [code, label] of labels) expect(activityActionLabel(code)).toBe(label)
+  })
+
+  it('대상은 회차(작품 id와 번호)·세계관·카드 카테고리 코드로, 순서 변경은 카테고리 목록으로 보인다', () => {
+    expect(activityTarget({ targetType: 'episode', targetId: '6f2c9a10:3' })).toBe('회차 3화 · 작품 6f2c9a10')
+    expect(activityTarget({ targetType: 'world', targetId: 'wd-1' })).toBe('세계관 wd-1')
+    expect(activityTarget({ targetType: 'card_category', targetId: 'category-09' })).toBe('카드 카테고리 category-09')
+    expect(activityTarget({ targetType: 'card_category', targetId: 'order' })).toBe('카드 카테고리 목록')
+    expect(activityTarget({ targetType: 'episode', targetId: 'no-number' })).toBe('회차 no-number')
+  })
+
+  it('카테고리 순서 변경의 내역은 코드 목록이라 개수로 보이고 나머지 내역은 그대로 보인다', () => {
+    expect(activityDetail({ action: 'card_category.reorder', detail: 'character,location,category-09' })).toBe('3개 카드 카테고리의 순서')
+    expect(activityDetail({ action: 'episode.restrict', detail: '3화 · 별빛' })).toBe('3화 · 별빛')
   })
 })

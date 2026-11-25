@@ -535,10 +535,10 @@ it('작품에 연결된 세계관이 없으면 그 이유를 IF·흐름 모두�
   expect(send).not.toHaveBeenCalled()
 })
 
-it('발행 회차가 없어 채팅이 막혀 있으면 그 이유를 알리고 시작을 잠근다', async () => {
+it('회차가 없어 채팅이 막혀 있으면 그 이유를 알리고 시작을 잠근다', async () => {
   render(<Provider store={createAppStore()}><Host basis={null} /></Provider>)
   await openForm()
-  expect(box().getByText(/회차를 하나 이상 발행하면 AI와 대화할 수 있어요/)).toBeTruthy()
+  expect(box().getByText(/회차를 하나 이상 만들면 AI와 대화할 수 있어요/)).toBeTruthy()
   expect(box().queryByRole('checkbox', { name: /OpenAI/ })).toBeNull()
   fireEvent.change(box().getByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
   pick('카엘')

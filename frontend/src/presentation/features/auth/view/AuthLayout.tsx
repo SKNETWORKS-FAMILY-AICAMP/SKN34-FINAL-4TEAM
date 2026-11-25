@@ -23,10 +23,6 @@ export function AuthLayout({ title, intro, children }: { title: string; intro?: 
         <h1 id="auth-title">{title}</h1>
         {intro && <p className="auth-intro">{intro}</p>}
         {children}
-        <details className="auth-dev">
-          <summary>개발용 서비스 안내</summary>
-          <p>인증·계정은 실제 서버로 처리하며 작품·서재는 시연 데이터예요. 로컬 메일은 Mailpit에서 확인할 수 있어요. 운영 약관과 동의 절차는 준비 중이에요.</p>
-        </details>
       </div>
     </main>
   </div>

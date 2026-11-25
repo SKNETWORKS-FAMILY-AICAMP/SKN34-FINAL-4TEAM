@@ -9,7 +9,7 @@
 - 호출자는 기존 Core 인증 경계에서 검증된 Principal의 회원 UUID를 subject로 전달한다. 임의 요청 body의 소유자 ID나 AI가 주장한 ID를 쓰지 않는다. 함수는 기존 `revision`의 `owned` 검사 및 worldId/revisionId/sealed 조회를 재사용한다. 비소유·다른 세계관·없는 버전·미확정 버전은 기존 WorldNotFound다. 새 인증 방식이나 HTTP API는 없다.
 - `worldId`, `revisionId`, `revisionNo`, 확정 당시 `name/description`을 반환한다. `authorizedSubject`는 이번 소유권 검사를 통과한 주체를 기록한 값이지 다른 API에 재사용할 인가 토큰이 아니다. 캐시를 새로 도입하지 않는다.
 - `cards`는 기존 `SavedCardResponse`를 재사용한다. `versionId`가 **cardVersionId**, `versionNo`가 카드 버전 번호, `card.id`가 기존 인물·장소·조직 또는 의미 카드 ID다. 이 식별자들을 이름으로 대체하거나 재발급하지 않는다.
-- 확정 버전에 저장된 활성 카드의 title/body/cardType/areaCode/classification/aliases/tags/visibility와 semanticMetadata를 그대로 보존한다. `lifecycle=removed`는 활성 Context에서 제외하고 `excludedRemovedCardCount`로 밝힌다. 원래 버전 상세에는 삭제 상태 카드도 유지된다.
+- 확정 버전에 저장된 활성 카드의 title/body/cardType/areaCode/classification/aliases/tags/visibility와 semanticMetadata를 그대로 보존한다(초안 편집의 새 입력은 [허용 키 계약](worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)을 따른다). `lifecycle=removed`는 활성 Context에서 제외하고 `excludedRemovedCardCount`로 밝힌다. 원래 버전 상세에는 삭제 상태 카드도 유지된다.
 - semanticMetadata의 `preprocessing`(semanticType, provenance, analysisId, candidateId, decisionSequence, basisDraftRevision, evidence, condition/timeText/polarity)과 `studio.item.subjectId/relatedIds`를 그대로 보존한다. rule/event/goal/plan 및 fact/conjecture를 다른 의미로 재분류하지 않는다. 저장된 근거의 sourceId/ownerId/field/UTF-16 좌표/quote/hash를 현재 초안 기준으로 다시 계산하지 않는다.
 - `author_revision`의 빈 근거를 원래 AI 근거로 채우지 않는다. 후보·검토 테이블에서 원본 AI 후보나 pending/held/rejected 수정 이력을 가져오지 않는다. 승인만 된 후보도 포함하지 않으며 **초안 반영 후 명시적 확정된 카드**만 이 조회에 들어온다. 과거 확정 버전은 이후 검토 결정에 따라 다시 조립하지 않는다.
 - 메타데이터는 해당 확정 카드의 저장값이지 현재 분석 실행·검토 상태를 재검증한 결과가 아니다. 인용문 일치는 의미적 사실성 보장이 아니며 conjecture/goal/plan은 완료 사건으로 취급할 수 없다.

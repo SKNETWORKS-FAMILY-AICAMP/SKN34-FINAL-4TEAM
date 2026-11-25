@@ -6,13 +6,13 @@
 .server-writing .libtabs button.on { background: var(--muted-bg); color: var(--ink); }
 .server-writing-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
 .server-writing-content { min-width: 0; overflow-wrap: anywhere; }
-.server-writing .li h3 { font-size: 15px; font-weight: 700; line-height: 1.5; }
+/* 섹션 제목 줄(.sec-h, flex) 오른쪽 끝의 '+ 새 소설'·'+ 새 세계관' 작은 주 버튼: 자동 여백이 버튼을 끝으로 민다. */
+.server-writing .sec-h > .btn { margin-left: auto; }
+/* 카드의 칩 줄: 공개 범위 칩·Fork 배지와 뒤따르는 글자(.m의 크기·색을 물려받는다)를 한 줄에서 가운데 맞춤으로 잇는다. */
+.server-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+/* 칩은 제목(700) 아래에서 같은 굵기로 겨루지 않게 600이다(작품 관리 히어로 칩 줄·관리자 칩과 같다). 색·칩 종류는 그대로다. */
+.server-tags .chip { font-weight: 600; }
 .server-writing .server-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (max-width: 600px) {
-  .server-writing .li { grid-template-columns: 56px minmax(0, 1fr); }
-  .server-writing .li > .acts { grid-column: 1 / -1; }
-  .server-writing .li > .acts .btn { flex: 1; }
-}
 /* 문장 안 링크: 전역의 문단 속 링크 규칙(클래스 없는 링크)과 같은 밑줄·링크색으로 본문 글자와 구분한다. */
 .server-link { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
 /* 좁은 화면·터치 기기에서 문장 안 링크의 누를 자리를 44px로 */

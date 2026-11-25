@@ -54,7 +54,7 @@ class WorldService(
     fun read(id: String, owner: String): WorldResponse = view(load(access.own(id,owner)))
     fun publicRead(id: String, episode: Int): ReadingWorldResponse {
         val l=load(access.published(id))
-        checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.publishedVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
+        checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.readerVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
         return ReadingWorldResponse(id, episode, readingDocuments(l, episode, public = true))
     }
     private fun readingDocuments(l: Loaded, episode: Int, public: Boolean): List<ReadingDocumentResponse> {
@@ -67,6 +67,19 @@ class WorldService(
         return visible.map {toReadingResponse(it,details[settingVersionId(world,it.id,it.versionId)],episode,ids,if(l.state.mode=="following") l.work.source?.episode else null)}
     }
     fun isFollowingForContext(id: String): Boolean = load(access.get(id)).state.mode=="following"
+    /**
+     * Fork [id]의 '원작 추종 중' 설정집에서 Fork 독립(#737)이 세계관 카드로 복사할 설정과 그 wiki 상세다. 소유자 Fork만 볼 수 있고, 추종 중이 아니거나 원작이 지워졌으면 비어 있다.
+     * 설정은 [effective] 이력에서 설정마다 마지막 구간 하나이고(설정집이 보이는 것과 같다) 원작 작가가 공개한(public) 것만이다. 나중에 비공개로 바뀌어 '공개 범위에서 제외'가 된 설정은 옛 공개 버전이 남아 있어도 싣지 않는다.
+     * wiki 상세는 독자가 기준 회차에 보는 것과 같은 규칙([toReadingResponse])으로 거른다.
+     */
+    fun followingSettings(id: String, owner: String): List<Pair<Setting, ReadingDocumentResponse>> {
+        val l=load(access.own(id,owner))
+        if(l.state.mode!="following" || l.work.source?.deleted==true) return emptyList()
+        val shown=effective(l).associateBy {it.id}.values.filter {it.visibility=="public"}
+        val basis=l.work.source!!.episode;val world=l.sourceWorld!!;val ids=shown.map {it.id}.toSet()
+        val details=readingDetails.findAllById(shown.map {settingVersionId(world,it.id,it.versionId)}).associateBy {it.settingVersionId}
+        return shown.map {it to toReadingResponse(it,details[settingVersionId(world,it.id,it.versionId)],basis,ids,basis)}
+    }
     fun historyForContext(id: String): SettingListResponse {
         val loaded=load(access.get(id))
         return SettingListResponse(effective(loaded).map {it.toPayload()})

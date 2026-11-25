@@ -11,12 +11,20 @@ x-cd-labels: &cd-labels
   io.storyfork.cd.repository: SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM
   io.storyfork.cd.directory: ${CD_DIRECTORY:?Provision a dedicated deployment directory}
 
+# 컨테이너 로그가 디스크를 채우지 않게 모든 서비스에 같은 크기 제한을 둔다(기본 json-file에는 제한이 없다).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     extends:
       file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}
       service: postgres
     labels: *cd-labels
+    logging: *logging
     ports: !reset []
 
   mailpit:
@@ -24,6 +32,7 @@ services:
       file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}
       service: mailpit
     labels: *cd-labels
+    logging: *logging
     ports: !reset []
 
   neo4j:
@@ -31,6 +40,7 @@ services:
       file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}
       service: neo4j
     labels: *cd-labels
+    logging: *logging
     ports: !reset []
 
   rabbitmq:
@@ -38,12 +48,14 @@ services:
       file: ${CD_LOCAL_COMPOSE_FILE:-docker-compose.local.yaml}
       service: rabbitmq
     labels: *cd-labels
+    logging: *logging
 
   # local과 같은 소스(infrastructure/minio)로 버전당 한 번 빌드해 게시한 이미지.
   minio:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
@@ -62,6 +74,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.5.6
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     mem_limit: 1g
     environment:
       discovery.type: single-node
@@ -75,10 +88,23 @@ services:
       retries: 24
       start_period: 60s
 
+  image-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    logging: *logging
+    environment:
+      ATTACHMENT_S3_ENDPOINT: http://minio:9000
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     environment: &ai-environment
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
@@ -89,6 +115,7 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -99,6 +126,7 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -108,11 +136,13 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
 
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     depends_on:
       postgres:
         condition: service_healthy
@@ -137,6 +167,7 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     depends_on:
       minio:
         condition: service_healthy
@@ -168,6 +199,7 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     depends_on:
       postgres:
         condition: service_healthy
@@ -183,6 +215,7 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-web:develop
     platform: linux/amd64
     labels: *cd-labels
+    logging: *logging
     ports:
       - "127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}:80"
 

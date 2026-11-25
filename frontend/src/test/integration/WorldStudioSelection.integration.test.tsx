@@ -4,6 +4,7 @@ import {Provider} from 'react-redux'
 import {MemoryRouter,Route,Routes} from 'react-router'
 import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {createAppStore} from '../../app/store'
+import {stubCardCategories} from '../cardCategories'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
@@ -21,6 +22,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
 beforeEach(()=>{
+ stubCardCategories()
  const a=newSetting('people'),b=newSetting('people'),c=newSetting('places')
  a.item.title='가람';b.item.title='나래';c.item.title='항구';ids=[a.item.id,b.item.id,c.item.id]
  let settings=putRelation([a,b,c],{subjectId:ids[0],targetId:ids[1],predicate:'custom_relation',polarity:'asserted',text:'첫 번째 관계'})

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { afterEach, expect, it, vi } from 'vitest'
 
 import type { SerialBoardRecord, SerialSettings } from '../../../../domain/entities/aiSerial'
 import { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
@@ -11,9 +11,9 @@ import { AiSerialPanel } from './AiSerialPanel'
 afterEach(cleanup)
 
 const fakeRepo = (saved?: SerialSettings, rows?: SerialBoardRecord[]) => fakeSerialRepo({ saved, rows })
-/** 연재 설정 탭(처음 열리는 탭)을 연다. */
-const open = async (repo = fakeRepo()) => {
-  render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} />)
+/** 연재 설정 탭(처음 열리는 탭)을 연다. onOpenSettings는 호출 측(작품 관리)이 운영 설정 탭으로 옮기는 함수이고, 빼면 호출 측이 이동을 잠근 경우다. */
+const open = async (repo = fakeRepo(), props: { onOpenSettings?: () => void } = {}) => {
+  render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} {...props} />)
   await screen.findByRole('button', { name: '설정 저장' })
   return repo
 }
@@ -29,6 +29,13 @@ const openHistory = async (repo = fakeRepo()) => {
 const save = () => screen.getByRole('button', { name: '설정 저장' })
 const run = () => screen.getByRole('button', { name: '지금 마감·실행' })
 const day = (name: string) => screen.getByRole('checkbox', { name })
+/** 브라우저가 disabled가 된 버튼에서 초점을 거두는 것을 재현한다(jsdom은 disabled 요소의 blur()를 무시한다). */
+function dropFocus() {
+  const probe = document.body.appendChild(document.createElement('input'))
+  probe.focus()
+  probe.remove()
+  expect(document.activeElement).toBe(document.body)
+}
 
 it('서버 설정으로 입력 칸을 채우고 저장 버튼은 바꾸기 전까지 잠겨 있다', async () => {
   render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(fakeRepo(settings({ direction: '긴장감 있게' })))} />)
@@ -169,14 +176,36 @@ it.each([
   expect(screen.getByText(new RegExp(why)).id).toBe(run().getAttribute('aria-describedby'))
 })
 
-// AI 자율 집필은 운영 설정의 집필 방식에서 고른다(계약 'AI 자율 집필 = 집필 방식'). 꺼져 있으면 이 탭이 그 길을 알려 준다.
-it('꺼져 있으면 운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 켜진다고 안내하고, 켜져 있으면 안내하지 않는다', async () => {
-  const GUIDE = '운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 켜져요.'
+// AI 자율 집필은 운영 설정의 집필 방식에서 고른다(계약 'AI 자율 집필 = 집필 방식'). 꺼져 있으면 이 탭은 꺼짐 상태를 알리고, 켜는 길은 리드 문단이 적는다.
+it('꺼져 있으면 꺼짐 상태를 알리고(켜는 길은 리드 문단), 켜져 있으면 알리지 않는다', async () => {
+  const GUIDE = 'AI 자율 집필이 꺼져 있어요.'
   await open(fakeRepo(settings({ enabled: false })))
   expect(screen.getByText(GUIDE)).toBeTruthy()
+  expect(screen.getAllByText(/운영 설정 > 집필 방식에서 AI 자율 집필을 고르면/)).toHaveLength(1) // 리드 문단에만 있다
   cleanup()
   await open(fakeRepo(settings({ enabled: true })))
   expect(screen.queryByText(GUIDE)).toBeNull()
+})
+
+it('[critique] 꺼져 있을 때 운영 설정 열기를 누르면 호출 측 이동을 부르고, 이동을 주지 않으면 버튼이 없다', async () => {
+  const onOpenSettings = vi.fn()
+  await open(fakeRepo(settings({ enabled: false })), { onOpenSettings })
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정 열기' }))
+  expect(onOpenSettings).toHaveBeenCalledOnce()
+  cleanup()
+  await open(fakeRepo(settings({ enabled: false })))
+  expect(screen.queryByRole('button', { name: '운영 설정 열기' })).toBeNull()
+})
+
+it('[critique] 꺼져 있으면 연재 설정 폼 전체(요일·시각·방향·저장)가 fieldset disabled로 잠기고, 켜져 있으면 입력할 수 있다', async () => {
+  // fieldset disabled는 안의 입력을 :disabled로 만든다(입력 요소의 disabled 속성 값은 자기 속성만 읽는다).
+  const locked = () => [day('월'), screen.getByLabelText(/연재 시각/), screen.getByLabelText(/연재 방향/), save()].map((el) => el.matches(':disabled'))
+  await open(fakeRepo(settings({ enabled: false })))
+  expect(locked()).toEqual([true, true, true, true])
+  expect(screen.getByLabelText(/연재 시각/).closest('fieldset.ep-serial-fields')?.hasAttribute('disabled')).toBe(true)
+  cleanup()
+  await open(fakeRepo(settings({ enabled: true })))
+  expect(locked()).toEqual([false, false, false, true]) // 저장은 바꾸기 전까지 잠겨 있다(위 첫 테스트)
 })
 
 it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', async () => {
@@ -185,6 +214,54 @@ it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', 
   await openHistory(repo)
   fireEvent.click(run())
   expect((await screen.findByRole('alert')).textContent).toContain('이미 실행 중이에요.')
+})
+
+// 저장·실행 중 눌렀던 버튼이 잠기면 브라우저가 초점을 거둔다. 끝난 뒤에도 그 버튼이 잠겨 있으면(저장됨·이미 실행 중) 돌아갈 곳이 없어 현재 하위 탭으로 돌려준다.
+it('[D2] 저장이 끝났는데 버튼이 계속 잠겨 초점이 body로 떨어졌으면 현재 하위 탭으로 돌려준다', async () => {
+  let finish!: () => void
+  const repo = fakeRepo()
+  repo.saveSettings.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+  await open(repo)
+  fireEvent.change(screen.getByLabelText(/연재 방향/), { target: { value: '새 방향' } })
+  repo.settings.mockResolvedValue(settings({ direction: '새 방향' }))
+  const button = save() as HTMLButtonElement
+  button.focus()
+  fireEvent.click(button)
+  await screen.findByRole('button', { name: '저장 중…' })
+  dropFocus()
+  await act(async () => { finish() })
+  await waitFor(() => expect(document.activeElement).toBe(subTab('연재 설정')))
+  expect(button.disabled).toBe(true)
+})
+
+/** 지금 마감·실행을 눌러 요청 중으로 두고, 잠긴 버튼에서 초점이 거둬진(body) 상태까지 만든다. finish()가 요청을 끝내면 대기 중인 기록이 와서 버튼은 계속 잠긴다. */
+async function pendingRun() {
+  let end!: () => void
+  const repo = await openHistory()
+  repo.run.mockImplementation(() => new Promise<void>((resolve) => { end = resolve }))
+  repo.boards.mockResolvedValue([record({ status: 'queued' })])
+  const button = run() as HTMLButtonElement
+  button.focus()
+  fireEvent.click(button)
+  await screen.findByRole('button', { name: '요청 중…' })
+  dropFocus()
+  return { button, finish: () => act(async () => { end() }) }
+}
+
+it('[D2] 지금 마감·실행 요청이 끝났는데 버튼이 계속 잠겨 초점이 body로 떨어졌으면 게시판 기록 탭으로 돌려준다', async () => {
+  const { button, finish } = await pendingRun()
+  await finish()
+  await waitFor(() => expect(document.activeElement).toBe(subTab('게시판 기록')))
+  await waitFor(() => expect(button.disabled).toBe(true)) // 이미 실행 중이라 계속 잠겨 있다
+})
+
+it('[D2] 끝났을 때 초점이 body가 아니면(그새 다른 버튼으로 옮겼으면) 가져가지 않는다', async () => {
+  const { button, finish } = await pendingRun()
+  const refresh = screen.getByRole('button', { name: '기록 새로 고침' })
+  refresh.focus()
+  await finish()
+  await waitFor(() => expect(button.disabled).toBe(true))
+  expect(document.activeElement).toBe(refresh)
 })
 
 it('저장은 성공했는데 설정을 다시 읽다 실패하면 저장 완료와 읽기 실패를 따로 알리고 입력 칸은 그대로 둔다', async () => {

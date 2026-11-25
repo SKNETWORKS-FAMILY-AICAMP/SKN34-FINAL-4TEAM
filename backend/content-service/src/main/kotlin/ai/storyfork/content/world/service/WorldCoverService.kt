@@ -3,6 +3,7 @@ package ai.storyfork.content.world.service
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.world.domain.WorldCoverFile
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldConflict
@@ -11,6 +12,7 @@ import ai.storyfork.content.world.service.dto.WorldCoverImage
 import ai.storyfork.content.world.service.dto.WorldCoverResponse
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import ai.storyfork.content.world.studio.repository.ExpandedSeedProgressRepository
+import ai.storyfork.content.world.studio.repository.lockAccessible
 import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -26,11 +28,12 @@ import org.springframework.transaction.support.TransactionTemplate
 class WorldCoverService(
     private val worlds: StudioWorldRepository, private val storage: AttachmentStorageClient, private val expandedSeeds:ExpandedSeedProgressRepository,
     @Qualifier("worldStudioTransactionManager") manager: PlatformTransactionManager,
+    private val coverModeration: CoverModerationClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val transaction = TransactionTemplate(manager)
     private fun <T : Any> tx(action: () -> T): T = transaction.execute { action() }
-    private fun owned(id: UUID, subject: UUID) = worlds.lockOwned(id, subject) ?: throw WorldNotFound()
+    private fun owned(id: UUID, subject: UUID) = worlds.lockAccessible(id, subject) ?: throw WorldNotFound()
     private fun guardExpansion(id:UUID) { if(expandedSeeds.findById(id).orElse(null)?.completed==false) throw WorldConflict() }
 
     /**
@@ -39,6 +42,8 @@ class WorldCoverService(
      * ponytail: DB 갱신이 실패하면 새 객체가, 이전 객체 삭제가 실패하면 이전 객체가 객체 저장소에 남는다. 정리는 운영자 몫이고 보상 트랜잭션은 두지 않는다.
      */
     fun put(worldId: UUID, subject: UUID, cover: WorldCoverFile): WorldCoverResponse {
+        tx { owned(worldId, subject); guardExpansion(worldId) }
+        coverModeration.check(cover.bytes, cover.contentType)
         tx { val world = owned(worldId, subject); guardExpansion(worldId); world.ownerMetadataVersion = Math.incrementExact(world.ownerMetadataVersion) }
         val key = "world-covers/${UUID.randomUUID()}"
         coverStorage { storage.upload(key, AttachmentObjectPayload(cover.bytes, cover.contentType)) }
@@ -67,7 +72,7 @@ class WorldCoverService(
 
     /** 소유자에게 저장된 표지를 돌려준다. 남의·지운 세계관은 404(WorldNotFound), 표지가 없으면 404(ContentFailure)다. */
     fun read(worldId: UUID, subject: UUID): WorldCoverImage {
-        val world = tx { worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject && it.deletedAt == null } ?: throw WorldNotFound() }
+        val world = tx { worlds.findById(worldId).orElse(null)?.takeIf { (it.ownerSubject == subject || ai.storyfork.content.auth.config.operatorReading()) && it.deletedAt == null } ?: throw WorldNotFound() }
         val key = world.coverObjectKey
         val type = world.coverContentType
         if (key == null || type == null) throw ContentFailure(404, "세계관 표지를 찾을 수 없습니다.")

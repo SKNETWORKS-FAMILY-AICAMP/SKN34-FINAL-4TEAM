@@ -8,6 +8,7 @@ import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMe
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
+import { InMemoryCardCategoryRepository, InMemoryOperationsCardCategoryRepository } from '../../data/mock/InMemoryCardCategoryRepositories'
 import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
 import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../../data/mock/InMemoryLlmOpsRepositories'
@@ -46,9 +47,13 @@ export function registerMockupServices(container: AppContainer) {
   // 운영 장르 관리와 공개 장르 목록(작가 선택지·홈 칩·세계관 장르 이름)이 같은 메모리 목록을 봅니다.
   const operationsGenreRepository = new InMemoryOperationsGenreRepository()
   const genreRepository = new InMemoryGenreRepository(operationsGenreRepository)
+  // 운영 카드 카테고리 관리와 공개 카드 카테고리 목록(작가 선택지·분류 메뉴)도 같은 메모리 목록을 봅니다.
+  const operationsCardCategoryRepository = new InMemoryOperationsCardCategoryRepository()
   container.register({
     operationsGenreRepository: asValue(operationsGenreRepository),
     genreRepository: asValue(genreRepository),
+    operationsCardCategoryRepository: asValue(operationsCardCategoryRepository),
+    cardCategoryRepository: asValue(new InMemoryCardCategoryRepository(operationsCardCategoryRepository)),
     // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
     eventRepository: asValue(eventRepository),
     eventUseCase: asValue(new EventUseCase(eventRepository)),
@@ -56,6 +61,8 @@ export function registerMockupServices(container: AppContainer) {
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
     // 운영 댓글 API 대신 데모 관리자 댓글을 운영 댓글 형태로 보여 주고, 숨김은 데모 회차 뷰어가 읽는 숨김 목록에 반영합니다.
     operationsCommentRepository: asValue(new InMemoryOperationsCommentRepository(mockDb)),
+    // 운영 독자 제보 열람 API 대신 제보·문의 탭은 기존 메모리 데모 제보 표를 그대로 보입니다(UseCase가 없으면 그 표를 그립니다).
+    operationsFeedbackReportUseCase: asValue(null),
     // 운영 활동 기록 API 대신 데모 관리자 화면이 쌓은 데모 조치를 활동 기록 형태로 보여 줍니다.
     adminActivityRepository: asValue(new InMemoryAdminActivityRepository(mockDb)),
     // 운영 대시보드·LLMOps·작업 감시 API 대신 Langfuse·AI·Content를 읽지 않는 예시 값입니다.

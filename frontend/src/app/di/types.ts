@@ -42,6 +42,8 @@ import type { WorkInterestUseCase } from '../../domain/usecases/WorkInterestUseC
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  imageGenerationRepository: import("../../domain/repositories/ImageGenerationRepository").ImageGenerationRepository
+  imageGenerationUseCase: import("../../domain/usecases/ImageGenerationUseCase").ImageGenerationUseCase
   operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
   operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
   noticeRepository: import('../../domain/repositories/NoticeRepository').NoticeRepository
@@ -60,6 +62,9 @@ export type AppCradle = {
   operationsCreditUseCase: import('../../domain/usecases/OperationsCreditUseCase').OperationsCreditUseCase
   operationsCommentRepository: import('../../domain/repositories/OperationsCommentRepository').OperationsCommentRepository
   operationsCommentUseCase: import('../../domain/usecases/OperationsCommentUseCase').OperationsCommentUseCase
+  operationsFeedbackReportRepository: import('../../domain/repositories/OperationsFeedbackReportRepository').OperationsFeedbackReportRepository
+  /** 운영자의 독자 제보 열람(#750). 서버가 없는 `--mode mockup`은 null이라 관리자 제보·문의 탭이 기존 메모리 데모 표를 그대로 보인다. */
+  operationsFeedbackReportUseCase: import('../../domain/usecases/OperationsFeedbackReportUseCase').OperationsFeedbackReportUseCase | null
   adminActivityRepository: import('../../domain/repositories/AdminActivityRepository').AdminActivityRepository
   adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
   operationsDashboardRepository: import('../../domain/repositories/OperationsDashboardRepository').OperationsDashboardRepository
@@ -77,6 +82,12 @@ export type AppCradle = {
   genreUseCase: import('../../domain/usecases/GenreUseCase').GenreUseCase
   operationsGenreRepository: import('../../domain/repositories/OperationsGenreRepository').OperationsGenreRepository
   operationsGenreUseCase: import('../../domain/usecases/OperationsGenreUseCase').OperationsGenreUseCase
+  cardCategoryRepository: import('../../domain/repositories/CardCategoryRepository').CardCategoryRepository
+  cardCategoryUseCase: import('../../domain/usecases/CardCategoryUseCase').CardCategoryUseCase
+  operationsCardCategoryRepository: import('../../domain/repositories/OperationsCardCategoryRepository').OperationsCardCategoryRepository
+  operationsCardCategoryUseCase: import('../../domain/usecases/OperationsCardCategoryUseCase').OperationsCardCategoryUseCase
+  operationsWorldRepository: import('../../domain/repositories/OperationsWorldRepository').OperationsWorldRepository
+  operationsWorldUseCase: import('../../domain/usecases/OperationsWorldUseCase').OperationsWorldUseCase
   publicWorldRepository: import('../../domain/repositories/PublicWorldRepository').PublicWorldRepository
   publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase

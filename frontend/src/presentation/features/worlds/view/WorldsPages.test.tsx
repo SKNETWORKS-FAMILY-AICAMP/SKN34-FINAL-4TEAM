@@ -61,12 +61,12 @@ const DEMO = (await appContainer.resolve('publicWorldUseCase').list()).items
 /** 개요 탭의 계보 줄들(출처 한 줄, 파생·조합된 세계관 한 줄) */
 const lines = () => Array.from(document.querySelectorAll('.worlds-lineage p'), (p) => p.textContent)
 
-it('/worlds는 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지도 · 오른쪽 실시간 인기)을 두고 선반은 10개까지, 모아 보기는 전체를 보인다', async () => {
+it('/worlds는 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지도 · 오른쪽 실시간 인기)을 두고, 같은 세계관을 되풀이하는 선반 없이 모아 보기가 전체를 보인다', async () => {
   await renderAt('/worlds')
   await screen.findByText('지도 캔버스')
   const { worlds, cards, derived, combined } = buildWorldAtlas(DEMO).stats
   const main = within(screen.getByRole('main'))
-  expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['STORYFORK 세계관 지도', '실시간 인기', '새로 공개된 세계관', '세계관 모아 보기']) // 서버에 인기 지표가 없어 '인기 세계관' 선반은 없다
+  expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['STORYFORK 세계관 지도', '실시간 인기', '세계관 모아 보기']) // 서버에 인기 지표가 없어 '인기 세계관' 선반이 없고, 순위·모아 보기와 같은 세계관을 되풀이하는 '새로 공개된 세계관' 선반도 없다
   const map = main.getByRole('region', { name: 'STORYFORK 세계관 지도' })
   const rank = main.getByRole('complementary', { name: '실시간 인기 세계관' })
   expect(map.parentElement).toBe(rank.parentElement)
@@ -77,7 +77,6 @@ it('/worlds는 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지�
   const items = (name: string) => legend.getByRole('list', { name }).textContent
   expect([items('장르 색'), items('설정 카드 유형 색'), items('연결 선')]).toEqual([buildWorldAtlas(DEMO).nodes.filter((n) => n.kind === 'genre').map((n) => n.name).join(''), Object.keys(CARD_COLORS).join(''), '파생조합'])
   const links = (heading: string) => within(screen.getByRole('heading', { name: heading }).closest('section')!).getAllByRole('link')
-  expect(links('새로 공개된 세계관')).toHaveLength(10)
   expect(links('세계관 모아 보기')).toHaveLength(DEMO_WORLDS.length)
 })
 
@@ -676,7 +675,7 @@ it('설명을 쓰지 않은 세계관의 개요는 빈 문단 대신 설명이 �
   within(screen.getByRole('tabpanel')).getByText('아직 세계관 설명이 없어요.')
 })
 
-it('목록을 읽는 동안 불러오는 중 안내만 보이고(칩은 늘 보인다) 끝나면 지도·순위·선반을 보인다', async () => {
+it('목록을 읽는 동안 불러오는 중 안내만 보이고(칩은 늘 보인다) 끝나면 지도·순위·모아 보기를 보인다', async () => {
   const wait = deferred<PublicWorldPage>()
   vi.spyOn(useCase(), 'list').mockReturnValue(wait.promise)
   mount('/worlds')
@@ -709,7 +708,7 @@ it('공개된 세계관이 하나도 없으면 서재에서 공개하라는 안�
   expect(screen.queryByText(/데모/)).toBeNull()
 })
 
-it('서버 목록은 데모 안내·카드 유형·연결 선 범례·파생·조합 통계 없이 장르→세계관 지도와 최근 공개 순 순위를 보인다', async () => {
+it('서버 목록은 데모 안내·범례(장르 색·카드 유형·연결 선)·파생·조합 통계 없이 장르→세계관 지도와 최근 공개 순 순위를 보인다', async () => {
   const items = [
     server('old', { publishedAt: '2026-11-01T00:00:00Z', cardCount: 2 }), server('new', { publishedAt: '2026-11-09T00:00:00Z', cardCount: 9, genre: 'genre-14', genreName: 'SF' }),
     server('mid', { publishedAt: '2026-11-05T00:00:00Z', genre: null, genreName: null }),
@@ -719,12 +718,15 @@ it('서버 목록은 데모 안내·카드 유형·연결 선 범례·파생·�
   await screen.findByText('지도 캔버스')
   expect(screen.queryByText(/데모/)).toBeNull()
   const main = within(screen.getByRole('main'))
-  expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['STORYFORK 세계관 지도', '실시간 인기', '새로 공개된 세계관', '세계관 모아 보기'])
+  expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['STORYFORK 세계관 지도', '실시간 인기', '세계관 모아 보기'])
   const map = within(main.getByRole('region', { name: 'STORYFORK 세계관 지도' }))
   map.getByText('공개 세계관 3개 · 설정 카드 14개')
-  expect(map.getByRole('list', { name: '장르 색' }).textContent).toBe('판타지SF미지정') // 지도에 있는 장르만, 장르 없음은 미지정
+  // 카드 유형 색·연결 선이 없으면 범례는 장르 색뿐이고, 장르 이름은 캔버스의 장르 노드에 늘 그려지므로(WorldAtlasCanvas) 범례 전체를 두지 않는다.
+  expect(map.queryByRole('group', { name: '지도 범례' })).toBeNull()
+  expect(map.queryByRole('list', { name: '장르 색' })).toBeNull()
   expect(map.queryByRole('list', { name: '설정 카드 유형 색' })).toBeNull()
   expect(map.queryByRole('list', { name: '연결 선' })).toBeNull()
+  expect(canvas.props!.atlas.nodes.filter((n) => n.kind === 'genre').map((n) => n.name)).toEqual(['판타지', 'SF', '미지정']) // 지도에 있는 장르만, 장르 없음은 미지정
   expect(canvas.props!.atlas.nodes.map((n) => n.kind)).not.toContain('card') // 카드 점 없이 장르·세계관 노드만
   const rank = within(main.getByRole('complementary', { name: '실시간 인기 세계관' }))
   expect(rank.getByText('최근 공개 순').className).toBe('live')
@@ -777,7 +779,10 @@ it('서버 세계관 상세는 데모 안내·한 줄 소개 없이 보이고 �
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ linkedWork: null }))
   await renderAt('/worlds/sw')
   expect(screen.queryByText(/데모/)).toBeNull()
-  expect(document.querySelector('.worlds-head')?.textContent).toBe('서버 세계작가 서버 작가 · 읽기 전용')
+  // 헤더에는 이름·작가 줄(한 줄 소개 없음)과 서버 세계관만 가진 세계관 신고 버튼뿐이다.
+  const head = document.querySelector<HTMLElement>('.worlds-head')!
+  const report = within(head).getByRole('button', { name: /세계관 신고/ })
+  expect(head.textContent).toBe(`서버 세계작가 서버 작가 · 읽기 전용${report.textContent}`)
   expect(screen.getByRole('tab', { name: '개요' }).getAttribute('aria-selected')).toBe('true')
   // 연결이 없거나 연결된 소설이 공개가 아니면 서버가 linkedWork를 null로 알린다(DEC-46, #329). 준비 중이라고 하지 않는다.
   const works = within(sectionOf('이 세계관을 쓴 작품'))
@@ -1081,23 +1086,4 @@ it('내 세계관 목록을 읽지 못하면 빈 목록으로 숨기지 않고 �
   fireEvent.click(menu.getByRole('menuitem', { name: '다시 시도' }))
   await menu.findByRole('menuitem', { name: '내 세계 하나' })
   expect(menu.queryByRole('alert')).toBeNull()
-})
-
-it('선반 화살표는 부드럽게 넘기되 동작 줄이기 설정이면 바로 옮긴다', async () => {
-  vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage([server('a'), server('b')]))
-  // jsdom에는 scrollBy·matchMedia가 없다. 넘긴 옵션을 기록하는 대역을 두고 끝나면 지운다.
-  const scrolled: ScrollToOptions[] = []
-  Element.prototype.scrollBy = function (options?: ScrollToOptions | number) { scrolled.push(options as ScrollToOptions) } as Element['scrollBy']
-  try {
-    await renderAt('/worlds')
-    const next = await screen.findByRole('button', { name: '새로 공개된 세계관 다음 보기' })
-    fireEvent.click(next)
-    expect(scrolled[0].behavior).toBe('smooth')
-    Object.defineProperty(window, 'matchMedia', { configurable: true, value: (query: string) => ({ matches: query === '(prefers-reduced-motion: reduce)', addEventListener() {}, removeEventListener() {} }) })
-    fireEvent.click(next)
-    expect(scrolled[1].behavior).toBe('auto')
-  } finally {
-    Reflect.deleteProperty(Element.prototype, 'scrollBy')
-    Reflect.deleteProperty(window, 'matchMedia')
-  }
 })

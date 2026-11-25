@@ -1,5 +1,7 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.world.domain.requireCardMetadata
+import ai.storyfork.content.world.domain.requireRelationshipMetadata
 import ai.storyfork.content.world.service.*
 import ai.storyfork.content.world.service.dto.*
 import java.util.UUID
@@ -29,6 +31,21 @@ class ManuscriptBuildMapperTest {
         assertEquals(mapOf("1" to "산채를 보았다"),(hero.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"])
         assertTrue(hero.semanticMetadata.containsKey("studio"))
         assertEquals(requests,ManuscriptBuildMapper.build(job,draft,payload,mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "길동")))))
+    }
+    @Test fun `every request the build makes passes the draft edit metadata check`() {
+        // WorldStudioService.edit이 요청마다 이 검사를 먼저 돌리므로(#541) 원고 구축이 싣는 manuscriptBuild·studio·preprocessing·characterDocs가 걸리면 접수한 작업이 적재에서 막힌다.
+        val built=ManuscriptBuildMapper.build(job,draft,payload,mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "길동"))))
+        val old=existing(heroId,"의적",episodes=mapOf("1" to "c"))
+        val twin=existing(title="길동",episodes=mapOf("1" to "a"));val other=existing(title="홍길동",aliases=listOf("길동"),episodes=mapOf("1" to "b"))
+        val matched=ManuscriptCard("matched","character","의적",emptyList(),"본문",12,ManuscriptCharacterDocs("","",mapOf("12" to "d")))
+        val group=ManuscriptCard("group","organization","활빈당",emptyList(),"활빈당",12)
+        val updated=update(basisOf(old,twin,other),listOf(hero(mapOf("11" to "11화")),matched,group),listOf(ManuscriptRelation("hero","group","소속",12,false)))
+
+        val requests=built+updated
+        assertTrue(requests.flatMap { it.cards }.any { review(it)==true },"확인 필요로 새로 더한 카드도 검사한다")
+        assertTrue(requests.flatMap { it.cards }.any { it.id==heroId },"맞춘 기존 카드를 다시 보내는 요청도 검사한다")
+        assertEquals(3,requests.sumOf { it.relationships.size },"시작·종료·업데이트 관계를 모두 검사한다")
+        requests.forEach { request -> request.cards.forEach(::requireCardMetadata);request.relationships.forEach(::requireRelationshipMetadata) }
     }
     @Test fun `unknown endpoints duplicate keys and preexisting cards are blocked before reservation`() {
         assertThrows(IllegalArgumentException::class.java) { ManuscriptBuildMapper.build(job,draft,payload.copy(cards=payload.cards+payload.cards.first()),emptyMap()) }

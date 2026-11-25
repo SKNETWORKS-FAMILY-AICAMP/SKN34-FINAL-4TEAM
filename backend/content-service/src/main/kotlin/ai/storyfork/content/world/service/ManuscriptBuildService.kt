@@ -90,15 +90,15 @@ class ManuscriptBuildService(
     }
 
     /**
-     * 발행본이 있는 회차(Fork 상속 제외) 중 [reflected](이미 세계관에 반영된 회차)에 없는 회차의 발행 버전을 고정한다(업데이트 작업, 2026-11-22).
-     * 반영할 회차가 없으면 null이고 기능이 꺼져 있으면 503이다.
+     * 발행본이 있는 회차(Fork 상속 제외) 중 [excluded](이미 반영됐거나 재실행을 기다리는 회차)에 없는 회차의 발행 버전을 고정한다(업데이트 작업, 2026-11-22).
+     * 운영에서 발행본 변경에 대응하면 [only]로 기존 작업에 속한 회차만 고른다. 반영할 회차가 없으면 null이고 기능이 꺼져 있으면 503이다.
      */
-    fun freezeUpdate(workId:String,reflected:Set<Int>):ManuscriptBuildInput? {
+    fun freezeUpdate(workId:String,excluded:Set<Int>,only:Set<Int>?=null):ManuscriptBuildInput? {
         requireEnabled()
-        return snapshot.readPublished(workId) { it !in reflected }
+        return snapshot.readPublished(workId) { it !in excluded && (only==null || it in only) }
     }
 
-    /** 접수한 업데이트 작업을 AI가 받지 못했다. 실행권이 없는 queued 작업만 실패로 끝내 다음 발행이 그 회차를 다시 담게 한다. */
+    /** 접수한 업데이트 작업을 AI가 받지 못했다. 실행권이 없는 queued 작업만 실패로 끝내고 운영 재실행을 기다린다. */
     fun failQueued(id:UUID,owner:UUID,code:String)=execution.failQueued(id,owner,code)
 
     fun prepare(id:UUID,workId:String,owner:UUID,request:ManuscriptBuildRequest,sources:ManuscriptBuildInput)=prepareJob(id,workId,owner,request,sources,"initial")
@@ -151,7 +151,9 @@ class ManuscriptBuildService(
         if(job.status!="queued") return mapOf("claimed" to false)
         val frozen=input(job)
         val now=Instant.now()
-        val token=execution.claim(id,owner,now,now.plusSeconds(90L*(frozen.episodes.size+1)))
+        // 회차 추출(읽기 120초)과 정체 정리(70초)에 각각 연결·검증·콜백 시간을 더한다(#675).
+        val leaseSeconds = 200L * frozen.episodes.size + 150L
+        val token=execution.claim(id,owner,now,now.plusSeconds(leaseSeconds))
         if(sourceChanged(job,frozen)) stale(id,owner,token,"SOURCE_CHANGED")
         if(job.kind=="update") freezeBasis(id,owner,job.worldId,token)
         return mapOf("claimed" to true,"loading" to false,"token" to token,
@@ -231,7 +233,7 @@ class ManuscriptBuildService(
                     if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
                     require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
                     requests.forEachIndexed { index,request ->
-                        studio.validateEditRequest(request)
+                        studio.validateEditRequest(request,basis.cards,basis.relationships)
                         steps.saveAndFlush(ManuscriptBuildLoadStep(jobId=id,sequence=index+1,requestPayload=json(request),requestHash=studio.manuscriptRequestHash(job.worldId,request)))
                     }
                     current.status="loading";jobs.flush();true
@@ -239,6 +241,9 @@ class ManuscriptBuildService(
             } catch(_:WorldConflict) {
                 // 추출하는 동안 세계관이 고정한 입력의 기준에서 바뀌었다(실행권이 이미 없으면 stale의 실패 기록은 거절되고 409만 남는다).
                 stale(id,owner,token,"WORLD_CHANGED")
+            } catch(_:IllegalArgumentException) {
+                // 만든 적재 요청이 초안 편집 검사(허용 키·형식·한도)를 통과하지 못했다. 재개해도 같은 입력이라 같은 거절이니 사유를 남겨 실패로 끝낸다(running으로 남기지 않는다).
+                stale(id,owner,token,"CONTENT_REJECTED")
             }
         }
         if(job.status!="running" && job.status !in listOf("loading","unknown")) throw WorldConflict()

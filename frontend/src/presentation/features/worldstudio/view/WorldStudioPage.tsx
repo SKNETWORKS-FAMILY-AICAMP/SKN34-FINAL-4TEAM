@@ -17,13 +17,15 @@ import { ManageMenu } from '../../../shared/shell/ManageMenu'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { labelOf } from '../viewmodel/settingBoard'
+import { useCardCategories } from '../../../shared/useCardCategories'
 import { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { UNLISTED_HINT } from '../viewmodel/worldPublication'
 import { MANAGE_VIEWS, type StudioStep } from '../viewmodel/worldStudioFlow'
 import { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
+import { CardCategoryNotice } from './CardCategoryNotice'
 import { InitialWorldReview } from './InitialWorldReview'
 import { WorldAiReview } from './WorldAiReview'
-import { WorldInfoPanel } from './WorldInfoPanel'
+import { WorldInfoPanel, WorldOverviewMetrics } from './WorldInfoPanel'
 import { WorldCardBoard } from './WorldCardBoard'
 import { WorldCardStudio } from './WorldCardStudio'
 import { useWorldChatPage } from '../viewmodel/useWorldChatPage'
@@ -48,7 +50,7 @@ const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relation
  * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀이지만 공용 상단바(Gnb)는 그리지 않는다 — 왼쪽 사이드바(`.ep-menu`)가 상단바 역할을 맡고 오른쪽에 내용 열(`.ep-content`)이 있다. 사이드바는 위에서 아래로
  *   맨 위 줄(STORYFORK 로고 + 접기 토글), 서재로 돌아가는 링크, 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집), 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·`확정 버전 남기기`·상시 저장 영역,
  *   맨 아래 줄(알림·테마 버튼·계정 아바타)이다. 검색 버튼은 두지 않는다(Ctrl K 전역 단축키). 901px 이상에서는 맨 위 토글로 사이드바를 접을 수 있고 접으면 토글만 남고 서재로 돌아가는 링크와 저장 영역이 상단 줄(`.ep-top`)로 옮겨 간다(두 곳 동시 노출 없음).
- *   내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 고른 보기의 내용(기본은 설정집 게시판, 개요는 정보 편집 폼, 소설 연결은 연결된 소설과 Fork)이 있다.
+ *   내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 고른 보기의 내용(기본은 설정집 게시판, 개요는 세계관 지표 띠와 그 아래 정보 편집 폼(구획 카드), 소설 연결은 연결된 소설과 Fork)이 있다.
  *   관계도 보기(`?view=people`)는 세계관 머리를 그리지 않고(이름은 화면 밖 h1, '관계 입력 미적용' 칩만 남는다) React Flow 캔버스가 내용 열 전체 폭 × 화면의 남은 높이를 채운다(관계는 캔버스에서 바로 만들고 그 아래에는 폼·표가 없다, `CharacterCards`, `world-studio.css`). 관리 모드에는 푸터도 없다.
  *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다. 사이드바가 없는 작성 모드와 세계관 없는 만들기 화면은 공용 상단바(Gnb)와 푸터가 그대로다.
  * - **편집 화면**(`?card=<id>`): 설정 카드를 열면(게시판 행의 미리보기 `수정하기`) 집필실과 같은 3단 화면(`WorldCardStudio`: 카드 목록·버전 그래프 레일 / 편집기 / AI 채팅)이 이 화면을 대신하고, `← {들어온 보기 이름}`·뒤로가기로 돌아온다.
@@ -169,7 +171,7 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
         </div>
         <div className="ep-chips">
           <span className="chip">설정 {cardLibraryRows(saved.settings, 'all', '').length}개</span>
-          <span className="chip">저장 버전 {saved.version}</span>
+          <span className="chip">저장 버전 {saved.version.toLocaleString('ko-KR')}개</span>
           <span className={'chip' + (visibility === 'public' ? ' ok' : '')}>{visibility === 'public' ? '공개' : '비공개'}</span>
           {genre && <GenreChip code={genre} />}
           {!manage && <span role="status" className={'chip ' + state.tone}>{state.text}</span>}
@@ -214,7 +216,7 @@ function WorldPublish({ vm }: { vm: VM }) {
  * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)가 공용 상단바(Gnb)를 대신하고 공용 `ManageMenu`(shared/shell)가 그린다. 맨 위 줄은 STORYFORK 로고 + 접기 토글이고 그 아래 서재로 돌아가는 링크와 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)로 화면을 바꾸며,
  * 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트)·`확정 버전 남기기`와 상시 저장 영역(도구 묶음 `.ep-menu-tools`), 맨 아래 줄(`.ep-menu-account`)에 알림·테마·계정이 있다.
  * 내용 열 맨 위에는 오류·상태·AI 변경 알림(`notices`)이 있다(사이드바 위에 끼어 사이드바를 아래로 밀지 않게 페이지의 위쪽이 아니라 여기에 그린다).
- * 보기마다 내용 열은 그 보기의 내용만 보인다: 개요(이름·설명·공개·장르·표지 편집, `WorldInfoPanel`)·설정집(게시판)·관계도·시간선·소설 연결(연결된 소설과 Fork, `WorldNovelTab`).
+ * 보기마다 내용 열은 그 보기의 내용만 보인다: 개요(작품 관리 개요 같은 세계관 지표 띠 `WorldOverviewMetrics` + 이름·설명·공개·장르·표지 편집 구획 카드 `WorldInfoPanel`, `.ep-dash`)·설정집(게시판)·관계도·시간선·소설 연결(연결된 소설과 Fork, `WorldNovelTab`).
  * 게시판·관계 편집기·(한 번 연) 개요 폼은 다른 보기에서도 숨겨 둘 뿐 지우지 않아 필터·선택·적용하지 않은 관계 입력·쓰던 이름과 고른 표지가 남고, 소설 연결은 볼 때만 그린다.
  * 900px 이하에서는 사이드바가 내용 위의 가로 블록이 되어 로고 줄(로고 + 계정 줄)이 맨 위에 오고 그 아래 메뉴·도구가 줄바꿈하는 가로 줄이다. 901px 이상에서는 맨 위 토글(`세계관 메뉴 접기`)로 사이드바를 접어 내용 열을 넓힌다:
  * 접으면 토글만 남고(로고·계정 줄은 CSS가 숨긴다) 메뉴 묶음은 숨길 뿐 지우지 않으며(AI 검토 상태가 남는다) 서재로 돌아가는 링크와 저장 영역만 상단 줄로 옮겨 그린다(`WorldStudioPage`, 두 군데 동시에 뜨지 않는다).
@@ -306,7 +308,14 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
               <WorldPublish vm={vm} />
             </fieldset>
           )}
-          {(overviewSeen || view === 'overview') && <div hidden={view !== 'overview'}><WorldInfoPanel key={vm.relationKey} vm={vm} world={vm.saved ?? world} /></div>}
+          {(overviewSeen || view === 'overview') && (
+            <div className="ep-dash" hidden={view !== 'overview'}>
+              {/* 메뉴 탭 이름과 같은 글이라 화면에는 그리지 않는다(작품 관리 탭 본문의 h2와 같다): 제목 단계가 h1 → h3로 건너뛰지 않게. */}
+              <h2 className="sr-only">개요</h2>
+              <WorldOverviewMetrics vm={vm} world={vm.saved ?? world} revisions={revisions} />
+              <WorldInfoPanel key={vm.relationKey} vm={vm} world={vm.saved ?? world} />
+            </div>
+          )}
           {view === 'novel' && <WorldNovelTab vm={vm} />}
           <div hidden={manage ? view !== 'book' : step !== 'cards'}><WorldCardBoard vm={vm} onPreviewEdit={onPreviewEdit} /></div>
           {timeline && (
@@ -352,14 +361,15 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
 }
 
 function WritingReview({vm}:{vm:VM}){
+ const {categories,isError,retry}=useCardCategories()
  const world=vm.editing!,cards=world.settings.filter(s=>s.item.kind!=='relation'),relations=world.settings.filter(s=>s.item.kind==='relation')
  const [cardPage,setCardPage]=useState(0),[relationPage,setRelationPage]=useState(0),[issuePage,setIssuePage]=useState(0)
  const shownCards=pageItems(cards,cardPage,50),shownRelations=pageItems(relations,relationPage,50),shownIssues=pageItems(vm.writingIssues,issuePage,50)
  const names=new Map(world.settings.map(s=>[s.item.id,s.item.title])),name=(id:string|null)=>(id&&names.get(id))||'이름 없는 설정'
  const editInfo=()=>vm.goStep('info')
- return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={editInfo}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article>
+ return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={editInfo}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article><CardCategoryNotice isError={isError} retry={retry}/>
   {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{shownIssues.items.map((issue,i)=><li key={i}><button type="button" onClick={()=>vm.openIssue(issue)}>{writingIssueLabel(world,issue)}</button></li>)}</ul><PageControls page={shownIssues.page} pages={shownIssues.pages} onPage={setIssuePage} /></div>}
-  <h4>설정 카드 {cards.length}개</h4>{cards.length?shownCards.items.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}<PageControls page={shownCards.page} pages={shownCards.pages} onPage={setCardPage} />
+  <h4>설정 카드 {cards.length}개</h4>{cards.length?shownCards.items.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s,categories)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}<PageControls page={shownCards.page} pages={shownCards.pages} onPage={setCardPage} />
   <h4>관계 {relations.length}개</h4>{relations.length?shownRelations.items.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있어요.</p>}<PageControls page={shownRelations.page} pages={shownRelations.pages} onPage={setRelationPage} />
   <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 달라요.</p>{vm.episodeSaveNote&&<p className="small muted">{vm.episodeSaveNote}</p>}<button className="btn pri" type="button" disabled={!vm.canSave} onClick={vm.save}>세계관 저장</button></div>
  </section>

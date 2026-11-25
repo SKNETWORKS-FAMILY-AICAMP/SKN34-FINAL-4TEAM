@@ -98,6 +98,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 요청/응답 DTO는 `attachment/service/dto`, S3 전용 계약은 `attachment/client/dto`에 둡니다. `AttachmentConfig`·`AttachmentProperties`는 기존 `app.setting-attachments` 속성·활성화 조건을 유지하며 기존 Auth JPA·Content JDBC 경계는 바꾸지 않습니다.
 `setting_document`·`world`·`work_current`의 기존 소유권을 확인하고 following Fork·익명 공개·URL만 아는 접근은 허용하지 않습니다.
 이미지는 설정당 10개를 설정 행 잠금으로 보호하고 일반 파일에는 그 한도를 적용하지 않습니다.
+새 작품은 옛 설정 문서가 없어서 같은 첨부를 WorldStudio 설정 카드에도 붙입니다(#735): `CardAttachmentController → CardAttachmentService`가 세계관 소유자·지우지 않은 카드를 WorldStudio 쪽(`WorldStudioService.hasCard`)에서 먼저 확인한 뒤 같은 `AttachmentService`를 `card = true`로 부릅니다. `setting_attachment`는 옛 설정 문서 또는 카드 중 하나를 가리키며(`settingattachment/V2`, 카드는 별도 스키마라 FK 없음) 소유자 전용이라 공개·Fork·가져오기에 싣지 않습니다. 옛 작품 설정 첨부는 그대로입니다.
 파일은 비공개 버킷에 UUID key로 저장하며 원본 endpoint가 아닌 Core의 인증 download API만 노출합니다.
 새 Flyway leaf/history는 `db/migration/settingattachment`/`setting_attachment_schema_history`입니다.
 Auth SQL은 내용과 기존 이력을 보존한 채 `db/migration/auth`로 이동하여 독립 V1과 충돌하지 않게 합니다.
@@ -126,7 +127,7 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 
 ## 실행·보안 경계
 
-공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다. AI와 같은 이미지의 `ai-worker`는 회차 원고 전처리 Celery 큐(RabbitMQ, 동시성 1)를, `ai-jobs-worker`는 작업 큐(`jobs`: 회귀 평가·운영 정기 작업, 동시성 `AI_JOBS_CONCURRENCY` 기본 4)를 실행합니다. 정기 작업의 일정·실행 기록은 운영 서비스가 맡고 실행만 워커가 운영 내부 API를 불러 합니다([계약](design/operations-funnel-credit-contract.md)).
+공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다. AI와 같은 이미지의 `ai-worker`는 회차 원고 전처리 Celery 큐(RabbitMQ, `AI_PREPROCESSING_CONCURRENCY` 기본 3, 작업당 회차 추출 최대 4개 병렬)를, `ai-jobs-worker`는 작업 큐(`jobs`: 회귀 평가·운영 정기 작업, 동시성 `AI_JOBS_CONCURRENCY` 기본 4)를 실행합니다. 정기 작업의 일정·실행 기록은 운영 서비스가 맡고 실행만 워커가 운영 내부 API를 불러 합니다([계약](design/operations-funnel-credit-contract.md)).
 루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다. 같은 `compose.yaml`이 `docker-compose.langfuse.yaml`을 별도 include 항목으로 불러 Langfuse(웹·worker와 ClickHouse·Redis, PostgreSQL·MinIO는 앱 스택 것을 공유하고 웹 화면 포트 없음)를 같은 프로젝트·네트워크에서 항상 함께 올립니다(끄는 옵션 없음, `LANGFUSE_*` 필수).
 base + `docker-compose.dev.yaml`은 게시된 `:develop` 앱 이미지와 같은 내부 PostgreSQL·Mailpit 구조를 사용하며 앱 소스 build·mount는 없습니다. local/dev의 프로젝트·DB volume은 서로 격리합니다. 기존 외부·공유 DB의 내부 DB 전환과 데이터 이관은 실행하지 않았으며 개발 CD에는 별도 전환 승인이 필요합니다.
 base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL·SMTP를 사용하는 운영 설정 준비입니다. 현재 게시 workflow는 develop 전용이므로 main 이미지 가용성·실제 게시·배포는 확인되지 않았습니다.

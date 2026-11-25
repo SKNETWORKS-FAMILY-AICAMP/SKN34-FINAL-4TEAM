@@ -7,15 +7,25 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
 import type { Episode, History, Work, WritingEpisode } from '../../../../domain/entities/content'
+import { kstDateTime } from '../../../shared/format'
 import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
-vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어로</p> }))
-vi.mock('./WorkBrief', () => ({ WorkBrief: () => <p>작품 요약 머리</p> }))
-// AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
-vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
-// 내 댓글·제보 탭의 내용은 MyCommentsReports.test가 본다. 여기서는 탭이 이 화면을 (탭 안 모양으로) 그리는지만 본다.
-vi.mock('../../library/view/MyCommentsReports', () => ({ MyCommentsReports: ({ embedded }: { embedded?: boolean }) => <p>내 댓글·제보 내용 {embedded ? '탭 안' : '쪽'}</p> }))
+vi.mock('./WorkOverview', () => ({ WorkOverview: ({ serialOn }: { serialOn?: boolean }) => <p data-serial={String(serialOn)}>작품 개요 히어로</p> }))
+// 요약 머리는 넘겨받은 초안 수(data-drafts)와 AI 자율 집필 켜짐(data-serial)만 드러낸다(수를 세는 규칙·켜짐 값은 이 화면의 몫이고, AI 자율 연재 칩은 요약 머리가 그린다).
+vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount, serialOn }: { draftCount?: number | null; serialOn?: boolean }) => <p data-drafts={String(draftCount)} data-serial={String(serialOn)}>작품 요약 머리</p> }))
+// 개요 대시보드의 조회·표시(바로가기 링크 포함)는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고 넘겨 주는 값(잠금 포함)만 본다.
+const dashboard = vi.hoisted(() => ({ props: [] as { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }[] }))
+vi.mock('./WorkDashboard', () => ({
+  WorkDashboard: (props: { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }) => {
+    dashboard.props.push(props)
+    return <button disabled={props.disabled}>대시보드</button>
+  },
+}))
+// AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지와, 호출 측이 주는 운영 설정 이동(onOpenSettings)이 이어지는지만 본다.
+vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId, onOpenSettings }: { workId: string; onOpenSettings?: () => void }) => <p>AI 집필 패널 {workId}{onOpenSettings && <button type='button' onClick={onOpenSettings}>패널의 운영 설정 열기</button>}</p> }))
+// 내 제보·수정 제안 탭의 내용은 MyCommentsReports.test가 본다. 여기서는 탭이 이 화면을 (탭 안 모양으로) 그리는지만 본다.
+vi.mock('../../library/view/MyCommentsReports', () => ({ MyCommentsReports: ({ embedded }: { embedded?: boolean }) => <p>내 제보·수정 제안 내용 {embedded ? '탭 안' : '쪽'}</p> }))
 // 세계관·설정집 탭의 내용은 각 패널의 테스트가 본다. 여기서는 탭이 열리는지만 본다.
 vi.mock('./WorldPanel', () => ({ WorldPanel: () => <p>세계관 설정집 패널</p> }))
 vi.mock('./LinkedWorldPanel', () => ({ LinkedWorldPanel: () => <p>세계관 연결 패널</p> }))
@@ -27,11 +37,12 @@ vi.mock('../viewmodel/useManuscriptBuild', async () => {
   const { useEffect } = await import('react')
   return { useManuscriptBuild: () => { useEffect(() => { build.mounts += 1 }, []); return build.current } }
 })
-// 일괄 업로드 시트는 저장 결과로 닫히는 것만 필요해 대역이다. 시트 자체는 EpisodeBulkImportSheet.test가 본다.
+// 시트는 첫 회차의 저장본 유무 전달과 닫기 동작만 확인한다. 안내 표시는 EpisodeBulkImportSheet.test가 본다.
 vi.mock('./EpisodeBulkImportSheet', async () => {
   const { createElement } = await import('react')
   return {
-    EpisodeBulkImportSheet: (props: { onClose: (refresh: boolean) => void }) => createElement('div', { role: 'dialog' },
+    EpisodeBulkImportSheet: (props: { firstEpisodeUnsaved: boolean; onClose: (refresh: boolean) => void }) =>
+      createElement('div', { role: 'dialog', 'data-first-episode-unsaved': props.firstEpisodeUnsaved },
       createElement('button', { onClick: () => props.onClose(true) }, '저장하고 닫기'),
       createElement('button', { onClick: () => props.onClose(false) }, '저장 없이 닫기')),
   }
@@ -74,9 +85,9 @@ it('운영 설정 탭은 저장 성공 응답으로 집필 방식 변경 이력�
 
   fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
   fireEvent.change(await screen.findByRole('combobox', { name: '집필 방식' }), { target: { value: 'assisted' } })
-  // 자동 처리의 AI 자율 연재 줄은 '꺼짐'으로 단정하지 않고(집필 방식에서 고르면 어긋난다) 고르는 곳과 설정하는 탭으로 안내한다.
-  expect(screen.getByText('집필 방식에서 고르고 AI 집필 탭에서 설정')).toBeTruthy()
-  expect(screen.queryByText('꺼짐')).toBeNull()
+  // 자동 처리의 AI 자율 연재 줄은 저장된 집필 방식을 따른다: 고르기만 한 협업 집필은 저장 전이라 아직 꺼짐이다.
+  expect(within(screen.getByRole('region', { name: '자동 처리' })).getByText('꺼짐')).toBeTruthy()
+  expect(screen.queryByText('집필 방식에서 고르고 AI 집필 탭에서 설정')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
 
   expect(await screen.findByText('집필 방식을 저장했어요.')).toBeTruthy()
@@ -222,7 +233,7 @@ it('쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회�
 it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다', () => {
   render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
   const tabs = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button') as HTMLButtonElement[]
-  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['개요', false], ['공개 회차 · 3', true], ['세계관·설정집', true], ['이야기 분기', true], ['AI 집필', true], ['받은 피드백', true], ['내 댓글·제보', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
+  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['개요', false], ['공개 회차 · 3', true], ['세계관·설정집', true], ['이야기 분기', true], ['AI 집필', true], ['받은 피드백', true], ['내 제보·수정 제안', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
 })
 
 it('AI 집필 탭은 이야기 분기 다음에 있고, 누르면 탭 제목(h2)과 AI 집필 패널을 그린다', () => {
@@ -235,14 +246,31 @@ it('AI 집필 탭은 이야기 분기 다음에 있고, 누르면 탭 제목(h2)
   expect(screen.getByText('AI 집필 패널 w')).toBeTruthy()
 })
 
-it('내 댓글·제보 탭은 받은 피드백 다음에 있고, 누르면 탭 제목(h2)과 내 댓글·제보 내용을 탭 안(embedded) 모양으로 그린다', () => {
+it('[critique] AI 집필 탭의 운영 설정 열기는 메뉴를 누른 것처럼 운영 설정 탭으로 옮기고, 요청 중이라 메뉴가 잠긴 동안에는 주지 않는다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf(null)), updateWorkSettings: vi.fn() }
+  const again = (extra: object) => <MemoryRouter><WorkManagement {...shell} vm={{ ...vm, ...extra } as never} work={work(3)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>
+  const view = render(again({}))
+  fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+  const toSettings = () => screen.queryByRole('button', { name: '패널의 운영 설정 열기' })
+  expect(toSettings()).not.toBeNull()
+  view.rerender(again({ busy: true }))
+  expect(toSettings()).toBeNull() // 메뉴가 막는 이동을 우회하지 않는다
+  view.rerender(again({}))
+  scrolled.length = 0
+  fireEvent.click(toSettings()!)
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('운영 설정')
+  expect(scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')).toHaveLength(1) // 메뉴를 누른 것과 같이 탭 내용 머리로 스크롤
+  expect(await screen.findByRole('combobox', { name: '집필 방식' })).toBeTruthy()
+})
+
+it('내 제보·수정 제안 탭은 받은 피드백 다음에 있고, 누르면 탭 제목(h2)과 내 제보·수정 제안 내용을 탭 안(embedded) 모양으로 그린다', () => {
   open(3)
   const names = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button').map((tab) => tab.textContent)
-  expect(names.indexOf('내 댓글·제보')).toBe(names.indexOf('받은 피드백') + 1)
-  expect(screen.queryByText(/내 댓글·제보 내용/)).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '내 댓글·제보' }))
-  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('내 댓글·제보')
-  expect(screen.getByText('내 댓글·제보 내용 탭 안')).toBeTruthy()
+  expect(names.indexOf('내 제보·수정 제안')).toBe(names.indexOf('받은 피드백') + 1)
+  expect(screen.queryByText(/내 제보·수정 제안 내용/)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '내 제보·수정 제안' }))
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('내 제보·수정 제안')
+  expect(screen.getByText('내 제보·수정 제안 내용 탭 안')).toBeTruthy()
 })
 
 it('서버가 없는 시연(목업)에서는 AI 집필 패널 대신 지원하지 않는다는 안내만 그린다', () => {
@@ -293,6 +321,15 @@ it('같은 저장 버전은 공개 회차·원고 저장본·발행 이력에서
   expect(screen.getByRole('heading', { name: '1화 · 저장 버전 2 · 첫 화' })).toBeTruthy()
   expect(screen.getByText(/1화 · 발행 ·/).textContent).toContain('저장 버전 2')
   expect(document.body.textContent).not.toContain('리비전')
+  // [polish] 이력 탭의 발행 이력·저장본 시각은 개요와 같은 공용 한국시간 형식이고 <time dateTime>을 가진다.
+  const publishedTime = screen.getByText(/1화 · 발행 ·/).querySelector('time')
+  expect(publishedTime?.textContent).toBe(kstDateTime('2026-11-03T00:00:00Z'))
+  // 시각은 줄의 마지막 칸이고 저장 버전은 그 앞이다(CSS가 시각을 줄 오른쪽 끝에 놓는다).
+  expect(screen.getByText(/1화 · 발행 ·/).lastChild).toBe(publishedTime)
+  expect(publishedTime?.getAttribute('datetime')).toBe('2026-11-03T00:00:00Z')
+  const savedTime = document.querySelector('.ep-reading article time')
+  expect(savedTime?.textContent).toBe(kstDateTime('2026-11-02T00:00:00Z'))
+  expect(savedTime?.getAttribute('datetime')).toBe('2026-11-02T00:00:00Z')
 })
 
 it('상속 회차는 저장 버전이 없으므로 공개 회차 줄에 저장 버전을 붙이지 않는다', () => {
@@ -312,7 +349,7 @@ it.each([
   if (writing === null) expect(document.body.textContent).not.toContain('미확인')
 })
 
-it('작성 중인 초안에는 발행 전 초안만 올리고 공개 중단·발행·상속·초안이 없는 회차는 뺀다', () => {
+it('작성 중인 초안 수에는 발행 전 초안만 세고 공개 중단·발행·상속·초안이 없는 회차는 뺀다 (공개 회차 탭에는 초안 묶음이 없다)', () => {
   openWith({ writing: { id: 'w', rows: [
     row(1),
     row(2, { publicationStatus: 'suspended' }),
@@ -320,8 +357,10 @@ it('작성 중인 초안에는 발행 전 초안만 올리고 공개 중단·발
     row(4, { inherited: true }),
     row(5, { hasDraft: false }),
   ] } })
-  const section = screen.getByRole('heading', { name: '작성 중인 초안' }).closest('section')!
-  expect(within(section).getAllByRole('link').map((a) => a.textContent)).toEqual(['1화 · 1화 초안'])
+  expect(screen.getByText('작품 요약 머리').getAttribute('data-drafts')).toBe('1')
+  // 초안은 집필실 왼쪽 회차 목록에서 연다: 공개 회차 탭에는 초안 묶음도 초안 링크도 없다.
+  expect(screen.queryByRole('heading', { name: '작성 중인 초안' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '1화 · 1화 초안' })).toBeNull()
 })
 
 it('초안 목록을 불러오지 못하면 오류 상자(.ep-alert)로 알린다', () => {
@@ -366,14 +405,14 @@ const openAutonomous = (rows: WritingEpisode[] | undefined, count = 3) => {
   return view
 }
 
-it('사이드바에는 도구 묶음이 없다: 회차 작성하기·집필실 열기·내 댓글·제보 링크가 없고, AI 자율 집필 중에도 같다 (집필실로 가는 길은 공개 회차 탭 머리의 집필실 열기뿐)', () => {
+it('사이드바에는 도구 묶음이 없다: 회차 작성하기·집필실 열기·내 제보·수정 제안 링크가 없고, AI 자율 집필 중에도 같다 (집필실로 가는 길은 사이드바가 아니라 본문의 집필실 열기다)', () => {
   for (const serialLocked of [false, true]) {
     cleanup()
     render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [row(1)] } } as never} work={work(0)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
     toRead()
     const side = document.querySelector('.ep-menu') as HTMLElement
     expect(side.querySelector('.ep-menu-tools')).toBeNull()
-    for (const name of ['회차 작성하기', '집필실 열기', '내 댓글·제보']) expect(within(side).queryByRole('link', { name }), name).toBeNull()
+    for (const name of ['회차 작성하기', '집필실 열기', '내 제보·수정 제안']) expect(within(side).queryByRole('link', { name }), name).toBeNull()
     expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
     expect(screen.getAllByRole('link', { name: '집필실 열기' })).toHaveLength(1) // 공개 회차 탭 머리의 창구 하나
   }
@@ -385,6 +424,19 @@ it('공개 회차 탭 머리에 집필실로 바로 가는 집필실 열기 링�
     render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [] } } as never} work={work(0)} serialLocked={locked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
     toRead()
     expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
+    // [polish] 버튼 문단은 아래 안내문과 16px 띄우는 전용 클래스(episode.css)를 가진다.
+    expect(screen.getByRole('link', { name: '집필실 열기' }).parentElement?.className).toBe('ep-list-head')
+  }
+})
+
+it('[critique] 공개 회차 탭의 주 행동은 채운 버튼 집필실 열기 하나이고, 가져오기 계열(원고로 세계관 만들기·회차 파일 일괄 업로드)은 작은 보조 버튼이다', () => {
+  open(1)
+  const classes = (el: HTMLElement) => [...el.classList]
+  expect(classes(screen.getByRole('link', { name: '집필실 열기' }))).toEqual(expect.arrayContaining(['btn', 'pri']))
+  for (const name of ['원고로 세계관 만들기', '회차 파일 일괄 업로드']) {
+    const button = screen.getByRole('button', { name })
+    expect(classes(button), name).toEqual(expect.arrayContaining(['btn', 'sm']))
+    expect(classes(button), name).not.toContain('pri')
   }
 })
 
@@ -400,11 +452,41 @@ it('AI 자율 집필 중이면 공개 회차 목록은 1화만 집필실로 보�
   }
 })
 
-it('AI 자율 집필 중이면 작성 중인 초안도 1화만 집필실 링크로 두고 나머지는 글자로 둔다', () => {
+it('AI 자율 집필 중에도 공개 회차 탭에는 작성 중인 초안 묶음이 없고, 집필실로 가는 링크는 집필실 열기뿐이다(회차가 없으면 수정하기도 없다)', () => {
   openAutonomous([row(1), row(2)], 0)
-  const drafts = screen.getByRole('heading', { name: '작성 중인 초안' }).closest('section')!
-  expect(within(drafts).getAllByRole('link').map((a) => [a.textContent, a.getAttribute('href')])).toEqual([['1화 · 1화 초안', '/studio/w?ep=1']])
-  expect(drafts.textContent).toContain('2화 · 2화 초안')
+  expect(screen.queryByRole('heading', { name: '작성 중인 초안' })).toBeNull()
+  expect(screen.queryByText(/1화 초안/)).toBeNull()
+  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href')).filter((href) => href?.startsWith('/studio/'))).toEqual(['/studio/w'])
+})
+
+it('개요 히어로에 AI 자율 집필이 켜져 있는지(serialLocked)를 그대로 넘긴다(AI 자율 연재 칩은 히어로가 그린다. 새 요청은 없다)', () => {
+  for (const [serialLocked, expected] of [[true, 'true'], [false, 'false'], [undefined, 'false']] as const) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    expect(screen.getByText('작품 개요 히어로').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
+  }
+})
+
+it('개요 밖 탭의 요약 머리에도 AI 자율 집필이 켜져 있는지(serialLocked)를 그대로 넘긴다(칩은 요약 머리가 그린다. 개요 히어로와 같은 읽기 값이라 새 요청은 없다)', () => {
+  for (const [serialLocked, expected] of [[true, 'true'], [false, 'false'], [undefined, 'false']] as const) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+    expect(screen.getByText('작품 요약 머리').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
+  }
+})
+
+// ── 헤딩 순서: 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 구획 제목(h3)이다. 개요는 히어로(h1)가 탭 내용 안에 있어 탭 제목을 히어로 다음에 그린다 ──
+it('개요 탭의 탭 제목(h2)은 작품 제목(h1)을 그리는 히어로 다음, 현황(h3 구획) 앞이고, 다른 탭은 요약 머리(h1) 다음이다', () => {
+  const after = (earlier: Node, later: Node) => Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING)
+  openFresh(2)
+  const title = screen.getByRole('heading', { level: 2, name: '개요' })
+  expect(title.classList.contains('sr-only')).toBe(true) // 사이드바에서 이미 '개요'가 선택돼 있어 제목 줄은 화면 밖이다(세계관 관리 개요와 같다)
+  expect(after(screen.getByText('작품 개요 히어로'), title)).toBe(true) // 히어로(h1) → 탭 제목(h2)
+  expect(after(title, screen.getByRole('button', { name: '대시보드' }))).toBe(true) // 탭 제목(h2) → 현황(h3 구획)
+  fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+  expect(after(screen.getByText('작품 요약 머리'), screen.getByRole('heading', { level: 2 }))).toBe(true)
+  expect(screen.getByRole('heading', { level: 2 }).classList.contains('sr-only')).toBe(false) // 다른 탭의 제목은 보이는 본문 시작이다
 })
 
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──
@@ -441,6 +523,32 @@ it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로
   openHistory()
   expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['발행 이력', '원고 저장본', 'AI 요청·제안'])
   expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['1화 · 저장 버전 1 · 첫 화', 'gpt · 검토 대기'])
+})
+
+it('이력 탭의 발행 이력·원고 저장본·AI 요청·제안은 각각 제목이 이름인 카드(tcard ep-card) 구획이고, 항목은 자기 카드 안에 있으며, 안내문은 카드 밖에 둔다', () => {
+  const versions = [saved('v1')]
+  const proposal = { id: 'p1', text: '제안 본문', model: 'gpt', revision: 1, status: 'pending' as const, prompt: '지시문' }
+  openWith({ writing: { id: 'w', rows: [row(1, { versions })] }, history: { versions, proposals: [proposal], publicationHistory: [publication('v1')] } })
+  openHistory()
+  const card = (name: string) => screen.getByRole('region', { name })
+  for (const name of ['발행 이력', '원고 저장본', 'AI 요청·제안']) {
+    expect([...card(name).classList], name).toEqual(expect.arrayContaining(['tcard', 'ep-card']))
+    expect(within(card(name)).getByRole('heading', { level: 3, name })).toBeTruthy()
+  }
+  expect(within(card('발행 이력')).getByText(/1화 · 발행 ·/)).toBeTruthy()
+  expect(within(card('원고 저장본')).getByRole('heading', { level: 4, name: '1화 · 저장 버전 1 · 첫 화' })).toBeTruthy()
+  expect(within(card('AI 요청·제안')).getByRole('heading', { level: 4, name: 'gpt · 검토 대기' })).toBeTruthy()
+  // 이력 탭 전용 카드 규칙(.ep-history)이 걸리는 틀이고, 읽기 전용 안내문은 카드 밖이다.
+  expect(historySection().classList.contains('ep-history')).toBe(true)
+  expect(screen.getByText('저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.').closest('.ep-card')).toBeNull()
+})
+
+it('이력의 빈 상태·응답 오류도 자기 카드 안에서 알린다', () => {
+  openWith({ writing: { id: 'w', rows: [row(1)] }, history: { versions: [], proposals: [], publicationHistory: undefined } })
+  openHistory()
+  expect(within(screen.getByRole('region', { name: '발행 이력' })).getByRole('alert').textContent).toBe('발행 이력 응답을 확인할 수 없어요.')
+  expect(within(screen.getByRole('region', { name: '원고 저장본' })).getByText('아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.')).toBeTruthy()
+  expect(within(screen.getByRole('region', { name: 'AI 요청·제안' })).getByText('아직 AI 제안이 없어요.')).toBeTruthy()
 })
 
 // ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──
@@ -507,6 +615,17 @@ it('목업 빌드는 서버 조회가 없어 배지를 그리지도 조회하지
   expect(build.mounts).toBe(0)
 })
 
+it.each([
+  { rows: [row(1)], expected: 'true' },
+  { rows: [row(1, { versions: [saved('v1')] })], expected: 'false' },
+  { rows: [row(1, { inherited: true })], expected: 'false' },
+  { rows: undefined, expected: 'false' },
+])('소유자 회차 목록에서 1화의 저장본 유무를 확인해 일괄 업로드 시트에 전달한다 (%#)', ({ rows, expected }) => {
+  openWith({ writing: { id: 'w', rows } })
+  fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
+  expect(screen.getByRole('dialog').getAttribute('data-first-episode-unsaved')).toBe(expected)
+})
+
 it('일괄 업로드가 회차를 저장하고 닫히면 작품을 다시 읽고 배지도 상태를 다시 읽는다', () => {
   const reload = vi.fn()
   openWith({ reload }, 1)
@@ -535,4 +654,64 @@ it.each([['running', true], ['failed', false]])('최초 구축이 끝나고 업�
   expect(screen.queryByText(BADGE)).toBeNull()
   // 보이면 회차 목록 앞(공개 회차 머리)이다.
   if (shown) expect(screen.getByText(UPDATE_BADGE).compareDocumentPosition(screen.getByRole('list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+// ── 개요 대시보드(R6): 바로가기는 집필실·소설 상세로 가는 링크뿐이라 탭 전환 콜백은 없고, 잠금만 메뉴와 같은 규칙으로 받는다 ──
+it('개요 탭은 히어로 아래에 대시보드를 그리고, 다른 탭에는 그리지 않는다', () => {
+  openFresh(2)
+  expect(screen.getByText('작품 개요 히어로').compareDocumentPosition(screen.getByRole('button', { name: '대시보드' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+  expect(screen.queryByRole('button', { name: '대시보드' })).toBeNull()
+})
+
+it('대시보드에는 목업 여부·테스트 UseCase를 넘기고, 요청 중이거나 편집 중이면 바로가기를 잠근다(메뉴와 같은 규칙)', () => {
+  dashboard.props.length = 0
+  const useCase = { history: vi.fn() }
+  const view = render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect(dashboard.props.at(-1)).toMatchObject({ mockup: false, disabled: false, useCase })
+  view.rerender(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect((screen.getByRole('button', { name: '대시보드' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('대시보드의 작성 중인 초안 수는 소유자 회차 조회가 읽히기 전에는 null(읽는 중)이다', () => {
+  dashboard.props.length = 0
+  openFresh(1)
+  expect(dashboard.props.at(-1)?.draftCount).toBeNull()
+  cleanup()
+  render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [row(1), row(2, { hasDraft: false })] } } as never} work={work(1)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect(dashboard.props.at(-1)?.draftCount).toBe(1)
+})
+
+// ── 회차 행 전체 클릭(R9): 행 안의 유일한 링크(수정하기)의 ::after가 행을 덮는다. 덮개(CSS)는 jsdom이 레이아웃을 계산하지 않아 여기서 볼 수 없고, 이동할 링크·잠긴 행에는 링크가 없다는 것만 본다. ──
+it('자체 공개 회차의 수정하기 링크는 행 전체를 덮는 클래스(ep-row-link)를 달고 그 회차의 집필실로 간다', () => {
+  open(3)
+  const links = rows().map((r) => r.querySelector('.ep-row-link'))
+  expect(links.map((a) => a?.getAttribute('href'))).toEqual(['/studio/w?ep=1', '/studio/w?ep=2', '/studio/w?ep=3'])
+  expect(links.every((a) => a?.tagName === 'A')).toBe(true)
+  expect(rows().every((r) => r.querySelectorAll('a').length === 1)).toBe(true) // 같은 주소로 가는 탭 정지가 둘이 되지 않는다
+})
+
+it('잠긴 회차(AI 자율 집필 2화부터)와 원작에서 이어받은 회차 행에는 행을 덮는 링크가 없다', () => {
+  openAutonomous([], 3)
+  const links = rows().map((r) => r.querySelector('.ep-row-link'))
+  expect(links[0]?.getAttribute('href')).toBe('/studio/w?ep=1')
+  expect(links[1]).toBeNull()
+  expect(links[2]).toBeNull()
+  cleanup()
+  openWith({}, 0, { episodes: [{ ...episode(1), inherited: true }, episode(2)] })
+  expect(rows().map((r) => r.querySelector('.ep-row-link') !== null)).toEqual([false, true])
+})
+
+// ── 운영 설정 탭 카드(R11): 설정 카드·분기 정책·작품 삭제가 한 카드 틀 안에 있고 삭제(위험 구역)가 맨 끝이다 ──
+it('운영 설정 탭은 집필 방식·자동 처리·설정 변경 이력·분기 정책 카드와 작품 삭제 구획을 한 틀(.ep-settings-cards)에 순서대로 담고 삭제가 맨 끝이다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf('direct')), updateWorkSettings: vi.fn() }
+  await openSettingsTab(useCase)
+  const frame = document.querySelector<HTMLElement>('.ep-settings-cards')!
+  expect(frame.parentElement?.classList.contains('ep-tab')).toBe(true)
+  const names = ['집필 방식', '자동 처리', '설정 변경 이력', '분기 정책', '작품 삭제']
+  const regions = names.map((name) => within(frame).getByRole('region', { name }))
+  regions.slice(1).forEach((region, i) => expect(regions[i].compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING, names[i + 1]).toBeTruthy())
+  expect(frame.lastElementChild).toBe(regions[4])
+  // 설정을 읽는 동안 쓰는 이름 없는 껍데기(.ep-operating-settings)는 이 틀의 직계다(CSS가 격자에 끼지 않게 한다)
+  expect(frame.querySelector(':scope > .ep-operating-settings')).not.toBeNull()
 })

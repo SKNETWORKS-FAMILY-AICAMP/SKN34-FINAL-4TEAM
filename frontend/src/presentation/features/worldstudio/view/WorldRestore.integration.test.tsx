@@ -2,9 +2,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
+import { stubCardCategories } from '../../../../test/cardCategories'
 import { newSetting, type StudioSetting, type StudioWorld, type WorldRevision, type WorldRevisionSummary } from '../../../../domain/entities/studioWorld'
 import { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 import { WorldStudioPage } from './WorldStudioPage'
@@ -23,6 +24,7 @@ vi.mock('../viewmodel/useWorldRevisions', async (original) => {
   return { useWorldRevisions: (...args: Parameters<typeof actual.useWorldRevisions>) => actual.useWorldRevisions(args[0], args[1], args[2], args[3], args[4], args[5], useCase, null) }
 })
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
+beforeEach(() => stubCardCategories())
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 const card = (id: string, title: string, text: string): StudioSetting => {

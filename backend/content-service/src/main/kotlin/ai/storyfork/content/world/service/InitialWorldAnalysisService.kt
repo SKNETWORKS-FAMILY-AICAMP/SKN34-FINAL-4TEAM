@@ -33,7 +33,7 @@ class InitialWorldAnalysisService(
 ) {
     private val transaction=TransactionTemplate(manager)
     private fun <T:Any> tx(action:()->T):T=transaction.execute { action() }
-    private fun owned(world:UUID,actor:UUID)=worlds.lockOwned(world,actor) ?: throw WorldNotFound()
+    private fun owned(world:UUID,actor:UUID)=worlds.lockAccessible(world,actor) ?: throw WorldNotFound()
     private fun row(world:UUID,id:UUID)=analyses.findById(id).orElseThrow { WorldNotFound() }.also {
         if(it.worldId!=world) throw WorldNotFound()
     }

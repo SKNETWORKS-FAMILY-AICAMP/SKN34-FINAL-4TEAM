@@ -256,6 +256,77 @@ def test_a_content_conflict_stays_a_failed_step_without_retry_or_overwrite(monke
     assert len(writes(log)) == 1
 
 
+def stale_work(monkeypatch, current=16, **fail):
+    """작품 revision이 current인 Content 대역: 다른 revision의 work_update는 409(원고 저장으로 낡은 제안, #687)."""
+    log = content(monkeypatch, fail=fail, work_read={'id': 'work', 'title': '새 제목', 'revision': current})
+    plain = tools.content_mcp.call
+
+    def call(tool, arguments):
+        if tool == 'work_update' and arguments['data']['revision'] != current:
+            log.append((tool, arguments))
+            raise ContentMcpFailure(409, '원고가 변경됐어요. 최신 데이터를 불러와 주세요.')
+        return plain(tool, arguments)
+
+    monkeypatch.setattr(tools.content_mcp, 'call', call)
+    return log
+
+
+STALE = ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'summary': '소개', 'revision': 12}})
+
+
+def test_a_work_update_made_stale_by_a_saved_draft_asks_again_with_the_fresh_revision(monkeypatch):
+    # 원고를 저장하면 작품 revision이 올라 이미 뜬 작품 정보 수정이 409가 된다(#687). 모델에 맡기지 않고 작품을 다시 읽어 같은 수정을 새 revision으로 다시 묻는다
+    calls = fake_agents(monkeypatch, only_content(STALE))
+    log = stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    models = len(calls.main)
+    new = resume(thread, True)
+    assert (new.status, new.awaitingApproval, new.steps) == ('waiting', 'content_action', [])
+    assert new.pendingAction.args == {'id': 'work', 'data': {'title': '새 제목', 'summary': '소개', 'revision': 16}}
+    assert len(calls.main) == models  # 다시 묻는 데 모델을 부르지 않는다
+    done = resume(thread, True)
+    assert done.status == 'completed' and [(s.feature, s.status) for s in done.steps] == [('content_action', 'completed')]
+    assert [a['data']['revision'] for _, a in writes(log)] == [12, 12, 16]  # 이어가기 때 낡은 호출이 한 번 더 409로 끝난다(쓰지 않음)
+
+
+def test_a_work_update_asked_again_is_written_as_shown_and_asked_once_more_if_the_work_moved_on_meanwhile(monkeypatch):
+    # 다시 묻는 카드(revision 16)를 보는 사이 작가가 원고를 또 저장해 작품이 17이 됐다. 승인은 16 카드에 대한 것이라 17로 바로 쓰면 작가의 중간 수정을
+    # 승인 없이 덮는다. 카드에 보인 인자 그대로 쓰려다 409가 나면 실패로 끝내지 않고 17로 다시 묻는다(#687)
+    fake_agents(monkeypatch, only_content(STALE))
+    stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    assert resume(thread, True).pendingAction.args['data']['revision'] == 16
+    log = stale_work(monkeypatch, current=17)  # 16 카드를 보는 사이 작품이 17이 됐다
+    again = resume(thread, True)
+    assert (again.status, again.awaitingApproval, again.steps) == ('waiting', 'content_action', [])
+    assert again.pendingAction.args == {'id': 'work', 'data': {'title': '새 제목', 'summary': '소개', 'revision': 17}}
+    assert [a['data']['revision'] for _, a in writes(log)] == [12, 16]  # 이어가기 때 낡은 12가 한 번 더 409, 16 카드의 승인은 16으로 시도해 409(17로 쓰지 않음)
+    done = resume(thread, True)
+    assert done.status == 'completed' and [(s.feature, s.status) for s in done.steps] == [('content_action', 'completed')]
+    assert [a['data']['revision'] for _, a in writes(log)] == [12, 16, 12, 16, 17]  # 새 카드의 승인은 그 카드의 17로만 쓴다
+
+
+def test_declining_the_work_update_asked_again_writes_nothing(monkeypatch):
+    fake_agents(monkeypatch, only_content(STALE))
+    log = stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    assert resume(thread, True).status == 'waiting'
+    done = resume(thread, False)
+    assert (done.status, done.steps) == ('completed', []) and all(a['data']['revision'] == 12 for _, a in writes(log))
+
+
+def test_a_stale_work_update_that_cannot_reread_the_work_stays_a_failed_step(monkeypatch):
+    fake_agents(monkeypatch, only_content(STALE))
+    stale_work(monkeypatch, work_read=ContentMcpFailure(502, '작품을 읽지 못했어요.'))
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    done = resume(thread, True)
+    assert done.status == 'failed' and [(s.feature, s.status, s.error) for s in done.steps] == [('content_action', 'failed', '작품을 읽지 못했어요.')]
+
+
 @pytest.mark.parametrize('name, args, label', [
     ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'revision': 1}}, '작품 정보 수정'),
     ('story_plan_create', {'workId': 'work', 'data': {'kind': 'plot', 'title': '1막'}}, '플롯·장면 계획 추가'),
@@ -268,6 +339,21 @@ def test_every_write_tool_waits_for_approval_with_its_fixed_label(monkeypatch, n
     waiting = turn(thread)
     assert (waiting.status, waiting.pendingAction.label, waiting.pendingAction.args) == ('waiting', label, args) and writes(log) == []
     assert resume(thread, True).status == 'completed' and [t for t, _ in writes(log)] == [name]
+
+
+@pytest.mark.parametrize('name, kind, sent', [('story_plan_create', 'plot', None), ('story_plan_create', 'scene', 0),
+                                              ('story_plan_update', 'plot', None), ('story_plan_update', 'scene', None)])
+def test_only_a_new_scene_plan_keeps_the_position_the_model_gave(monkeypatch, name, kind, sent):
+    """모델이 story_plan_read 결과의 position을 그대로 실으면 Content가 422로 거절한다(#774). 플롯은 순서가 없고,
+    읽은 장면 순번에는 삭제로 생긴 빈자리가 있어 이동 위치로 쓸 수 없으므로 수정에서는 뺀다(순서는 그대로 남는다)."""
+    data = {'kind': kind, 'title': '첫 장면', 'content': '', 'position': 0}
+    fake_agents(monkeypatch, only_content((name, {'workId': 'work', 'id': 'p', 'data': data})))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    [(_, args)] = writes(log)
+    assert args['data'].get('position') == sent and args['data']['title'] == '첫 장면'
 
 
 def test_a_write_for_another_work_is_refused_before_any_approval_is_asked(monkeypatch):
@@ -431,6 +517,29 @@ def test_a_content_action_answer_without_a_token_keeps_the_one_the_last_answer_s
     stream(thread, resume={'approved': True, 'inputs': {'research': WEB}, 'scope': {'scopeToken': 'input.token'}})
     resume(thread, True)
     assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['input.token']
+
+
+def test_a_work_update_asked_again_hands_the_token_of_its_own_answer_to_the_following_question(monkeypatch):
+    # 다시 묻는 카드의 승인은 WriteApproval(첫 승인)을 지나지 않아도 그 답과 온 새 토큰을 저장한다(#678): 카드를 기다리는 사이 첫 토큰이 만료될 수 있다
+    calls = fake_agents(monkeypatch, only_content(STALE, ('ask_story_qa', {}), capabilities=['story_context']))
+    stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘', scope={'scopeToken': 'old.token'})
+    stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'first.token'}})
+    stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'second.token'}})
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['second.token']
+
+
+def test_reads_run_together_after_an_approval_with_a_fresh_token_still_finish_the_turn(monkeypatch):
+    # 새 토큰은 쓰기 결과에만 싣는다(#725): 병렬 읽기 둘이 같은 단계에서 retrievalScope를 쓰면 LangGraph가 턴을 실패시킨다
+    reads = [('episode_list', {'id': 'work'}), ('work_read', {'id': 'work'})]
+    fake_agents(monkeypatch, only_content(('work_update', {'id': 'work', 'request': {'title': '새 제목'}}), reads))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='제목을 바꾸고 회차를 알려줘')
+    events = dict(stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'fresh.token'}}))
+    assert 'error' not in events and events['done']['status'] == 'completed'
+    assert [t for t, _ in log] == ['work_update', 'episode_list', 'work_read']
 
 
 def refresh(thread):

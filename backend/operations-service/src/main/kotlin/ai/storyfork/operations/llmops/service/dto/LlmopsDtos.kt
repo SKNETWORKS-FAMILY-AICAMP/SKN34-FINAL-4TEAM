@@ -1,5 +1,6 @@
 package ai.storyfork.operations.llmops.service.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 import java.util.UUID
 import tools.jackson.databind.JsonNode
@@ -57,10 +58,22 @@ data class Metrics(val rows: List<MetricRow>, val adoptionRate: Double?, val app
 
 data class PromptEvaluation(val runId: String, val passed: Boolean?, val createdAt: Instant)
 
-/** [createdAt] is null when Langfuse's prompt payload carries none. */
-data class PromptVersion(val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?)
+/**
+ * [createdAt] is null when Langfuse's prompt payload carries none. [model] is the model chosen for the version (its config.model, #705; null runs on the
+ * AI service's environment default). [prompt] is the body, only in a prompt's detail (the list would carry every body of every version).
+ */
+data class PromptVersion(
+    val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
+    val commitMessage: String? = null,
+)
 
-data class Prompt(val name: String, val versions: List<PromptVersion>)
+/**
+ * In the list [versions] are only the production and seed versions (#786: two Langfuse reads per prompt however many versions); the detail has them all.
+ * [candidates] counts the versions with their own candidate label other than the production version, from the labels Langfuse lists for the prompt.
+ * [evaluationDataset] is the evaluation set a version must pass to become a candidate (#787); null means no evaluation is needed.
+ */
+/** models: the models a new version may choose (detail only, #806). */
+data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0, val evaluationDataset: String? = null, val models: List<String>? = null)
 
 data class PromptListResponse(val items: List<Prompt>)
 
@@ -80,15 +93,27 @@ data class ModelCreateRequest(val modelName: String, val matchPattern: String, v
 
 data class EvaluationMetric(val name: String, val score: Double, val baseline: Double?, val delta: Double?)
 
-/** [runId] is the name of the Langfuse experiment (Dataset Run); [status] is running, completed or failed. */
+/**
+ * One item of a run (#823): [itemId] is the evaluation set item id, [scores] its metric scores (0..1). It is failed when it errored (no scores), its pov_ok is 0 or
+ * a metric is below 0.5; [error] is a fixed reason only for an item that errored. No item text.
+ */
+data class EvaluationItem(val itemId: String, val scores: Map<String, Double>, val failed: Boolean, val error: String? = null)
+
+/** [runId] is the name of the Langfuse experiment (Dataset Run); [status] is running, completed or failed. [items] are only in a run's detail. */
 data class Evaluation(
     val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String, val passed: Boolean?,
     val createdAt: Instant, val metrics: List<EvaluationMetric>,
+    @field:JsonInclude(JsonInclude.Include.NON_NULL) val items: List<EvaluationItem>? = null,
 )
 
 data class EvaluationListResponse(val items: List<Evaluation>)
 
 data class EvaluationRequest(val dataset: String, val prompt: String, val version: Int)
+
+/** [maxMetricCalls] is the GEPA budget (1..500, default 150 when absent). */
+data class OptimizationRequest(val version: Int, val maxMetricCalls: Int? = null)
+
+data class OptimizationStartedResponse(val accepted: Boolean, val prompt: String, val version: Int, val maxMetricCalls: Int)
 
 data class EvaluationStartedResponse(val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String)
 

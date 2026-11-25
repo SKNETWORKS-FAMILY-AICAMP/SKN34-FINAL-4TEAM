@@ -110,14 +110,14 @@ it('왼쪽 회차 목록·버전 그래프, 가운데 원고, 오른쪽 AI 채�
   expect(chat.contains(editor)).toBe(false)
 })
 
-it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·전송·첨부·추천 칩을 사유와 함께 잠가 가짜 제안이나 전송 흔적을 만들지 않는다', async () => {
+it('AI 채팅은 보낼 수 없는 동안(데모·회차 없음) 입력·전송·첨부·추천 칩을 사유와 함께 잠가 가짜 제안이나 전송 흔적을 만들지 않는다', async () => {
   renderStudio()
   const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
   const box = within(chat).getByRole('textbox', { name: '메시지' })
   expect(box).toHaveProperty('disabled', true)
   expect(box.getAttribute('placeholder')).toBe('AI에게 무엇이든 물어보세요')
   for (const name of ['전송', '음성 입력 (준비 중)']) expect(within(chat).getByRole('button', { name })).toHaveProperty('disabled', true)
-  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|발행하면/)
+  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|만들면/)
   // 첨부 항목은 모두 잠겨 있고(첨부는 켜져 있으니 '준비 중' 안내는 없다) 메뉴 설명은 잠긴 사유다.
   fireEvent.click(within(chat).getByRole('button', { name: '첨부' }))
   for (const name of ['이미지 첨부', '텍스트 파일 첨부']) expect(within(chat).getByRole('menuitem', { name })).toHaveProperty('disabled', true)
@@ -134,7 +134,7 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·
 it('AI 채팅 머리줄에 파일을 놓아도 브라우저가 그 파일을 열어 집필실을 떠나지 않는다(#700)', async () => {
   renderStudio()
   const head = (await screen.findByRole('complementary', { name: 'AI 채팅' })).querySelector('.studio-chat-head')!
-  const dataTransfer = { files: [new File(['x'], '지도.png', { type: 'image/png' })] }
+  const dataTransfer = { files: [new File(['x'], '지도.png', { type: 'image/png' })], types: ['Files'] }
   expect(fireEvent.dragOver(head, { dataTransfer })).toBe(false)
   expect(fireEvent.drop(head, { dataTransfer })).toBe(false)
 })

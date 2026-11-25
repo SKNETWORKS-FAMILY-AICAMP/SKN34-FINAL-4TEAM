@@ -1,0 +1,498 @@
+{
+ "구운몽": {
+  "worldId": "구운몽",
+  "cards": [
+   {
+    "id": "0:성진",
+    "cardType": "character",
+    "title": "성진",
+    "body": "연화봉의 젊은 승려.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:육관대사",
+    "cardType": "character",
+    "title": "육관대사",
+    "body": "성진의 스승, 연화봉의 고승.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:팔선녀",
+    "cardType": "character",
+    "title": "팔선녀",
+    "body": "위부인을 모시는 여덟 선녀.",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "0:양소유",
+    "cardType": "character",
+    "title": "양소유",
+    "body": "성진이 환생한 인물.",
+    "semanticMetadata": {
+     "revealFromEpisode": 4
+    }
+   },
+   {
+    "id": "0:연화봉의 승려는 속세의 욕망을 품지 않는다",
+    "cardType": "rule",
+    "title": "연화봉의 승려는 속세의 욕망을 품지 않는다",
+    "body": "연화봉의 승려는 속세의 욕망을 품지 않는다. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다",
+    "cardType": "rule",
+    "title": "연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다",
+    "body": "연화봉의 승려는 스승의 허락 없이 산을 내려가지 않는다. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:양소유는 전생(성진)을 기억하지 못한다",
+    "cardType": "rule",
+    "title": "양소유는 전생(성진)을 기억하지 못한다",
+    "body": "양소유는 전생(성진)을 기억하지 못한다. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.",
+    "semanticMetadata": {
+     "revealFromEpisode": 4
+    }
+   },
+   {
+    "id": "0:연화봉",
+    "cardType": "location",
+    "title": "연화봉",
+    "body": "남악 형산의 봉우리. 육관대사의 도량이 있다.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:동정호 용궁",
+    "cardType": "location",
+    "title": "동정호 용궁",
+    "body": "성진이 심부름을 간 용왕의 궁.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:돌다리",
+    "cardType": "location",
+    "title": "돌다리",
+    "body": "성진이 팔선녀를 만난 좁은 다리.",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "0:여덟 구슬",
+    "cardType": "object",
+    "title": "여덟 구슬",
+    "body": "성진이 던진 복숭아꽃이 변한 구슬.",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "0:연화봉 도량",
+    "cardType": "rule",
+    "title": "연화봉 도량",
+    "body": "육관대사와 제자들이 수행하는 곳.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:성진, 용궁 심부름을 다녀오다",
+    "cardType": "event",
+    "title": "성진, 용궁 심부름을 다녀오다",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "0:돌다리에서 팔선녀를 만나다",
+    "cardType": "event",
+    "title": "돌다리에서 팔선녀를 만나다",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "0:복숭아꽃이 여덟 구슬이 되다",
+    "cardType": "event",
+    "title": "복숭아꽃이 여덟 구슬이 되다",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "0:스승의 벌로 인간 세상으로",
+    "cardType": "event",
+    "title": "스승의 벌로 인간 세상으로",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 3
+    }
+   },
+   {
+    "id": "0:양소유, 세상에 나다",
+    "cardType": "event",
+    "title": "양소유, 세상에 나다",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 4
+    }
+   }
+  ],
+  "relationships": [
+   {
+    "id": "p0-성진",
+    "sourceCardId": "0:성진",
+    "targetCardId": "0:성진, 용궁 심부름을 다녀오다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p0-육관대사",
+    "sourceCardId": "0:육관대사",
+    "targetCardId": "0:성진, 용궁 심부름을 다녀오다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p1-성진",
+    "sourceCardId": "0:성진",
+    "targetCardId": "0:돌다리에서 팔선녀를 만나다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p1-팔선녀",
+    "sourceCardId": "0:팔선녀",
+    "targetCardId": "0:돌다리에서 팔선녀를 만나다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p2-성진",
+    "sourceCardId": "0:성진",
+    "targetCardId": "0:복숭아꽃이 여덟 구슬이 되다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p3-성진",
+    "sourceCardId": "0:성진",
+    "targetCardId": "0:스승의 벌로 인간 세상으로",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p3-육관대사",
+    "sourceCardId": "0:육관대사",
+    "targetCardId": "0:스승의 벌로 인간 세상으로",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p4-양소유",
+    "sourceCardId": "0:양소유",
+    "targetCardId": "0:양소유, 세상에 나다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "l0",
+    "sourceCardId": "0:돌다리에서 팔선녀를 만나다",
+    "targetCardId": "0:스승의 벌로 인간 세상으로",
+    "label": "계기",
+    "direction": "directed"
+   },
+   {
+    "id": "l1",
+    "sourceCardId": "0:복숭아꽃이 여덟 구슬이 되다",
+    "targetCardId": "0:스승의 벌로 인간 세상으로",
+    "label": "복선",
+    "direction": "directed"
+   }
+  ]
+ },
+ "별빛 서약의 탑": {
+  "worldId": "별빛 서약의 탑",
+  "cards": [
+   {
+    "id": "1:리안",
+    "cardType": "character",
+    "title": "리안",
+    "body": "견습 서약사.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:카엘",
+    "cardType": "character",
+    "title": "카엘",
+    "body": "탑을 지키는 기사.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:세라핀",
+    "cardType": "character",
+    "title": "세라핀",
+    "body": "재의 왕국 사절.",
+    "semanticMetadata": {
+     "revealFromEpisode": 3
+    }
+   },
+   {
+    "id": "1:해가 지면 탑의 문은 열리지 않는다",
+    "cardType": "rule",
+    "title": "해가 지면 탑의 문은 열리지 않는다",
+    "body": "해가 지면 탑의 문은 열리지 않는다. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:탑 안에서는 어떤 마법도 허락되지 않는다",
+    "cardType": "rule",
+    "title": "탑 안에서는 어떤 마법도 허락되지 않는다",
+    "body": "탑 안에서는 어떤 마법도 허락되지 않는다. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.",
+    "semanticMetadata": {
+     "revealFromEpisode": 3
+    }
+   },
+   {
+    "id": "1:별빛 탑",
+    "cardType": "location",
+    "title": "별빛 탑",
+    "body": "봉인을 지키는 탑. 해가 지면 문이 닫힌다.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:지하서고",
+    "cardType": "location",
+    "title": "지하서고",
+    "body": "봉인 문양이 있는 가장 깊은 서고.",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "1:별빛 수정",
+    "cardType": "object",
+    "title": "별빛 수정",
+    "body": "탑 꼭대기에서 깜빡이는 수정.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:오르벤의 서한",
+    "cardType": "object",
+    "title": "오르벤의 서한",
+    "body": "오르벤이 남긴 낡은 서한.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:재의 왕국 사절단",
+    "cardType": "rule",
+    "title": "재의 왕국 사절단",
+    "body": "붉은 망토의 세라핀이 이끈다.",
+    "semanticMetadata": {
+     "revealFromEpisode": 3
+    }
+   },
+   {
+    "id": "1:탑 앞에서 밤을 지새우다",
+    "cardType": "event",
+    "title": "탑 앞에서 밤을 지새우다",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "1:봉인 아래의 속삭임",
+    "cardType": "event",
+    "title": "봉인 아래의 속삭임",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "1:재의 사절 도착",
+    "cardType": "event",
+    "title": "재의 사절 도착",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 3
+    }
+   }
+  ],
+  "relationships": [
+   {
+    "id": "p0-리안",
+    "sourceCardId": "1:리안",
+    "targetCardId": "1:탑 앞에서 밤을 지새우다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p0-카엘",
+    "sourceCardId": "1:카엘",
+    "targetCardId": "1:탑 앞에서 밤을 지새우다",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p1-리안",
+    "sourceCardId": "1:리안",
+    "targetCardId": "1:봉인 아래의 속삭임",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p1-카엘",
+    "sourceCardId": "1:카엘",
+    "targetCardId": "1:봉인 아래의 속삭임",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p2-세라핀",
+    "sourceCardId": "1:세라핀",
+    "targetCardId": "1:재의 사절 도착",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "l0",
+    "sourceCardId": "1:탑 앞에서 밤을 지새우다",
+    "targetCardId": "1:봉인 아래의 속삭임",
+    "label": "계기",
+    "direction": "directed"
+   }
+  ]
+ },
+ "회색 도시의 우편배달부": {
+  "worldId": "회색 도시의 우편배달부",
+  "cards": [
+   {
+    "id": "2:도윤",
+    "cardType": "character",
+    "title": "도윤",
+    "body": "열일곱 살 배달부.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "2:하람",
+    "cardType": "character",
+    "title": "하람",
+    "body": "7구역의 소녀.",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "2:도시 안에서는 전자 통신이 작동하지 않는다",
+    "cardType": "rule",
+    "title": "도시 안에서는 전자 통신이 작동하지 않는다",
+    "body": "도시 안에서는 전자 통신이 작동하지 않는다. 설정 검사에서 이 규칙과 어긋나는 문장을 찾아요.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "2:고가도로",
+    "cardType": "location",
+    "title": "고가도로",
+    "body": "도윤이 배달하는 길.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "2:7구역 배급소",
+    "cardType": "location",
+    "title": "7구역 배급소",
+    "body": "하람이 기다리던 곳.",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   },
+   {
+    "id": "2:주소가 지워진 편지",
+    "cardType": "object",
+    "title": "주소가 지워진 편지",
+    "body": "봉투에 ‘집’ 한 단어만 적힌 편지.",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "2:수취인 불명의 편지",
+    "cardType": "event",
+    "title": "수취인 불명의 편지",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 1
+    }
+   },
+   {
+    "id": "2:7구역의 소녀",
+    "cardType": "event",
+    "title": "7구역의 소녀",
+    "body": "",
+    "semanticMetadata": {
+     "revealFromEpisode": 2
+    }
+   }
+  ],
+  "relationships": [
+   {
+    "id": "p0-도윤",
+    "sourceCardId": "2:도윤",
+    "targetCardId": "2:수취인 불명의 편지",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p1-도윤",
+    "sourceCardId": "2:도윤",
+    "targetCardId": "2:7구역의 소녀",
+    "label": "participated",
+    "direction": "directed"
+   },
+   {
+    "id": "p1-하람",
+    "sourceCardId": "2:하람",
+    "targetCardId": "2:7구역의 소녀",
+    "label": "participated",
+    "direction": "directed"
+   }
+  ]
+ }
+}

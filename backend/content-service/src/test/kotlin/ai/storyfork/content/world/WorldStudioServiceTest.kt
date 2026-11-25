@@ -8,6 +8,8 @@ import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
+import ai.storyfork.content.world.service.ManuscriptBuildMapper
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
@@ -44,11 +46,13 @@ class WorldStudioServiceTest {
     private val genres=mock(GenreRepository::class.java)
     private val buildJobs=mock(ManuscriptBuildJobRepository::class.java)
     private val buildSteps=mock(ManuscriptBuildLoadStepRepository::class.java)
+    private val cardCategories=mock(CardCategoryRepository::class.java).also { `when`(it.findAll()).thenReturn(defaultCardCategories()) }
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps)
+    private val events=mock(org.springframework.context.ApplicationEventPublisher::class.java)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps,cardCategories,events)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -60,6 +64,14 @@ class WorldStudioServiceTest {
         val reordered=request.copy(cards=listOf(card.copy(semanticMetadata=linkedMapOf(
             "characterDocs" to mapOf("episodes" to mapOf("01" to "기억"),"goal" to "목표","soul" to "성격"),"z" to mapOf("first" to 1,"second" to 2)))))
         assertEquals(service.manuscriptRequestHash(world,request),service.manuscriptRequestHash(world,reordered))
+    }
+    @Test fun `a manuscript character card with an empty body passes the draft edit validation`() {
+        // 정체 진술이 없는 인물은 본문이 빈 문자열로 적재된다(#839). 초안은 빈 본문을 받고(확정 버전만 본문을 요구한다) 이 검사가 거절하면 최초 구축 전체가 CONTENT_REJECTED로 끝난다.
+        val payload=ManuscriptLoadPayload(listOf(ManuscriptCard("hero","character","치삼",emptyList(),"",1,ManuscriptCharacterDocs("[묘사] 치삼은 웃었다.","",emptyMap()))),emptyList())
+        val built=ManuscriptBuildMapper.build(UUID.randomUUID(),WorldDraftResponse(world,0,null,null,"원고 세계관","",emptyList(),emptyList()),payload,
+            mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "치삼은 웃었다."))))
+        assertEquals("",built.single().cards.single().body)
+        built.forEach { service.validateEditRequest(it) }
     }
     private fun owned(marker:Boolean=true) {
         `when`(worlds.lockOwned(world,actor)).thenReturn(StudioWorld(world,actor))
@@ -108,6 +120,98 @@ class WorldStudioServiceTest {
         verifyNoInteractions(graph)
     }
 
+    @Test fun `edit metadata rejects unknown keys and malformed values with safe card or relation detail`() {
+        val id=UUID.randomUUID()
+        val card=CardPayload(id,"제목","본문","character","basic")
+        fun check(metadata:Map<String,Any?>, type:String="character") {
+            val error=assertThrows(IllegalArgumentException::class.java) {
+                service.validateEditRequest(EditWorldDraftRequest(0,"세계","",cards=listOf(card.copy(cardType=type,semanticMetadata=metadata)),key="key"))
+            }
+            assertTrue(error.message!!.contains(id.toString())); assertTrue(error.message!!.contains(metadata.keys.first().take(50)))
+            assertFalse(error.message!!.contains("비밀값"))
+        }
+        listOf(
+            mapOf("unknown" to "비밀값"), mapOf("x".repeat(80) to "비밀값"), mapOf("studio" to "red"),
+            mapOf("studio" to mapOf("item" to mapOf("id" to UUID.randomUUID().toString()))),
+            mapOf("preprocessing" to null), mapOf("manuscriptBuild" to "x"), mapOf("revealFromEpisode" to 0), mapOf("revealFromEpisode" to 1.0),
+            mapOf("revealFromEpisode" to 2147483648L), mapOf("revealFromEpisode" to null), mapOf("imageId" to "invalid"), mapOf("imageId" to 42),
+            mapOf("importedFrom" to mapOf("worldId" to "id")),
+            mapOf("characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to mapOf("01" to "x"))),
+            mapOf("characterDocs" to mapOf("soul" to "x".repeat(3001), "goal" to "g", "episodes" to emptyMap<String,String>())),
+            mapOf("characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to emptyMap<String,String>(),"memory" to "old"))
+        ).forEach { check(it) }
+        check(mapOf("characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to emptyMap<String,String>())),"location")
+    }
+
+    @Test fun `edit metadata accepts supported shapes without modifying request`() {
+        val id=UUID.randomUUID(); val rid=UUID.randomUUID()
+        val card=CardPayload(id,"제목","본문","character","basic",semanticMetadata=mapOf(
+            "studio" to mapOf("item" to mapOf("id" to id.toString())), "preprocessing" to emptyMap<String,Any>(),
+            "manuscriptBuild" to mapOf("jobId" to "job","key" to "hero","provenance" to "manuscript_extraction","evidence" to emptyList<Any>(),"needsReview" to true),
+            "characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to mapOf("0" to "기억")),
+            "revealFromEpisode" to 1, "imageId" to UUID.randomUUID().toString(),
+            "importedFrom" to mapOf("worldId" to "w", "worldName" to "n", "authorNickname" to "a", "revisionNo" to 1, "cardId" to "c")))
+        val relation=RelationshipPayload(rid,id,UUID.randomUUID(),"structural",semanticMetadata=mapOf("studio" to mapOf("item" to mapOf("id" to rid.toString())),"preprocessing" to emptyMap<String,Any>(),"manuscriptBuild" to mapOf("key" to "relation"),"evidence" to mapOf("source" to "template")))
+        val request=EditWorldDraftRequest(0,"세계","",listOf(card),listOf(relation),key="key")
+        val before=mapper.writeValueAsString(request)
+        service.validateEditRequest(request)
+        assertEquals(before,mapper.writeValueAsString(request))
+    }
+    @Test fun `edit metadata rejects the same kinds of mistakes on relations`() {
+        val id=UUID.randomUUID();val relationId=UUID.randomUUID()
+        listOf(mapOf("other" to "비밀값"),mapOf("studio" to "red"),mapOf("studio" to mapOf("item" to mapOf("id" to UUID.randomUUID().toString()))),mapOf("preprocessing" to null),
+            mapOf("evidence" to "x"),mapOf("manuscriptBuild" to "x"),mapOf("characterDocs" to emptyMap<String,Any>())).forEach { metadata ->
+            val error=assertThrows(IllegalArgumentException::class.java) {
+                service.validateEditRequest(EditWorldDraftRequest(0,"세계","",relationships=listOf(RelationshipPayload(relationId,id,UUID.randomUUID(),"structural",semanticMetadata=metadata)),key="key"))
+            }
+            assertTrue(error.message!!.contains(relationId.toString()) && error.message!!.contains(metadata.keys.first()),"$metadata")
+            assertFalse(error.message!!.contains("비밀값"))
+        }
+    }
+    // --- 옛 데이터 재전송 보호(#541 후속): 같은 id로 저장돼 있던 같은 값은 검사하지 않고, 이번 요청이 새로 넣거나 바꾼 값만 검사한다 ---
+    private val legacyMeta:Map<String,Any?> = mapOf("color" to "red","characterDocs" to mapOf("soul" to "s","goal" to "g","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
+    @Test fun `edit metadata skips a stored value sent back unchanged and checks a new or changed one`() {
+        val id=UUID.randomUUID();val rid=UUID.randomUUID()
+        val stored=CardPayload(id,"제목","본문","character","basic",semanticMetadata=legacyMeta)
+        val storedRelation=RelationshipPayload(rid,id,UUID.randomUUID(),"structural",semanticMetadata=mapOf("note" to "red"))
+        fun send(card:CardPayload,relation:RelationshipPayload=storedRelation,storedCards:List<CardPayload> = listOf(stored))=
+            service.validateEditRequest(EditWorldDraftRequest(0,"세계","",listOf(card),listOf(relation),key="key"),storedCards,listOf(storedRelation))
+        fun refused(key:String,card:CardPayload=stored,relation:RelationshipPayload=storedRelation,storedCards:List<CardPayload> = listOf(stored)) {
+            val error=assertThrows(IllegalArgumentException::class.java) { send(card,relation,storedCards) }
+            assertTrue(error.message!!.contains(key),error.message)
+        }
+        send(stored.copy(title="고친 제목",body="고친 본문"))      // 옛 키·옛 characterDocs를 그대로 다시 보내면 다른 칸을 고쳐도 통과한다
+        send(stored.copy(semanticMetadata=legacyMeta-"color"))     // 옛 키를 빼 보내는 것도 통과한다
+        refused("color",stored.copy(semanticMetadata=legacyMeta+("color" to "blue")))    // 옛 키의 값을 바꾸면 검사한다
+        refused("extra",stored.copy(semanticMetadata=legacyMeta+("extra" to 1)))          // 새 키는 검사한다
+        val moreDocs=(legacyMeta["characterDocs"] as Map<*,*>)+("episodes" to mapOf("1" to "새 기억"))
+        refused("characterDocs",stored.copy(semanticMetadata=legacyMeta+("characterDocs" to moreDocs)))   // 키 단위 비교라 바뀐 characterDocs는 통째로 본다
+        refused("color",storedCards=emptyList())                   // 저장돼 있지 않은 카드는 같은 값이어도 새 값이다
+        refused("note",relation=storedRelation.copy(semanticMetadata=mapOf("note" to "blue")))
+        refused("extra",relation=storedRelation.copy(semanticMetadata=mapOf("note" to "red","extra" to 1)))
+    }
+    @Test fun `an edit sends a stored card and relation back unchanged and saves, while a changed old value is refused before anything is prepared`() {
+        owned()
+        val cardRow=SettingCardDraft(cardA,world,fieldsOf("가람",meta=legacyMeta))
+        val storedRelation=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계 설명",label="동료",semanticMetadata=mapOf("note" to "red"))
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardRow,SettingCardDraft(cardB,world,fieldsOf("나래"))))
+        `when`(cardDrafts.findById(cardA)).thenReturn(Optional.of(cardRow))
+        at(null,storedRelation)
+        fun resend(key:String,card:Map<String,Any?> = legacyMeta,relation:RelationshipPayload=storedRelation)=EditWorldDraftRequest(2,"x","",
+            listOf(CardPayload(cardA,"가람 수정","본문","character","basic",semanticMetadata=card)),listOf(relation),key)
+        for((request,key) in listOf(resend("changed-card",legacyMeta+("color" to "blue")) to "color",
+            resend("changed-relation",relation=storedRelation.copy(semanticMetadata=mapOf("note" to "blue"))) to "note")) {
+            val error=assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,request) }
+            assertTrue(error.message!!.contains(key),error.message)
+        }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(2L,draft.draftRevision)
+
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(storedRelation)) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(3L,service.edit(world,actor,resend("resend")).draftRevision)
+        assertEquals(legacyMeta,cardRow.fields.semanticMetadata)
+    }
     @Test fun `template genre backfill changes only a null owned world's genre`() {
         val owner = GenreTemplateSeeder.TEMPLATE_OWNER
         val entity = StudioWorld(world, owner, UUID.randomUUID(), visibility = "public", publishedAt = java.time.Instant.EPOCH)
@@ -636,7 +740,7 @@ class WorldStudioServiceTest {
     @Test fun `cover delete records an explicit owner choice even when already absent`() {
         val f=pristineTemplateFixture()
         val covers=ai.storyfork.content.world.service.WorldCoverService(worlds,
-            mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),expandedSeeds,manager)
+            mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),expandedSeeds,manager,mock(CoverModerationClient::class.java))
         covers.delete(f.template.worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
         assertEquals(1L,f.world.ownerMetadataVersion)
         service.publishPristineTemplate(f.template,null,null)
@@ -646,7 +750,7 @@ class WorldStudioServiceTest {
         val f=pristineTemplateFixture()
         val storage=mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java)
         doThrow(IllegalStateException("storage offline")).`when`(storage).upload(anyString(),any() ?: ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload(byteArrayOf(1),"image/png"))
-        val covers=ai.storyfork.content.world.service.WorldCoverService(worlds,storage,expandedSeeds,manager)
+        val covers=ai.storyfork.content.world.service.WorldCoverService(worlds,storage,expandedSeeds,manager,mock(CoverModerationClient::class.java))
         assertThrows(RuntimeException::class.java) { covers.put(f.template.worldId,GenreTemplateSeeder.TEMPLATE_OWNER,
             ai.storyfork.content.world.domain.WorldCoverFile(byteArrayOf(1),"image/png")) }
         assertEquals(1L,f.world.ownerMetadataVersion)
@@ -704,7 +808,7 @@ class WorldStudioServiceTest {
     // --- 설정 카드 대표 이미지(#401): 카드 semanticMetadata.imageId는 이 세계관이 올린 이미지만 가리킬 수 있다 ---
     private fun withImage(image:Any?)=CardPayload(UUID.randomUUID(),"인물","원문","character","basic",semanticMetadata=mapOf("imageId" to image))
     private fun worldsImage(image:UUID,owner:UUID=world)=SettingCardImage(image,owner,"world-card-images/${image}","image/png")
-    @Test fun `a card image id that is not a UUID is an input error before anything is read or prepared`() {
+    @Test fun `a card image id that is not a UUID is an input error before anything is prepared`() {
         owned()
         for(bad in listOf("","x","1-1-1-1-1",42,true,mapOf("id" to "x"))) {
             assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(bad)),key="bad-image")) }
@@ -891,11 +995,11 @@ class WorldStudioServiceTest {
      * 확정 버전 R의 카드는 A(내용이 달라짐)·B(지금은 삭제 상태)·E(같음)이고, 지금 초안은 A·B(삭제)·C(R에 없던 활성 카드)·D(R에 없고 이미 삭제)·E다.
      * 초안 행은 같은 객체를 돌려줘 서비스가 바꾼 값을 그대로 읽을 수 있다.
      */
-    private fun restoring():List<SettingCardDraft> {
+    private fun restoring(metaA:Map<String,Any?> = mapOf("revealFromEpisode" to 2)):List<SettingCardDraft> {
         owned()
         val rows=listOf(SettingCardDraft(cardA,world,fieldsOf("가람 수정","수정한 내용")),SettingCardDraft(cardB,world,fieldsOf("나래 삭제됨",lifecycle="removed")),
             SettingCardDraft(cardC,world,fieldsOf("다온")),SettingCardDraft(cardD,world,fieldsOf("지난 삭제",lifecycle="removed")),SettingCardDraft(cardE,world,fieldsOf("이든","같음")))
-        val versions=listOf(SettingCardVersion(cardId=cardA,worldId=world,versionNo=1,fields=fieldsOf("가람 확정","확정 당시 내용","public",meta=mapOf("revealFromEpisode" to 2))),
+        val versions=listOf(SettingCardVersion(cardId=cardA,worldId=world,versionNo=1,fields=fieldsOf("가람 확정","확정 당시 내용","public",meta=metaA)),
             SettingCardVersion(cardId=cardB,worldId=world,versionNo=1,fields=fieldsOf("나래 확정")),SettingCardVersion(cardId=cardE,worldId=world,versionNo=1,fields=fieldsOf("이든","같음")))
         `when`(revisions.findByIdAndWorldId(revisionId,world)).thenReturn(WorldRevision(revisionId,world,3,"확정 이름","확정 설명",sealed=true))
         `when`(revisionCards.findAllByIdRevisionId(revisionId)).thenReturn(versions.map { WorldRevisionCard(RevisionCardKey(revisionId,it.cardId),world,it.id) })
@@ -927,6 +1031,31 @@ class WorldStudioServiceTest {
         assertEquals(3L,result.draftRevision);assertEquals(listOf(relation),result.relationships);assertEquals(5,result.cards.size);assertEquals(3L,state.graphVersion)
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         verify(revisions,never()).saveAndFlush(any());verify(cardVersions,never()).saveAll(any<Iterable<SettingCardVersion>>());verifyNoInteractions(requests)
+    }
+    @Test fun `confirmed save is not blocked by an old card that still holds an unknown metadata key`() {
+        val legacy=mapOf("unknown" to "옛 키","characterDocs" to mapOf("soul" to "s","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(SettingCardDraft(cardA,world,fieldsOf("가람",meta=legacy))))
+        var revision:WorldRevision?=null;var versions=emptyList<SettingCardVersion>()
+        `when`(revisions.saveAndFlush(any())).thenAnswer { (it.arguments[0] as WorldRevision).also { value -> revision=value } }
+        `when`(revisions.findByIdAndWorldId(anyUUID(),anyUUID())).thenAnswer { revision }
+        `when`(cardVersions.saveAll(any<Iterable<SettingCardVersion>>())).thenAnswer { (it.arguments[0] as Iterable<SettingCardVersion>).toList().also { value -> versions=value } }
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { versions }
+        `when`(revisionCards.findAllByIdRevisionId(anyUUID())).thenAnswer { versions.map { WorldRevisionCard(RevisionCardKey(revision!!.id,it.cardId),world,it.id) } }
+
+        val saved=service.save(world,actor,SaveWorldRequest(2,"confirm-legacy"))
+
+        // 검사는 초안 편집 요청에만 있어 확정 저장은 옛 키를 그대로 봉인한다.
+        assertEquals(legacy,saved.cards.single().card.semanticMetadata)
+        assertEquals(3L,draft.draftRevision)
+    }
+    @Test fun `restore does not apply the draft edit metadata check to confirmed cards`() {
+        val legacy=mapOf("unknown" to "옛 키","characterDocs" to mapOf("soul" to "s","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
+        val rows=restoring(legacy);at(null)
+        restore()
+        assertEquals(legacy,rows.single { it.cardId==cardA }.fields.semanticMetadata)
+        // 같은 메타데이터를 초안 편집으로 보내면 거절된다: 검사는 편집 요청에만 있다.
+        assertThrows(IllegalArgumentException::class.java) { service.validateEditRequest(EditWorldDraftRequest(0,"x","",listOf(CardPayload(cardA,"가람","본문","character","basic",semanticMetadata=legacy)),key="k")) }
     }
     @Test fun `restore is refused and changes nothing while a current relation still ends on a card the version lacks`() {
         val rows=restoring();at(null,RelationshipPayload(UUID.randomUUID(),cardA,cardC,"structural",label="동료"))
@@ -1037,6 +1166,8 @@ class WorldStudioServiceTest {
         assertEquals(memory("1" to "산채","11" to "새 기억"),existing.fields.semanticMetadata)
         assertEquals("public",existing.fields.visibility)
         assertEquals("applied",step.status);assertEquals("completed",job.status)
+        assertEquals(receipt,service.editManuscriptAddition(world,actor,step.id))
+        verify(events).publishEvent(ai.storyfork.content.world.service.ManuscriptBuildFinished(job.id,job.lockVersion,"work",world,actor))
         assertEquals(listOf(id.toString()),receipt["cardIds"],"영수증의 카드 ID에 맞춘 기존 카드도 든다")
         verify(cards,never()).saveAndFlush(any())
     }

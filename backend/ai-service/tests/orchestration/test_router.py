@@ -77,6 +77,7 @@ def test_user_authorization_header_reaches_the_service(monkeypatch):
     lambda: router.rename_session('t', router.RenameRequest(scope='user:1/work:1', title='제목'), 'wrong'),
     lambda: router.delete_session('t', 'user:1/work:1', 'wrong'),
     lambda: router.truncate_session('t', 0, 'user:1/work:1', 'wrong'),
+    lambda: router.rate_turn('t', 0, router.FeedbackRequest(scope='user:1/work:1', feedback='up'), 'wrong'),
 ])
 def test_session_endpoints_need_the_internal_token(monkeypatch, call):
     monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
@@ -97,3 +98,16 @@ def test_session_failures_become_http_status(monkeypatch, failure, status):
     with pytest.raises(HTTPException) as error:
         asyncio.run(router.rename_session('t', router.RenameRequest(scope='s', title='제목'), 'test-token'))
     assert error.value.status_code == status
+
+
+def test_turn_feedback_reaches_the_service_and_an_omitted_value_clears_it(monkeypatch):
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
+    seen = []
+
+    async def feedback(*args):
+        seen.append(args)
+
+    monkeypatch.setattr(service, 'feedback', feedback)
+    asyncio.run(router.rate_turn('t', 2, router.FeedbackRequest(scope='s', feedback='down'), 'test-token'))
+    asyncio.run(router.rate_turn('t', 2, router.FeedbackRequest(scope='s'), 'test-token'))
+    assert seen == [('t', 's', 2, 'down'), ('t', 's', 2, None)]

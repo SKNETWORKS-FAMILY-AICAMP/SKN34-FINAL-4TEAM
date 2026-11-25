@@ -5,6 +5,7 @@ import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.credit.service.CreditService
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
+import ai.storyfork.operations.credit.service.dto.CreditBalancesRequest
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
 import java.math.BigDecimal
@@ -82,6 +83,7 @@ class CreditServiceTest {
             assertEquals(HttpStatus.FORBIDDEN, status { service.read(member, bearer, target) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.grant(member, bearer, target, request) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.revoke(member, bearer, target, request) })
+            assertEquals(HttpStatus.FORBIDDEN, status { service.balances(member, bearer, CreditBalancesRequest(listOf(target))) })
         }
         verifyNoInteractions(core, activities)
     }
@@ -94,10 +96,23 @@ class CreditServiceTest {
         `when`(core.revokeCredits(bearer, target, insufficient)).thenThrow(rejection)
         `when`(core.grantCredits(bearer, target, CreditAdjustRequest(BigDecimal(500), "지급"))).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
         `when`(core.credits(bearer, target)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        `when`(core.creditBalances(bearer, CreditBalancesRequest(listOf(target)))).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
         assertSame(rejection, assertThrows(UpstreamRejection::class.java) { service.revoke(admin, bearer, target, insufficient) })
         assertEquals(HttpStatus.NOT_FOUND, status { service.grant(admin, bearer, target, CreditAdjustRequest(BigDecimal(500), "지급")) })
         assertEquals(HttpStatus.BAD_GATEWAY, status { service.read(admin, bearer, target) })
+        assertEquals(HttpStatus.BAD_GATEWAY, status { service.balances(admin, bearer, CreditBalancesRequest(listOf(target))) })
+        verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `balances returns Core's rows untouched for an operator with credits permission and records nothing`() {
+        grantCredits(admin)
+        val request = CreditBalancesRequest(listOf(target))
+        val rows = mapper.readTree("""[{"memberId":"${target}","total":1200}]""")
+        `when`(core.creditBalances(bearer, request)).thenReturn(rows)
+
+        assertSame(rows, service.balances(admin, bearer, request))
         verifyNoInteractions(activities)
     }
 }

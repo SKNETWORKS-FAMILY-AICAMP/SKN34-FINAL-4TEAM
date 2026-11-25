@@ -20,7 +20,7 @@ LLMOps 정본은 self-host Langfuse이고 운영 화면이 프로젝트 API 키�
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
 정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다. 콘텐츠 API는 별도로 활성화합니다.
 
-`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보의 비밀번호와 토큰은 PostgreSQL에 해시로 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 미인증 이메일로 다시 가입하면 비밀번호·닉네임·토큰과 24시간 유효기간을 새 요청으로 교체하고 이전 링크는 무효화합니다. 이미 가입한 회원의 이메일은 409입니다. 가입 인증은 최신 토큰과 가입 시 정한 비밀번호가 모두 일치해야 하며, 잘못된 비밀번호로는 토큰을 소비하지 않습니다. 인증 성공 후 자동 로그인하지 않습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다.
+`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보의 비밀번호와 토큰은 PostgreSQL에 해시로 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 미인증 이메일로 다시 가입하면 비밀번호·닉네임·토큰과 24시간 유효기간을 새 요청으로 교체하고 이전 링크는 무효화합니다. 이미 가입한 회원의 이메일은 409입니다. 가입 인증에서 같은 이메일 회원이 이미 있어 회원을 만들지 못할 때도 409(별도 `code` 없음)이고, 토큰·비밀번호 불일치와 만료·사용 완료는 400입니다. 가입 인증은 최신 토큰과 가입 시 정한 비밀번호가 모두 일치해야 하며, 잘못된 비밀번호로는 토큰을 소비하지 않습니다. 인증 성공 후 자동 로그인하지 않습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다.
 
 | 메서드·경로 | 요청·성공 동작 |
 |---|---|
@@ -76,6 +76,7 @@ AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서�
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
 | `GET /internal/v1/credits/members/{memberId}` | 〃 | `{balance, history}`: 회원의 잔액(`GET /api/v1/me/credits` 응답과 같은 모양)과 내역(`GET /api/v1/me/credits/history` 응답과 같은 모양). 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 없는 회원 404 |
 | `POST /internal/v1/credits/members/{memberId}/grants`·`/revocations` | 〃 | `{amount, reason}`(`amount` 1~100000 정수, `reason` 앞뒤 공백 제외 1~200자, 위반 422 `INVALID_CREDIT_REQUEST`) → 201 갱신된 잔액 `{total, items}`. 지급은 종류 `operator`(소멸은 보상과 같은 월간 초기화), 회수는 소멸이 가까운 지급분부터 장부 `revoke`(`operator-revoke:<UUID>`)로 남기며 예약 중인 양은 건드리지 않는다. 회수가 쓸 수 있는 잔액을 넘으면 409 `CREDIT_INSUFFICIENT`(아무것도 바꾸지 않음), 없는 회원 404. 사유는 저장하지 않고(활동 기록은 운영 서비스가 남김) 요청 중복 방지 키가 없어 같은 요청을 다시 보내면 다시 반영한다. 마이그레이션은 `V14__credit_ledger_revoke.sql`(장부 `kind` CHECK에 `revoke` 추가)이다. [운영 계약](../../docs/design/operations-funnel-credit-contract.md) |
+| `POST /internal/v1/credits/balances` | 〃 | `{memberIds: [uuid…]}`(최대 100명, 초과 422 `INVALID_CREDIT_REQUEST`) → `[{memberId, total}]`. `total`은 `GET /api/v1/me/credits`의 `total`과 같은 계산(지급분에서 사용·회수·소멸과 예약 중인 양을 뺀 값)이고, 없는 회원은 결과에서 빠지며 순서는 정해져 있지 않다(`memberId`로 맞춘다). 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 운영 크레딧 탭이 회원 목록의 잔액 열을 채운다. 회원마다 잔액 계산(쿼리 3개)을 따로 돌리므로 100명이면 쿼리가 약 300개다. [운영 계약](../../docs/design/operations-funnel-credit-contract.md) |
 
 `MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다. 고전 원작 샘플의 소유 계정(`b1b09f26…`) 닉네임은 운영자처럼 보이지 않게 V10이 `운영팀`일 때만 `고전 아카이브`로 바꿉니다.
 
@@ -198,6 +199,20 @@ AttachmentResponse는 `id`, `filename`, `mediaType`, `kind`(`IMAGE`/`FILE`), `by
 타인·미존재 작품/설정/첨부·다른 설정의 첨부 ID는 동일한 404이며 미인증은 401, CSRF·허용하지 않은 origin은 403입니다.
 인증/CSRF 오류는 기존 Security 경계의 응답 형식을 유지합니다.
 
+### 세계관 카드 첨부 (#735)
+
+옛 작품 설정 문서가 없는 새 작품도 참고 파일·설정 이미지를 붙일 수 있도록 같은 첨부를 WorldStudio 설정 카드에도 둔다(사용자 결정 2026-11-24, [DEC-39](../../docs/design/decisions.md)).
+기준 경로는 `/api/v1/world-studios/{worldId}/cards/{cardId}/attachments`이고 하위 경로·요청·응답·허용 형식·10 MiB 한도·카드마다 이미지 10개·교체/삭제 복원·오류 코드는 위 설정 첨부와 같다
+(같은 `AttachmentService` 로직을 `card = true`로 재사용하며 `AttachmentResponse.url`만 `/api/v1/world-studios/{worldId}/cards/{cardId}/attachments/{attachmentId}/content`다).
+
+- **인가**: 세계관 소유자만 올리고 보고 받는다. 운영자는 GET·HEAD 열람만 하고 쓰기는 소유자만이다(`StudioWorldRepository.lockAccessible`). 남의 세계관·삭제한(소프트 삭제) 세계관·지운 카드(`lifecycle=removed`)·초안에 없는 카드·다른 세계관의 카드·UUID가 아닌 ID는 모두 같은 404 `ATTACHMENT_NOT_FOUND`이며 객체 저장소에 닿기 전에 막힌다(미인증 401은 그대로).
+  `CardAttachmentService`가 WorldStudio 트랜잭션(`WorldStudioService.hasCard`)에서 소유·카드를 먼저 확인한 뒤 첨부 트랜잭션을 연다(두 트랜잭션을 겹치지 않는다). 세계관 쪽 DB 실패는 503 `ATTACHMENT_DATABASE_FAILURE`다.
+- **저장**: `setting_attachment`가 옛 설정 문서(`setting_document_id`) 또는 카드(`world_card_id`) 중 정확히 한 곳을 가리킨다(DB CHECK, `db/migration/settingattachment/V2`, V1 바이트는 그대로). 카드는 `worldstudio` 스키마·별도 Flyway 이력이라 FK를 두지 않고 서비스가 확인한다.
+  한계: 확인과 저장 사이에 카드를 지우거나 카드를 지운(초안에서 뺀) 뒤에는 읽을 수 없는 첨부 행·객체가 남을 수 있다(자동 정리 없음, 운영자 몫).
+- **싣지 않는 곳**: 카드 첨부는 소유자 전용이다. 공개 세계관·독자 설정 위키·Fork 이어받기·설정 가져오기·Fork 독립 복사 응답에는 첨부 필드가 없고, Fork는 원본의 카드 첨부를 보지 못한다. 카드 대표 이미지(#401, `world-card-images`)는 별개 기능이다.
+- **옛 작품 설정 첨부는 그대로다**: 기존 작품(옛 설정이 있는 15개 작품)의 첨부는 옮기지 않고 같은 옛 경로·옛 화면(`/content` 세계관·설정집 탭의 `설정 첨부` 카드)에서 보이고 받는다. 새 업로드 대상만 카드가 늘었다.
+- **공개 진입점**: `/api/v1/world-studios/` 접두는 이미 Content로 가고, 파일 10 MiB(multipart 11 MiB)를 받도록 그 위치의 `client_max_body_size`를 6m에서 11m으로 올렸다(`frontend/nginx.conf`·`infrastructure/nginx.dev.conf`, `test_ci.py`가 고정).
+
 ### 보수적인 기술 제한 (요금·업무 저장 한도 정책이 아님)
 
 - 모든 파일은 비어 있지 않은 **10 MiB 이하**입니다. multipart envelope 한도는 11 MiB입니다.
@@ -235,17 +250,17 @@ Compose의 Core Auth Health → Content fresh 업무 migration → 첨부 Entity
 
 ```bash
 # backend/content-service에서 로컬 선택 순수 단위만
-./gradlew unitTest --tests 'ai.storyfork.content.attachment.AttachmentServiceTest' --tests 'ai.storyfork.content.attachment.AttachmentUploadHelperTest' --no-daemon
+./gradlew unitTest --tests 'ai.storyfork.content.attachment.AttachmentServiceTest' --tests 'ai.storyfork.content.attachment.CardAttachmentServiceTest' --tests 'ai.storyfork.content.attachment.AttachmentUploadHelperTest' --no-daemon
 # 아래는 hosted CI 형식이며 로컬 자동 검증 목록이 아닙니다.
 ./gradlew integrationTest --tests 'ai.storyfork.content.attachment.*' --no-daemon
 ```
 
 `AttachmentStorageClientTest`의 대역 HTTP와 `AttachmentMigrationLocationTest`의 H2/Flyway도 통합 계층입니다.
-`AttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다.
+`AttachmentConfigTest`는 Spring·실제 DB, `SettingAttachmentHttpTest`는 HTTP·실제 DB·MinIO를 사용하므로 단위 계층에서 실행하지 않습니다. 카드 첨부의 HTTP·DB(CHECK 포함) 흐름은 `world/CardAttachmentHttpIntegrationTest`(CI 전용, 객체 저장소 대역)가 확인합니다.
 설정·HTTP 검사는 `TEST_ATTACHMENT_DATABASE_URL`이 있을 때만 활성화합니다. 격리 DB 사용자는 `content_test`/빈 비밀번호이며 공유 DB에는 실행하지 않습니다.
 HTTP 검사는 `TEST_ATTACHMENT_S3_ENDPOINT`와 테스트 AWS credentials가 필요하고 전용 `issue87-test` 비공개 버킷을 만듭니다.
 실제 DB flush/deferred commit 실패와 저장소 응답 유실의 보상 동작을 검사하며 fault test 외의 HTTP lifecycle은 실제 MinIO를 사용합니다.
-CI Content 통합 job이 임시 MinIO(`127.0.0.1:19087`)와 전용 `attachment_test` DB를 띄우고 `TEST_ATTACHMENT_*`를 설정하므로 첨부 설정·실제 HTTP 검사도 실행됩니다.
+CI Content 서비스 job(통합 단계)이 임시 MinIO(`127.0.0.1:19087`)와 전용 `attachment_test` DB를 띄우고 `TEST_ATTACHMENT_*`를 설정하므로 첨부 설정·실제 HTTP 검사도 실행됩니다.
 대역 HTTP·H2/Flyway 검사는 CI 통합 계층에 포함되며 실제 첨부 lifecycle 검증은 별도 승인된 격리 환경의 증거가 필요합니다.
 `Required CI`는 최신 커밋의 실제 Actions 결과를 확인하기 전까지 검증 대기입니다.
 #92는 화면·브라우저 호출부를 변경하므로 Aside에서 실제 정상·실패 입력/클릭/API/화면 결과 확인이 필요합니다. HTTP·저장소 검증만으로 브라우저 E2E를 통과 처리하지 않습니다.

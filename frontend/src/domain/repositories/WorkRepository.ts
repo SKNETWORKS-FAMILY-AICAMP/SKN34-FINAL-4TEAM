@@ -9,6 +9,8 @@ export const FEEDBACK_UNAVAILABLE = '이 작품의 댓글·피드백·신고 기
 /** 작품·회차·Fork 정본 저장소 계약. 메서드는 HTTP 구현으로 바꿀 수 있게 비동기로 둡니다. */
 export interface WorkRepository {
   listWorks(): Promise<Work[]>
+  /** 목록(공개·내 작품)에 없는 작품 하나를 ID로 읽는다. 운영자가 남의 비공개 작품을 열 때만 쓴다. 서버 저장소만 구현한다. */
+  readWork?(id: string): Promise<Work>
   listWorlds(): Promise<World[]>
   readWorld(work: Work, episode: number): Promise<Work>
   /**

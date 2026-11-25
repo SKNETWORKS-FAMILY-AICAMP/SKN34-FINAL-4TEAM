@@ -5,6 +5,7 @@ import {Link,Route,RouterProvider,Routes,createMemoryRouter,useLocation,useNavig
 import {Provider} from 'react-redux'
 import {appContainer} from '../../app/appContainer'
 import {createAppStore} from '../../app/store'
+import {stubCardCategories} from '../cardCategories'
 import {clickNode,fakeGraph,rightClickNode} from '../forceGraphFake'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioLeaveProvider} from '../../presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
@@ -22,7 +23,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
 // 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake).
 vi.mock('react-force-graph-2d',()=>import('../forceGraphFake'))
-beforeEach(()=>fakeGraph.reset())
+beforeEach(()=>{fakeGraph.reset();stubCardCategories()})
 afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 const manageTab=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name})
 function Destination(){const location=useLocation();return <div>도착 {location.pathname} {JSON.stringify(location.state)}</div>}

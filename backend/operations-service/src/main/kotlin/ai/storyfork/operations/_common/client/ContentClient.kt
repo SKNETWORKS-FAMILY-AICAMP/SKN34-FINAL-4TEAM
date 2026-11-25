@@ -1,5 +1,8 @@
 package ai.storyfork.operations._common.client
 
+import ai.storyfork.operations.cardcategory.service.dto.CardCategoryCreateRequest
+import ai.storyfork.operations.cardcategory.service.dto.CardCategoryOrderRequest
+import ai.storyfork.operations.cardcategory.service.dto.CardCategoryUpdateRequest
 import ai.storyfork.operations.comment.service.dto.OperationsComment
 import ai.storyfork.operations.comment.service.dto.OperationsCommentList
 import ai.storyfork.operations.genre.service.dto.GenreCreateRequest
@@ -33,10 +36,13 @@ data class LeakReferences(
     val originWorkId: String?, val privateCardTitles: List<String> = emptyList(), val unpublishedEpisodeTitles: List<String> = emptyList(),
 )
 
-/** Genre calls also keep Content's 422 (an order that is not every code once) and show its own message and code (GENRE_NAME_TAKEN, GENRE_FEATURED_LIMIT). */
-private fun <T : Any> genre(call: () -> T?): T = upstream(setOf(400, 404, 409, 422), keepMessage = true, call = call)
+/**
+ * Management calls (genres, episodes, world studios, card categories) also keep Content's 422 (an order that is not every code once) and show its own
+ * message and code (GENRE_NAME_TAKEN, GENRE_FEATURED_LIMIT, EPISODE_INHERITED, CARD_CATEGORY_NAME_TAKEN).
+ */
+private fun <T : Any> managed(call: () -> T?): T = upstream(setOf(400, 404, 409, 422), keepMessage = true, call = call)
 
-/** Content internal work, comment and genre APIs; only the service token is sent, never a member Bearer. */
+/** Content internal work, comment, genre, episode, world studio and card category APIs; only the service token is sent, never a member Bearer. */
 class ContentClient(private val http: RestClient) {
     fun work(workId: UUID): ContentWork = upstream {
         http.get().uri("/internal/v1/works/{id}", workId).retrieve().body<ContentWork>()
@@ -77,6 +83,19 @@ class ContentClient(private val http: RestClient) {
         http.delete().uri("/internal/v1/works/{id}/restriction", workId).retrieve().body<ContentWork>()
     }
 
+    /**
+     * One page of the reader feedback reports for the operator to read (view only: the author handles them in Content), newest first. [status], [page] and [size] are
+     * sent only when given, so Content keeps its defaults and does the checking (its 422 text is kept for the admin). Content computes every field, so its JSON is returned as it is.
+     */
+    fun feedbackReports(status: String?, page: Int?, size: Int?): JsonNode = managed {
+        val query = listOfNotNull(status?.let { "status" to it }, page?.let { "page" to it.toString() }, size?.let { "size" to it.toString() }).toMap()
+        http.get().uri { builder ->
+            builder.path("/internal/v1/feedback-reports")
+            query.keys.forEach { name -> builder.queryParam(name, "{$name}") }
+            builder.build(query)
+        }.retrieve().body<JsonNode>()
+    }
+
     // ponytail: one unpaged call under the fixed 5s read timeout; add server-side workId/q/sort/page (comment contract) when the list grows.
     fun listComments(): OperationsCommentList = upstream {
         http.get().uri("/internal/v1/comments").retrieve().body<OperationsCommentList>()
@@ -97,18 +116,55 @@ class ContentClient(private val http: RestClient) {
     }
 
     // Genre rows are passed through as JSON: Content computes every field (workCount, position, ...), so the operations API follows it without a copy of the shape.
-    fun genres(): JsonNode = genre { http.get().uri("/internal/v1/genres").retrieve().body<JsonNode>() }
+    fun genres(): JsonNode = managed { http.get().uri("/internal/v1/genres").retrieve().body<JsonNode>() }
 
-    fun createGenre(request: GenreCreateRequest): JsonNode = genre {
+    fun createGenre(request: GenreCreateRequest): JsonNode = managed {
         http.post().uri("/internal/v1/genres").body(request).retrieve().body<JsonNode>()
     }
 
-    fun updateGenre(code: String, request: GenreUpdateRequest): JsonNode = genre {
+    fun updateGenre(code: String, request: GenreUpdateRequest): JsonNode = managed {
         http.patch().uri("/internal/v1/genres/{code}", code).body(request).retrieve().body<JsonNode>()
     }
 
-    fun reorderGenres(codes: List<String>): JsonNode = genre {
+    fun reorderGenres(codes: List<String>): JsonNode = managed {
         http.put().uri("/internal/v1/genres/order").body(GenreOrderRequest(codes)).retrieve().body<JsonNode>()
+    }
+
+    // Episodes, world studios and card categories are passed through as JSON too: Content computes every field (restricted, inherited, linkedWorkId, cardCount, ...).
+    fun episodes(workId: UUID): JsonNode = managed {
+        http.get().uri("/internal/v1/works/{id}/episodes", workId).retrieve().body<JsonNode>()
+    }
+
+    fun restrictEpisode(workId: UUID, number: Int): JsonNode = managed {
+        http.put().uri("/internal/v1/works/{id}/episodes/{number}/restriction", workId, number).retrieve().body<JsonNode>()
+    }
+
+    fun unrestrictEpisode(workId: UUID, number: Int): JsonNode = managed {
+        http.delete().uri("/internal/v1/works/{id}/episodes/{number}/restriction", workId, number).retrieve().body<JsonNode>()
+    }
+
+    fun worldStudios(): JsonNode = managed { http.get().uri("/internal/v1/world-studios").retrieve().body<JsonNode>() }
+
+    fun restrictWorld(worldId: UUID): JsonNode = managed {
+        http.put().uri("/internal/v1/world-studios/{id}/restriction", worldId).retrieve().body<JsonNode>()
+    }
+
+    fun unrestrictWorld(worldId: UUID): JsonNode = managed {
+        http.delete().uri("/internal/v1/world-studios/{id}/restriction", worldId).retrieve().body<JsonNode>()
+    }
+
+    fun cardCategories(): JsonNode = managed { http.get().uri("/internal/v1/card-categories").retrieve().body<JsonNode>() }
+
+    fun createCardCategory(request: CardCategoryCreateRequest): JsonNode = managed {
+        http.post().uri("/internal/v1/card-categories").body(request).retrieve().body<JsonNode>()
+    }
+
+    fun updateCardCategory(code: String, request: CardCategoryUpdateRequest): JsonNode = managed {
+        http.patch().uri("/internal/v1/card-categories/{code}", code).body(request).retrieve().body<JsonNode>()
+    }
+
+    fun reorderCardCategories(codes: List<String>): JsonNode = managed {
+        http.put().uri("/internal/v1/card-categories/order").body(CardCategoryOrderRequest(codes)).retrieve().body<JsonNode>()
     }
 
     /** Content re-submits only the failed episodes of the job (DEC-50) and answers with the updated job. */

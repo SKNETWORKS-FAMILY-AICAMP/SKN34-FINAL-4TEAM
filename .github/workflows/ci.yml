@@ -39,10 +39,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
-      unit: ${{ steps.plan.outputs.unit }}
-      unit_needed: ${{ steps.plan.outputs.unit_needed }}
-      integration: ${{ steps.plan.outputs.integration }}
-      integration_needed: ${{ steps.plan.outputs.integration_needed }}
+      service: ${{ steps.plan.outputs.service }}
+      service_needed: ${{ steps.plan.outputs.service_needed }}
       system: ${{ steps.plan.outputs.system }}
       system_needed: ${{ steps.plan.outputs.system_needed }}
       infra: ${{ steps.plan.outputs.infra }}
@@ -54,7 +52,7 @@ jobs:
           persist-credentials: false
       - id: plan
         run: python3 infrastructure/ci/ci.py plan
-      - if: ${{ steps.plan.outputs.unit_needed == 'true' }}
+      - if: ${{ steps.plan.outputs.service_needed == 'true' }}
         run: python3 -m unittest discover -s infrastructure/ci -p 'test_*.py' -v
 
   configuration:
@@ -113,105 +111,20 @@ jobs:
       - name: Validate simulation demo worlds without a database
         run: python3 -I -m unittest discover -s infrastructure/sample-data/simulation-demo -p 'test_*.py' -v
 
-  unit:
-    name: Unit / ${{ matrix.service }}
+  # 서비스마다 job 하나다. 한 러너에서 빌드 → 단위 → 통합 순서로 실행하고 앞 단계가 실패하면 뒤 단계는 실행하지 않는다.
+  # 서비스끼리는 병렬이다. 통합에 쓰는 postgres·neo4j·elasticsearch·mailpit은 해당 서비스에만 띄운다(image가 비면 건너뛴다).
+  service:
+    name: Service / ${{ matrix.service }}
     needs: changes
-    if: ${{ needs.changes.outputs.unit_needed == 'true' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.unit) }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
-      - if: ${{ matrix.service == 'web' }}
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          package_json_file: frontend/package.json
-      - if: ${{ matrix.service == 'web' }}
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - if: ${{ matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations' }}
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: gradle
-      - if: ${{ matrix.service == 'ai' }}
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          working-directory: backend/ai-service
-          enable-cache: true
-          cache-dependency-glob: backend/ai-service/uv.lock
-      - if: ${{ matrix.service == 'web' }}
-        run: pnpm --dir frontend install --frozen-lockfile
-      - if: ${{ matrix.service == 'ai' }}
-        run: uv lock --check --directory backend/ai-service
-      - name: Vitest unit tests (isolated modules only)
-        if: ${{ matrix.service == 'web' }}
-        working-directory: frontend
-        run: pnpm exec vitest run src/domain src/data src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/unit.xml
-      - name: JUnit unit tests (selected feature packages)
-        if: ${{ matrix.service == 'core' }}
-        working-directory: backend/core-api
-        env:
-          SCOPE: ${{ matrix.scope }}
-        run: |
-          filters=()
-          if [[ "$SCOPE" != all ]]; then
-            for feature in ${SCOPE//,/ }; do
-              case "$feature" in
-                auth) packages=("$feature") ;;
-                health) packages=(_health _health_ai_service _common) ;;
-                *) exit 1 ;;
-              esac
-              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
-            done
-          fi
-          ./gradlew unitTest --no-daemon "${filters[@]}"
-      - name: JUnit Content pure unit tests (integration excluded)
-        if: ${{ matrix.service == 'content' }}
-        working-directory: backend/content-service
-        run: ./gradlew unitTest --no-daemon
-      - name: JUnit Operations pure unit tests (integration excluded)
-        if: ${{ matrix.service == 'operations' }}
-        working-directory: backend/operations-service
-        run: ./gradlew unitTest --no-daemon
-      - name: pytest isolated provider unit tests
-        if: ${{ matrix.service == 'ai' }}
-        working-directory: backend/ai-service
-        run: uv run --locked --extra dev python -m pytest -m 'not integration' --junitxml=reports/unit.xml
-      - if: ${{ matrix.service == 'web' }}
-        run: pnpm --dir frontend lint && pnpm --dir frontend build
-      - name: Sanitize failure reports
-        if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ failure() }}
-        with:
-          name: unit-${{ matrix.service }}
-          path: sanitized/
-          retention-days: 7
-          if-no-files-found: ignore
-
-  integration:
-    name: Integration / ${{ matrix.service }}
-    needs: changes
-    if: ${{ needs.changes.outputs.integration_needed == 'true' }}
+    if: ${{ needs.changes.outputs.service_needed == 'true' }}
     permissions:
       contents: read
       packages: read
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 45
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.integration) }}
+      matrix: ${{ fromJSON(needs.changes.outputs.service) }}
     services:
       postgres:
         # Core·Content·Operations 통합 job마다 서로 격리된 임시 DB를 생성한다.
@@ -295,6 +208,10 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+          # 키를 서비스별로 가른다. 기본 키는 세 서비스를 한 캐시로 묶어 먼저 저장한 서비스의 의존성만 남는다.
+          cache-dependency-path: |
+            backend/${{ matrix.service }}*/*.gradle*
+            backend/${{ matrix.service }}*/gradle/wrapper/gradle-wrapper.properties
       - if: ${{ matrix.service == 'ai' }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
@@ -303,6 +220,61 @@ jobs:
           cache-dependency-glob: backend/ai-service/uv.lock
       - if: ${{ matrix.service == 'web' }}
         run: pnpm --dir frontend install --frozen-lockfile
+      # 1) 빌드: 서비스 이미지를 만드는 것과 같은 작업을 먼저 확인한다.
+      - name: Build web (lint and bundle)
+        if: ${{ matrix.service == 'web' }}
+        run: pnpm --dir frontend lint && pnpm --dir frontend build
+      - name: Build Core jar (same task as the image build)
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        run: ./gradlew bootJar --no-daemon
+      - name: Build Content jar (same task as the image build)
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew bootJar --no-daemon
+      - name: Build Operations jar (same task as the image build)
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/operations-service
+        run: ./gradlew bootJar --no-daemon
+      - name: Check AI dependency lock (no compile step)
+        if: ${{ matrix.service == 'ai' }}
+        run: uv lock --check --directory backend/ai-service
+      # 2) 단위: 빌드가 성공한 뒤에만 실행한다.
+      - name: Vitest unit tests (isolated modules only)
+        if: ${{ matrix.service == 'web' }}
+        working-directory: frontend
+        run: pnpm exec vitest run src/domain src/data src/index-html.test.js --reporter=default --reporter=junit --outputFile=reports/unit.xml
+      - name: JUnit unit tests (selected feature packages)
+        if: ${{ matrix.service == 'core' }}
+        working-directory: backend/core-api
+        env:
+          SCOPE: ${{ matrix.scope }}
+        run: |
+          filters=()
+          if [[ "$SCOPE" != all ]]; then
+            for feature in ${SCOPE//,/ }; do
+              case "$feature" in
+                auth) packages=("$feature") ;;
+                health) packages=(_health _health_ai_service _common) ;;
+                *) exit 1 ;;
+              esac
+              for package in "${packages[@]}"; do filters+=(--tests "ai.storyfork.core.$package.*"); done
+            done
+          fi
+          ./gradlew unitTest --no-daemon "${filters[@]}"
+      - name: JUnit Content pure unit tests (integration excluded)
+        if: ${{ matrix.service == 'content' }}
+        working-directory: backend/content-service
+        run: ./gradlew unitTest --no-daemon
+      - name: JUnit Operations pure unit tests (integration excluded)
+        if: ${{ matrix.service == 'operations' }}
+        working-directory: backend/operations-service
+        run: ./gradlew unitTest --no-daemon
+      - name: pytest isolated provider unit tests
+        if: ${{ matrix.service == 'ai' }}
+        working-directory: backend/ai-service
+        run: uv run --locked --extra dev python -m pytest -m 'not integration' --junitxml=reports/unit.xml
+      # 3) 통합: 단위가 모두 성공한 뒤에만 실행한다(통합 테스트 단계에는 상태 조건을 두지 않는다). 아래 보고·정리 단계만 실패 때도 돈다.
       - name: Vitest React integration tests (exclude unit files)
         if: ${{ matrix.service == 'web' }}
         working-directory: frontend
@@ -401,7 +373,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:
-          name: integration-${{ matrix.service }}
+          name: service-${{ matrix.service }}
           path: sanitized/
           retention-days: 7
           if-no-files-found: ignore
@@ -409,8 +381,8 @@ jobs:
 
   system:
     name: Selected HTTP system scenarios
-    needs: [changes, unit, integration, configuration]
-    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.unit.result == 'success' && needs.integration.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
+    needs: [changes, service, configuration]
+    if: ${{ always() && !cancelled() && needs.changes.result == 'success' && needs.service.result == 'success' && (needs.configuration.result == 'success' || needs.configuration.result == 'skipped') && needs.changes.outputs.system_needed == 'true' }}
     permissions:
       contents: read
       packages: read
@@ -475,7 +447,7 @@ jobs:
   required:
     name: Required CI
     if: ${{ always() }}
-    needs: [changes, configuration, unit, integration, system]
+    needs: [changes, configuration, service, system]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -486,8 +458,7 @@ jobs:
       - name: Reject failures, cancellations and unexpected skips
         env:
           NEEDS: ${{ toJSON(needs) }}
-          UNIT_NEEDED: ${{ needs.changes.outputs.unit_needed }}
-          INTEGRATION_NEEDED: ${{ needs.changes.outputs.integration_needed }}
+          SERVICE_NEEDED: ${{ needs.changes.outputs.service_needed }}
           SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
           CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
         run: python3 infrastructure/ci/ci.py required

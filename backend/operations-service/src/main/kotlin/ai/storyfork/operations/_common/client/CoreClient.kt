@@ -1,6 +1,7 @@
 package ai.storyfork.operations._common.client
 
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
+import ai.storyfork.operations.credit.service.dto.CreditBalancesRequest
 import ai.storyfork.operations.member.service.dto.MemberItem
 import ai.storyfork.operations.member.service.dto.MemberListResponse
 import ai.storyfork.operations.security.OperationsMember
@@ -15,6 +16,9 @@ data class CoreAdminRequest(val email: String, val nickname: String, val passwor
 
 /** Core GET /internal/v1/members/stats; the dashboard shows these three numbers as they are. */
 data class MemberStats(val total: Long, val joinedLast7Days: Long, val withdrawalPending: Long)
+
+/** Core `POST /internal/v1/members/nicknames` takes at most this many ids per call. */
+private const val NICKNAMES_PER_CALL = 200
 
 /** Credit calls also keep Core's 422 (a rule of amount or reason) and show its own message and code (CREDIT_INSUFFICIENT, INVALID_CREDIT_REQUEST). */
 private fun <T : Any> credit(call: () -> T?): T = upstream(setOf(400, 404, 409, 422), keepMessage = true, call = call)
@@ -42,6 +46,19 @@ class CoreClient(private val http: RestClient) {
         http.delete().uri("/internal/v1/members/{id}/restriction", id).header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body<MemberItem>()
     }
 
+    /**
+     * The latest nickname of every id in [ids] (a member Core does not know is left out). Unlike the other calls here this one has no member Bearer: the
+     * service token is enough, and it is not the member list, which stops at 200 members. Ids are sent once each, 200 per call, and any failed call
+     * (a rejected id included) is a 502, never a partial map.
+     */
+    fun nicknames(ids: Collection<String>): Map<String, String> =
+        buildMap { ids.toSet().chunked(NICKNAMES_PER_CALL).forEach { putAll(lookupNicknames(it)) } }
+
+    // Core answers { "nicknames": { "<id>": "<nickname>" } }; an answer without that map is as broken as an empty one.
+    private fun lookupNicknames(ids: List<String>): Map<String, String> = upstream(emptySet()) {
+        http.post().uri("/internal/v1/members/nicknames").body(mapOf("ids" to ids)).retrieve().body<Map<String, Map<String, String>>>()?.get("nicknames")
+    }
+
     fun memberStats(authorization: String): MemberStats = upstream {
         http.get().uri("/internal/v1/members/stats").header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body<MemberStats>()
     }
@@ -63,6 +80,12 @@ class CoreClient(private val http: RestClient) {
 
     fun revokeCredits(authorization: String, memberId: UUID, request: CreditAdjustRequest): JsonNode = credit {
         http.post().uri("/internal/v1/credits/members/{id}/revocations", memberId).header(HttpHeaders.AUTHORIZATION, authorization)
+            .body(request).retrieve().body<JsonNode>()
+    }
+
+    /** The balance totals of many members in one call; a member Core does not know is left out of its rows. */
+    fun creditBalances(authorization: String, request: CreditBalancesRequest): JsonNode = credit {
+        http.post().uri("/internal/v1/credits/balances").header(HttpHeaders.AUTHORIZATION, authorization)
             .body(request).retrieve().body<JsonNode>()
     }
 }

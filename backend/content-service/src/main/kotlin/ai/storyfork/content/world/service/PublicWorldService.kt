@@ -38,7 +38,7 @@ import org.springframework.transaction.support.TransactionTemplate
 
 /**
  * 공개 세계관의 비로그인 읽기 전용 조회다. 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(삭제되지 않았고 유효 공개 회차가 기준 회차 이하, [shownCardEpisode])와
- * 그 카드끼리의 기준 회차 시점 Neo4j 관계만 보여 주며 비공개·초안뿐인·없는 세계관은 모두 404로 숨긴다. 보일 카드가 하나도 없는 공개 세계관은 카드 없이 그대로 나온다.
+ * 그 카드끼리의 기준 회차 시점 Neo4j 관계만 보여 주며 비공개·초안뿐인·없는·운영이 제한한 세계관은 모두 404로 숨긴다(연결된 소설 위키와 Fork 이어받기는 제한과 무관하다). 보일 카드가 하나도 없는 공개 세계관은 카드 없이 그대로 나온다.
  * 기준 회차(DEC-53)는 연결된 소설이 공개 작품이면 발행된 마지막 회차, 공개 작품이 아니면 0, 연결이 없으면 1이다.
  * 상세에는 연결된 소설이 공개 작품일 때만 그 최소 정보를 싣는다(#329).
  * 검색(#505): [list]의 q와 [cards]는 같은 공개 기준으로 전체(색인이 켜져 있으면 [SearchCandidates]의 후보)를 읽어 메모리에서 거르고, 색인 호출은 읽기 트랜잭션 밖이다.
@@ -157,7 +157,7 @@ class PublicWorldService(
      */
     private fun listedAll(code: String?, only: Set<UUID>?): List<Pair<StudioWorld, WorldRevision>> {
         val rows = if (only == null) (if (code == null) worlds.listed(Pageable.unpaged()) else worlds.listedByGenre(code, Pageable.unpaged())).content
-        else worlds.findAllById(only).filter { it.deletedAt == null && isListed(it.visibility, it.currentRevisionId) && (code == null || it.genre == code) }
+        else worlds.findAllById(only).filter { it.deletedAt == null && !it.restricted && isListed(it.visibility, it.currentRevisionId) && (code == null || it.genre == code) }
             .sortedWith(compareByDescending<StudioWorld> { it.publishedAt }.thenBy { it.id })
         val sealed = revisions.findAllById(rows.mapNotNull { it.currentRevisionId }).filter { it.sealed }.associateBy { it.id }
         return rows.mapNotNull { world -> sealed[world.currentRevisionId]?.let { world to it } }
@@ -308,9 +308,9 @@ class PublicWorldService(
     private fun shownAt(cards: List<SettingCardVersion>, basis: Int) =
         cards.mapNotNull { card -> shownCardEpisode(card.fields.lifecycle, card.fields.visibility, card.fields.semanticMetadata, basis)?.let { card to it } }
 
-    /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있는 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */
+    /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있고 운영이 제한하지 않은 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */
     private fun listedWorld(id: UUID): Pair<StudioWorld, WorldRevision> {
-        val world = worlds.findById(id).orElse(null)?.takeIf { it.deletedAt == null && isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
+        val world = worlds.findById(id).orElse(null)?.takeIf { it.deletedAt == null && !it.restricted && isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
         val revision = revisions.findByIdAndWorldId(world.currentRevisionId ?: throw notFound(), id)?.takeIf { it.sealed } ?: throw notFound()
         return world to revision
     }
@@ -357,7 +357,7 @@ class PublicWorldService(
         works.findAllByWorldStudioIdIn(listOf(worldId)).firstOrNull()?.let { workAccess.get(it.id) }
 
     /**
-     * [worldIds] 각각의 기준 회차를 목록 한 페이지 전체에 쿼리 둘로 센다([basisEpisode]와 같은 값): 연결된 작품 조회 하나와 그 가운데 공개 작품의 발행된 마지막 회차 조회 하나다.
+     * [worldIds] 각각의 기준 회차를 목록 한 페이지 전체에 쿼리 둘로 센다([basisEpisode]와 같은 값): 연결된 작품 조회 하나와 그 가운데 공개 작품의 발행된 마지막 회차(운영 제한 회차 제외) 조회 하나다.
      * 연결된 소설이 공개 작품이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면 0, 연결이 없으면 1이다. 작품은 Content 트랜잭션이라 WorldStudio 읽기 트랜잭션 밖에서 부른다.
      */
     private fun basisEpisodes(worldIds: List<UUID>): Map<UUID, Int> {
@@ -368,13 +368,13 @@ class PublicWorldService(
     }
 
     /**
-     * 공개 세계관 하나의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
+     * 공개 세계관 하나의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(운영이 제한한 회차는 독자에게 없으므로 뺀다, 없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
      * 연결이 없으면 1이다. 독자 위키의 기준([ai.storyfork.content.work.service.WorkWorldService])과 같은 값이다. 발행을 중단하면 마지막 발행 회차가 내려가 보이던 카드가 다시 숨는다.
      */
     private fun basisEpisode(linked: WorkAccessResult?): Int = when {
         linked == null -> 1
         !linked.publiclyVisible() -> 0
-        else -> publication.publishedEpisodes(linked.id).items.maxOfOrNull { it.number } ?: 0
+        else -> publication.publishedEpisodes(linked.id).items.filterNot { it.restricted }.maxOfOrNull { it.number } ?: 0
     }
 
     /** 작가 표시명은 저장하지 않고 Core에서 한 번에 조회한다. Core에 없으면 탈퇴한 회원이고, 호출 실패는 대체 이름 없이 그대로 전파한다. */

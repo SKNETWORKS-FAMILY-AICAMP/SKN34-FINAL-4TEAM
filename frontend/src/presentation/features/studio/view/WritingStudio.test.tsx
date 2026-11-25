@@ -16,7 +16,7 @@ const model = vi.hoisted(() => ({
   deleteBlocker: '', deleteBlockerOf: vi.fn((e: { inherited: boolean; publishedVersionId: string | null }) => e.inherited ? '원작 기준 회차는 삭제할 수 없어요.' : e.publishedVersionId ? '발행본이 있는 회차는 삭제할 수 없어요.' : ''),
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), loadVersion: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
   retrySave: vi.fn(), expired: false,
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
@@ -33,6 +33,10 @@ vi.mock('../../../shared/plans/useStoryPlanViewModel', () => ({ useStoryPlanView
 const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
 vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
 afterEach(() => { mcp.stale = false })
+// 운영자 열람 모드(2026-11-23)의 판정은 useOperatorViewOnly.test가 확인하고, 여기서는 집필실이 그 값으로 쓰기를 막는지만 본다.
+const operator = vi.hoisted(() => ({ viewOnly: false, notice: null as 'others' | 'failed' | null, retry: vi.fn() }))
+vi.mock('../viewmodel/useOperatorViewOnly', () => ({ useOperatorViewOnly: () => ({ viewOnly: operator.viewOnly, notice: operator.notice, retry: operator.retry }) }))
+afterEach(() => { operator.viewOnly = false; operator.notice = null })
 // AI 집필 중 원고 잠금: 켜짐 여부 읽기는 useSerialLock.test가 본다. 여기서는 잠겼을 때 집필실이 입력·버튼을 잠그고 안내하는지만 본다.
 const serial = vi.hoisted(() => ({ locked: false }))
 vi.mock('../../../shared/useSerialLock', () => ({ useSerialLock: () => ({ locked: serial.locked, reread: vi.fn() }) }))
@@ -56,10 +60,11 @@ afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.activ
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where" data-nav={useNavigationType()}>{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const navigation = () => screen.getByTestId('where').dataset.nav
-const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number, path = '/studio/work-id') => {
+/** history: 집필실을 앱 안의 다른 화면에서 열었을 때의 기록(마지막 항목이 지금 화면). 없으면 집필실이 첫 항목이다(주소를 직접 연 경우). */
+const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number, path = '/studio/work-id', history?: string[]) => {
   const store = createAppStore({}, ui)
   const view = render(<WritingStudio id="work-id" episode={episode} />, {
-    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={[path]}>{children}<Where /></MemoryRouter></Provider>,
+    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={history ?? [path]}>{children}<Where /></MemoryRouter></Provider>,
   })
   return { ...view, store }
 }
@@ -212,10 +217,11 @@ function expectComparisonSelection(before: string, after: string) {
   expect(screen.getByLabelText('비교 원고 버전')).toHaveProperty('value', after)
 }
 
-it('팀 서재로 돌아가며 공개 시트에서 버전 선택과 권리 확인 후 기존 API 동작을 사용한다', async () => {
+it('상단 뒤로 버튼이 있고(서재 링크가 아니다) 공개 시트에서 버전 선택과 권리 확인 후 기존 API 동작을 사용한다', async () => {
   model.active = { ...originalActive, versions: [savedVersion('v1')] }
   renderStudio()
-  expect(screen.getByRole('link', { name: '내가 쓰는 소설' }).getAttribute('href')).toBe('/lib?tab=write')
+  expect(screen.getByRole('button', { name: '뒤로' })).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '내가 쓰는 소설' })).toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '버전 · 공개' }))
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
@@ -430,7 +436,7 @@ it('버전이 두 개 미만으로 줄어 비교 화면이 사라져도 제거�
   expect(screen.queryByRole('region', { name: '원고 변경 내용' })).toBeNull()
 })
 
-it('플롯은 집필실 안에서 열리고 서재 링크만 이동한다', () => {
+it('플롯은 집필실 안에서 열리고 뒤로 버튼만 이동한다', () => {
   renderStudio()
   openMore()
   fireEvent.click(screen.getByRole('menuitem', { name: '플롯' }))
@@ -438,16 +444,25 @@ it('플롯은 집필실 안에서 열리고 서재 링크만 이동한다', () =
   expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
   expect(screen.queryByRole('menu')).toBeNull()
   expect(model.mayLeave).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
-  expect(where()).toBe('/lib?tab=write')
+  // 집필실이 첫 항목이면(주소를 직접 열었다) 이전 화면이 없으니 이 작품의 관리 화면으로 간다.
+  fireEvent.click(screen.getByRole('button', { name: '뒤로' }))
+  expect(where()).toBe('/content?work=work-id')
   expect(model.mayLeave).toHaveBeenCalledTimes(1)
 })
 
 it('미저장 입력 때문에 이탈을 취소하면 현재 집필실에 남는다', () => {
   renderStudio()
   model.mayLeave.mockReturnValueOnce(false)
-  fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
+  fireEvent.click(screen.getByRole('button', { name: '뒤로' }))
   expect(where()).toBe('/studio/work-id')
+})
+
+it('앱 안에 이전 화면이 있으면 뒤로는 그 화면으로 돌아간다(저장 확인은 되돌아가기 보호가 맡아 직접 묻지 않는다: 두 번 묻지 않게)', () => {
+  renderStudio({}, undefined, undefined, ['/content?work=work-id', '/studio/work-id'])
+  fireEvent.click(screen.getByRole('button', { name: '뒤로' }))
+  expect(where()).toBe('/content?work=work-id')
+  expect(navigation()).toBe('POP')
+  expect(model.mayLeave).not.toHaveBeenCalled()
 })
 
 it('목업의 해시 경로 이동도 보호하고 같은 페이지의 본문 링크는 허용한다', () => {
@@ -661,11 +676,46 @@ it('저장하지 않은 변경이나 발행본이 없으면 해당 배지를 그
   expect(graph().textContent).not.toContain('발행본')
 })
 
-it('그래프의 저장 버전 노드를 누르면 기존 버전 시트가 열리고 그 버전이 선택돼 있다', () => {
+// 편집기 내용이 저장 버전과 같으면 현재 위치가 그 버전으로 옮겨 가고, 한 글자라도 고치면 작업 초안으로 돌아온다(#730 후속).
+it('편집기 내용이 저장 버전과 같으면 그 버전 노드가 현재이고 고치면 작업 초안이 현재다', () => {
+  model.active = { ...originalActive, versions: [savedVersion('v1', '저장 원고'), { ...savedVersion('v2', '다른 원고'), title: '다른 저장본' }] }
+  model.draft = { ...originalDraft, title: '저장본', body: '저장 원고' }
+  const { rerender } = renderStudio()
+  const rows = () => within(graph()).getAllByRole('listitem')
+  expect(rows().map(r => r.className)).toEqual(['graph-row draft', 'graph-row version', 'graph-row version head'])
+  expect(rows()[2].textContent).toContain('현재')
+  expect(rows()[0].textContent).not.toContain('현재')
+  model.draft = { ...originalDraft, title: '저장본', body: '고친 원고' }
+  rerender(<WritingStudio id="work-id" />)
+  expect(rows().map(r => r.className)).toEqual(['graph-row draft head', 'graph-row version', 'graph-row version'])
+  expect(rows()[0].textContent).toContain('현재')
+  expect(rows()[2].textContent).not.toContain('현재')
+})
+
+// #730 그래프의 저장 버전 노드는 편집할 수 있는 회차에서 시트를 열지 않고 그 버전을 작업 초안에 불러온다(복원·공개·버전 저장은 하지 않는다).
+// 불러온 제목·본문, 저장하지 않은 입력의 확인, 안내는 ViewModel이 하므로 useWritingViewModel.test가 확인한다(여기서는 ViewModel을 대역으로 쓴다).
+it('그래프의 저장 버전 노드를 누르면 시트를 열지 않고 그 버전을 작업 초안에 불러온다', () => {
+  renderStudio()
+  fireEvent.click(within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ }))
+  expect(model.loadVersion).toHaveBeenCalledExactlyOnceWith('v1')
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(model.restore).not.toHaveBeenCalled()
+  expect(model.publish).not.toHaveBeenCalled()
+  expect(model.save).not.toHaveBeenCalled()
+})
+
+// 편집이 잠긴 회차는 본문을 바꾸지 않고 지금까지처럼 기존 버전 시트로 그 버전을 미리보기만 보인다(비교·복원·공개는 시트의 기존 기능).
+it.each([
+  ['원작 기준 회차', () => { model.active = { ...originalActive, inherited: true } }],
+  ['AI 자율 연재로 잠긴 회차', () => { serial.locked = true; model.active = { ...originalActive, number: 2 } }],
+  ['운영자 열람 모드', () => { operator.viewOnly = true }],
+])('%s에서는 그래프의 저장 버전 노드가 본문을 바꾸지 않고 기존 버전 시트를 그 버전으로 연다', (_lock, lock) => {
+  lock()
   renderStudio()
   const node = within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ })
   expect(node.getAttribute('aria-current')).toBeNull()
   fireEvent.click(node)
+  expect(model.loadVersion).not.toHaveBeenCalled()
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
   expect(screen.getByLabelText('검토할 저장 버전')).toHaveProperty('value', 'v1')
   expect(screen.getByRole('heading', { level: 3, name: '저장본' })).toBeTruthy()
@@ -704,11 +754,11 @@ it('고급 패널은 기본 모드에서 숨겨지고 토글해도 같은 원고
 it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
   renderStudio()
   const bar = screen.getByRole('banner')
-  expect(within(bar).getByRole('link', { name: '내가 쓰는 소설' })).toBeTruthy()
+  expect(within(bar).getByRole('button', { name: '뒤로' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
   expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 버전 1')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
-  expect(names).toEqual(['기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
+  expect(names).toEqual(['뒤로', '기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
   for (const name of ['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력']) {
     expect(within(bar).queryByRole('link', { name })).toBeNull()
@@ -1364,7 +1414,8 @@ it('회차 설정 시트에서 보낸 요청의 실패와 완료는 시트 안�
 
 it('저장 버전 미리보기는 키보드로 내려 읽을 수 있는 이름 있는 영역이다', () => {
   renderStudio()
-  fireEvent.click(within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ }))
+  openVersions()
+  fireEvent.change(screen.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
   const preview = screen.getByRole('region', { name: '선택한 저장 버전 원고' })
   expect(preview.tabIndex).toBe(0)
   expect(preview.className).toContain('writing-preview')
@@ -1422,6 +1473,76 @@ it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보�
   const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
   fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
   expect(mcp.reload).toHaveBeenCalledTimes(1)
+})
+
+// 운영자가 남의 작품을 열면 열람 전용이다(2026-11-23). 서버도 운영자의 쓰기는 거절하므로 화면은 쓰기 버튼을 처음부터 막는다.
+it('운영자 열람 모드는 안내를 보이고 쓰기 버튼을 막으며 본문을 읽기 전용으로 보이고 AI 채팅을 숨긴다', () => {
+  model.active = { ...originalActive, hasDraft: false }
+  model.episodes = [episodeRow(1, '첫 회차')]
+  const { rerender } = renderStudio()
+  expect(screen.queryByText(/운영자 열람 모드/)).toBeNull()
+  expect(screen.getByText(/작업 초안이 없어요/)).toBeTruthy()
+  expect(screen.getByRole('textbox', { name: '원고 본문' }).tagName).toBe('TEXTAREA')
+  expect(screen.queryByRole('complementary', { name: 'AI 채팅' }) ?? screen.queryByRole('button', { name: 'AI 채팅 열기' })).toBeTruthy()
+  operator.viewOnly = true
+  operator.notice = 'others'
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.getByText('운영자 열람 모드 · 다른 작가의 작품이라 수정할 수 없어요.')).toBeTruthy()
+  for (const name of ['버전 저장', '새 회차', '시뮬레이션']) expect(screen.getByRole('button', { name })).toHaveProperty('disabled', true)
+  expect(versionsButton()).toHaveProperty('disabled', false)
+  const body = screen.getByRole('textbox', { name: '원고 본문' })
+  expect(body.tagName).toBe('DIV')
+  expect(body.getAttribute('aria-readonly')).toBe('true')
+  expect(screen.getByRole('textbox', { name: '회차 제목' })).toHaveProperty('readOnly', true)
+  expect(screen.queryByRole('complementary', { name: 'AI 채팅' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'AI 채팅 열기' })).toBeNull()
+  // 입력해도 저장되지 않으니 '입력하면 새 초안으로 저장' 안내도 숨긴다.
+  expect(screen.queryByText(/작업 초안이 없어요/)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '1화 더보기' }))
+  expect(screen.getByRole('menuitem', { name: '회차 삭제' })).toHaveProperty('disabled', true)
+})
+
+it('운영자 열람 모드의 회차 설정·버전 시트는 쓰기 도구를 숨기거나 막고 발행 이력·내보내기는 그대로 둔다', () => {
+  model.active = { ...originalActive, versions: [savedVersion('v1'), savedVersion('v2')], checkpoints: checkpointRows, publishedVersionId: 'v2' }
+  const { rerender } = renderStudio()
+  openVersions()
+  expect(screen.getByRole('button', { name: '예약 발행' })).toBeTruthy()
+  operator.viewOnly = true
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.queryByRole('button', { name: '예약 발행' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /^체크포인트 1/ }))
+  fireEvent.click(screen.getByLabelText(revertRights))
+  expect(screen.getByRole('button', { name: '이 체크포인트로 되돌리기' })).toHaveProperty('disabled', true)
+  fireEvent.change(screen.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
+  fireEvent.click(screen.getByLabelText('이 저장 원고를 공개할 권리가 있음을 확인합니다.'))
+  expect(screen.getByRole('button', { name: '선택 버전을 새 버전으로 복원' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '선택한 저장 버전 공개' })).toHaveProperty('disabled', true)
+  cleanup()
+  renderStudio()
+  openSettings()
+  const sheet = screen.getByRole('dialog', { name: '회차 설정' })
+  expect(within(sheet).getByRole('textbox', { name: '작가의 말' })).toHaveProperty('readOnly', true)
+  expect(within(sheet).getByRole('region', { name: '회차 관리' })).toBeTruthy()
+  expect(within(sheet).queryByRole('region', { name: '위험 영역' })).toBeNull()
+  expect(within(sheet).queryByText('본문 이미지 추가')).toBeNull()
+  expect(within(sheet).queryByRole('button', { name: '회차 공개 중단' })).toBeNull()
+  expect(within(sheet).getByRole('button', { name: '발행 이력' })).toHaveProperty('disabled', false)
+})
+
+// 소유자 확인의 실제 결과와 배너를 맞춘다: 확인 중에는 '다른 작가의 작품'이라고 단정하지 않고, 확인하지 못하면 그대로 알린 뒤 다시 시도로 재확인한다.
+it('운영자 열람 모드는 소유자 확인 중에는 안내하지 않고, 확인하지 못하면 그대로 알리며 다시 시도를 누르면 재확인한다', () => {
+  operator.viewOnly = true
+  const { rerender } = renderStudio()
+  expect(screen.getByRole('button', { name: '버전 저장' })).toHaveProperty('disabled', true)
+  expect(screen.queryByText(/다른 작가의 작품/)).toBeNull()
+  expect(screen.queryByText(/확인하지 못해/)).toBeNull()
+  operator.notice = 'failed'
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.getByText('작품 소유자를 확인하지 못해 열람 모드로 열었어요.')).toBeTruthy()
+  expect(screen.queryByText(/다른 작가의 작품/)).toBeNull()
+  expect(screen.getByRole('button', { name: '버전 저장' })).toHaveProperty('disabled', true)
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  expect(operator.retry).toHaveBeenCalledTimes(1)
 })
 
 // ── AI 자율 집필 중 원고 잠금(계약 'AI 자율 집필 = 집필 방식'): 작가는 1화만 쓴다. 서버가 2화부터 409 SERIAL_LOCKED로 막는 수정을 화면도 미리 잠그고 안내한다 ──

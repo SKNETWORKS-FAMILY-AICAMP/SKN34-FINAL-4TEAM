@@ -1,3 +1,5 @@
+import { ImageGenerationUseCase } from "../../domain/usecases/ImageGenerationUseCase"
+import { HttpImageGenerationRepository } from "../../data/api/HttpImageGenerationRepository"
 import {ManuscriptBuildUseCase} from '../../domain/usecases/ManuscriptBuildUseCase'
 import {HttpManuscriptBuildRepository} from '../../data/content/HttpManuscriptBuildRepository'
 import {InitialWorldUseCase} from '../../domain/usecases/InitialWorldUseCase'
@@ -13,7 +15,11 @@ import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCase'
 import { OperationsGenreUseCase } from '../../domain/usecases/OperationsGenreUseCase'
 import { GenreUseCase } from '../../domain/usecases/GenreUseCase'
+import { CardCategoryUseCase } from '../../domain/usecases/CardCategoryUseCase'
+import { OperationsCardCategoryUseCase } from '../../domain/usecases/OperationsCardCategoryUseCase'
+import { OperationsWorldUseCase } from '../../domain/usecases/OperationsWorldUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
+import { OperationsFeedbackReportUseCase } from '../../domain/usecases/OperationsFeedbackReportUseCase'
 import { OperationsCreditUseCase } from '../../domain/usecases/OperationsCreditUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
 import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
@@ -21,10 +27,13 @@ import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
 import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
 import { HttpOperationsCreditRepository } from '../../data/api/HttpOperationsCreditRepository'
-import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
+import { HttpOperationsFeedbackReportRepository } from '../../data/api/HttpOperationsFeedbackReportRepository'
+import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpOperationsWorldRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
 import { HttpGenreRepository } from '../../data/content/HttpGenreRepository'
+import { HttpCardCategoryRepository } from '../../data/content/HttpCardCategoryRepository'
+import { HttpOperationsCardCategoryRepository } from '../../data/api/cardCategoryApi'
 import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
@@ -96,6 +105,8 @@ import type { AppContainer } from './types'
 /** 작품·열람·Fork와 홈 순위·검색은 같은 Content API를 사용한다. 나머지 데모 상태에는 샘플 작품·댓글을 주입하지 않는다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    imageGenerationRepository: asFunction(() => new HttpImageGenerationRepository()).singleton(),
+    imageGenerationUseCase: asFunction(({ imageGenerationRepository }) => new ImageGenerationUseCase(imageGenerationRepository)).singleton(),
     operationsRepository: asFunction(() => new InMemoryOperationsRepository()).singleton(),
     operationsUseCase: asFunction(({ operationsRepository }) => new OperationsUseCase(operationsRepository)).singleton(),
     noticeRepository: asFunction(() => new HttpNoticeRepository()).singleton(),
@@ -114,10 +125,18 @@ export function registerAppServices(container: AppContainer) {
     genreUseCase: asFunction(({ genreRepository }) => new GenreUseCase(genreRepository)).singleton(),
     operationsGenreRepository: asFunction(() => new HttpOperationsGenreRepository()).singleton(),
     operationsGenreUseCase: asFunction(({ operationsGenreRepository }) => new OperationsGenreUseCase(operationsGenreRepository)).singleton(),
+    cardCategoryRepository: asFunction(() => new HttpCardCategoryRepository()).singleton(),
+    cardCategoryUseCase: asFunction(({ cardCategoryRepository }) => new CardCategoryUseCase(cardCategoryRepository)).singleton(),
+    operationsCardCategoryRepository: asFunction(() => new HttpOperationsCardCategoryRepository()).singleton(),
+    operationsCardCategoryUseCase: asFunction(({ operationsCardCategoryRepository }) => new OperationsCardCategoryUseCase(operationsCardCategoryRepository)).singleton(),
+    operationsWorldRepository: asFunction(() => new HttpOperationsWorldRepository()).singleton(),
+    operationsWorldUseCase: asFunction(({ operationsWorldRepository }) => new OperationsWorldUseCase(operationsWorldRepository)).singleton(),
     operationsCreditRepository: asFunction(() => new HttpOperationsCreditRepository()).singleton(),
     operationsCreditUseCase: asFunction(({ operationsCreditRepository }) => new OperationsCreditUseCase(operationsCreditRepository)).singleton(),
     operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
+    operationsFeedbackReportRepository: asFunction(() => new HttpOperationsFeedbackReportRepository()).singleton(),
+    operationsFeedbackReportUseCase: asFunction(({ operationsFeedbackReportRepository }) => new OperationsFeedbackReportUseCase(operationsFeedbackReportRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
     operationsDashboardRepository: asFunction(() => new HttpOperationsDashboardRepository()).singleton(),

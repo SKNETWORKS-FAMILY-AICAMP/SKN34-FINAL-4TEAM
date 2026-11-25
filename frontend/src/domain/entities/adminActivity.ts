@@ -26,22 +26,33 @@ const ACTIONS = new Map([
   ['INQUIRY_REPLY_CREATE', '문의 답변 등록'], ['INQUIRY_REPLY_UPDATE', '문의 답변 수정'], ['INQUIRY_REPLY_DELETE', '문의 답변 삭제'],
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
   // DEC-55 운영 LLMOps(조각 2 서버 코드의 이름)와 작업 감시(조각 3)
-  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_PROMOTE', '프롬프트 승격·복원'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
+  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_CANDIDATE', '프롬프트 후보 등록'], ['PROMPT_PROMOTE', '프롬프트 서비스 반영'], ['PROMPT_OPTIMIZE', '프롬프트 자동 개선 실행'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
   ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
   ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
   // DEC-56 장르 관리(운영 서비스가 남기는 조치)
   ['GENRE_CREATE', '장르 추가'], ['GENRE_UPDATE', '장르 수정'], ['GENRE_REORDER', '장르 순서 변경'],
   // DEC-57 크레딧 운영(대상은 회원, 내역은 서버가 남긴 금액·사유 문구)
   ['CREDIT_GRANT', '크레딧 지급'], ['CREDIT_REVOKE', '크레딧 회수'],
+  // 운영자 콘텐츠 관리: 회차·세계관 운영 제한과 카드 카테고리 관리(운영 서비스는 이 조치만 소문자 점 표기로 남긴다)
+  ['episode.restrict', '회차 운영 제한'], ['episode.unrestrict', '회차 운영 제한 해제'],
+  ['world.restrict', '세계관 운영 제한'], ['world.unrestrict', '세계관 운영 제한 해제'],
+  ['card_category.create', '카드 카테고리 추가'], ['card_category.update', '카드 카테고리 수정'], ['card_category.reorder', '카드 카테고리 순서 변경'],
 ])
 const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글'], ['JOB_SCHEDULE', '정기 작업 일정'], ['JOB_RUN', '작업 실행'],
-  ['PROMPT', '프롬프트'], ['MODEL', '모델'], ['EVALUATION', '회귀 평가'], ['ALERT', '경고'], ['ALERT_RULE', '경고 기준'], ['LLMOPS_SETTING', 'LLMOps 설정'], ['GENRE', '장르']])
+  ['PROMPT', '프롬프트'], ['MODEL', '모델'], ['EVALUATION', '회귀 평가'], ['ALERT', '경고'], ['ALERT_RULE', '경고 기준'], ['LLMOPS_SETTING', 'LLMOps 설정'], ['GENRE', '장르'],
+  ['episode', '회차'], ['world', '세계관'], ['card_category', '카드 카테고리']])
 
 /** 모르는 조치는 코드 그대로 보여 줍니다. */
 export const activityActionLabel = (action: string) => ACTIONS.get(action) ?? action
 /** 대상은 "종류 이름 ID"입니다. 모르는 종류는 코드 그대로, ID가 없으면 종류만 보여 줍니다. 장르 순서 변경은 특정 장르가 아니라 목록 전체(ID `order`)입니다. */
-export const activityTarget = ({ targetType, targetId }: Pick<AdminActivity, 'targetType' | 'targetId'>) =>
-  targetType === 'GENRE' && targetId === 'order' ? '장르 목록' : [TARGETS.get(targetType) ?? targetType, targetId].filter(Boolean).join(' ')
+export function activityTarget({ targetType, targetId }: Pick<AdminActivity, 'targetType' | 'targetId'>) {
+  if (targetType === 'GENRE' && targetId === 'order') return '장르 목록'
+  if (targetType === 'card_category' && targetId === 'order') return '카드 카테고리 목록'
+  // 회차 조치의 대상은 `<작품 id>:<회차 번호>`다.
+  const episode = targetType === 'episode' ? /^(.+):(\d+)$/.exec(targetId) : null
+  if (episode) return `회차 ${episode[2]}화 · 작품 ${episode[1]}`
+  return [TARGETS.get(targetType) ?? targetType, targetId].filter(Boolean).join(' ')
+}
 /** 수행자는 닉네임이고, 관리자 해제·탈퇴로 닉네임이 없으면 ID입니다. */
 export const activityActor = ({ actorId, actorNickname }: Pick<AdminActivity, 'actorId' | 'actorNickname'>) => actorNickname || actorId
 
@@ -59,6 +70,7 @@ export function activityDetail({ action, detail }: Pick<AdminActivity, 'action' 
   if (action === 'REPORT_REVIEW') return isReportStatus(detail) ? reportStatusLabel(detail) : detail
   // 장르 순서 변경의 내역은 장르 코드 목록(쉼표)이라 개수로만 보입니다.
   if (action === 'GENRE_REORDER') return `${detail.split(',').filter(Boolean).length}개 장르의 순서`
+  if (action === 'card_category.reorder') return `${detail.split(',').filter(Boolean).length}개 카드 카테고리의 순서`
   if (action === 'ADMIN_CREATE') {
     const [email, keys] = detail.split(' · ')
     if (keys === undefined) return detail

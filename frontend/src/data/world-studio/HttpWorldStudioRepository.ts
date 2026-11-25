@@ -107,16 +107,8 @@ const card = z.object({
   id: uuid,
   title: z.string(),
   body: z.string(),
-  cardType: z.enum([
-    'character',
-    'location',
-    'organization',
-    'ability',
-    'object',
-    'rule',
-    'event',
-    'other',
-  ]),
+  // 카드 유형 = 카드 카테고리 코드: 기본 8종뿐 아니라 운영자가 추가한 코드(`category-NN`)도 온다(운영자 콘텐츠 관리 결정 E).
+  cardType: z.string().min(1),
   areaCode: area,
   classification: z.string(),
   aliases: z.array(z.string()),
@@ -200,7 +192,7 @@ function relationship(row: StudioSetting) {
 }
 // 정본 카드 유형의 종류 필드다. studio가 없거나 정본 유형과 어긋나면 이것으로 다시 만든다.
 const kindFields = (type: z.infer<typeof card>['cardType']) =>
-  type === 'rule' || type === 'event' ? { kind: type, entityType: null } : { kind: 'entity' as const, entityType: type }
+  type === 'rule' ? { kind: 'rule' as const, entityType: null } : type === 'event' ? { kind: 'event' as const, entityType: null } : { kind: 'entity' as const, entityType: type }
 // 기존 Seeder·MCP처럼 정본 필드만 저장한 카드(빈 메타데이터)의 행이다.
 function canonicalCard(c: z.infer<typeof card>): StudioSetting {
   return {
@@ -292,10 +284,9 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
   }
   /** 인증·CSRF·시간 제한을 붙여 보내고 응답은 그대로 돌려준다. multipart(FormData)는 Content-Type을 브라우저가 경계와 함께 붙이도록 두지 않는다. */
   private async send(path: string, method: string, body: string | FormData | undefined, signal: AbortSignal | undefined): Promise<Response> {
-    const version = authVersion(),
-      requestSignal = signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
-        : AbortSignal.timeout(20000)
+    const version = authVersion()
+    const timeout = AbortSignal.timeout(method === 'PUT' && path.endsWith('/cover') ? 45000 : 20000)
+    const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout
     const headers: Record<string, string> = body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
     if (method !== 'GET') headers['X-CSRF-TOKEN'] = await csrf(requestSignal)
     try {

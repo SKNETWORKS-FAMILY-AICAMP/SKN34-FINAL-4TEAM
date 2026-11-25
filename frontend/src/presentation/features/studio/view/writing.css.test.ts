@@ -15,3 +15,7 @@ it('600px 이하 집필실은 상단 바가 문서와 함께 올라가고 본문
   // 상단 바가 문서와 함께 올라가면 툴바가 붙을 자리는 화면 맨 위다(900px 이하 기본값 --writing-bar-height는 바가 붙어 있을 때의 자리).
   expect(narrow).toMatch(/\.writing-studio:not\(\.world-card-studio\) \{\s*--writing-toolbar-top:\s*0px;?\s*\}/)
 })
+
+it('집필실 AI 채팅 패널 면은 집필실 배경(--tbg)과 같다 — 브랜드 틴트 면을 두지 않는다(사용자 요청)', () => {
+  expect(css).toMatch(/\.writing-studio \.writing-chat \{[^}]*--chat-bg: var\(--tbg\);/)
+})

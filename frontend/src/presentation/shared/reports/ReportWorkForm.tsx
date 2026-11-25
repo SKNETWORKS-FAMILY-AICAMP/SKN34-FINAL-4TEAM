@@ -1,20 +1,20 @@
-import { REPORT_KINDS, type ReportKind } from '../../../domain/entities/report'
+import { REPORT_KINDS, type ReportKind, type ReportTarget } from '../../../domain/entities/report'
 import { Go } from '../Go'
 import { useReportWorkViewModel } from './useReportWorkViewModel'
 
 /**
- * 공개 작품 신고 접수 폼(34). `/content` 공개 보기는 토글 버튼과 함께, 작품 신고 시트는 alwaysOpen으로 바로 펼쳐 씁니다.
- * 작품이 바뀌면 호출 측이 key로 새로 만듭니다.
+ * 공개 신고 접수 폼(34, 결정 D). 신고 대상(`target`: 작품·회차·세계관)과 폼 이름에 쓸 `title`을 받는다. `/content` 공개 보기는 토글 버튼과 함께,
+ * 신고 시트(소설·회차·세계관)는 alwaysOpen으로 바로 펼쳐 씁니다. 대상이 바뀌면 호출 측이 key로 새로 만듭니다.
  */
-export function ReportWorkForm({ workId, workTitle, alwaysOpen = false }: { workId: string; workTitle: string; alwaysOpen?: boolean }) {
-  const vm = useReportWorkViewModel(workId)
+export function ReportWorkForm({ target, title, alwaysOpen = false }: { target: ReportTarget; title: string; alwaysOpen?: boolean }) {
+  const vm = useReportWorkViewModel(target)
   return (
     <div className='mt-3'>
       {!alwaysOpen && <button type='button' className='btn sm' aria-expanded={vm.open} onClick={vm.toggle}>{vm.open ? '신고 닫기' : '신고'}</button>}
       {(alwaysOpen || vm.open) && (
         <form
           className='mt-3 grid gap-3'
-          aria-label={`${workTitle} 신고`}
+          aria-label={`${title} 신고`}
           noValidate
           onSubmit={async (e) => {
             e.preventDefault()

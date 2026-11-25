@@ -264,7 +264,7 @@ NarrativeQA는 정답 근거 주석이 없어, **정규화한 정답이 토큰 �
 
 ### 4.4 한국어 적용성(저장소 샘플 62문항)
 
-질문은 모델이 만들고, 근거 구절이 원문에 있는지·질문에 답이 그대로 없는지·길이·낱말 겹침·중복을 규칙으로 다시 검증해 통과한 것만 남겼다(후보 66개 중 62개). 사람이 검증한 세트가 아니다. 종류: `known`(그 인물이 겪은 사건 24) · `future`(기준 회차 뒤 사건 13) · `unwitnessed`(그 인물이 나오지 않은 사건 11) · `setting`(설정 항목 14). 작품마다 문단이 7~20개라 코퍼스가 매우 작다. **시작점 수정 전후의 결과 파일이 같다**(한글 제목·이름은 그대로 부분 일치).
+질문은 모델이 만들고, 근거 구절이 원문에 있는지·질문에 답이 그대로 없는지·길이·낱말 겹침·중복을 규칙으로 다시 검증해 통과한 것만 남겼다(후보 66개 중 62개). 사람이 검증한 세트가 아니다. 종류: `known`(그 인물이 겪은 사건 24) · `future`(기준 회차 뒤 사건 13) · `unwitnessed`(그 인물이 나오지 않은 사건 11) · `setting`(설정 항목 14). 작품마다 문단이 7~20개라 코퍼스가 매우 작다. **시작점 수정 전후의 결과 파일이 같다**(한글 제목·이름은 그대로 부분 일치). 첫 정답 근거 순위의 역수 평균 MRR@5(`known MRR@5`·`setting MRR@5`)는 같은 구성으로 [검색 품질 평가 §4](retrieval.md#4-시뮬레이션-기억-회상novelbrain-결과)에 더했다(Recall·P·누설 값은 이 표와 같다).
 
 | 구성 | known R@5 | known P@5 | setting R@5 | setting P@5 | future 누설 | unwitnessed 누설 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -526,7 +526,7 @@ $RUN/run.py retrieval musique && $RUN/run.py retrieval narrativeqa              
 $RUN/run.py answers musique gold none                                                                     # 호출 약 700(캐시가 있으면 0)
 $RUN/run.py answers musique gold none --cached-only                                                       # 캐시된 응답만 읽어 다시 계산(호출 0)
 $RUN/run_timechara.py contexts && $RUN/run_timechara.py run && $RUN/run_timechara.py paired               # 호출 약 1,900
-$RUN/ko.py generate && $RUN/ko.py run                                                                     # run은 호출 없음
+$RUN/ko.py generate && $RUN/ko.py run && $RUN/ko.py snapshot                                              # run·snapshot은 호출 없음. snapshot은 tests/retrieval_eval/fixtures를 다시 만든다(docs/evaluation/retrieval.md)
 # 아래부터는 호출 수 대신 비용 장부(.data/cost.jsonl, 상한 28달러)로 막고, 큰 라운드는 Batch API로 낸다(--mode=sync는 일반 호출). 모델은 코드(cost.MODEL)가 gpt-5.6-luna로 고정한다
 $RUN/ko_timechara/kt_select.py scan <소설 폴더> && $RUN/ko_timechara/kt_select.py prepare --works=48        # 호출 없음: 원본 폴더는 읽기만, 고전은 위키문헌에서 내려받음. 작품 id·확대 차수는 kt_common.ROUNDS
 $RUN/ko_timechara/kt_extract.py --mode=batch [작품 id …]                                                  # 정답표·세계관 추출(작품당 약 0.11달러): 53편 합계 약 6.5달러

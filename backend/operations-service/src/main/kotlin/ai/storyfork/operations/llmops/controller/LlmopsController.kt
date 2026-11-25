@@ -20,6 +20,7 @@ class LlmopsController(
     private val leakChecks: LeakCheckService,
     private val settings: LlmopsSettingService,
     private val pipelines: PipelineService,
+    private val optimizations: OptimizationService,
 ) {
     @GetMapping("/traces")
     fun traces(
@@ -57,6 +58,15 @@ class LlmopsController(
     @ResponseStatus(HttpStatus.CREATED)
     fun createPrompt(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: PromptCreateRequest) =
         prompts.create(member, name, request)
+
+    @PostMapping("/prompts/{name}/optimizations")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    fun optimize(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: OptimizationRequest) =
+        optimizations.start(member, name, request)
+
+    @PutMapping("/prompts/{name}/candidate")
+    fun candidate(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: PromptPromoteRequest) =
+        prompts.candidate(member, name, request)
 
     @PutMapping("/prompts/{name}/production")
     fun promote(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: PromptPromoteRequest) =

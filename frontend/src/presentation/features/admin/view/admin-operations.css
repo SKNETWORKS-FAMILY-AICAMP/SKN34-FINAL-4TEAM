@@ -1,11 +1,11 @@
 .adm .admin-operations { min-width: 0; overflow-wrap: anywhere; }
 .adm .admin-operations fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
-.adm .admin-operations h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
+.adm .admin-operations h2 { font-size: 16px; line-height: 1.4; margin: 24px 0 12px; }
 /* 패널 맨 위 제목은 패널 안쪽 여백만으로 띄운다(위 여백 24px이 더해지면 좌우보다 위가 두 배로 비어 보인다). */
 .adm .admin-operations > h2:first-child { margin-top: 0; }
 .adm .admin-operations .table-head h2 { margin: 0; }
-.adm .admin-operations h3 { font-size: 16px; margin: 28px 0 12px; }
-.adm .admin-operations h4 { font-size: 15px; }
+.adm .admin-operations h3 { font-size: 15px; margin: 28px 0 12px; }
+.adm .admin-operations h4 { font-size: 14px; }
 .adm .admin-operations .inp,
 .adm .admin-operations .ta { min-width: 0; width: 100%; }
 .adm .admin-operations :is(button, input, textarea):disabled { cursor: not-allowed; opacity: .55; }
@@ -16,7 +16,7 @@
 .adm .admin-record-link:focus-visible { outline-offset: -2px; }
 .adm .admin-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
 .adm .admin-operations p.admin-prose { margin: 18px 0; max-width: 75ch; }
-.adm .admin-empty { margin: 24px 0; color: var(--sub); }
+.adm .admin-empty { margin: 24px 0; color: var(--sub); font-size: 13.5px; }
 .adm .admin-action-error { padding: 12px; margin: 12px 0; background: var(--acc-soft); color: var(--acc-ink); border: 1px solid var(--line2); border-radius: 10px; overflow-wrap: anywhere; }
 .adm .admin-data-state { margin: 12px 0; font-size: 14px; }
 .adm .admin-data-state .btn { margin-top: 12px; }
@@ -33,8 +33,8 @@
 .adm .admin-operations .report-actions fieldset { display: grid; gap: 10px; margin: 0; }
 .adm .admin-operations .report-actions h3 { margin: 0; }
 .adm .admin-operations h2[tabindex="-1"]:focus { outline: none; }
-/* 패널 제목: 굵은 글씨(<b>) 대신 제목 요소를 쓰되 모양과 흐름은 이전 그대로(본문 크기·굵게·줄 안 배치) 둡니다. */
-.adm .panel-title { display: inline; font-size: inherit; font-weight: 600; }
+/* 패널 제목: 굵은 글씨(<b>) 대신 제목 요소를 쓴다. 크기는 관리자 패널 제목 16px(개요 구역 제목과 같음)이고 굵게·줄 안 배치는 이전 그대로다. */
+.adm .panel-title { display: inline; font-size: 16px; font-weight: 600; }
 .adm .workspace :is(h2, h3, h4) { font-weight: 600; }
 /* 업무 메뉴가 가로 줄로 바뀌는 좁은 화면에서는 누르는 높이를 44px로 올립니다(전역 38px). */
 @media (max-width: 900px) {
@@ -43,12 +43,13 @@
 /* 운영 대시보드·LLMOps·작업 감시(DEC-55): 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
 .adm .admin-filter .field { min-width: 120px; }
-/* 필터 줄(검색 입력·분류·정렬·상태 선택과 조회·검색 버튼): 입력·선택을 버튼(.adm .btn, btn sm 규칙)과 같은 36px로 아래 맞추고, 검색 입력은 최대 360px까지만 늘어난다. 터치 환경의 44px은 아래 모바일 블록이 올린다. */
-.adm .admin-filter .inp { height: 36px; padding-block: 0; }
+/* 관리자 입력·선택(.inp)은 필터 줄·등록 폼·표 칸 어디서나 버튼(.adm .btn, btn sm 규칙)과 같은 36px이다(여러 줄 입력은 .ta라 해당 없다). 전역 .inp는 위아래 12px 패딩의 46px이라 한 화면에서 검색 입력(36px)과 등록 폼 입력(46px)의 높이가 달랐다. 전역은 @layer(base)라 이 비레이어 규칙이 이긴다. 터치 환경의 44px은 아래 모바일 블록이 올린다. */
+.adm .inp { height: 36px; padding-block: 0; }
+/* 필터 줄의 검색 입력은 최대 360px까지만 늘어난다. */
 .adm .admin-filter .field-search { flex: 1 1 260px; max-width: 360px; }
 /* 상단바 닉네임 메뉴(PopMenu): 버튼은 작은 알약 모양이고 이름이 길면 말줄임, 목록은 버튼 오른쪽 끝에 맞춰 아래로 연다. 비레이어 규칙이라 pop-menu.css의 버튼 기본값을 이긴다. */
 .adm .admin-who { min-width: 0; }
-.adm .admin-who .pop-menu-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 12em; height: 36px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 700; }
+.adm .admin-who .pop-menu-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 12em; height: 36px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 600; }
 .adm .admin-who .pop-menu-btn:hover { background: var(--muted-bg); }
 .adm .admin-who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm .admin-who .pop-menu-list { top: calc(100% + 6px); right: 0; }
@@ -62,16 +63,23 @@
 .adm .genre-edit { margin: 0; }
 @media (max-width: 600px), (pointer: coarse) {
   .adm .admin-who .pop-menu-btn { min-height: 44px; }
-  .adm .admin-filter .inp { min-height: 44px; }
+  .adm .inp { min-height: 44px; }
   .adm .genre-menu .pop-menu-btn { width: 44px; height: 44px; }
   .adm .genre-menu .pop-menu-list { margin: 48px 0 0 -156px; }
 }
-/* LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준, 추적+지표 등): .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. */
-.adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }
+/* 쌓인 패널: .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. 화면마다 인라인 style로 따로 정하지 않습니다. */
+.adm .panel + .panel { margin-top: 12px; }
+/* 표 스크롤 영역(.adm-scroll, 전역)을 위치 기준으로 둔다. 열 머리의 화면 밖 글자(.sr-only)는 absolute에 위치 지정이 없어 표 안 제자리(조치 열이면 표의 오른쪽 끝)에 놓이는데, 영역이 위치 기준이 아니면 영역의 overflow가 이를 자르지 못하고 문서의 가로 스크롤 범위를 넓힌다: 작업 감시 실행 기록 표는 848px라 창이 약 1120px 이하이면 페이지가 가로로 밀렸다. */
+.adm .adm-scroll { position: relative; }
+/* cron 식('0 30 4 1 1 *')은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다: 한 줄로 두고 모자라면 표 스크롤 영역 안에서 가로로 스크롤한다. */
+.adm td code { white-space: nowrap; }
+/* 긴 칸(패턴·권한·대상 ID)이 폭을 다 가져가 짧은 라벨 칸이 꺾이지 않게(.admin-date와 같은 이유). */
+.adm .admin-nowrap { white-space: nowrap; }
 /* 표 행 조치 메뉴(⋮, 공용 PopMenu): 조치 칸은 ⋮ 버튼 하나 폭이고 오른쪽에 붙인다. 표 스크롤 영역(.adm-scroll)은 absolute 메뉴를 잘라서 메뉴는 fixed로 띄우고,
    위치는 PopMenu가 열 때 알려 주는 버튼의 자리(--pop-bottom·--pop-right)로 맞춘다(버튼 바로 아래, 오른쪽 끝 맞춤). 정적 위치에 기대면 문서를 스크롤한 만큼 어긋난다.
    스크롤하면 PopMenu가 fixed 메뉴를 닫는다. */
-.adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; }
+/* 조치 칸에 ⋮ 말고 글자('본인 계정')가 들어가는 표는 칸이 그 글자 폭만큼 넓어지고 두 줄로 꺾이지 않는다(⋮만 있는 표는 그대로 56px). */
+.adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; white-space: nowrap; }
 .adm .row-menu { --more-size: 36px; }
 @media (max-width: 600px), (pointer: coarse) { .adm .row-menu { --more-size: 44px; } }
 .adm .row-menu .pop-menu-btn { width: var(--more-size); height: var(--more-size); border-radius: 999px; color: var(--sub); }
@@ -88,14 +96,19 @@
 .adm .kpi span.small { display: block; margin-top: 2px; }
 .adm .kpi b.unavailable { font-size: 15px; color: var(--sub); }
 .adm .kpi a { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--pri-ink); }
-/* 전체 폭 틀(storyfork.css .adm): 숫자 카드(전역 .kpi는 4열 고정)는 남은 폭만큼 여러 열로 채우고 좁은 화면은 전처럼 2열이다. 폼 격자는 넓은 화면에서 입력이 한없이 늘어나지 않게 기존 폭(약 800px)을 지킨다. */
+/* 전체 폭 틀(storyfork.css .adm): 숫자 카드(전역 .kpi는 4열 고정)는 남은 폭만큼 여러 열로 채우고 좁은 화면은 전처럼 2열이다. 폼 격자·권한 상자·제출 줄·안내문은 표처럼 카드(패널) 안쪽 폭 전체를 쓴다(폭 상한 없음: 800px로 묶었더니 1440px에서 폼이 카드 왼쪽에 붙고 오른쪽 300px가 비었다). 격자 뒤에 따로 놓인 권한 상자는 fieldset 기본 가로 여백(2px)을 없애 입력과 양쪽 끝을 맞추고, 제출 줄은 격자 안 줄 사이(gap)와 같은 12px 아래로 띄운다(위 여백이 없어 버튼이 입력·권한 상자에 붙었다). */
 .adm .kpi { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-.adm .form-grid { max-width: 800px; }
+.adm .admin-permissions { margin-inline: 0; }
+.adm .form-grid ~ .rowend { margin-top: 12px; }
 @media (max-width: 600px) {
   .adm .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 크레딧 탭에서 고른 회원의 '보유 크레딧'은 카드가 한 장이라 2열이면 반 폭에 갇힌다. */
+  .adm .credit-member .kpi { grid-template-columns: minmax(0, 1fr); }
 }
 .adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
 .adm progress { width: 100%; max-width: 160px; }
+/* 실패한 실행(상태 칩 .bad가 있는 행)의 진행 막대는 정상 색(기본 파랑)으로 가득 차 보이지 않게 실패 색으로 그린다. */
+.adm tr:has(.chip.bad) progress { accent-color: var(--danger); }
 /* 개요(data 탭)는 위에서부터 요약 띠 → 서비스 지표 → 최근 7일 AI 사용이고 사이는 모두 12px이다(요약 띠 아래 margin, 두 패널 사이는 위 .panel 규칙).
    요약 띠: 카드 여덟 장을 따로 상자로 두지 않고 한 띠로 묶어 칸 사이를 가는 선으로만 나눈다. 칸마다 왼쪽·위·모서리에 선을 긋고 띠의 가장자리는 overflow가 잘라서 칸 수가 바뀌어도 맞는다.
    열은 2열(넓은 화면 4열)로 고정해 여덟 장이 마지막 줄 없이 나뉜다(auto-fit은 1440px에서 5열이 되어 5+3으로 갈린다). 크레딧·LLM Ops 탭이 쓰는 공용 .kpi는 건드리지 않는다. */
@@ -124,13 +137,34 @@
 /* 크레딧 탭(DEC-57): 고른 회원의 잔액·내역과 지급·회수 폼은 검색 결과 표 아래에 한 덩어리로 붙인다. */
 .adm .credit-member { margin-top: 20px; border-top: 1px solid var(--line2); }
 .adm .credit-member h3 { margin-top: 20px; }
+/* 고른 회원의 보유 크레딧은 카드 한 장이라 auto-fit 격자 전체 폭으로 늘어나고, 바로 아래 폼(.form-grid)도 같은 전체 폭이라 폭이 맞는다(600px 이하 1열 규칙은 위 미디어 블록). */
 .adm .credit-member .kpi { margin: 12px 0; }
 .adm .credit-member h4 { margin: 24px 0 0; }
 /* 정보 누설 검사 패널 안의 표본 비율 한 줄: 검사 기록과 선으로만 나누고 따로 패널을 두지 않는다. */
 .adm .admin-leak-rate { margin-top: 20px; border-top: 1px solid var(--line); }
 .adm .admin-operations .admin-leak-rate h3 { margin: 16px 0 8px; }
 .adm .admin-leak-rate fieldset.admin-filter { margin: 0 0 6px; }
-/* 회귀 평가 실행 폼: 데이터셋·프롬프트 이름·버전(좁게)을 한 줄에 두고 실행 버튼은 입력 아래 왼쪽에 붙인다(오른쪽 끝에 떨어져 있으면 입력과 이어 보이지 않는다). */
-.adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px; }
-.adm .admin-eval-grid .rowend { justify-content: flex-start; }
+/* 회귀 평가 실행 폼: 데이터셋·프롬프트 이름·버전(좁게)과 실행 버튼을 표본 비율 줄처럼 한 줄에 두고 버튼은 입력 아래 끝(36px)에 맞춘다(입력 아래 줄에 따로 떨어져 있으면 표본 비율 줄과 버튼 자리가 달랐다). */
+.adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px auto; align-items: end; }
+.adm .admin-eval-grid .rowend { grid-column: auto; }
 @media (max-width: 600px) { .adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* 작품 상세 드로어(운영자 콘텐츠 관리 결정 C): 화면 오른쪽에 붙는 비모달 패널이다. 뒤의 작품 표는 그대로 쓸 수 있고 Esc·닫기로 닫는다. */
+.adm .admin-drawer { position: fixed; z-index: 40; top: 0; right: 0; bottom: 0; width: min(560px, 100%); overflow: auto; overscroll-behavior: contain; padding: 22px 24px 32px; background: var(--surface); border-left: 1px solid var(--line2); box-shadow: -12px 0 32px rgb(0 0 0 / 0.14); }
+.adm .admin-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.adm .admin-drawer h2 { margin: 0; font-size: 20px; }
+.adm .admin-drawer h3 { margin: 22px 0 8px; font-size: 15px; }
+.adm .admin-drawer .adm-scroll table { min-width: 0; }
+/* 프롬프트 표(#705): 이름은 행을 여는 버튼이라 링크처럼 보이고, 버전·개수는 자리 맞춤 숫자다. 상세의 반영 중인 조합 요약은 요약 띠를 두 칸으로 줄여 쓴다. */
+.adm .admin-prompt-name { padding: 0; border: 0; background: none; color: var(--pri-ink); font: inherit; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
+.adm .admin-prompt-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.adm .admin-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adm .admin-prompt-live { margin-top: 4px; }
+@media (max-width: 600px) { .adm .admin-prompt-name { min-height: 44px; } }
+/* 버전 본문 펼침(#807): 위 행과 한 덩어리로 보이게 구분선을 지우고, 본문은 줄바꿈을 지켜 칸 폭 안에서 꺾는다. */
+.adm .admin-prompt-body td { padding-top: 0; border-top: 0; }
+.adm .admin-prompt-body summary { cursor: pointer; color: var(--sub); font-size: 12.5px; }
+.adm .admin-prompt-body pre { max-height: 320px; overflow: auto; margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 13px; }
+/* 좁은 화면: 표는 600px로 가로 스크롤하므로 펼친 본문을 보이는 폭(카드 안쪽 ≈ 화면 − 90px)에 묶어 왼쪽에 고정한다. ponytail: 카드 여백이 바뀌면 90px도 맞춘다. */
+@media (max-width: 600px) { .adm .admin-prompt-body details { position: sticky; left: 12px; max-width: calc(100vw - 90px); } }
+@media (min-width: 1100px) { .adm .admin-prompt-live { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

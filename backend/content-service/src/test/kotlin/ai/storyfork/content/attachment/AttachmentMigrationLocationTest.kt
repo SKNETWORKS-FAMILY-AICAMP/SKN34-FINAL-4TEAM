@@ -13,10 +13,10 @@ class AttachmentMigrationLocationTest {
         assertFalse(locations.any {it.endsWith("/content") || it.endsWith("/auth") || it.endsWith("/worldstudio")})
         val migrations=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery","sa","")
             .locations(*locations).table("content_schema_history").load().info().all()
-        assertEquals(((1..23)+(25..31)+(36..45)).map(Int::toString),migrations.map {it.version.toString()}) // V24는 결번, V32~V35는 다른 열린 PR 몫
+        assertEquals(((1..23)+(25..31)+(36..47)).map(Int::toString),migrations.map {it.version.toString()}) // V24는 결번, V32~V35는 다른 열린 PR 몫
         val attachments=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery-other","sa","")
             .locations("classpath:db/migration/settingattachment").table("setting_attachment_schema_history").load().info().all()
-        assertEquals(listOf("1"),attachments.map {it.version.toString()})
+        assertEquals(listOf("1","2"),attachments.map {it.version.toString()}) // V2: 첨부 대상에 세계관 카드 추가(#735)
         val images=Flyway.configure().dataSource("jdbc:h2:mem:attachment-discovery-images","sa","")
             .locations("classpath:db/migration/contentimage").table("content_image_schema_history").load().info().all()
         assertEquals(listOf("1","2"),images.map {it.version.toString()})

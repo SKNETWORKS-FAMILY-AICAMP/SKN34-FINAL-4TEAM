@@ -8,13 +8,18 @@
 .worlds .sec-h { flex-wrap: wrap; row-gap: 4px; }
 
 /*
- * 세계관 지도 카드: 홈 상단 히어로 자리(.herow 왼쪽, 폭 744px 안팎·높이 약 510px)에 놓고 오른쪽에는 '실시간 인기'(.t10)가 선다.
+ * 세계관 지도 카드: 홈 상단 히어로 자리(.herow 왼쪽, 높이 약 510px)에 놓고 오른쪽에는 '실시간 인기'(.t10)가 선다. 카드는 그 칸 폭을 채운다(1440px에서 약 744px, 390px에서 화면 안).
  * 라이트·다크 테마와 상관없이 늘 어두운 캔버스이고 모서리는 홈 히어로와 같은 16px이다. 캔버스 높이는 CSS가 정하고 WorldAtlasCanvas가 그 값을 읽는다.
  * 스택: 캔버스(제목·상태는 겹침) → 컨트롤 → 통계 줄·범례. 컨트롤(.world-map-controls)은 이 기능의 MapControls(view/useMapCanvas.tsx)이고
- * 그 CSS 파일 없이 이 화면에서 배치와 어두운 면 색만 정한다. .herow가 두 칸 높이를 맞추므로 카드는 남는 높이를 아래쪽 어두운 면으로 채운다.
+ * 그 CSS 파일 없이 이 화면에서 배치와 어두운 면 색만 정한다. .herow가 두 칸 높이를 맞추므로 남는 높이는 지도 면(.atlas-view, 불러오는 중에는 .atlas-loading)이 받는다(캔버스 380px는 그대로, 통계 줄 아래에 빈 띠가 남지 않는다).
+ * 폭: 홈 .hero는 align-items: center라 세로 flex에서 그대로 두면 .atlas-stage가 내용 폭(캔버스의 처음 폭 500px)으로 줄고, 캔버스 폭을 칸에서 읽는 ResizeObserver(useMapCanvas)가
+ * 그 줄어든 폭을 다시 읽어 500px에 갇혔다(1440px에서는 양옆이 비고 390px에서는 카드가 화면을 126px 넘었다). stretch로 stage 폭이 칸을 따르게 하면 캔버스 폭도 칸을 따른다.
+ * .hero의 flex-wrap: wrap도 끊는다. 여러 줄 flex는 줄 폭을 가장 넓은 항목(캔버스 500px)으로 잡아 stretch가 칸이 아니라 그 폭까지만 늘린다.
  */
-.worlds-atlas { display: flex; flex-direction: column; }
+.worlds-atlas { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
 .atlas-stage { position: relative; flex: 1; overflow: hidden; border-radius: 16px; color: var(--fixed-ink); background: radial-gradient(ellipse at 50% 46%, #182742 0%, #0b1324 56%, #080e1b 100%); box-shadow: var(--sh); }
+.worlds-atlas .atlas-stage { display: flex; flex-direction: column; }
+.worlds-atlas :is(.atlas-view, .atlas-loading) { flex: 1; }
 .atlas-stage :focus-visible { outline-color: var(--fixed-pri); }
 .atlas-title { position: absolute; left: 16px; top: 14px; z-index: 1; margin: 0; font-size: 14px; font-weight: 800; letter-spacing: .02em; text-shadow: 0 1px 6px rgba(8, 14, 27, .9); pointer-events: none; }
 .atlas-view { position: relative; }
@@ -45,15 +50,14 @@
   .atlas-foot .map-pan { display: flex; }
 }
 .atlas-foot .map-pan .btn { width: 36px; padding: 0; }
+/* 지도 컨트롤 다섯(다시 펼치기·움직임·전체 보기·확대·축소)은 같은 옅은 윤곽선이다(quieter: 가끔 쓰는 '다시 펼치기'가 채운 보라라 어두운 지도에서 가장 진한 면이었다. 채운 버튼 규칙은 두지 않는다). */
 .atlas-foot .btn { background: color-mix(in srgb, var(--fixed-ink) 8%, transparent); border-color: color-mix(in srgb, var(--fixed-ink) 20%, transparent); color: var(--fixed-ink); }
 .atlas-foot .btn:hover { background: color-mix(in srgb, var(--fixed-ink) 16%, transparent); }
-.atlas-foot .btn.pri { background: var(--fixed-pri); border-color: var(--fixed-pri); color: var(--on-fixed-pri); }
-.atlas-foot .btn.pri:hover { background: color-mix(in srgb, var(--fixed-pri) 75%, var(--fixed-ink)); }
 .atlas-info { display: grid; gap: 5px; padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, .06); color: var(--fixed-sub); font-size: 11.5px; }
 .atlas-stats { margin: 0; }
-/* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째 줄바꿈한다. */
+/* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째, 묶음 안에서도 줄바꿈한다(390px에서 장르 일곱 개는 두 줄이다. 숨은 가로 스크롤로 넘기면 마지막 장르가 없는 것처럼 보인다). */
 .atlas-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
-.atlas-legend ul { display: flex; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.atlas-legend ul { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
 .atlas-legend li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .atlas-legend i { display: block; width: 9px; height: 9px; border-radius: 50%; }
 .atlas-legend i.dot { width: 5px; height: 5px; }
@@ -190,8 +194,5 @@
   .atlas-loading, .worlds-graph .atlas-loading { min-height: 453px; }
   .atlas-foot, .atlas-info { padding-inline: 12px; }
   .atlas-hint { display: none; }
-  .atlas-legend { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .atlas-legend::-webkit-scrollbar { display: none; }
-  .atlas-legend ul { flex: none; }
   .nw-cover .cov { width: min(140px, 100%); }
 }

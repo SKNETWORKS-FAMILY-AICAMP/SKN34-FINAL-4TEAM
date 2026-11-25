@@ -16,7 +16,7 @@ import { EpisodeComments } from './EpisodeComments'
 import { EpisodeFeedbackReports } from './EpisodeFeedbackReports'
 import { UnavailableWork } from './WorkPage'
 import { EditSuggestionSheet } from './EditSuggestionSheet'
-import { CommentSheet, FeedbackSheet, LookSheet } from './Sheets'
+import { CommentSheet, EpisodeReportSheet, FeedbackSheet, LookSheet } from './Sheets'
 
 const NUM = ['一', '二', '三', '四', '五', '六', '七', '八']
 const chapLabel = (t: Theme, n: number) => t === 'hanji' ? '第 ' + NUM[n - 1] + ' 回' : t === 'neon' ? 'CHANNEL ' + String(n).padStart(2, '0') : 'CHAPTER ' + n
@@ -149,6 +149,8 @@ export function ReaderPage() {
           <div className="t"><b>{w.title}</b><small>{r.n}화 · {e.t}{w.parent && r.n <= (w.forkAt ?? 0) ? ' · 원작 스냅샷' : ''}</small></div>
           <button type="button" className="rib" aria-label="공유" onClick={vm.share}>↗</button>
           {w.canonical && <Go to={`/work/${id}/wiki?upto=${r.n}`} className="rib" aria-label="설정 위키 보기" title="이 회차까지 공개된 설정 위키">설정</Go>}
+          {/* 회차 신고(결정 D)는 서버 작품만 운영 신고 API에 연결돼 있어 데모 작품에는 두지 않는다. */}
+          {w.canonical && <button type="button" className="rib" aria-label="회차 신고" onClick={() => vm.openSheet({ kind: 'report' })}>신고</button>}
           <button type="button" className="rib" aria-label="보기 설정" onClick={() => vm.openSheet({ kind: 'look' })}>Aa</button>
         </div>
         <div className="prog"><i id="prog" ref={refs.prog} /></div>
@@ -196,7 +198,7 @@ export function ReaderPage() {
             </div>
           )}
           {w.canonical && <EpisodeComments key={`${w.id}/${r.n}`} workId={w.id} n={r.n} quoted={vm.sheet?.kind === 'comment' ? vm.sentences[vm.sheet.k] : undefined} onCloseSheet={closeSheet} />}
-          {w.canonical && <EpisodeFeedbackReports key={`${w.id}/${r.n}/reports`} workId={w.id} n={r.n} refresh={reportsRefresh} />}
+          {w.canonical && <EpisodeFeedbackReports key={`${w.id}/${r.n}/reports`} workId={w.id} n={r.n} refresh={reportsRefresh} loggedIn={vm.loggedIn} />}
           {!w.canonical && <section className="tcard cms">
             <h3>댓글 {r.comments.length}</h3>
             <form className="cmf" id="cmf" onSubmit={(ev) => {
@@ -243,6 +245,7 @@ export function ReaderPage() {
         </SentencePop>
       )}
       {vm.sheet?.kind === 'look' && <LookSheet onClose={closeSheet} />}
+      {w.canonical && vm.sheet?.kind === 'report' && <EpisodeReportSheet work={w} n={r.n} onClose={closeSheet} />}
       {!w.canonical && vm.sheet?.kind === 'comment' && <CommentSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} onClose={closeSheet}
         onAdded={() => setTimeout(() => document.querySelector('.cm:last-of-type')?.scrollIntoView?.({ block: 'center' }), 60)} />}
       {vm.sheet?.kind === 'feedback' && <FeedbackSheet workId={id} n={r.n} sentence={vm.sentences[vm.sheet.k]} canonical={w.canonical} onSent={() => setReportsRefresh((v) => v + 1)} onClose={closeSheet} />}

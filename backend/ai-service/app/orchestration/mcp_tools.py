@@ -13,7 +13,7 @@ import json
 
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import StructuredTool
-from langgraph.types import Command
+from langgraph.types import Command, interrupt
 
 from app import tracing
 from app.content_mcp import service as content_mcp
@@ -63,6 +63,12 @@ def _result(step: dict | None, call: dict, content: str, failed: bool = False, *
     return Command(update={'mcpCalls': 1, 'messages': [message], **({'steps': [step]} if step else {}), **update})
 
 
+def _failed(call: dict, label: str, error: ContentMcpFailure) -> Command:
+    """쓰기 실패: 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다)."""
+    step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
+    return _result(step, call, f'[실패] {label}: {error}', failed=True)
+
+
 def mismatch(call: dict, turn: dict) -> str | None:
     """작품 id를 받는 도구가 대상 작품이 아닌 작품을, 화면에 세계관이 열려 있으면 세계관 도구가 그 세계관이 아닌 세계관을 가리키면 이유 글. 대상 작품이 없으면 작품 도구는 쓸 수 없다.
 
@@ -88,25 +94,46 @@ async def execute(request) -> Command:
     """허용된 MCP 도구 호출 하나를 실행한다. 승인(쓰기)은 이 호출 전에 끝나 있다.
 
     읽기는 결과 JSON을 모델에 그대로(길면 잘라) 주고 단계를 남기지 않는다(읽기 실패도 오류 메시지만 준다). 쓰기는 성공하면 단계(content_action, applied=새 revision)를 남겨 화면이 다시 읽게 하고,
-    실패(Content의 409 revision 충돌 포함)는 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다).
+    실패(Content의 409 revision 충돌 포함)는 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다). 단 work_update의 409는 실패로 끝내지 않고
+    작품을 다시 읽어 최신 revision의 카드로 다시 승인받으며, 쓰는 것은 작가가 승인한 카드의 인자 그대로다(그 사이 또 낡아 409면 다시 묻는다, #687).
     """
     call, turn = request.tool_call, request.runtime.context
     # 모델이 고르지 않은 선택 인자를 빈 글("")·null로 채우면 Content가 값 오류(422)로 거절하므로 뺀다.
     name, args = call['name'], {k: v for k, v in (call['args'] if isinstance(call['args'], dict) else {}).items() if v not in ('', None)}
+    # 모델이 story_plan_read 결과의 position을 옮기면 422다(#774): 플롯은 순서가 없고, 읽은 장면 순번은 삭제로 빈자리가 있어
+    # 이동 위치가 아니다. 수정에서는 늘 빼서 순서를 그대로 두고, 추가에서는 장면의 끼울 위치만 남긴다.
+    if name in ('story_plan_create', 'story_plan_update') and isinstance(data := args.get('data'), dict) \
+            and (name == 'story_plan_update' or data.get('kind') == 'plot'):
+        args = {**args, 'data': {k: v for k, v in data.items() if k != 'position'}}
     label = LABELS[name]
     if reason := mismatch(call, turn):
         return _result(None, call, f'[차단] {label}: {reason}', failed=True)
     write = name in WRITE
     if write:
         request.runtime.stream_writer({'started': CONTENT_ACTION})
-    try:
-        with tracing.observe(f'mcp.{name}', as_type='tool'):
-            done = await asyncio.to_thread(_run, name, args, turn)
-    except ContentMcpFailure as error:
-        if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
-            return _result(None, call, f'[실패] {label}: {error}', failed=True)
-        step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
-        return _result(step, call, f'[실패] {label}: {error}', failed=True)
+    while True:
+        try:
+            with tracing.observe(f'mcp.{name}', as_type='tool'):
+                done = await asyncio.to_thread(_run, name, args, turn)
+            break
+        except ContentMcpFailure as error:
+            if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
+                return _result(None, call, f'[실패] {label}: {error}', failed=True)
+            if not (name == 'work_update' and error.status == 409):  # work_update의 409는 revision 충돌뿐이다(WorkService.update)
+                return _failed(call, label, error)
+            # 원고(회차 초안) 저장도 작품 revision을 올려 제안이 낡는다(#687). revision만 새로 읽어 같은 수정을 다시 승인받는다.
+            # 모델에 다시 제안시키면 '같은 턴에 같은 도구를 다시 부르지 않는다'(지시 규칙 5)와 부딪쳐 실모델이 포기한다(E2E 확인).
+            try:
+                fresh = await asyncio.to_thread(content_mcp.call, 'work_read', {'id': args['id']})
+            except ContentMcpFailure as unread:
+                return _failed(call, label, unread)
+            card = {**args, 'data': {**args['data'], 'revision': fresh.get('revision')}}
+            # 이어 갈 때 이 함수가 처음부터 다시 돌아(낡은 호출은 409로 끝나 쓰지 않는다) 다시 읽은 revision이 그 사이 달라졌을 수 있다. 그래서 쓰는 것은
+            # 다시 읽은 값이 아니라 작가가 답한 카드의 인자(service._target이 결정에 싣는다)다. 그 사이 또 낡아 409면 이 자리로 돌아와 최신 revision으로 다시 묻는다.
+            decision = interrupt({'action_requests': [{'name': name, 'args': card, 'description': label}], 'steps': request.state.get('steps', [])})['decisions'][0]
+            if decision['type'] != 'approve':
+                return _result(None, call, decision.get('message', ''), failed=True)
+            args = decision['args']
     if not write:
         text = json.dumps(done, ensure_ascii=False, separators=(',', ':'))
         return _result(None, call, text if len(text) <= READ_LIMIT else f'{text[:READ_LIMIT]}…(길어서 여기까지만 읽었어요)')

@@ -6,6 +6,9 @@ import pytest
 from app.manuscript_extraction import service
 from app.manuscript_extraction.models import EpisodeText, LoadPayload
 from app.manuscript_extraction.errors import PreprocessingFailure
+from app.novelbrain.models import Card as WorldCard
+from app.simulation import service as simulation
+from app.simulation.errors import SimulationFailure
 
 FIXTURES = Path(__file__).parent / 'fixtures'
 
@@ -357,20 +360,21 @@ def test_a_knower_whose_name_is_not_in_the_quote_is_dropped_not_the_statement(fo
     assert stranger.characterDocs.episodes == {} and '비밀 지도' not in stranger.model_dump_json()
 
 
-def test_later_soul_cannot_change_global_soul(four):
+def test_a_later_soul_statement_joins_the_global_soul_but_not_the_identity_or_goal(four):
     data=four['episodes'][2]; quote='길동은 이제 냉혹하게 말하는 성격으로 변했다.'
     data['body']+='\n'+quote
     data['output']['statements'].append({'id':'s4','kind':'description','certainty':'asserted','subjects':['m1'],'knowers':['m1'],'document':'soul','occurredEpisode':None,'knownFromEpisode':3,'quote':quote})
     rows=extract_four(four);identity=service.resolve(rows);payload=service.organize(identity,rows)
     hero=next(c for c in payload.cards if c.key==identity.mapping['1:m1'])
-    assert '냉혹' not in hero.body+hero.title+hero.characterDocs.soul+hero.characterDocs.goal
+    assert hero.characterDocs.soul == '[묘사] 길동은 약자를 돕는 성격이다.\n[묘사] ' + quote  # SOUL은 뒤 회차 진술까지 앞 회차부터 쌓인다(#839)
+    assert '냉혹' not in hero.body+hero.title+hero.characterDocs.goal
     assert '냉혹' in hero.characterDocs.episodes['03']
 
 
-def test_a_later_restatement_without_a_knower_is_left_off_the_card_and_does_not_fail(four):
+def test_a_later_identity_restatement_without_a_knower_is_left_off_the_card_and_does_not_fail(four):
     data=four['episodes'][2]; quote='길동은 냉혹하게 말하는 성격이다.'
     data['body']+='\n'+quote
-    data['output']['statements'].append({'id':'s4','kind':'description','certainty':'asserted','subjects':['m1'],'knowers':[],'document':'soul','occurredEpisode':None,'knownFromEpisode':3,'quote':quote})
+    data['output']['statements'].append({'id':'s4','kind':'description','certainty':'asserted','subjects':['m1'],'knowers':[],'document':'identity','occurredEpisode':None,'knownFromEpisode':3,'quote':quote})
     rows=extract_four(four);payload=service.organize(service.resolve(rows),rows)
     assert rows[3].skipped == {} and '냉혹' not in payload.model_dump_json()
 
@@ -418,9 +422,117 @@ def test_late_revealed_preexisting_memory_is_filed_under_the_episode_that_reveal
     assert '왕의 비밀' in hero.characterDocs.episodes['03'] and '왕의 비밀' not in hero.characterDocs.episodes['00']
 
 
-def test_content_fixture_matches_python_output():
-    """Content 단위 테스트가 읽는 ai-result.json은 파이썬 organize 출력과 글자 단위로 같다. 표기 규칙을 한쪽만 고치면 이 테스트가 깨진다."""
-    path = Path(__file__).parents[4] / 'backend/content-service/src/test/resources/initial-build/ai-result.json'
+def claim(i, subject, quote, n, document='soul', kind='description'):
+    """진술 하나(knowers 없음). 기본은 인물의 성격(soul) 묘사다."""
+    return {'id': i, 'kind': kind, 'certainty': 'intended' if kind in ('plan', 'goal') else 'asserted', 'subjects': [subject], 'knowers': [],
+            'document': document, 'occurredEpisode': None, 'knownFromEpisode': n, 'quote': quote}
+
+
+def episode(mentions, statements=()):
+    return {'mentions': mentions, 'statements': list(statements), 'relationships': []}
+
+
+def test_a_trait_that_shows_only_in_a_later_episode_still_reaches_the_soul(monkeypatch):
+    """첫 회차엔 이름만 스친 인물의 성격이 뒤 회차에 드러나면 SOUL에 쌓는다(#839). 같은 문장은 한 번만, 정체(IDENTITY)·목표(GOAL)는 첫 등장 회차 진술만."""
+    first, joke, trade, plan = '치삼은 선술집 앞에 서 있었다.', '치삼은 말끝마다 농을 던지는 사람이었다.', '치삼은 본디 장터의 약장수였다.', '치삼은 장사를 접을 마음을 먹었다.'
+    laugh = '"허, 이 사람아." 치삼이 껄껄 웃었다.'
+    episodes = {1: (first, episode([person('m1', '치삼', first)])),
+                2: (f'{joke}\n{trade}\n{plan}', episode([person('m1', '치삼', joke)], [claim('s1', 'm1', joke, 2), claim('s2', 'm1', trade, 2, 'identity'),
+                                                                                    claim('s3', 'm1', plan, 2, 'goal', 'plan')])),
+                3: (f'{joke}\n{laugh}', episode([person('m1', '치삼', laugh)], [claim('s1', 'm1', joke, 3), claim('s2', 'm1', laugh, 3)]))}
+    _, _, payload = build(monkeypatch, episodes)
+    card, = payload.cards
+    assert card.characterDocs.soul == f'[묘사] {joke}\n[묘사] {laugh}'
+    assert card.body == '' and card.characterDocs.goal == ''  # 첫 등장 회차(1화)에 진술이 없으면 뒤 회차의 정체·목표는 싣지 않는다
+
+
+def test_the_accumulated_soul_stops_before_the_document_limit_without_cutting_a_line(monkeypatch):
+    lines = ['치삼은 ' + filler * 1400 + '.' for filler in '가나다']
+    episodes = {n: (quote, episode([person('m1', '치삼', quote)], [claim('s1', 'm1', quote, n)])) for n, quote in enumerate(lines, 1)}
+    _, _, payload = build(monkeypatch, episodes)
+    assert payload.cards[0].characterDocs.soul == '\n'.join('[묘사] ' + quote for quote in lines[:2])  # 셋째 줄은 3,000자를 넘기게 되어 줄째 빠진다
+
+
+def test_a_character_without_an_identity_statement_keeps_an_empty_body_that_the_simulation_check_reports(monkeypatch):
+    quote, place = '치삼은 껄껄 웃었다.', '선술집은 비어 있었다.'
+    data = episode([person('m1', '치삼', quote), person('m2', '선술집', place, 'location')], [claim('s1', 'm1', quote, 1)])
+    _, _, payload = build(monkeypatch, {1: (f'{quote}\n{place}', data)})
+    cards = {c.title: c for c in payload.cards}
+    # 이름으로 채우면 시뮬레이션 필수 문서 검사를 통과해 빈 문서가 가려진다. 인물이 아닌 카드는 확정 때 본문이 필수라 이름을 그대로 둔다.
+    assert (cards['치삼'].body, cards['선술집'].body) == ('', '선술집')
+    world = {'c1': WorldCard(id='c1', cardType='character', title='치삼', text=cards['치삼'].body, soul=cards['치삼'].characterDocs.soul)}
+    with pytest.raises(SimulationFailure, match=r'IDENTITY\.md') as error:
+        simulation._filled(['c1'], world, {})
+    assert 'SOUL.md' not in str(error.value)
+
+
+def two_episodes(first, later, kinds=('character', 'character')):
+    quotes = {1: f'{first} 앞에 선술집이 있었다.', 2: f'{later} 선술집을 나섰다.'}
+    return {n: (quotes[n], episode([person('m1', name, quotes[n], kind)])) for n, name, kind in ((1, first, kinds[0]), (2, later, kinds[1]))}
+
+
+@pytest.mark.parametrize('first, later', [('치삼', '치삼이'), ('치삼이', '치삼'), ('치삼', '치삼아'), ('영희', '영희야'), ('치삼', '치삼은'), ('영희', '영희는'),
+                                          ('치삼이', '치삼이가'), ('치삼', '치삼의')])
+def test_a_suffix_or_particle_variant_of_a_name_is_the_same_character(monkeypatch, first, later):
+    _, identity, payload = build(monkeypatch, two_episodes(first, later))
+    card, = payload.cards
+    assert (card.title, card.aliases) == (first, [later])  # 카드 이름은 처음 나온 호칭 그대로다
+    assert [(d.link.basis, d.status) for d in identity.decisions] == [('same_name', 'merged')]
+
+
+@pytest.mark.parametrize('first, later', [('영희', '영희이'), ('치삼', '치삼야'), ('순', '순이'), ('치삼', '치삼과')])
+def test_a_name_that_only_looks_like_a_variant_stays_a_separate_character(monkeypatch, first, later):
+    # 받침 규칙에 어긋난 접미사(영희이·치삼야), 뗀 뒤 한 글자만 남는 꼴(순이), 아는 접미사가 아닌 끝(치삼과)은 묶지 않는다.
+    _, identity, payload = build(monkeypatch, two_episodes(first, later))
+    assert sorted(c.title for c in payload.cards) == sorted([first, later]) and identity.decisions == []
+
+
+def test_variants_of_different_kinds_the_same_episode_twins_and_a_model_distinct_pair_stay_separate(monkeypatch):
+    _, identity, payload = build(monkeypatch, two_episodes('치삼', '치삼이', ('character', 'location')))
+    assert len(payload.cards) == 2 and identity.decisions == []
+    quote = '치삼이 앞에 치삼도 있었다.'
+    twins = {1: (quote, episode([person('m1', '치삼', quote), person('m2', '치삼이', quote)])), 2: ('치삼은 돌아왔다.', episode([person('m1', '치삼은', '치삼은 돌아왔다.')]))}
+    _, identity, payload = build(monkeypatch, twins)
+    assert len(payload.cards) == 3 and identity.decisions == []  # 같은 회차에 변형이 둘이면 모델이 일부러 가른 것이고, 뒤 회차의 변형은 둘 중 어느 쪽인지 알 수 없다
+    both = '치삼이는 치삼의 아들이다.'
+    episodes = {1: ('치삼은 장터에 있었다.', episode([person('m1', '치삼', '치삼은 장터에 있었다.')])), 2: (both, episode([person('m1', '치삼이', both)]))}
+    distinct = {'left': '1:m1', 'right': '2:m1', 'basis': 'distinct', 'confirmedAt': 2, 'evidenceEpisode': 2, 'quote': both}
+    _, identity, payload = build(monkeypatch, episodes, links=[distinct])
+    assert len(payload.cards) == 2 and [d.status for d in identity.decisions] == ['distinct']
+
+
+def test_an_identical_name_is_matched_before_any_variant(monkeypatch):
+    quote = '치삼이 앞에 치삼도 있었다.'
+    episodes = {1: (quote, episode([person('m1', '치삼', quote), person('m2', '치삼이', quote)])), 2: ('치삼이 돌아왔다.', episode([person('m1', '치삼이', '치삼이 돌아왔다.')]))}
+    _, identity, payload = build(monkeypatch, episodes)
+    assert sorted(c.title for c in payload.cards) == ['치삼', '치삼이'] and [(d.link.left, d.link.right) for d in identity.decisions] == [('1:m2', '2:m1')]
+
+
+def test_an_alias_link_between_variants_merges_them_instead_of_suggesting_a_character_to_itself(monkeypatch):
+    both = '치삼이는 치삼이라고도 불린다.'
+    episodes = {1: ('치삼은 장터에 있었다.', episode([person('m1', '치삼', '치삼은 장터에 있었다.')])), 2: (both, episode([person('m1', '치삼이', both)]))}
+    alias = {'left': '1:m1', 'right': '2:m1', 'basis': 'explicit_alias', 'confirmedAt': 2, 'evidenceEpisode': 2, 'quote': both}
+    _, identity, payload = build(monkeypatch, episodes, links=[alias])
+    assert len(payload.cards) == 1 and payload.identityCandidates == [] and [d.status for d in identity.decisions] == ['merged']
+
+
+@pytest.mark.parametrize('name', ['ai-result.json', 'ai-result-variants.json'])  # 두 번째는 호칭 변형·뒤 회차 SOUL·빈 인물 본문(#839)
+def test_content_fixture_matches_python_output(name):
+    """Content 단위 테스트가 읽는 ai-result*.json은 파이썬 organize 출력과 글자 단위로 같다. 표기 규칙을 한쪽만 고치면 이 테스트가 깨진다."""
+    path = Path(__file__).parents[4] / 'backend/content-service/src/test/resources/initial-build' / name
     data = json.loads(path.read_text(encoding='utf-8'))
     rows = {row['number']: row for row in data['extractions']}
     assert service.organize(data['identity'], rows) == LoadPayload.model_validate(data['payload'])
+
+
+def test_extract_passes_a_regression_evaluations_instructions_and_model_to_the_agent_and_still_verifies(monkeypatch):
+    """#824: 평가가 지정한 버전의 본문·모델은 agent로 가고, 결과는 production과 같은 원문 검증을 거친다. 평소 호출은 아무것도 넘기지 않는다."""
+    seen = []
+    monkeypatch.setattr(service.agent, 'extract', lambda ep, instructions=None, model=None: seen.append((instructions, model)) or proposed())
+    episode = EpisodeText(number=1, title='계획', body='길동은 산을 넘을 계획이었다.')
+
+    evaluated = service.extract(episode, '평가할 버전 본문', 'gpt-evaluated')
+    service.extract(episode)
+
+    assert seen == [('평가할 버전 본문', 'gpt-evaluated'), (None, None)]
+    assert evaluated.statements[0].kind == 'plan' and evaluated.evidence[0].quote == '길동은 산을 넘을 계획이었다.'

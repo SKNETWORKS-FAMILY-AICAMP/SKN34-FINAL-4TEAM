@@ -18,9 +18,9 @@ interface ManuscriptBuildJobRepository:JpaRepository<ManuscriptBuildJob,UUID> {
 /** world 잠금을 기다리기 전에 versioned job Entity를 읽으면 상태 조회도 optimistic 충돌한다. */
 internal fun ManuscriptBuildJobRepository.owned(id:UUID,owner:UUID,worlds:StudioWorldRepository):ManuscriptBuildJob {
     val world=worldId(id) ?: throw ai.storyfork.content.world.domain.WorldNotFound()
-    if(worlds.lockOwned(world,owner)==null) throw ai.storyfork.content.world.domain.WorldNotFound()
+    if(worlds.lockAccessible(world,owner)==null) throw ai.storyfork.content.world.domain.WorldNotFound()
     return (lock(id) ?: throw ai.storyfork.content.world.domain.WorldNotFound()).also {
-        if(it.ownerSubject!=owner) throw ai.storyfork.content.world.domain.WorldNotFound()
+        if(it.ownerSubject!=owner && !ai.storyfork.content.auth.config.operatorReading()) throw ai.storyfork.content.world.domain.WorldNotFound()
     }
 }
 interface ManuscriptBuildResultRepository:JpaRepository<ManuscriptBuildResult,UUID> {

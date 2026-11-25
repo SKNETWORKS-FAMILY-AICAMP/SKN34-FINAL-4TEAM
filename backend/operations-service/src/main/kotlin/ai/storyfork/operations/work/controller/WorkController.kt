@@ -15,6 +15,17 @@ class WorkController(private val service: WorkService) {
     @GetMapping("/{id}/fork-integrity")
     fun forkIntegrity(@AuthenticationPrincipal member: OperationsMember, @PathVariable id: UUID) = service.forkIntegrity(member, id)
 
+    @GetMapping("/{id}/episodes")
+    fun episodes(@AuthenticationPrincipal member: OperationsMember, @PathVariable id: UUID) = service.episodes(member, id)
+
+    @PutMapping("/{id}/episodes/{number}/restriction")
+    fun restrictEpisode(@AuthenticationPrincipal member: OperationsMember, @PathVariable id: UUID, @PathVariable number: Int) =
+        service.restrictEpisode(member, id, number)
+
+    @DeleteMapping("/{id}/episodes/{number}/restriction")
+    fun unrestrictEpisode(@AuthenticationPrincipal member: OperationsMember, @PathVariable id: UUID, @PathVariable number: Int) =
+        service.unrestrictEpisode(member, id, number)
+
     @PutMapping("/{id}/restriction")
     fun restrict(@AuthenticationPrincipal member: OperationsMember, @PathVariable id: UUID) = service.restrict(member, id)
 

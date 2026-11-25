@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import type {Attachment,EpisodeImage,MediaTarget} from '../../domain/entities/media'
+import {isFileTarget,type Attachment,type EpisodeImage,type MediaTarget} from '../../domain/entities/media'
 import type {MediaRepository} from '../../domain/repositories/MediaRepository'
 import {assertAuthVersion,authVersion,protectedRequest} from '../api/auth'
 import {csrf} from '../api/csrf'
@@ -8,6 +8,7 @@ const attachment=z.object({id:z.string().uuid(),filename:z.string().min(1).max(1
 const episodeImage=z.object({id:z.string().uuid(),filename:z.string().min(1).max(120),mediaType:z.string(),byteSize:z.number().int().positive().max(10485760),altText:z.string().max(300),createdAt:z.string().datetime({offset:true}),url:z.string(),referenced:z.boolean()})
 const publicAlts=z.object({images:z.array(z.object({id:z.string().uuid(),altText:z.string().max(300)}))})
 function path(target:MediaTarget) {
+ if(target.kind==='card')return `/api/v1/world-studios/${encodeURIComponent(target.worldId)}/cards/${encodeURIComponent(target.cardId)}/attachments`
  const base=`/api/v1/works/${encodeURIComponent(target.workId)}`
  return target.kind==='cover'?`${base}/cover`:target.kind==='setting'?`${base}/settings/${encodeURIComponent(target.settingId)}/attachments`:`${base}/episodes/${target.number}/images`
 }
@@ -17,7 +18,8 @@ export class HttpMediaRepository implements MediaRepository {
  constructor(fetcher?:typeof fetch){this.fetcher=fetcher}
  private async request(url:string,method='GET',body?:FormData|string,signal?:AbortSignal,publicView=false) {
   const version=authVersion()
-  const requestSignal=signal?AbortSignal.any([signal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)
+  const timeout=AbortSignal.timeout(method==='PUT'&&url.endsWith('/cover')?45000:30000)
+  const requestSignal=signal?AbortSignal.any([signal,timeout]):timeout
   const headers:Record<string,string>={}
   if(typeof body==='string')headers['Content-Type']='application/json'
   if(method!=='GET')headers['X-CSRF-TOKEN']=await csrf(requestSignal)
@@ -52,7 +54,7 @@ export class HttpMediaRepository implements MediaRepository {
  }
  async upload(target:MediaTarget,file:File,replaceId?:string,signal?:AbortSignal) {
   const version=authVersion();const form=new FormData();form.append('file',file)
-  const url=path(target)+(replaceId&&target.kind==='setting'?`/${encodeURIComponent(replaceId)}`:'')
+  const url=path(target)+(replaceId&&isFileTarget(target)?`/${encodeURIComponent(replaceId)}`:'')
   const response=await this.request(url,target.kind==='cover'||replaceId?'PUT':'POST',form,signal)
   if(!response.ok)throw new Error('첨부 대상을 찾을 수 없어요. 최신 설정을 불러와 주세요.')
   const value:unknown=await response.json();assertAuthVersion(version)
@@ -93,7 +95,7 @@ export class HttpMediaRepository implements MediaRepository {
   return Object.fromEntries(parsed.data.images.map(image=>[image.id,image.altText]))
  }
  async download(target:MediaTarget,id:string,publicView=false,signal?:AbortSignal) {
-  if(publicView&&target.kind==='setting')throw new Error('설정 첨부는 소유자만 조회할 수 있어요.')
+  if(publicView&&isFileTarget(target))throw new Error('설정 첨부는 소유자만 조회할 수 있어요.')
   const version=authVersion();let url=contentPath(target,id)
   if(publicView)url=url.replace('/api/v1/works/','/api/v1/public/works/')
   const response=await this.request(url,'GET',undefined,signal,publicView)

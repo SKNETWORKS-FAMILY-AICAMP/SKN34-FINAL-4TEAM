@@ -50,6 +50,8 @@ class ForkService(
         checkContent(original.source==null && original.publiclyVisible() && original.allowFork,403,"이 작품은 분기를 허용하지 않아요.")
         val published=publication.publishedEpisodes(id).items
         checkContent(data.episode in published.map {it.number},message="공개된 기준 회차를 선택해 주세요.")
+        // 운영이 제한한 회차를 기준으로는 새 분기를 만들 수 없다. 기준 앞의 제한 회차는 번호가 비지 않게 그대로 복사하고 뷰가 독자에게 숨긴다.
+        if(published.any {it.number==data.episode && it.restricted}) throw ContentFailure(409,"운영 정책으로 제한된 회차에서는 분기할 수 없어요.","EPISODE_RESTRICTED")
         checkContent(data.episode in access.forkable(id,published.map {it.number}),403,"이 회차에서는 분기할 수 없어요.")
         // 소프트 삭제한 이전 Fork도 행과 UNIQUE(owner_id,source_work_id)가 남으므로 중복으로 센다(DEC-42).
         checkContent(forks.findAllByOwnerIdAndSourceWorkId(owner,id).isEmpty(),409,"이미 만든 분기 작품이 있어요.")

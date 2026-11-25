@@ -9,11 +9,16 @@ COPY gradle ./gradle
 COPY build.gradle settings.gradle ./
 RUN chmod +x ./gradlew
 
+# 의존성은 src보다 먼저 별도 레이어로 받아 CI의 gha 레이어 캐시에 싣는다(#800). cache mount는 그 캐시로 내보내지지 않아 쓰지 않는다.
+# 빈 main 하나로 bootJar를 돌려 플러그인·컴파일러·런타임 클래스패스를 받고, COPY src와 섞이지 않게 src·build를 지운다.
+RUN mkdir -p src/main/kotlin && \
+    echo 'fun main() {}' > src/main/kotlin/Warmup.kt && \
+    ./gradlew bootJar --no-daemon && \
+    rm -rf src build
+
 COPY src ./src
 
-# ponytail: shared cache serializes Gradle; split cache IDs if build throughput matters.
-RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
-    ./gradlew bootJar --no-daemon && \
+RUN ./gradlew bootJar --no-daemon --offline && \
     artifact="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' -print -quit)" && \
     test -n "${artifact}" && \
     cp "${artifact}" /workspace/application.jar

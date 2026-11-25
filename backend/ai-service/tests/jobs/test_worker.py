@@ -26,6 +26,20 @@ def operations(monkeypatch, status=200):
 def test_the_tasks_are_the_contract_ones_on_the_jobs_queue():
     assert (worker.run_evaluation.name, worker.run_evaluation.queue) == ('evaluation.run', 'jobs')
     assert (worker.run_operations_job.name, worker.run_operations_job.queue) == ('operations.run_job', 'jobs')
+    assert (worker.run_optimization.name, worker.run_optimization.queue) == ('optimization.run', 'jobs')
+
+
+def test_only_the_optimization_task_is_acknowledged_when_it_is_received_so_a_slow_run_is_not_delivered_twice():
+    """개선은 수십 분 걸려 RabbitMQ 확인 제한(30분)을 넘기면 늦은 확인(acks_late) 때문에 같은 작업이 다시 배달돼 중복 실행·과금이 된다(자문 P0)."""
+    assert worker.run_optimization.acks_late is False
+    assert worker.run_evaluation.acks_late is True and worker.run_operations_job.acks_late is True   # 나머지는 앱 설정(늦은 확인) 그대로다
+
+
+def test_the_optimization_task_hands_its_job_to_the_optimization_service(monkeypatch):
+    ran = []
+    monkeypatch.setattr(worker.optimization, 'run_job', ran.append)
+    worker.run_optimization({'prompt': 'character_simulation.act', 'version': 2, 'maxMetricCalls': 150})
+    assert ran == [{'prompt': 'character_simulation.act', 'version': 2, 'maxMetricCalls': 150}]
 
 
 def test_the_tasks_join_the_preprocessing_celery_app_and_leave_its_task_and_queue_alone():

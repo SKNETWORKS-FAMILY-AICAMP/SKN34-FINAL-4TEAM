@@ -12,10 +12,13 @@ import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
 import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
+import { ADMIN_PERMISSIONS } from '../../../../domain/entities/admin'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
+import type { Evaluation } from '../../../../domain/entities/llmOps'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
 import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
+import type { OperationsFeedbackReport } from '../../../../domain/entities/operationsFeedbackReport'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
 import { OperationsCommentUseCase } from '../../../../domain/usecases/OperationsCommentUseCase'
@@ -46,9 +49,17 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
 })
 
 // users·admins·rights 표는 운영 API 응답이 있어야 그려지므로(rights는 이 환경에서 유일하던 예시 격리 점검 표를 지웠다), notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
-it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genres'])(
+it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genres', 'cardCategories'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
+    // 작가 검토 제보는 한 건도 없으면 표 대신 빈 상태 글을 그리므로, 표 검사를 위해 제보 한 건을 준다.
+    if (tab === 'feedback') {
+      const report: OperationsFeedbackReport = {
+        id: 'r1', workId: 'w1', workTitle: '별빛 서약의 탑', episodeNumber: 3, kind: 'typo', body: '오탈자가 있어요', quote: null,
+        visibility: 'private', status: 'unchecked', reporterName: '연화', withdrawn: false, createdAt: '2026-11-20T01:02:03Z',
+      }
+      vi.spyOn(appContainer.resolve('operationsFeedbackReportUseCase')!, 'list').mockResolvedValue({ items: [report], page: 0, size: 20, total: 1 })
+    }
     renderAdmin(tab)
     await waitFor(() => expect(tables().length).toBeGreaterThan(0))
     for (const table of tables()) {
@@ -572,6 +583,21 @@ it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 �
   expect(chat.getAttribute('aria-label')).toBe(`「${cells[1]} ${cells[2]}」 조치`)
 })
 
+// 오류 없이 대상만 있는 실행(예: 성공한 회귀 평가)은 빈 칸 표시(—)를 대상 위에 또 붙이지 않는다: 줄마다 소음이 생긴다. 오류도 대상도 없을 때만 —를 보인다.
+it('실행 기록의 오류·대상 칸은 오류 없이 대상만 있으면 대상 한 줄만, 둘 다 없을 때만 —를 보인다', async () => {
+  const jobs = appContainer.resolve('jobMonitorUseCase')
+  const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+  const targetOnly = { id: 'run-target-only', kind: 'evaluation', source: 'ai-evaluation', status: 'succeeded', trigger: 'schedule', startedAt: '2026-11-20T01:02:03Z', finishedAt: '2026-11-20T01:05:03Z', targetId: 'character_simulation' }
+  const neither = { id: 'run-neither', kind: 'alert_cleanup', source: 'operations-scheduler', status: 'succeeded', trigger: 'schedule', startedAt: '2026-11-20T00:00:00Z', finishedAt: '2026-11-20T00:01:00Z' }
+  vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [targetOnly, neither] })
+  renderAdmin('jobs')
+  const table = await screen.findByRole('region', { name: '작업 실행 기록 표' })
+  const column = [...table.querySelectorAll('th')].findIndex((th) => th.textContent === '오류·대상')
+  expect(column).toBeGreaterThanOrEqual(0)
+  const [first, second] = [...table.querySelectorAll('tbody tr')].map((row) => row.querySelectorAll('td')[column].textContent)
+  expect([first, second]).toEqual(['대상 character_simulation', '—'])
+})
+
 it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글로 알린다', async () => {
   renderAdmin('admins')
   const password = await screen.findByLabelText<HTMLInputElement>('초기 비밀번호')
@@ -678,6 +704,32 @@ it('머리 영역: 목록 새로고침은 제목 줄 오른쪽(데모 칩 바로
   const top = document.querySelector('.adm .top .admin-brand-top')
   expect([top?.textContent, top?.closest('nav')]).toEqual(['STORYFORK 관리자', null])
   expect(document.querySelector('.adm .admin-nav .admin-brand')?.textContent).toBe('STORYFORK 관리자')
+})
+
+it('관리자 브랜드는 메인 페이지(/)로 가는 링크다: 사이드바 맨 위와 900px 이하 상단바 두 곳이고, 이름은 보이는 글자로 시작한다', async () => {
+  renderAdmin('characterChats')
+  await screen.findByRole('heading', { name: '캐릭터챗 관리' })
+  // 보이는 글자는 그대로이고 목적지는 메인(/)이다(둘 중 어느 쪽이 보이는지는 CSS 계약 테스트가 지킨다).
+  const brands = ['.adm .admin-nav .admin-brand', '.adm .top .admin-brand-top'].map((selector) => document.querySelector(selector))
+  expect(brands.map((el) => [el?.tagName, el?.getAttribute('href'), el?.textContent])).toEqual([
+    ['A', '/', 'STORYFORK 관리자'],
+    ['A', '/', 'STORYFORK 관리자'],
+  ])
+  // 접근 가능한 이름은 보이는 글자로 시작해(WCAG 2.5.3) 메인 페이지로 간다고 알린다. 현재 쪽을 가리키는 메뉴 항목이 아니라서 aria-current는 달지 않는다.
+  const links = screen.getAllByRole('link', { name: /메인 페이지/ })
+  expect(links).toHaveLength(2)
+  for (const link of links) expect([link.getAttribute('aria-label'), link.getAttribute('title'), link.getAttribute('aria-current')]).toEqual(['STORYFORK 관리자 · 메인 페이지로', '메인 페이지로', null])
+})
+
+// 데모 작품은 모두 공개 인물이 있어, 첫 선택지(첫 포크 작품)의 인물만 비워 '고를 캐릭터가 없는' 경우를 만든다.
+it('캐릭터챗 추가 폼은 고를 캐릭터가 없으면 빈 선택 대신 이유를 보이고 추가 버튼을 잠근다', async () => {
+  const admin = appContainer.resolve('adminUseCase')
+  const choices = admin.chatChoices.bind(admin)
+  vi.spyOn(admin, 'chatChoices').mockImplementation((works, kind) => choices(works, kind).map((choice, i) => (i ? choice : { ...choice, cast: [] })))
+  renderAdmin('characterChats')
+  const select = await screen.findByLabelText<HTMLSelectElement>('캐릭터')
+  expect([select.disabled, select.selectedOptions[0]?.textContent]).toEqual([true, '선택할 수 있는 캐릭터가 없어요'])
+  expect((screen.getByRole('button', { name: '캐릭터챗 추가' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
 it('필터는 왼쪽 정렬 한 줄: 검색 입력 → 분류(역할) → 정렬 → 검색 버튼을 한 form(.admin-filter)에 두고, 상태 선택은 제목 아래에 둔다', async () => {
@@ -820,12 +872,13 @@ const openGenreMenu = (name: string) => fireEvent.click(genreMenu(name))
 const pickGenreItem = (name: string) => fireEvent.click(screen.getByRole('menuitem', { name }))
 const genreNames = () => within(screen.getByRole('table', { name: '장르 관리 표' })).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell')[2].textContent)
 
-it('장르 탭은 콘텐츠 관리 묶음의 맨 뒤 메뉴로 열리고 장르 표(순서·아이콘·이름·상태·홈 노출·사용 수·조치)와 추가 폼을 보이며 데모 표시는 없다', async () => {
+it('장르 탭은 콘텐츠 관리 묶음에서 카드 카테고리 바로 앞 메뉴로 열리고 장르 표(순서·아이콘·이름·상태·홈 노출·사용 수·조치)와 추가 폼을 보이며 데모 표시는 없다', async () => {
   openGenres()
   renderAdmin('genres')
   await screen.findByText('판타지', { selector: 'b' })
   const links = within(screen.getByRole('group', { name: '콘텐츠 관리' })).getAllByRole('link')
-  expect([links.at(-1)?.textContent, links.at(-1)?.getAttribute('href'), links.at(-1)?.getAttribute('aria-current')]).toEqual(['장르', '/admin?tab=genres', 'page'])
+  expect([links.at(-2)?.textContent, links.at(-2)?.getAttribute('href'), links.at(-2)?.getAttribute('aria-current')]).toEqual(['장르', '/admin?tab=genres', 'page'])
+  expect([links.at(-1)?.textContent, links.at(-1)?.getAttribute('href')]).toEqual(['카드 카테고리', '/admin?tab=cardCategories'])
   expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('장르 관리')
   expect(demoChip()).toBeNull()
   const table = screen.getByRole('table', { name: '장르 관리 표' })
@@ -988,9 +1041,12 @@ it('작품 표의 행 조치는 글자 버튼 대신 ⋮ 버튼 하나가 여는
   const menu = screen.getByRole('menu', { name: '「달빛 도서관 외전」 조치' })
   expect(trigger.getAttribute('aria-expanded')).toBe('true')
   const items = within(menu).getAllByRole('menuitem')
-  expect(items.map((item) => item.textContent)).toEqual(['운영 제한', '포크 정합성 점검'])
+  expect(items.map((item) => item.textContent)).toEqual(['상세', '운영 제한', '포크 정합성 점검', '소설 보기', '집필실 보기'])
+  // 운영자는 소유권 없이 모든 작품의 상세·집필실을 연다(2026-11-23 사용자 결정).
+  const workId = row.querySelector('[data-record-id]')?.getAttribute('data-record-id')
+  expect(items.slice(3).map((item) => item.getAttribute('href'))).toEqual([`/work/${workId}`, `/studio/${workId}`])
   // 위험 조치(제한)만 danger 글자이고, 열리면 첫 항목에 초점이 간다.
-  expect(items.map((item) => item.classList.contains('danger'))).toEqual([true, false])
+  expect(items.map((item) => item.classList.contains('danger'))).toEqual([false, true, false, false, false])
   expect(document.activeElement).toBe(items[0])
   fireEvent.keyDown(items[0], { key: 'Escape' })
   expect(screen.queryByRole('menu')).toBeNull()
@@ -1002,7 +1058,7 @@ it('작품 표의 행 조치는 글자 버튼 대신 ⋮ 버튼 하나가 여는
 
 it('신고 표의 ⋮ 메뉴를 여는 누름은 행 선택까지 올라가지 않고, 검토 항목을 고르면 그 신고가 선택된다', async () => {
   const report = (id: string, workTitle: string) => ({
-    id, kind: 'RIGHTS' as const, workId: `w-${id}`, workTitle, workOwnerId: 'o1', reporterId: 'r1', reason: '권리 침해', evidence: '근거',
+    id, kind: 'RIGHTS' as const, targetType: 'work' as const, workId: `w-${id}`, workTitle, workOwnerId: 'o1', episodeNumber: null, worldId: null, worldName: null, reporterId: 'r1', reason: '권리 침해', evidence: '근거',
     status: 'RECEIVED' as const, contentRestricted: false, createdAt: '2026-11-09T01:00:00Z', updatedAt: '2026-11-09T01:00:00Z',
   })
   // jsdom에는 scrollIntoView가 없어(신고 상세가 열리면 제목으로 스크롤한다) 빈 대역을 둔다.
@@ -1074,34 +1130,57 @@ it.each(OPS_BODIES)('%s 탭은 데모 조회가 아직 오지 않았어도 본�
   expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
 })
 
-// 크레딧 탭(DEC-57): 회원 검색(MemberUseCase)과 운영 크레딧 UseCase를 대역으로 잇고, 검색 → ⋮ 선택 → 잔액·내역 → 지급·회수를 화면에서 따라간다.
+// 크레딧 탭(DEC-57): 회원 목록(MemberUseCase)과 운영 크레딧 UseCase를 대역으로 잇고, 열자마자 목록·행별 잔액 → ⋮ 선택 → 잔액·내역 → 지급·회수를 화면에서 따라간다.
 const yeonhwa = { id: 'm1', email: 'yeonhwa@example.invalid', nickname: '연화봉러', role: 'MEMBER' as const, restricted: false, createdAt: '2026-11-01T00:00:00Z' }
 const credit: MemberCredits = {
   balance: { total: 130, items: [{ kind: 'operator', remaining: 100, expiresAt: '2027-01-01T00:00:00Z' }, { kind: 'reward', remaining: 30, expiresAt: '2027-02-01T00:00:00Z' }] },
   history: [{ type: 'revoke', kind: 'reward', amount: 5, occurredAt: '2026-11-10T02:00:00Z' }, { type: 'grant', kind: 'operator', amount: 100, occurredAt: '2026-11-10T01:00:00Z' }],
 }
 async function openMemberCredits(overview: MemberCredits | null = credit) {
-  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  const members = vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
   const useCase = appContainer.resolve('operationsCreditUseCase')
   const member = vi.spyOn(useCase, 'member').mockResolvedValue(overview)
+  const balances = vi.spyOn(useCase, 'balances').mockResolvedValue({ m1: 130 })
   renderAdmin('credits')
-  fireEvent.change(await screen.findByLabelText('회원 검색'), { target: { value: '연화' } })
-  fireEvent.click(screen.getByRole('button', { name: '검색' }))
   const row = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
   fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '크레딧 보기·조정' }))
   await screen.findByRole('heading', { name: '연화봉러 님의 크레딧' })
-  return { useCase, member }
+  return { useCase, member, members, balances }
 }
 const fillChange = (amount: string, reason: string) => {
   fireEvent.change(screen.getByLabelText('금액'), { target: { value: amount } })
   fireEvent.change(screen.getByLabelText('사유'), { target: { value: reason } })
 }
 
-it('크레딧 탭은 데모가 아니라 회원 검색 → ⋮ 선택 → 지급분별 잔액·내역 표를 실제 API 값으로 보인다', async () => {
+it('크레딧 탭은 열자마자 전체 회원을 최신 가입순으로 읽고 행마다 보유 크레딧을 묶음 잔액으로 보인다', async () => {
+  const other = { ...yeonhwa, id: 'm2', email: 'other@example.invalid', nickname: '하늘' }
+  const members = vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa, other])
+  const balances = vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue({ m1: 130 })
+  renderAdmin('credits')
+  const first = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
+  const second = screen.getByText('하늘', { selector: 'b' }).closest('tr') as HTMLElement
+  expect(members).toHaveBeenCalledWith({ role: 'ALL', q: '', sort: 'newest' })
+  await waitFor(() => expect(cells(first)[2]).toBe('130'))
+  // 서버가 모르는 회원은 잔액 결과에서 빠져 '—'로 보인다(0으로 채우지 않는다).
+  expect(cells(second)[2]).toBe('—')
+  expect(balances).toHaveBeenCalledWith(['m1', 'm2'])
+  expect(screen.queryByRole('heading', { name: /님의 크레딧/ })).toBeNull()
+})
+
+it('잔액 조회 권한(크레딧 운영)이 없으면(403) 회원 표는 그대로 두고 잔액 칸은 비운 채 권한 안내만 보인다', async () => {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue(null)
+  renderAdmin('credits')
+  const row = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
+  expect((await screen.findByRole('alert')).textContent).toBe(CREDITS_FORBIDDEN)
+  expect(cells(row)[2]).toBe('—')
+})
+
+it('크레딧 탭은 데모가 아니라 열자마자 보이는 회원 목록 → ⋮ 선택 → 지급분별 잔액·내역 표를 실제 API 값으로 보인다', async () => {
   const { member } = await openMemberCredits()
   expect(demoChip()).toBeNull()
   expect(member).toHaveBeenCalledWith('m1')
-  within(screen.getByText('보유 크레딧').closest('div') as HTMLElement).getByText('130')
+  within(screen.getByText('보유 크레딧', { selector: 'small' }).closest('div') as HTMLElement).getByText('130')
   const body = (name: string) => within(screen.getByRole('region', { name })).getAllByRole('row').slice(1).map((row) => cells(row))
   expect(body('지급분별 잔액 표').map((row) => row.slice(0, 2))).toEqual([['운영자 지급 크레딧', '100'], ['보상 크레딧', '30']])
   expect(body('크레딧 내역 표').map((row) => row.slice(1))).toEqual([['회수', '보상 크레딧', '-5'], ['지급', '운영자 지급 크레딧', '+100']])
@@ -1109,7 +1188,7 @@ it('크레딧 탭은 데모가 아니라 회원 검색 → ⋮ 선택 → 지급
 })
 
 it('크레딧 지급은 확인 대화 뒤 금액·사유를 보내고, 성공하면 입력을 비우며 잔액·내역을 다시 읽는다', async () => {
-  const { useCase, member } = await openMemberCredits()
+  const { useCase, member, balances } = await openMemberCredits()
   const grant = vi.spyOn(useCase, 'grant').mockResolvedValue(undefined)
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
   fillChange('500', '이벤트 보상')
@@ -1120,6 +1199,8 @@ it('크레딧 지급은 확인 대화 뒤 금액·사유를 보내고, 성공하
   await waitFor(() => expect((screen.getByLabelText('금액') as HTMLInputElement).value).toBe(''))
   expect((screen.getByLabelText('사유') as HTMLTextAreaElement).value).toBe('')
   await waitFor(() => expect(member.mock.calls.length).toBeGreaterThan(1))
+  // 목록의 행별 잔액도 지급 뒤 다시 읽는다.
+  await waitFor(() => expect(balances.mock.calls.length).toBeGreaterThan(1))
 })
 
 it('금액이나 사유가 비어 있으면 대화도 요청도 없고, 확인을 취소하면 회수를 요청하지 않는다', async () => {
@@ -1168,13 +1249,122 @@ it('크레딧 운영 권한이 없으면(403) 잔액 대신 권한 안내만 보
   expect(screen.queryByRole('form', { name: '크레딧 지급·회수' })).toBeNull()
 })
 
-it('회원 검색 권한(사용자 관리)이 없으면 다시 불러오기 없이 권한 안내만 보인다', async () => {
+it('회원 목록 권한(사용자 관리)이 없으면 다시 불러오기 없이 권한 안내만 보이고 잔액은 요청하지 않는다', async () => {
   vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockRejectedValue(new OperationsForbidden('권한 없음'))
+  const balances = vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue({})
   renderAdmin('credits')
-  fireEvent.change(await screen.findByLabelText('회원 검색'), { target: { value: '연화' } })
-  fireEvent.click(screen.getByRole('button', { name: '검색' }))
   expect((await screen.findByRole('alert')).textContent).toBe(MEMBER_SEARCH_FORBIDDEN)
   expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+  expect(balances.mock.calls.every(([ids]) => ids.length === 0)).toBe(true)
+})
+
+it('회원 검색은 목록을 좁히고 검색어를 서버에 보낸다', async () => {
+  const members = vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue({ m1: 130 })
+  renderAdmin('credits')
+  await screen.findByText('연화봉러', { selector: 'b' })
+  fireEvent.change(screen.getByLabelText('회원 검색'), { target: { value: '연화' } })
+  fireEvent.click(screen.getByRole('button', { name: '검색' }))
+  await waitFor(() => expect(members).toHaveBeenLastCalledWith({ role: 'ALL', q: '연화', sort: 'newest' }))
+})
+
+// 관리자 계정 생성 결과(오류·완료)는 공지·이벤트 폼처럼 폼 안 제출 줄 아래에 보이고 화면 맨 위에는 또 그리지 않는다(권한 12개 아래 제출 버튼에서 맨 위 상태 줄은 멀다).
+async function submitAdminForm(permissions: string[] = []) {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listAdmins').mockResolvedValue([])
+  renderAdmin('admins')
+  fireEvent.change(await screen.findByLabelText('이메일'), { target: { value: 'new-admin@example.invalid' } })
+  fireEvent.change(screen.getByLabelText('닉네임'), { target: { value: '새 관리자' } })
+  fireEvent.change(screen.getByLabelText('초기 비밀번호'), { target: { value: 'StoryforkDev123!' } })
+  for (const name of permissions) fireEvent.click(screen.getByLabelText(name))
+  const form = screen.getByRole('button', { name: '관리자 계정 추가' }).closest('form') as HTMLFormElement
+  fireEvent.submit(form)
+  return form
+}
+const afterSubmitRow = (form: HTMLFormElement, node: Element) => !!(form.querySelector('.rowend')!.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+it('관리자 계정 생성 오류는 화면 맨 위가 아니라 폼 안 제출 줄 아래에 한 번만 보인다', async () => {
+  const form = await submitAdminForm()
+  const alert = await within(form).findByRole('alert')
+  expect(alert.textContent).toBe('한 가지 이상 권한을 선택해 주세요.')
+  expect(screen.getAllByRole('alert')).toEqual([alert])
+  expect(afterSubmitRow(form, alert)).toBe(true)
+})
+
+it('관리자 계정 생성 완료도 폼 안 제출 줄 아래에 한 번만 보이고 화면 맨 위 완료 줄은 없다', async () => {
+  const created = vi.spyOn(appContainer.resolve('memberUseCase'), 'createAdmin').mockResolvedValue(undefined)
+  const form = await submitAdminForm([ADMIN_PERMISSIONS[0][1]])
+  const done = await within(form).findByText('관리자 계정을 만들고 권한을 저장했어요.')
+  expect(created).toHaveBeenCalledTimes(1)
+  expect(done.getAttribute('role')).toBe('status')
+  expect(screen.getAllByText('관리자 계정을 만들고 권한을 저장했어요.')).toEqual([done])
+  expect(afterSubmitRow(form, done)).toBe(true)
+})
+
+it('경고 기준 행은 값이 저장값과 다르면 저장 버튼 곁에 "저장 안 됨"을 보이고, 저장돼 기준이 바뀌거나 값을 되돌리면 지운다', async () => {
+  // 공유 메모리 저장소를 바꾸지 않도록 이 테스트 안에서만 기준 목록을 들고 있는다.
+  const llm = appContainer.resolve('llmOpsUseCase')
+  let saved = (await llm.alertRules())!
+  vi.spyOn(llm, 'alertRules').mockImplementation(async () => structuredClone(saved))
+  vi.spyOn(llm, 'updateAlertRule').mockImplementation(async (key, input) => { saved = saved.map((rule) => rule.key === key ? { ...rule, ...input } : rule) })
+  renderAdmin('llm')
+  await screen.findByLabelText('AI 실패율 켜기')
+  const row = () => screen.getByLabelText('AI 실패율 켜기').closest('tr') as HTMLElement
+  const unsaved = () => within(row()).queryByText('저장 안 됨')
+  expect(unsaved()).toBeNull()
+  fireEvent.click(within(row()).getByLabelText('AI 실패율 켜기'))
+  // 저장 버튼과 같은 칸(곁)에 보인다.
+  expect(unsaved()!.closest('td')).toBe(within(row()).getByRole('button', { name: 'AI 실패율 기준 저장' }).closest('td'))
+  fireEvent.click(within(row()).getByLabelText('AI 실패율 켜기'))
+  expect(unsaved()).toBeNull()
+  fireEvent.change(within(row()).getByLabelText('AI 실패율 기준값'), { target: { value: '0.2' } })
+  expect(unsaved()).not.toBeNull()
+  fireEvent.click(within(row()).getByRole('button', { name: 'AI 실패율 기준 저장' }))
+  await waitFor(() => expect(unsaved()).toBeNull())
+  expect((within(row()).getByLabelText('AI 실패율 기준값') as HTMLInputElement).value).toBe('0.2')
+})
+
+it('회귀 평가 실행의 세 입력은 화면 표에 나오는 값 형식을 placeholder로 보여 준다', async () => {
+  renderAdmin('llm', 'quality')
+  const run = await screen.findByRole('region', { name: '회귀 평가' })
+  expect(['데이터셋', '프롬프트 이름', '버전'].map((name) => within(run).getByLabelText(name).getAttribute('placeholder')))
+    .toEqual(['예: simulation.narrate', '예: character_simulation.narrate', '예: 2'])
+})
+
+it('평가·누설 검사 쪽은 회귀 평가 위에 에이전트별 평가 표를 쌓아 세트 없는 에이전트도 보이고, 세트마다 최근 Run을 통과 여부와 Run 상세로 보인다(#837)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  const run = (runId: string, passed: boolean, createdAt: string): Evaluation => ({ runId, dataset: 'simulation.act', prompt: 'character_simulation.act', version: 2, status: 'completed', passed, createdAt, metrics: [] })
+  const newest = run('act-new', false, '2026-11-24T02:00:00Z')
+  vi.spyOn(llm, 'evaluations').mockResolvedValue([run('act-old', true, '2026-11-20T02:00:00Z'), newest])
+  vi.spyOn(llm, 'evaluation').mockResolvedValue(newest)
+  renderAdmin('llm', 'quality')
+  const catalog = await region('에이전트별 평가')
+  expect(before(catalog, await region('회귀 평가'))).toBe(true)
+  const table = within(catalog).getByRole('table', { name: '에이전트별 평가 표' })
+  expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['에이전트', '평가 모드', '평가 세트(항목 수)', '지표', '최근 결과'])
+  const rowOf = (feature: string) => within(within(table).getAllByRole('row').find((tr) => within(tr).queryByText(feature)) as HTMLElement)
+  // 세트가 없는 에이전트도 숨기지 않고, 세트는 있으나 Run이 없으면 그렇게 알린다.
+  rowOf('orchestration.main').getByText('평가 세트 없음(후속)')
+  rowOf('character_simulation.narrate').getByText('실행한 평가 없음')
+  // 원문 검색은 실행 버튼 없이 CI에서 확인한다.
+  rowOf('기억 회상(NovelBrain recall)').getByText(/버튼 없음 · CI에서 확인/)
+  expect(rowOf('기억 회상(NovelBrain recall)').queryByRole('button')).toBeNull()
+  // 그 세트의 가장 최근 Run(목록 순서와 무관)이 통과·미통과와 Run 상세로 보인다.
+  const act = rowOf('character_simulation.act')
+  act.getByText('미통과')
+  act.getByText(/character_simulation.act 2번 버전/)
+  fireEvent.click(act.getByRole('button', { name: /act-new/ }))
+  await region('평가 상세')
+  expect(screen.queryByRole('region', { name: '에이전트별 평가' })).toBeNull()
+})
+
+it('크레딧 탭은 회원을 고르면 상세 제목으로 초점을 옮기고, 같은 회원을 목록에서 다시 골라도 제목으로 되돌린다', async () => {
+  await openMemberCredits()
+  const heading = () => screen.getByRole('heading', { name: '연화봉러 님의 크레딧' })
+  await waitFor(() => expect(document.activeElement).toBe(heading()))
+  // 스크롤해 목록으로 올라와 같은 회원을 다시 고르면, 메뉴가 닫히며 초점이 ⋮로 돌아간 채 남지 않고 제목으로 간다.
+  const row = screen.getByText('연화봉러', { selector: 'b' }).closest('tr') as HTMLElement
+  fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '크레딧 보기·조정' }))
+  expect(document.activeElement).toBe(heading())
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
@@ -1187,4 +1377,158 @@ it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 �
   within(activityRows()[0]).getByText('캐릭터챗 중지', { selector: 'b' })
   within(activityRows()[0]).getByText('수행자 관리자 · 대상 데모')
   within(activityRows()[0]).getByText(`${chat.w.title} · ${chat.character}`)
+})
+
+it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 수·코드 시드 대기를, 상세는 반영 중인 조합 요약과 버전별 상태·모델, 반영 중인 본문·모델로 채운 조합 폼을 보인다(#705)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([
+    // 목록은 production·seed 버전만 주고 후보 수는 따로 센다(#786).
+    { name: 'orchestration.main', versions: [{ version: 3, labels: ['seed', 'latest'] }, { version: 2, labels: ['production'], model: 'gpt-x' }], candidates: 1 },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }], candidates: 0 },
+  ])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', candidates: 1, models: ['gpt-y', 'gpt-x'], versions: [
+    { version: 4, labels: ['candidate-4'], model: 'gpt-y', prompt: '운영 지시' }, { version: 3, labels: ['seed', 'latest'], prompt: '새 시드' },
+    { version: 2, labels: ['production'], model: 'gpt-x', prompt: '운영 지시' }] })
+  // Langfuse 모델 정의(단가표)에는 AI가 부를 수 없는 모델도 있어 선택지가 아니다(#806).
+  vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm9', modelName: 'claude-sonnet-5-5', matchPattern: 'c' }])
+  const create = vi.spyOn(llm, 'createPromptVersion').mockResolvedValue(undefined)
+  renderAdmin('llm', 'prompts&sub=prompts')
+
+  const table = await screen.findByRole('region', { name: '프롬프트 표' })
+  const cells = (name: string) => [...(within(table).getByRole('button', { name }).closest('tr') as HTMLElement).querySelectorAll('td')].map((td) => td.textContent)
+  expect(cells('orchestration.main')).toEqual(['orchestration.main', '2번 버전', 'gpt-x', '1개', '코드 시드 3번 버전 대기'])
+  expect(cells('decision_guard.judge')).toEqual(['decision_guard.judge', '1번 버전', '기본 모델(환경 설정)', '—', '—'])   // 실제 기본 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808)
+  fireEvent.click(within(table).getByRole('button', { name: 'orchestration.main' }))
+
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  const live = await within(detail).findByRole('group', { name: '서비스 반영 중인 조합' })
+  expect(live.textContent).toContain('2번 버전')
+  expect(live.textContent).toContain('gpt-x')
+  within(detail).getByText(/코드 시드\(3번 버전\)가 서비스 반영 중인 본문과 달라요/)
+  const versions = within(detail).getByRole('region', { name: '프롬프트 버전 표' })
+  expect(within(versions).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['버전', '상태', '모델', '등록', '회귀 평가', '조치'])
+  const row = (version: number) => within(versions).getByRole('cell', { name: String(version) }).closest('tr') as HTMLElement
+  expect([within(row(4)).getByText('후보'), within(row(3)).getByText('코드 시드'), within(row(2)).getByText('서비스 반영 중')]).toHaveLength(3)
+  expect(within(row(3)).queryByText('latest')).toBeNull()   // Langfuse가 관리하는 라벨은 숨긴다
+  within(row(3)).getByRole('cell', { name: '기본 모델(환경 설정)' })
+  within(row(4)).getByRole('button', { name: 'orchestration.main 4번 버전 서비스에 반영' })
+  within(row(3)).getByRole('button', { name: 'orchestration.main 3번 버전 후보 등록' })
+  expect(within(row(2)).queryByRole('button', { name: /후보 등록|서비스에 반영/ })).toBeNull()
+
+  expect((within(detail).getByLabelText('프롬프트 본문') as HTMLTextAreaElement).value).toBe('운영 지시')
+  const model = within(detail).getByLabelText('모델') as HTMLSelectElement
+  expect([...model.options].map((o) => [o.value, o.text])).toEqual([['', '기본 모델(환경 설정)'], ['gpt-x', 'gpt-x'], ['gpt-y', 'gpt-y']])
+  expect(model.value).toBe('gpt-x')
+  fireEvent.change(model, { target: { value: 'gpt-y' } })
+  fireEvent.click(within(detail).getByRole('button', { name: '조합 저장' }))
+  await waitFor(() => expect(create).toHaveBeenCalledWith('orchestration.main', '운영 지시', '', 'gpt-y'))
+})
+
+it('후보 등록과 서비스 반영은 그 버전 행의 버튼으로 하고, 반영은 확인을 받는다(#705)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'] }], candidates: 1 }])
+  let promoted = false
+  vi.spyOn(llm, 'prompt').mockImplementation(async () => ({ name: 'qa', candidates: 1, versions: [
+    { version: 3, labels: [], prompt: '셋' }, { version: 2, labels: promoted ? ['candidate-2', 'production'] : ['candidate-2'], prompt: '둘' },
+    { version: 1, labels: promoted ? [] : ['production'], prompt: '하나' }] }))
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  const candidate = vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)
+  const promote = vi.spyOn(llm, 'promote').mockImplementation(async () => { promoted = true })
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+
+  fireEvent.click(await screen.findByRole('button', { name: 'qa 3번 버전 후보 등록' }))
+  await waitFor(() => expect(candidate).toHaveBeenCalledWith('qa', 3))
+  fireEvent.click(screen.getByRole('button', { name: 'qa 2번 버전 서비스에 반영' }))
+  expect(promote).not.toHaveBeenCalled()   // 확인 창에서 취소
+  fireEvent.click(screen.getByRole('button', { name: 'qa 2번 버전 서비스에 반영' }))
+  await waitFor(() => expect(promote).toHaveBeenCalledWith('qa', 2))
+  expect(confirm).toHaveBeenCalledTimes(2)
+  // 반영하면 그 행의 버튼이 사라지므로 초점은 상세 제목으로 옮긴다(키보드 위치를 잃지 않게).
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'qa 2번 버전 서비스에 반영' })).toBeNull())
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'qa' })))
+})
+
+it('한 프롬프트에서 한 조치의 결과 안내는 다른 프롬프트 상세에 남지 않는다', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'] }], candidates: 0 }, { name: 'other', versions: [{ version: 1, labels: ['production'] }], candidates: 0 }])
+  vi.spyOn(llm, 'prompt').mockImplementation(async (name: string) => ({ name, candidates: 0, versions: [{ version: 2, labels: [], prompt: '둘' }, { version: 1, labels: ['production'], prompt: '하나' }] }))
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'qa 2번 버전 후보 등록' }))
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  await within(detail).findByText(/qa 2번 버전을 후보로 등록했어요/)
+  fireEvent.click(within(detail).getByRole('button', { name: '프롬프트 목록으로' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'other' }))
+  await screen.findByRole('heading', { name: 'other' })
+  expect(within(screen.getByRole('region', { name: '프롬프트 상세' })).queryByText(/qa 2번 버전을 후보로 등록했어요/)).toBeNull()
+})
+
+it('평가 세트가 있는 프롬프트의 상세는 후보 등록 조건을 안내한다(#787)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'], prompt: '답' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  const region = await screen.findByRole('region', { name: '프롬프트 상세' })
+  await within(region).findByText('후보 등록 조건: 평가 세트 qa.grounding의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).')
+})
+
+it('평가 세트가 있는 프롬프트는 통과하지 않은 버전에 후보 등록 대신 이유를 보인다(#787)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [
+    { version: 3, labels: [], prompt: '셋', evaluation: { runId: 'r3', passed: true, createdAt: '2026-11-19T00:00:00Z' } },
+    { version: 2, labels: [], prompt: '둘' },
+    { version: 1, labels: ['production'], prompt: '답' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  await screen.findByRole('button', { name: 'story_context.answer 3번 버전 후보 등록' })
+  expect(screen.queryByRole('button', { name: 'story_context.answer 2번 버전 후보 등록' })).toBeNull()
+  screen.getByText('평가 통과 후 가능')
+})
+
+it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를 수 없다', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'] }] }])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'decision_guard.judge' }))
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  expect((await within(detail).findByLabelText('모델') as HTMLSelectElement).disabled).toBe(true)
+  within(detail).getByText('Decisions API가 gpt-6-luna만 지원해 모델은 고정이에요. 프롬프트만 바꿀 수 있어요.')
+  expect(within(detail).queryByText(/코드 시드\(/)).toBeNull()
+  expect(within(detail).queryByText(/후보 등록 조건/)).toBeNull()   // 평가 세트가 없는 프롬프트
+})
+
+it('반영 중인 모델은 고를 수 있는 목록에 없어도 선택지에 남는다(#806)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-old' }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, models: ['gpt-6-luna'], versions: [{ version: 1, labels: ['production'], model: 'gpt-old', prompt: '지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  const model = await screen.findByLabelText('모델') as HTMLSelectElement
+  expect([...model.options].map((o) => o.value)).toEqual(['', 'gpt-old', 'gpt-6-luna'])
+  expect(model.value).toBe('gpt-old')
+})
+
+it('버전 표의 각 행에서 그 버전의 본문과 변경 메모를 펼쳐 본다(#807)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, versions: [
+    { version: 2, labels: [], prompt: '새 지시', commitMessage: '말투 고침' }, { version: 1, labels: ['production'], prompt: '옛 지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  const versions = await screen.findByRole('region', { name: '프롬프트 버전 표' })
+  const body = within(versions).getByText('2번 버전 본문 · 말투 고침').closest('details') as HTMLDetailsElement
+  expect(body.open).toBe(false)
+  expect(body.querySelector('pre')?.textContent).toBe('새 지시')
+  expect(within(versions).getByText('1번 버전 본문').closest('details')?.querySelector('pre')?.textContent).toBe('옛 지시')
 })

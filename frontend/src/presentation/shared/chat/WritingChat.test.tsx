@@ -8,12 +8,12 @@ import { createAppStore } from '../../../app/store'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
-import { NO_BEFORE } from './PendingActionCard'
+import { NO_BEFORE, WORK_CHANGED_NOTE } from './PendingActionCard'
 import { WritingChat } from './WritingChat'
 
-const { sessions, history, send, open, writingEpisode } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn() }))
+const { sessions, history, send, open, writingEpisode, feedback } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn(), feedback: vi.fn() }))
 vi.mock('../../../app/appContainer', () => ({ appContainer: { resolve: () => useCase } }))
-const useCase = { sessions, history, send, open, writingEpisode }
+const useCase = { sessions, history, send, open, writingEpisode, feedback }
 
 // useAsyncData는 effect를 정리한 뒤에도 대기 중이던 읽기를 한 번 부른다(취소된 신호로). 다음 테스트의 호출 기록에 섞이지 않게 먼저 비운다.
 afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
@@ -556,21 +556,88 @@ it('동의 체크 없이 바로 보내고 요청에 동의 값을 싣지 않는�
   expect(send.mock.calls[0][2]).not.toHaveProperty('consent')
 })
 
-it('AI 답변 아래에 좋아요·싫어요 아이콘 버튼만 두고, 눌러도 아무 요청을 보내지 않는다(저장은 #560)', async () => {
+it('발행 회차가 없어 판본 없는 초안 근거여도 잠그지 않고 그 회차로 보낸다(#729)', async () => {
+  openThread([])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '1화 첫 장면을 써 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ episode: 1, request: '1화 첫 장면을 써 줘' })
+  expect(send.mock.calls[0][2]).not.toHaveProperty('episodeVersionId')
+})
+
+const rated = (rating: 'up' | 'down' | null, ...more: object[]) => {
   sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
   history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
-    request: '주인공이 누구야?', reply: { status: 'completed', message: '주인공은 홍길동입니다.', steps: [] },
-  }] })
+    request: '주인공이 누구야?', reply: { status: 'completed', message: '주인공은 홍길동입니다.', steps: [] }, feedback: rating,
+  }, ...more] })
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+}
+const pressed = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-pressed')
+
+it('좋아요·싫어요는 그 턴의 평가로 저장하고 눌린 상태를 보이며, 눌린 버튼을 다시 누르면 취소한다(#560)', async () => {
+  feedback.mockResolvedValue(undefined)
+  rated('up')
   await screen.findByText('주인공은 홍길동입니다.')
-  const like = screen.getByRole('button', { name: '이 답변 좋아요' })
-  const dislike = screen.getByRole('button', { name: '이 답변 싫어요' })
-  expect(like.textContent).toBe('')
-  fireEvent.click(like)
-  fireEvent.click(dislike)
+  expect(screen.getByRole('button', { name: '이 답변 좋아요' }).textContent).toBe('')
+  expect([pressed('이 답변 좋아요'), pressed('이 답변 싫어요')]).toEqual(['true', 'false'])
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 싫어요' }))
+  await waitFor(() => expect([pressed('이 답변 좋아요'), pressed('이 답변 싫어요')]).toEqual(['false', 'true']))
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 싫어요' }))
+  await waitFor(() => expect(pressed('이 답변 싫어요')).toBe('false'))
+  expect(feedback.mock.calls).toEqual([['w', 'a', 0, 'down'], ['w', 'a', 0, null]])
   expect(send).not.toHaveBeenCalled()
   expect(history).toHaveBeenCalledTimes(1)
-  expect(screen.getAllByRole('button', { name: '이 답변 좋아요' })).toHaveLength(1)
+})
+
+it('평가를 저장하지 못하면 눌린 상태를 바꾸지 않고 이유를 알린다(#560)', async () => {
+  feedback.mockRejectedValue(new Error('평가를 저장하지 못했어요.'))
+  rated(null)
+  await screen.findByText('주인공은 홍길동입니다.')
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 좋아요' }))
+  expect(await screen.findByText('평가를 저장하지 못했어요.')).toBeTruthy()
+  expect(pressed('이 답변 좋아요')).toBe('false')
+})
+
+it('승인·입력을 기다리는 대화는 앞 답변도 평가할 수 없다(서버가 멈춘 실행을 지키려 409로 막는다, #560)', async () => {
+  rated(null, { request: '조사해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'] } })
+  await screen.findByText('주인공은 홍길동입니다.')
+  expect((screen.getByRole('button', { name: '이 답변 좋아요' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(screen.getAllByTitle('진행 중인 작업을 마치면 평가할 수 있어요.')).toHaveLength(2) // 좋아요·싫어요 둘 다 잠긴 이유를 알린다
+})
+
+it('평가를 저장하는 동안에도 누른 버튼은 잠기지 않아 키보드 초점이 남고, 그사이 다시 눌러도 저장은 한 번만 요청한다(#560)', async () => {
+  let saved!: () => void
+  feedback.mockReturnValue(new Promise<void>((resolve) => { saved = resolve }))
+  rated(null)
+  await screen.findByText('주인공은 홍길동입니다.')
+  const like = screen.getByRole('button', { name: '이 답변 좋아요' }) as HTMLButtonElement
+  like.focus()
+  fireEvent.click(like)
+  expect(like.disabled).toBe(false)
+  expect(document.activeElement).toBe(like)
+  fireEvent.click(like)
+  expect(feedback).toHaveBeenCalledTimes(1)
+  await act(async () => { saved() })
+})
+
+it('평가를 저장하는 사이 다른 대화를 고르면 그 응답이 고른 대화의 턴을 눌린 상태로 바꾸지 않는다(#560)', async () => {
+  let saved!: () => void
+  feedback.mockReturnValue(new Promise<void>((resolve) => { saved = resolve }))
+  sessions.mockResolvedValue([{ threadId: 'a', title: '첫 대화', updatedAt: '' }, { threadId: 'b', title: '둘째 대화', updatedAt: '' }])
+  history.mockImplementation(async (_work: string, thread: string) => ({
+    threadId: thread, title: '', turns: [{ request: '질문', reply: { status: 'completed', message: thread === 'a' ? '첫 답변' : '둘째 답변', steps: [] }, feedback: null }],
+  }))
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('첫 답변')
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 좋아요' }))
+  fireEvent.change(screen.getByLabelText('대화 고르기'), { target: { value: 'b' } })
+  await screen.findByText('둘째 답변')
+  await act(async () => { saved() })
+  expect(pressed('이 답변 좋아요')).toBe('false')
+  expect(feedback.mock.calls).toEqual([['w', 'a', 0, 'up']])
 })
 
 // ── World 단계(#546): enrich 제안은 설정집 초안에 반영할지 묻고, 반영되면 세계관 화면(onWorldApplied)이 초안을 다시 읽는다 ──
@@ -750,6 +817,16 @@ it('카드를 찾을 수 없는 화면(집필실)의 카드 수정 승인은 새
   expect(screen.queryByText(/새 설정/)).toBeNull()
   expect(screen.getByText(NO_BEFORE)).toBeTruthy()
   expect(screen.getByText(/실행하지 않기를 누르면 아무것도 바뀌지 않아요/)).toBeTruthy()
+  expect(screen.queryByText(WORK_CHANGED_NOTE)).toBeNull()
+})
+
+it('작품 정보 수정 승인은 원고 저장으로 작품이 바뀌면 실행하지 않고 다시 제안한다고 미리 알린다(#687)', async () => {
+  openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+    pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 12 } } } } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect(await screen.findByText(WORK_CHANGED_NOTE)).toBeTruthy()
+  expect(screen.getByText(/이 내용이 작품 정보에 반영돼요/)).toBeTruthy()
+  expect((screen.getByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(false)
 })
 
 it('새 메시지를 보낼 때만 지금 화면(page)을 싣고, 이어가기에는 싣지 않는다', async () => {
@@ -1036,7 +1113,7 @@ it('승인한 Content 계획 도구(story_plan_create·story_plan_update)도 계
 describe('집필 AI 채팅 첨부(#617)', () => {
   const png = () => new File([new Uint8Array([137, 80, 78, 71])], '지도.png', { type: 'image/png' })
   const note = (text = '북문은 밤에 닫힌다.') => new File([text], '메모.md', { type: '' })
-  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files } })
+  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files, types: ['Files'] } })
   const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
   const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
 
@@ -1045,8 +1122,8 @@ describe('집필 AI 채팅 첨부(#617)', () => {
     renderChat()
     await screen.findByText('새 대화', { selector: 'h3' })
     const row = document.querySelector('.chat-sessions')!
-    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()] } })).toBe(false)
-    expect(fireEvent.drop(row, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
+    expect(fireEvent.drop(row, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
   })
 
   it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {

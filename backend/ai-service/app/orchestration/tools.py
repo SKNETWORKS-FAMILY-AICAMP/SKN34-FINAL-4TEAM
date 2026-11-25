@@ -60,6 +60,7 @@ FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, S
             WorldReviewFailure, RatingFailure)
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 NO_QA_TARGET = '질문할 작품과 회차를 확인할 수 없어요.'
+NO_PUBLISHED = '발행한 회차가 없어 원고는 근거로 쓰지 않았어요. 세계관 설정만 봤어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
 NO_WORLD_TARGET = '세계관을 다룰 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
@@ -74,8 +75,8 @@ DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다�
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
 NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요. 고칠 계획을 먼저 저장해 주세요.'
-# '지적 고르기'에서 멈춘 턴을 이어 가는 요청이 설정으로 알린다(#636). 작가의 답(번호·취소)은 그 대기만 받는다. __로 시작해 체크포인트 metadata에 남지 않는다
-RESUME_FIX = '__resume_fix'
+NO_PLAN_CHANGE = '요청대로 바꿀 내용이 없어요. 고칠 방향을 더 구체적으로 알려 주세요.'
+PLAN_EPISODE_MISSING = '연결한 회차가 삭제됐어요. 계획 패널에서 회차 연결을 해제한 뒤 다시 요청해 주세요.'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
@@ -91,7 +92,8 @@ def _check(inputs: dict, check: str | None) -> str | None:
 # ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다. ask_world는 작가 승인이 필요한 enrich만 ask_writing처럼
 # 단독으로 부르게 같은 검사에 넣는다(check·impact는 조회형이라 묶음에서 함께 실행한다).
 WAITS = {
-    'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
+    # 토큰이 없어도 반영 대상(target)이 있으면 세계관 근거로 답한다(발행 회차 없음, #729)
+    'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope and not turn.get('target'),
     'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
     'ask_research': lambda turn, inputs, scope, args: args.get('task') == 'web' and 'research' not in inputs,
     'ask_world': lambda turn, inputs, scope, args: args.get('task') == 'enrich',
@@ -247,12 +249,15 @@ def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
             # 발췌가 없으면 원고는 공통 Retrieval(Content 내부 검색), 설정·관계는 Content MCP로 기준 회차 시점의 세계관을 읽는다(#490).
             # 둘 다 근거가 없으면 모델을 부르지 않는다.
             target = _target(turn, StoryQaFailure, NO_QA_TARGET)
-            try:
-                found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
-                # 설정·관계 정본은 WorldStudio 하나라(#490 결정 1) Retrieval에서는 원고 발췌만 쓴다(옛 설정 문서·현재 관계 제외).
-                manuscript, gaps, coverage = [e for e in found.excerpts if e.kind == 'manuscript'], [g.detail for g in found.gaps], found.coverage
-            except RetrievalUnavailable as error:  # Content가 원고 검색을 쓸 수 없다고 답하면 세계관 근거로만 답하고 이유를 gap으로 알린다
-                manuscript, gaps = [], [str(error)]
+            if not scope:  # 발행 회차가 없어 Content가 조회 토큰을 주지 않았다(#729): 세계관 근거로만 답한다
+                manuscript, gaps = [], [NO_PUBLISHED]
+            else:
+                try:
+                    found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
+                    # 설정·관계 정본은 WorldStudio 하나라(#490 결정 1) Retrieval에서는 원고 발췌만 쓴다(옛 설정 문서·현재 관계 제외).
+                    manuscript, gaps, coverage = [e for e in found.excerpts if e.kind == 'manuscript'], [g.detail for g in found.gaps], found.coverage
+                except RetrievalUnavailable as error:  # Content가 원고 검색을 쓸 수 없다고 답하면 세계관 근거로만 답하고 이유를 gap으로 알린다
+                    manuscript, gaps = [], [str(error)]
             world, world_gaps = story_qa.world_excerpts(target['workId'], target.get('baseEpisode') or target['episode'], request[:500])
             gaps += world_gaps
             if not (excerpts := [e.model_dump() for e in [*manuscript, *world]]):
@@ -352,8 +357,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     selected = (turn.get('page') or {}).get('selection')  # 작가가 편집기에서 고른 글(#554, Content가 확인한 화면 정보)
     reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
-    fixing = ('fix' in given or fix is not None or runtime.config['configurable'].get(RESUME_FIX)
-              or (task == 'patch' and 'patch' not in given and reviewed is not None and not selected))
+    fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None and not selected)
     if fixing:
         return _fix(runtime, reviewed, fix)
 
@@ -415,8 +419,12 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
             more = f' 외 {len(briefs) - PLAN_CANDIDATES}개' if len(briefs) > PLAN_CANDIDATES else ''
             raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}')
         current = content_mcp.read_plan(work, picked)
+        if current.episodeMissing:  # 그대로 저장하면 Content가 승인 순간 거절하므로 제안 전에 알린다(#641)
+            raise WritingFailure(422, PLAN_EPISODE_MISSING)
         brief = next(b for b in briefs if b.id == picked).model_copy(update={'title': current.title, 'episodeNumber': current.episodeNumber})
-        return writing.revise_plan(PlanReviseRequest(request=request, plan=brief, content=current.content, revision=current.revision))
+        if (revised := writing.revise_plan(PlanReviseRequest(request=request, plan=brief, content=current.content, revision=current.revision))) is None:
+            raise Clarify(NO_PLAN_CHANGE)
+        return revised
 
     return _ask(runtime, 'writing_editing', run, task_kind='revise_plan')
 

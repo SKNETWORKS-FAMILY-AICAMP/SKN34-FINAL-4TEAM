@@ -8,8 +8,10 @@ version = "0.1.0"
 description = "Internal health foundation for STORYFORK"
 requires-python = ">=3.11,<3.15"
 dependencies = [
-    # celery 5.7은 python-dateutil==2.9.0.post0으로 고정해 잠긴 python-dateutil 4.0.0을 내리므로 5.6대에 둔다.
+    # develop의 Celery 5.6대 범위를 유지한다. 이미지 저장용 botocore는 python-dateutil<3이 필요하다.
     "celery>=5.6,<5.7",
+    "boto3>=1.40,<2",
+    "pillow>=13,<14",
     "fastapi>=0.139.2,<0.140.0",
     "langchain>=1.5,<2",
     "langchain-openai>=1,<2",
@@ -30,10 +32,11 @@ manuscript = [
     "onnxruntime>=1.29,<2",
     "tokenizers>=0.22,<1",
 ]
-# 회귀 평가(app/evaluation, DEC-55). 같은 프로세스에서 돌므로 AI 이미지에도 설치한다.
+# 회귀 평가(app/evaluation, DEC-55)와 프롬프트 자동 개선(app/optimization, #823, gepa MIT·사용자 승인). 같은 프로세스에서 돌므로 AI 이미지에도 설치한다.
 eval = [
     "ragas>=0.4.4,<0.5",
     "deepeval>=4.3.4,<5",
+    "gepa>=0.1.4,<0.2",
 ]
 dev = [
     "httpx2>=2.0.0,<3.0.0",

@@ -173,7 +173,7 @@ class WorkMcpTools(
     fun publicWorldCards(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "이 회차까지 독자에게 공개된 카드만(1 이상, 생략하면 마지막 발행 회차)", required = false) upto: String?,
-    ): ReaderWorldCardsResponse = mcpTool { worldLinks.readerCards(id, upto) }
+    ): ReaderWorldCardsResponse = mcpTool { worldLinks.readerCards(id, upto).forAi() }
 
     @McpTool(
         name = "work_inherited_world",
@@ -184,7 +184,7 @@ class WorkMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "Fork 작품 ID") id: String,
         @McpToolParam(description = "이 회차까지만(1 이상, 생략하면 Fork 기준 회차)", required = false) upto: String?,
-    ): InheritedWorldResponse = mcpTool { worldLinks.inheritedWorld(id, context.requireCaller().memberId, upto) }
+    ): InheritedWorldResponse = mcpTool { worldLinks.inheritedWorld(id, context.requireCaller().memberId, upto).forAi() }
 
     @McpTool(
         name = "work_notice_public_list",

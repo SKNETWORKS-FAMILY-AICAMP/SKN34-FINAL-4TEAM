@@ -78,10 +78,10 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 
 1. 기존 같은 물리 DB 대상·계정을 재사용한다. 새 DB·데이터 복사·별도 WorldStudio pool은 만들지 않는다. Core는 Auth, Content는 콘텐츠/첨부/WorldStudio migration과 writer를 소유하며 다른 서비스 Entity·Repository를 스캔하지 않는다.
 2. Content 초기 스키마는 사용자가 승인한 개발용 fresh 기준이다. `db/migration/work` V1 → `episode` V2 → `world` V3 → `episode_version` V4 → `publication` V5 → `fork` V6 → `proposal` V7 → `work` V8 view → `episode` V9 view 순서다. 명시 7개 leaf와 단일 `content_schema_history`에서 전역 버전·FK 순서를 보장한다. root 직하 SQL 및 `db/migration/content` 폴더는 없으며 JSONB `content_work`·V5 importer·전용 legacy runtime 모델/Repository도 제거했다.
-3. 과거 Content checksum/이력은 새 소스와 호환되지 않으며 자동 repair/clean하지 않는다. 실제 재초기화 대상은 아직 지정되지 않았다. 담당자는 정확한 개발 DB·보존 범위·백업/복구·중단 시간·동일 revision 이미지를 별도로 승인해야 한다. 같은 DB라는 이유로 Auth·WorldStudio·첨부 데이터/이력을 일괄 삭제하지 않는다. Auth 3개 SQL과 첨부/독립 WorldStudio SQL은 원본 바이트·이력을 유지한다.
+3. 과거 Content checksum/이력은 새 소스와 호환되지 않으며 자동 repair/clean하지 않는다. 실제 재초기화 대상은 아직 지정되지 않았다. 담당자는 정확한 개발 DB·보존 범위·백업/복구·중단 시간·같은 build-tree의 앱 이미지를 별도로 승인해야 한다. 같은 DB라는 이유로 Auth·WorldStudio·첨부 데이터/이력을 일괄 삭제하지 않는다. Auth 3개 SQL과 첨부/독립 WorldStudio SQL은 원본 바이트·이력을 유지한다.
 4. Content는 명시 기능 Entity/Repository와 `contentTransactionManager`를 사용한다. WorldStudio는 같은 `contentDataSource`와 studio-only EntityManager/TransactionManager로 서버 시작 `validate`만 하며 V1은 명시 명령으로 실행한다. credential-free member 참조는 인증 정본이 아니다.
 5. nginx/Vite는 기존 두 works 경로만 Content로 라우팅하고 나머지 API는 Core로 보낸다. Core 코드/테스트·Flyway·첨부 의존성을 제거하고 Content Dockerfile·Compose·게시 이미지·CI 소비자/통합 분류를 연결했다. Compose는 Core Health 이후 Content를 시작한다.
-6. CD 배포는 `DEVELOP_CD_ENABLED`와 `CONTENT_FRESH_SCHEMA_APPROVED`가 모두 true여야 한다. 이 변수는 실제 DB 준비를 대신하지 않는다. 같은 revision 이미지 확인 → web/구 Core/Content writer 중지 → 선택 WorldStudio migration → 새 앱 기동 순서다. 실패하면 ingress를 멈춘 채 자동 rollback/repair하지 않으며 호환되는 스냅샷·바이너리 복구는 담당자가 결정한다. 이 작업은 실제 게시·배포·DB 변경을 실행하지 않는다. _(과거 기록: 활성화·승인 변수와 별도 Studio migration은 삭제됐고, 지금은 develop CI 성공 시 항상 배포하며 Studio schema는 Content 시작 시 적용한다.)_
+6. CD 배포는 `DEVELOP_CD_ENABLED`와 `CONTENT_FRESH_SCHEMA_APPROVED`가 모두 true여야 한다. 이 변수는 실제 DB 준비를 대신하지 않는다. 이번 커밋과 같은 build-tree의 앱 이미지 확인 → web/구 Core/Content writer 중지 → 선택 WorldStudio migration → 새 앱 기동 순서다. 실패하면 ingress를 멈춘 채 자동 rollback/repair하지 않으며 호환되는 스냅샷·바이너리 복구는 담당자가 결정한다. 이 작업은 실제 게시·배포·DB 변경을 실행하지 않는다. _(과거 기록: 활성화·승인 변수와 별도 Studio migration은 삭제됐고, 지금은 develop CI 성공 시 항상 배포하며 Studio schema는 Content 시작 시 적용한다.)_
 
 서비스 간 HTTP 호출은 단일 DB 트랜잭션으로 묶이지 않는다. 변경 요청의 응답 유실은 미처리를 뜻하지 않으므로 작업 ID·멱등성·처리 상태 조회·필요한 보상으로 복구한다. 원격 호출 동안 DB 잠금을 유지하지 않도록 기존 원자성과 기준 버전 검증을 함께 설계한다.
 

@@ -15,17 +15,13 @@ import { LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '
 import { DETAIL_TABS, bookPath, detailEndpoint, graphHighlight, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
+import { WorldReportSheet } from './WorldReportSheet'
 import { DemoNotice, LoadFailed, WorldCard, WorldCover, WorldLoading } from './WorldParts'
 import './worlds.css'
 
 // react-force-graph(d3·canvas)는 지도·그래프를 볼 때만 내려받는다.
 const WorldAtlasCanvas = lazy(() => import('./WorldAtlasCanvas'))
 const WorldGraphCanvas = lazy(() => import('./WorldGraphCanvas'))
-
-// 홈 HomePage의 Chev·LEFT·RIGHT와 같은 화살표(홈 안에서만 쓰는 값이라 여기에 다시 둔다)
-const Chev = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-const LEFT = 'M15 5l-7 7 7 7'
-const RIGHT = 'M9 5l7 7-7 7'
 
 /** 캔버스를 내려받거나 그리다 실패해도 이 화면의 나머지는 그대로 쓰게 한다. `message`는 그때 대신 보일 안내(찾을 다른 길)다. */
 class AtlasBoundary extends Component<{ children: ReactNode; message: string }, { failed: boolean }> {
@@ -45,8 +41,9 @@ const LineKey = ({ kind }: { kind: keyof typeof LINEAGE_COLORS }) => (
 )
 
 /**
- * 지도 카드 아래쪽의 작은 범례: 지도에 있는 장르의 색 · 설정 카드 유형 색 · 파생/조합 선 모양. 묶음째 줄바꿈하고, 좁은 화면에서는 한 줄로 두어 옆으로 밀어 본다.
+ * 지도 카드 아래쪽의 작은 범례: 지도에 있는 장르의 색 · 설정 카드 유형 색 · 파생/조합 선 모양. 묶음째, 묶음 안에서도 줄바꿈한다(좁은 화면에서 장르 일곱 개는 두 줄이 된다).
  * 카드 점이 없는 서버 목록 지도는 카드 유형 색을, 파생·조합이 없으면 연결 선을 보이지 않는다(그리지 않는 것을 설명하지 않는다).
+ * 둘 다 없으면(서버 목록) 남는 것은 장르 색뿐인데 장르 이름은 노드에 늘 그려져 같은 이름을 한 번 더 적는 셈이라 범례 자체를 그리지 않는다(`WorldAtlasSection`).
  */
 const AtlasLegend = ({ features, genres }: { features: ReturnType<typeof atlasFeatures>; genres: readonly AtlasNode[] }) => (
   <div className="atlas-legend" role="group" aria-label="지도 범례">
@@ -58,9 +55,9 @@ const AtlasLegend = ({ features, genres }: { features: ReturnType<typeof atlasFe
 
 /**
  * 홈 상단의 히어로 자리(`.herow` 왼쪽)에 놓는 'STORYFORK 세계관 지도' 카드. 공개 세계관이 장르별로 모인 모습(파생·조합이 있는 데모는 이어진 모습)을 한 장의 노드 그래프로 보여 준다.
- * 홈 `.hero` 클래스를 그대로 써서 `.herow`의 칸 맞춤(min-width: 0)·좁은 화면 세로 쌓기를 따른다. 통계 줄과 범례는 카드 아래쪽에 작게 둔다.
+ * 홈 `.hero` 클래스를 그대로 써서 `.herow`의 칸 맞춤(min-width: 0)·좁은 화면 세로 쌓기를 따른다. 통계 줄은 카드 아래쪽에 작게 두고, 범례는 카드 점이나 파생·조합이 있는 데모 지도에만 그 아래에 둔다.
  * `total`이 지도에 올린 수보다 크면 최근 공개 순 앞쪽만 올린 것이라 통계 줄이 그렇게 알린다.
- * 마우스로만 쓰는 시각 탐색이라 같은 세계관은 아래 선반·모아 보기에서도 목록으로 찾을 수 있다.
+ * 마우스로만 쓰는 시각 탐색이라 같은 세계관은 아래 모아 보기에서도 목록으로 찾을 수 있다.
  */
 function WorldAtlasSection({ atlas, lit, total, onOpen }: { atlas: WorldAtlas; lit?: ReadonlySet<string>; total: number; onOpen: (node: AtlasNode) => void }) {
   const { worlds, cards, derived, combined } = atlas.stats
@@ -69,17 +66,17 @@ function WorldAtlasSection({ atlas, lit, total, onOpen }: { atlas: WorldAtlas; l
     <section className="hero worlds-atlas" aria-labelledby="world-atlas-heading">
       <div className="atlas-stage">
         <h2 id="world-atlas-heading" className="atlas-title">STORYFORK 세계관 지도</h2>
-        <AtlasBoundary message="지도를 표시하지 못했어요. 아래 선반과 세계관 모아 보기에서 세계관을 찾아보세요.">
+        <AtlasBoundary message="지도를 표시하지 못했어요. 아래 세계관 모아 보기에서 세계관을 찾아보세요.">
           <Suspense fallback={<p className="atlas-loading" role="status">세계관 지도를 불러오고 있어요.</p>}>
             <WorldAtlasCanvas atlas={atlas} lit={lit} onOpen={onOpen} />
           </Suspense>
           <div className="atlas-info">
             <p className="atlas-stats">{`${worlds < total ? `공개 세계관 ${total}개 중 최근 ${worlds}개` : `공개 세계관 ${worlds}개`} · 설정 카드 ${cards}개${features.lineage ? ` · 파생 ${derived} · 조합 ${combined}` : ''}`}</p>
-            <AtlasLegend features={features} genres={atlas.nodes.filter((n) => n.kind === 'genre')} />
+            {(features.cards || features.lineage) && <AtlasLegend features={features} genres={atlas.nodes.filter((n) => n.kind === 'genre')} />}
           </div>
         </AtlasBoundary>
       </div>
-      <p className="sr-only">지도는 눈으로 훑어보는 용도예요. 같은 세계관은 실시간 인기 순위와 아래 선반, 세계관 모아 보기에서 목록으로 찾을 수 있어요.</p>
+      <p className="sr-only">지도는 눈으로 훑어보는 용도예요. 같은 세계관은 실시간 인기 순위와 아래 세계관 모아 보기에서 목록으로 찾을 수 있어요.</p>
     </section>
   )
 }
@@ -115,22 +112,6 @@ function LiveRank({ ranked, basis }: { ranked: readonly PublicWorldSummary[]; ba
   )
 }
 
-/** 홈 '오늘, 스토리포크의 발견'과 같은 가로 선반. 화살표는 좁은 화면에서 CSS가 숨기고 손가락 스크롤을 쓴다. 동작 줄이기 설정이면 화살표가 부드럽게 넘기지 않고 바로 옮긴다. */
-function WorldRail({ title, worlds }: { title: string; worlds: readonly PublicWorldSummary[] }) {
-  const row = useRef<HTMLDivElement>(null)
-  const scroll = (d: number) => row.current?.scrollBy({ left: d * row.current.clientWidth * 0.8, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-  return (
-    <section className="sec">
-      <div className="sec-h"><h2>{title}</h2></div>
-      <div className="shelf">
-        <button type="button" className="arr l" aria-label={`${title} 이전 보기`} onClick={() => scroll(-1)}><Chev d={LEFT} /></button>
-        <div className="row" ref={row}>{worlds.map((w) => <WorldCard key={w.id} w={w} />)}</div>
-        <button type="button" className="arr r" aria-label={`${title} 다음 보기`} onClick={() => scroll(1)}><Chev d={RIGHT} /></button>
-      </div>
-    </section>
-  )
-}
-
 type Listing = { worlds: readonly PublicWorldSummary[]; total: number; isLoading: boolean; isError: boolean; retry: () => void }
 
 /**
@@ -157,6 +138,7 @@ function WorldGrid({ title, list }: { title: string; list: Listing }) {
  * 공개 세계관 추천 대시보드(`/worlds`). 홈과 같은 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지도 · 오른쪽 '실시간 인기' 순위)을 두고,
  * Content 공개 세계관 API(`--mode mockup`은 메모리 데모)의 목록을 보인다. 로그인 없이 볼 수 있고, 불러오는 중·실패(다시 시도)·공개된 세계관이 없을 때를 따로 그린다.
  * 서버 목록에는 파생·조합이 없고 설정 가져오기(DEC-46)가 그 자리를 대신하므로, 목록이 보일 때 가져오기를 어디서 하는지 한 줄로 알린다(가져오기 버튼은 로그인해야 보인다).
+ * 2단 아래는 모아 보기 목록 하나다(장르 칩이면 그 장르 목록). 순위·모아 보기와 같은 세계관을 되풀이하는 '새로 공개된' 선반은 두지 않는다.
  */
 export function WorldsPage() {
   useScreenId('W02')
@@ -187,12 +169,7 @@ export function WorldsPage() {
                 <WorldAtlasSection atlas={vm.atlas} lit={vm.lit} total={vm.total} onOpen={vm.openAtlasNode} />
                 {vm.rankBasis && <LiveRank ranked={vm.liveRank} basis={vm.rankBasis} />}
               </div>
-              {vm.filtered ? <WorldGrid title={vm.heading} list={vm.list} /> : (
-                <>
-                  <WorldRail title="새로 공개된 세계관" worlds={vm.newest} />
-                  <WorldGrid title="세계관 모아 보기" list={vm.list} />
-                </>
-              )}
+              <WorldGrid title={vm.filtered ? vm.heading : '세계관 모아 보기'} list={vm.list} />
             </>
           )}
       </main>
@@ -395,7 +372,7 @@ function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
  */
 export function WorldDetailPage() {
   const { id } = useParams()
-  const { detail, isLoading, isError, retry, tab, setTab, openNode } = useWorldDetailViewModel(id)
+  const { detail, isLoading, isError, retry, tab, setTab, openNode, reporting, closeReport, startReport } = useWorldDetailViewModel(id)
   useScreenId('W03')
   useDocumentTitle(detail ? detail.world.name : isLoading || isError ? '세계관' : '찾을 수 없는 세계관')
   const world = detail?.world
@@ -412,7 +389,10 @@ export function WorldDetailPage() {
               <h1>{world.name}</h1>
               {world.hook && <p className="worlds-hook">{world.hook}</p>}
               <p className="muted small">작가 {world.authorNickname} · 읽기 전용</p>
+              {/* 신고(결정 D)는 서버 세계관만 운영 신고 API에 연결돼 있어 데모 세계관에는 두지 않는다. */}
+              {!world.demo && <button type="button" className="btn sm" onClick={startReport}>🚩 세계관 신고</button>}
             </header>
+            {reporting && !world.demo && <WorldReportSheet world={world} onClose={closeReport} />}
             <DetailTabBar tab={tab} onTab={setTab} />
             <div role="tabpanel" id="world-panel" aria-labelledby={`world-tab-${tab}`} key={world.id}>
               {tab === 'book' ? <WorldBook world={world} />

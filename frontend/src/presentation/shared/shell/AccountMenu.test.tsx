@@ -68,16 +68,29 @@ it('프로필 바로 아래에 보유 크레딧 줄을 두고, 읽히면 합계�
   const { items, onClose } = open('user', creditsOf(async () => balanceOf(1234)))
   expect(items[0].className).toBe('who')
   expect(items[1].textContent).toBe('보유 크레딧 …')
-  const row = await screen.findByRole('menuitem', { name: '보유 크레딧 1,234' })
+  const row = await screen.findByRole('menuitem', { name: '보유 크레딧 1,234.0' })
   expect(row).toBe(items[1])
   fireEvent.click(row)
   expect(onClose).toHaveBeenCalledOnce()
   expect(screen.getByTestId('where').textContent).toBe('/me/pay')
 })
 
-it('로그인한 회원 메뉴에는 작품이 없는 독자도 닿는 내 댓글·제보 항목이 있고 작품 관리의 내 제보 화면으로 간다', () => {
+it.each([
+  [99921.009, '보유 크레딧 99,921.0'],
+  [5.96, '보유 크레딧 5.9'],
+])('보유 크레딧은 소수 첫째 자리까지 버림으로 보인다: %s', async (total, name) => {
+  open('user', creditsOf(async () => balanceOf(total)))
+  expect((await screen.findByRole('menuitem', { name })).textContent).toBe(name)
+})
+
+it('계정 메뉴에는 내 서재 안에도 있는 관심 소설 항목을 두지 않는다', () => {
+  open('user')
+  expect(screen.queryByRole('menuitem', { name: '관심 소설' })).toBeNull()
+})
+
+it('로그인한 회원 메뉴에는 작품이 없는 독자도 닿는 내 제보·수정 제안 항목이 있고 작품 관리의 내 제보 화면으로 간다', () => {
   const { onClose } = open()
-  fireEvent.click(screen.getByRole('menuitem', { name: '내 댓글·제보' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: '내 제보·수정 제안' }))
   expect(onClose).toHaveBeenCalledOnce()
   expect(screen.getByTestId('where').textContent).toBe('/content?view=reports')
 })
@@ -113,7 +126,7 @@ it('잔액이 늦게 도착해도 메뉴 항목을 다시 만들지 않아 열�
   const { items } = open('user', creditsOf(() => pending))
   items[3].focus()
   await act(async () => { finish(balanceOf(7)) })
-  expect(screen.getByRole('menuitem', { name: '보유 크레딧 7' })).toBe(items[1])
+  expect(screen.getByRole('menuitem', { name: '보유 크레딧 7.0' })).toBe(items[1])
   screen.getAllByRole('menuitem').forEach((item, index) => expect(item).toBe(items[index]))
   expect(document.activeElement).toBe(items[3])
 })
@@ -156,6 +169,13 @@ it('운영자에게만 운영자 대시보드 항목을 내 서재 위에 보이
 it.each(['user', null] as const)('역할이 %s인 메뉴에는 운영자 대시보드가 없다', (role) => {
   open(role)
   expect(screen.queryByRole('menuitem', { name: '운영자 대시보드' })).toBeNull()
+})
+
+it('프로필 줄의 아바타 머리글자는 장식이라 메뉴 항목 이름에 섞이지 않는다', () => {
+  const { items } = open()
+  expect(items[0].querySelector('.meav')?.getAttribute('aria-hidden')).toBe('true')
+  // 머리글자 '읽'이 이름 앞에 붙어 '읽읽는사람…'으로 읽히지 않는다.
+  expect(screen.getByRole('menuitem', { name: /^읽는사람reader@storyfork\.demo프로필 ›$/ })).toBe(items[0])
 })
 
 it('프로필 줄은 아바타·이름과 이메일 묶음·프로필 › 가 한 줄에 놓이고 길어지는 값은 title로 전체를 남긴다', () => {
