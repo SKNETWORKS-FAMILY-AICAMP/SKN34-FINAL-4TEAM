@@ -135,10 +135,10 @@ async def execute(request) -> Command:
     call, turn = request.tool_call, request.runtime.context
     # 모델이 고르지 않은 선택 인자를 빈 글("")·null로 채우면 Content가 값 오류(422)로 거절하므로 뺀다.
     name, args = call['name'], {k: v for k, v in (call['args'] if isinstance(call['args'], dict) else {}).items() if v not in ('', None)}
-    # 모델이 story_plan_read 결과의 position을 옮기면 422다(#774): 플롯은 순서가 없고, 읽은 장면 순번은 삭제로 빈자리가 있어
-    # 이동 위치가 아니다. 수정에서는 늘 빼서 순서를 그대로 두고, 추가에서는 장면의 끼울 위치만 남긴다.
+    # 모델이 story_plan_read 결과의 position을 옮기면 422다(#774, #835): 플롯은 순서가 없고, 읽은 장면 순번은 삭제로 빈자리가 있어
+    # 이동 위치가 아니다. 수정에서는 늘 빼서 순서를 그대로 두고, 추가에서는 kind가 장면일 때만(Content 규칙) 끼울 위치를 남긴다.
     if name in ('story_plan_create', 'story_plan_update') and isinstance(data := args.get('data'), dict) \
-            and (name == 'story_plan_update' or data.get('kind') == 'plot'):
+            and (name == 'story_plan_update' or data.get('kind') != 'scene'):
         args = {**args, 'data': {k: v for k, v in data.items() if k != 'position'}}
     label = LABELS[name]
     if reason := mismatch(call, turn):
