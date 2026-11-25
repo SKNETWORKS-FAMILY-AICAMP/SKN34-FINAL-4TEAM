@@ -529,6 +529,17 @@ class WritingAiServiceTest {
     }
 
     @Test
+    fun `resume forwards picked proposals and edited arguments only with an approval`() {
+        fun body(resume: WritingAiResume) = service.message("work", "owner", "thread", ask.copy(request = null, resume = resume))["resume"] as Map<*, *>
+        val edited = mapper.readTree("""{"id":"work","data":{"title":"작가 제목","revision":3}}""")
+        assertEquals(listOf(1, 0), body(WritingAiResume(true, selected = listOf(1, 0)))["selected"])
+        assertEquals(edited, body(WritingAiResume(true, edited = edited))["edited"])  // 글 필드만 고쳤는지는 AI가 승인 카드의 인자와 대조한다
+        assertFalse("selected" in body(WritingAiResume(true)) || "edited" in body(WritingAiResume(true)))  // 보낸 요청에만 싣는다
+        for (declined in listOf(WritingAiResume(false, selected = listOf(0)), WritingAiResume(false, edited = edited)))
+            assertEquals(422, assertThrows(ContentFailure::class.java) { body(declined) }.status)
+    }
+
+    @Test
     fun `an edit is always a new request, never a resume`() {
         val failure = assertThrows(ContentFailure::class.java) {
             service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true)), fromTurn = 1)

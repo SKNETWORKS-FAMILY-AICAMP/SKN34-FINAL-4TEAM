@@ -66,7 +66,7 @@ def openai(monkeypatch, *replies):
 def stream():
     async def collect():
         data = OrchestrationRequest(request='길드 규칙은?', inputs={'story_context': QA})
-        return [(e.event, e.data) async for e in service.stream(data)]
+        return [(e.event, e.data) async for e in service.stream(data) if e.event != 'activity']  # 진행 목록(#784)은 test_service가 본다
     return asyncio.run(collect())
 
 

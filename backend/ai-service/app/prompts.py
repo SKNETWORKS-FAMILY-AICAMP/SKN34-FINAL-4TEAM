@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 SEEDS: dict[str, str] = {
     'orchestration.main': orchestration.INSTRUCTIONS,
+    'orchestration.summary': orchestration.SUMMARY_INSTRUCTIONS,
     'decision_guard.judge': intent.INSTRUCTIONS,
     'story_context.answer': story_qa.QA_INSTRUCTIONS,
     'writing_editing.plan': writing.PLAN_INSTRUCTIONS,

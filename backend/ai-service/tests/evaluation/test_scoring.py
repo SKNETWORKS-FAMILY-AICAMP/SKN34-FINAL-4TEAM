@@ -15,6 +15,7 @@ from openai import AsyncOpenAI
 from app.evaluation import rubric, scoring, service
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import LeakCheckRequest
+from traced import attrs
 
 
 def modules(monkeypatch, **attrs):
@@ -323,3 +324,50 @@ def test_rubric_grade_needs_the_model_settings(monkeypatch):
         asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
 
     assert error.value.status == 503
+
+# --- 추적: 채점 호출도 generation으로 남는다(#851) ---
+
+def judge_generations(spans):
+    return [span for span in spans() if span.name == 'evaluation.rubric_grade']
+
+
+def test_a_rubric_grade_is_traced_as_a_generation_with_the_model_and_usage_and_none_of_the_text(monkeypatch, spans):
+    """채점 호출이 '추적'·비용 화면에 보여야 한다. 채점 입력(정답·생성 글·시점 위반 정답표)·지시문·점수 응답은 어느 속성에도 남기지 않는다(모델·사용량만)."""
+    judge_client(monkeypatch, lambda body: httpx.Response(200, json=responses_reply(json.dumps({'voice': 4, 'intent': 2, 'leaked': ['f1']}))))
+    monkeypatch.setenv('EVALUATION_JUDGE_MODEL', 'judge-sol')
+
+    asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    [span] = judge_generations(spans)
+    attributes = attrs(span)
+    assert attributes['langfuse.observation.type'] == 'generation' and attributes['langfuse.observation.model.name'] == 'judge-sol'
+    assert json.loads(attributes['langfuse.observation.usage_details']) == {'input': 10, 'output': 4}
+    assert 'langfuse.observation.input' not in attributes and 'langfuse.observation.output' not in attributes
+    shown = json.dumps(attributes, ensure_ascii=False)
+    assert all(text not in shown for text in ('갑시다', '해리는 입학했다', '대사 평가자입니다', 'voice'))   # 채점 입력·지시문·점수 응답이 없다
+
+
+def test_a_judge_answer_that_does_not_fit_still_counts_the_tokens_it_cost(monkeypatch, spans):
+    judge_client(monkeypatch, lambda _: httpx.Response(200, json=responses_reply(json.dumps({'voice': 4, 'intent': 2, 'leaked': []}), status='incomplete')))
+
+    with pytest.raises(EvaluationFailure):
+        asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    [span] = judge_generations(spans)
+    assert json.loads(attrs(span)['langfuse.observation.usage_details']) == {'input': 10, 'output': 4}   # 점수로 못 쓴 응답도 토큰은 썼다
+
+
+@pytest.mark.parametrize('status, body, error_class', [
+    (500, {'error': {'message': '원고 본문 일부', 'type': 'server_error'}}, 'InternalServerError'),
+    (200, responses_reply('{"voice": 4, "inte'), 'ValidationError'),   # 잘린 JSON은 parse가 응답 대신 예외를 올려 사용량을 알 수 없다
+], ids=['provider-error', 'truncated-json'])
+def test_a_failed_judge_call_ends_its_generation_in_error_naming_only_the_error_class(monkeypatch, spans, status, body, error_class):
+    judge_client(monkeypatch, lambda _: httpx.Response(status, json=body))
+
+    with pytest.raises(EvaluationFailure):
+        asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    [span] = judge_generations(spans)
+    attributes = attrs(span)
+    assert attributes['langfuse.observation.level'] == 'ERROR' and attributes['langfuse.observation.status_message'] == error_class
+    assert '원고 본문' not in json.dumps(attributes, ensure_ascii=False) and '"voice": 4' not in json.dumps(attributes, ensure_ascii=False)   # 제공사 메시지·응답 본문은 속성에 없다

@@ -34,6 +34,7 @@ private val EVALUATION_SETS = mapOf(
     "story_context.answer" to "qa.grounding",
     "character_simulation.act" to "simulation.act",
     "character_simulation.narrate" to "simulation.narrate",
+    "decision_guard.judge" to "decision_guard.routing",  // #783: the real guard judgment on its routing set
     "manuscript_extraction.extract" to "extraction.extract",
 )
 

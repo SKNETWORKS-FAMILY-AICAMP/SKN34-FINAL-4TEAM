@@ -11,6 +11,7 @@ import os
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
+from app import tracing
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.rubric import parse_grade
 
@@ -81,12 +82,17 @@ async def geval(criteria: str, input_text: str, output: str, expected: str | Non
 
 async def rubric_grade(instructions: str, payload: dict, schema: type[BaseModel]) -> dict:
     """시뮬레이션 루브릭 채점 한 번(원문 평가의 judge와 같은 호출: Responses API 구조화 출력, 자동 재시도 없음). 점수(1~5)와 시점 위반 id 목록 dict를 돌려준다.
-    호출 실패·불완전·잘린 JSON·범위 밖 점수·정답표에 없는 id는 고치지 않고 채점 실패(502)다."""
+    호출 실패·불완전·잘린 JSON·범위 밖 점수·정답표에 없는 id는 고치지 않고 채점 실패(502)다.
+    호출은 generation 'evaluation.rubric_grade'로 추적에 남아 비용 화면에 보인다(#851): 모델·사용량만이고 채점 입력·지시문·응답 본문은 넣지 않는다."""
     key, model = require_model()
     try:
-        async with AsyncOpenAI(api_key=key, timeout=TIMEOUT, max_retries=0) as client:   # 항목마다 새 클라이언트라 호출 뒤 닫는다
-            response = await client.responses.parse(
-                model=model, store=False, max_output_tokens=1500, instructions=instructions, input=json.dumps(payload, ensure_ascii=False), text_format=schema)
+        # ponytail: 잘려 파싱에 실패한 응답은 parse가 응답 대신 예외를 올려 사용량을 못 읽는다(ERROR generation에 토큰 없음). 어긋나면 raw 응답으로 읽는다.
+        with tracing.observe('evaluation.rubric_grade', as_type='generation', model=model) as generation:
+            async with AsyncOpenAI(api_key=key, timeout=TIMEOUT, max_retries=0) as client:   # 항목마다 새 클라이언트라 호출 뒤 닫는다
+                response = await client.responses.parse(
+                    model=model, store=False, max_output_tokens=1500, instructions=instructions, input=json.dumps(payload, ensure_ascii=False), text_format=schema)
+            if response.usage:
+                generation.update(usage_details={'input': response.usage.input_tokens, 'output': response.usage.output_tokens})
         out = response.output_parsed if response.status == 'completed' else None
     except Exception as error:  # 외부 SDK 경계: 예외 메시지에 입력이 실릴 수 있어 이름만 남긴다
         logger.warning('루브릭 채점 실패: %s', type(error).__name__)

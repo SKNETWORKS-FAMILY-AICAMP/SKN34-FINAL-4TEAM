@@ -353,3 +353,21 @@ def test_an_evaluation_run_uses_the_model_of_the_version_it_evaluates(monkeypatc
     seen = fake_chat(monkeypatch, text='평가 대상 응답')
     agent_runtime.run('test.generation', '테스트', Failure, '평가할 버전 본문', {}, model='gpt-evaluated', max_tokens=100, timeout=7, trace={})
     assert seen['init']['model'] == 'gpt-evaluated'
+
+
+def test_activity_reports_running_then_done_or_failed_with_a_short_target(monkeypatch):
+    seen = []
+    monkeypatch.setattr(agent_runtime, 'get_stream_writer', lambda: seen.append)
+    with agent_runtime.activity('웹 검색', '조선 후기 화폐' * 10):
+        pass
+    with pytest.raises(ValueError), agent_runtime.activity('세계관 읽기'):
+        raise ValueError
+    rows = [s['activity'] for s in seen]
+    assert [(r['label'], r['status']) for r in rows] == [('웹 검색', 'running'), ('웹 검색', 'done'), ('세계관 읽기', 'running'), ('세계관 읽기', 'failed')]
+    assert rows[0]['id'] == rows[1]['id'] != rows[2]['id'] == rows[3]['id']
+    assert len(rows[0]['target']) == 40 and rows[2]['target'] is None
+
+
+def test_activity_outside_a_graph_run_reports_nothing():
+    with agent_runtime.activity('웹 검색', '질문'):  # REST 업무 API·워커에는 SSE가 없다
+        pass
