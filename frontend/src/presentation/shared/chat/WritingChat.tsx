@@ -313,6 +313,7 @@ function OwnedChat({ basis, onApplied, onWorldApplied, getPage, ...rest }: Omit<
 
 function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved, worldDraft, sendNote, onOpenSetup }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved' | 'worldDraft' | 'sendNote' | 'onOpenSetup'>) {
   const id = useId()
+  const input = useRef<HTMLTextAreaElement>(null) // 선택지를 누른 뒤 초점을 돌려 줄 메시지 입력창(비활성이 되는 선택지 버튼에 초점이 남지 않게)
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -361,7 +362,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
       {!!choices.length && <div className="chat-choices" role="group" aria-label="고를 수 있는 답">
         {choices.map((c, i) => <button key={i} type="button" className="chat-suggest-btn" disabled={!choosable} title={c.form ? undefined : c.message}
-          onClick={() => (c.form ? onOpenSetup?.() : void vm.send(c.message))}>{c.label}</button>)}
+          onClick={() => { if (c.form) onOpenSetup?.(); else { void vm.send(c.message); input.current?.focus() } }}>{c.label}</button>)}
       </div>}
       <div className="chat-reply-foot">
         {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
@@ -423,7 +424,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       </>}
     </div>
     <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError} sendNote={sendNote}
-      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer}
+      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer} inputRef={input}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} workId={workId ?? ''} request={vm.turns.at(-1)?.request ?? ''} reply={vm.waiting} pending={vm.pending} onResume={(approved, inputs, pick) => void vm.resume(approved, inputs, pick)} onOpenStage={onOpenStage} cardOf={cardOf} unsaved={unsaved} worldDraft={worldDraft}

@@ -3059,6 +3059,19 @@ def test_revise_plan_choice_labels_are_cut_to_twenty_characters_but_the_message_
     assert len(choice.label) <= 20 and choice.message.startswith(f"'{'가' * 30}' 계획을")
 
 
+def test_revise_plan_choice_label_marks_a_cut_title_with_an_ellipsis_only_when_cut(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'pick_plan', lambda data: None)
+    plan_tools(monkeypatch, listed=[{**PLAN_READ, 'id': 'a', 'title': '가' * 13}, {**PLAN_READ, 'id': 'b', 'title': '나' * 14}])
+    assert [c.label for c in revise_turn().choices] == [f"'{'가' * 13}' 고치기", f"'{'나' * 13}…' 고치기"]
+
+
+def test_a_choice_over_the_request_limit_in_utf16_units_is_dropped_not_cut():
+    kept = {'label': '고르기', 'message': '😀' * 1000}  # 2,000단위: Content의 @Size(max=2000)를 통과한다
+    over = {'label': '넘침', 'message': '😀' * 1000 + 'x'}  # 코드 포인트는 1,001개지만 2,001단위
+    assert tools._clarify('질문', [over, kept])['stopped']['choices'] == [kept]
+
+
 def test_a_clarify_without_candidates_has_no_choices(monkeypatch):
     fake_agents(monkeypatch, REVISE)
     plan_tools(monkeypatch, listed=[])

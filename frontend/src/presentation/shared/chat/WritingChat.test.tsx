@@ -1489,6 +1489,17 @@ describe('되묻기 선택지(#794)', () => {
     expect(screen.getByRole('textbox', { name: /메시지/ })).toBeTruthy()
   })
 
+  it('선택지를 누르면 전송 중 선택지 버튼은 비활성이 되고 키보드 초점은 메시지 입력창으로 옮겨 간다(#892)', async () => {
+    openThread([{ request: '결말 고쳐줘', reply: clarify(two) }])
+    send.mockImplementation(() => new Promise<void>(() => {}))
+    renderChat()
+    const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
+    fireEvent.click(within(group).getByRole('button', { name: '4화' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(within(screen.getByRole('group', { name: '고를 수 있는 답' })).getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true))
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '메시지' }))
+  })
+
   it('지난 턴의 선택지는 비활성으로 보인다', async () => {
     openThread([{ request: '결말 고쳐줘', reply: clarify(two) }, { request: '3화', reply: { status: 'completed', message: '답', steps: [], missingInputs: [] } }])
     renderChat()

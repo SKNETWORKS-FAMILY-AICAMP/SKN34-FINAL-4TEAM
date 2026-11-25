@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
 import { attachmentKind, type AttachmentCheck } from '../../../domain/entities/chatAttachment'
 import { CardMarkdown } from '../CardMarkdown'
@@ -30,10 +30,11 @@ type Picked = { file: File; kind: ChatAttachment['kind'] }
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
  * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등).
+ * - inputRef: 메시지 입력창. 바깥에서 초점을 옮길 때(예: 되묻기 선택지를 누른 뒤) 넘긴다.
  * - sendNote: 다음 메시지에 함께 보내지는 것(선택한 글 등)을 입력 카드 위에 알린다. 잠긴 동안에는 보내지 않으므로 보이지 않는다.
  * - streaming: 흐르는 중인 글(없으면 undefined). 바뀌거나 끝날 때(완성된 답·실패 안내) 맨 아래에서 읽던 대화만 따라 내려간다(#618).
  */
-export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledReason, inputError, sendNote, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, streaming, renderCard, renderActions }: {
+export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledReason, inputError, sendNote, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, streaming, renderCard, renderActions, inputRef }: {
   messages: ChatMessage[]
   onSend?: (text: string, files: File[]) => boolean | Promise<boolean>
   busy?: boolean
@@ -48,11 +49,13 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   streaming?: string
   renderCard?: (message: ChatMessage) => ReactNode
   renderActions?: (message: ChatMessage) => ReactNode
+  inputRef?: RefObject<HTMLTextAreaElement | null>
 }) {
   const [draft, setDraft] = useState('')
   const draftEdits = useRef(0)
   const changeDraft = (value: string) => { draftEdits.current += 1; setDraft(value); setFailed(false) }
-  const box = useRef<HTMLTextAreaElement>(null)
+  const own = useRef<HTMLTextAreaElement>(null)
+  const box = inputRef ?? own
   const log = useRef<HTMLDivElement>(null)
   const pinned = useRef(true)
   useEffect(() => {
