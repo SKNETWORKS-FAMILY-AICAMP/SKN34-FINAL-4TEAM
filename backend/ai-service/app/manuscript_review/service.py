@@ -2,7 +2,8 @@
 
 초안과 세계관은 Content MCP(DEC-49)로 요청한 작가의 권한으로 읽는다. Mechanical은 초안만, Semantic은 초안과 그 회차 시점에
 공개된 세계관 설정(카드·관계)만 모델에 보낸다. Simulation은 부르지 않는다. 결과는 제안이며 원고를 고치지 않는다.
-모델이 원고에 없는 구절·보내지 않은 근거·다른 검사 종류의 분류를 쓰면 고치지 않고 실패한다.
+모델이 원고에 없는 구절·보내지 않은 근거·다른 검사 종류의 분류를 쓴 지적은 고치지 않고 그 지적만 빼 개수를 gaps에 남기며,
+낸 지적이 전부 어긋나면 실패한다.
 """
 
 import contextvars
@@ -19,6 +20,7 @@ EMPTY_DRAFT = '검수할 초안 본문이 없어요.'
 NO_LINKED_WORLD = '이 작품에 연결된 세계관이 없어 설정 검수를 할 수 없어요.'
 BAD_CONTENT = 'Content 응답을 확인할 수 없습니다.'
 BAD_FINDING = '검수 모델 응답의 위치·근거를 확인할 수 없습니다.'
+DROPPED_FINDINGS = '원고에서 인용·근거를 확인할 수 없어 뺀 지적 {count}개'
 
 
 def review(data: ReviewRequest) -> ReviewResponse:
@@ -55,11 +57,16 @@ def _review(data: ReviewRequest, body: str, revision: int, candidate: ReviewCand
         with ThreadPoolExecutor(len(inputs)) as pool:
             results = [run.result() for run in [pool.submit(contextvars.copy_context().run, agent.review, *i) for i in inputs]]
     refs = {s['ref'] for s in settings}
-    findings, gaps, metas = [], [], []
+    findings, gaps, metas, given = [], [], [], 0
     for check, (result, meta) in zip(checks, results):
         findings += [_locate(body, found) for found in result.findings if _valid(check, body, found, refs)]
+        given += len(result.findings)
         gaps += result.gaps
         metas.append(meta)
+    if dropped := given - len(findings):
+        if not findings:
+            raise ReviewFailure(502, BAD_FINDING)
+        gaps.append(DROPPED_FINDINGS.format(count=dropped))
     usages = [m['usage'] for m in metas]
     usage = None if None in usages else {k: sum(u[k] for u in usages) for k in ('inputTokens', 'outputTokens')}
     return ReviewResponse(workId=data.workId, episode=data.episode, revision=revision, check=data.check, findings=findings,
@@ -70,11 +77,9 @@ def _review(data: ReviewRequest, body: str, revision: int, candidate: ReviewCand
 def _valid(check: str, body: str, found, refs: set[str]) -> bool:
     """원고에 있는 구절·그 검수의 분류·보낸 근거만 받는다. Mechanical은 설정을 받지 않았으므로 근거가 없어야 한다."""
     allowed = refs if check == 'semantic' else set()
-    if (not found.quote or found.quote not in body or found.category not in CATEGORIES[check]
-            or not set(found.evidenceRefs) <= allowed
-            or (check == 'semantic' and found.status == 'confirmed' and not found.evidenceRefs)):
-        raise ReviewFailure(502, BAD_FINDING)
-    return True
+    return not (not found.quote or found.quote not in body or found.category not in CATEGORIES[check]
+                or not set(found.evidenceRefs) <= allowed
+                or (check == 'semantic' and found.status == 'confirmed' and not found.evidenceRefs))
 
 
 def _locate(body: str, found) -> Finding:
