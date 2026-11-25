@@ -89,7 +89,7 @@ data class WritingAiResume(
     val inputs: JsonNode? = null,
     @field:Valid val scene: WritingAiScene? = null,
     val refresh: Boolean? = null,
-    @field:Size(min = 1, max = 5) val selected: List<@Min(0) Int>? = null,
+    @field:Size(min = 1, max = 5) val selected: List<Int>? = null,  // 번호의 0 이상은 타입 인자 @Min이 Kotlin에서 검증되지 않아 서비스가 확인한다
     val edited: JsonNode? = null,
 )
 

@@ -3193,6 +3193,60 @@ def test_rewriting_also_reruns_the_same_turns_candidate_review_on_the_new_result
     assert third.steps[1].result.providerResponseId == 'r3'
 
 
+def test_rewriting_also_runs_a_candidate_review_that_failed_the_first_time(monkeypatch):
+    from app.manuscript_review.errors import ReviewFailure
+
+    fake_agents(monkeypatch, plan('writing_editing', 'manuscript_review'))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data, written['after']))
+        if len(reviewed) == 1:  # 첫 실행의 후보 검수 실패: 단계에 result가 없다
+            raise ReviewFailure(503, '검수 실패')
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId='r2', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH, 'manuscript_review': REVIEW})
+    assert (first.steps[1].status, first.steps[1].result) == ('failed', None)
+    again = rewrite(thread)
+    assert [(d.workId, d.episode, d.check, after) for d, after in reviewed] == [('work', 3, 'mechanical', '버전1'), ('work', 3, 'mechanical', '버전2')]
+    assert (again.steps[1].status, again.steps[1].error, again.steps[1].result.providerResponseId) == ('completed', None, 'r2')
+
+
+def test_rewriting_is_observed_as_the_pipeline_node_step_writing_editing(monkeypatch, spans):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    versions(monkeypatch)
+    thread = str(uuid4())
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    rewrite(thread)
+    names = [s.name for s in spans()]
+    assert names.count('step.writing_editing') == 2 and 'step.writing_editing.rewrite' not in names  # 운영 파이프라인 노드 이름(DEC-58)
+
+
+def test_the_main_agent_seed_clears_the_previous_turns_writing_call_like_the_writing_base(monkeypatch):
+    from types import SimpleNamespace
+
+    fake_agents(monkeypatch, plan('story_context'))
+    seeds, build = [], service.agent.build
+
+    def recording(found):
+        agent = build(found)
+        invoke = agent.ainvoke
+
+        async def ainvoke(seed, *args, **kwargs):
+            seeds.append(seed)
+            return await invoke(seed, *args, **kwargs)
+
+        return SimpleNamespace(ainvoke=ainvoke)
+
+    monkeypatch.setattr(service.agent, 'build', recording)
+    write_turn(str(uuid4()), request='카이의 목표는?', inputs={'story_context': QA})
+    assert seeds[0]['writingBase'] is None and 'writingCall' in seeds[0] and seeds[0]['writingCall'] is None
+
+
 def test_a_failed_rewrite_keeps_the_last_result_and_fails_the_step(monkeypatch):
     fake_agents(monkeypatch, plan('writing_editing'))
     applied = writer(monkeypatch)
