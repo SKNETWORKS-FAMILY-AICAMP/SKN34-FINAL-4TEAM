@@ -171,13 +171,6 @@ export function HomePage() {
             {vm.chips.map((c) => <button type="button" key={c} className={vm.chip === c ? 'on' : ''} aria-pressed={vm.chip === c} onClick={() => vm.selectChip(c)}>{c}</button>)}
           </div>
           {vm.chipsFailed && <LineFailed message="장르 칩을 불러오지 못했어요." retry={vm.retryChips} />}
-          {vm.guide && (
-            <div className="guide">
-              <b>처음 오셨나요?</b>
-              <ol><li><i>1</i>소설 고르기</li><li><i>2</i>공개 회차 읽기</li><li><i>3</i>허용된 회차에서 포크하기</li></ol>
-              <button type="button" className="x" aria-label="안내 닫기" onClick={vm.closeGuide}>✕</button>
-            </div>
-          )}
           {!h && <ContentLoadState failed={vm.isError} retry={vm.retry} />}
           {h && h.works.length===0 && <p role="status" className="panel">아직 공개된 소설이 없어요.</p>}
           {h && h.filtered && (

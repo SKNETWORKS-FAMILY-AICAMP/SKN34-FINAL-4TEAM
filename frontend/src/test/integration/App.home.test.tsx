@@ -58,7 +58,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(policy.textContent).not.toContain('실제 결제나 차감은 없습니다.')
   })
 
-  it('칩을 고르면 필터 결과(U02)를 보여 주고 안내를 닫을 수 있다', async () => {
+  it('칩을 고르면 필터 결과(U02)를 보여 주고 옛 안내 띠는 없다', async () => {
     stubWorkSearch()
     renderAt('/')
     await screen.findByText('다르게 이어진 포크 소설')
@@ -73,8 +73,8 @@ describe('홈·공통 셸 (U01·U02)', () => {
     }
     expect(screen.getByRole('heading', { name: '🛰 SF' })).toBeTruthy()
     await waitFor(() => expect(document.getElementById('sid')!.textContent).toBe('U02 홈 · 필터 결과'))
-    fireEvent.click(screen.getByRole('button', { name: '안내 닫기' }))
-    expect(screen.queryByText('처음 오셨나요?')).toBeNull()
+    // 홈의 옛 첫 방문 안내 띠는 첫 방문 안내 시트(U46, #884)로 대체했다.
+    expect(document.querySelector('#home .guide')).toBeNull()
   })
 
   it('테마·화면 ID 토글이 동작한다', async () => {

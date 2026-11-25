@@ -15,8 +15,8 @@ afterEach(() => { cleanup(); localStorage.clear() })
 let go: (path: string) => void = () => {}
 function Nav() { go = useNavigate(); return null }
 
-const renderAt = (path: string, extra?: React.ReactNode) => render(
-  <Provider store={createAppStore()}>
+const renderAt = (path: string, extra?: React.ReactNode, store = createAppStore()) => render(
+  <Provider store={store}>
     <MemoryRouter initialEntries={[path]}><Nav /><OnboardingSheet />{extra}</MemoryRouter>
   </Provider>,
 )
@@ -75,4 +75,30 @@ it('다른 시트가 열려 대신 닫혀도 다시 보지 않기로 저장하�
   expect(await screen.findByRole('dialog', { name: '다른 시트' })).toBeTruthy()
   expect(sheet()).toBeNull()
   expect(localStorage.getItem(onboardingKey)).toBeNull()
+})
+
+it('안내가 그려지지 않는 화면(/status)을 거쳐 돌아와도 같은 방문에서는 건너뛰기가 유지된다', () => {
+  const store = createAppStore()
+  const app = (shown: boolean) => (
+    <Provider store={store}>
+      <MemoryRouter initialEntries={['/']}><Nav />{shown && <OnboardingSheet />}</MemoryRouter>
+    </Provider>
+  )
+  const { rerender } = render(app(true))
+  fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }))
+  rerender(app(false))
+  rerender(app(true))
+  expect(sheet()).toBeNull()
+})
+
+it('다른 시트가 열린 채로 홈에 오면 안내를 띄우지 않고 그 시트도 닫지 않는다', async () => {
+  function Other() {
+    const [open, setOpen] = useState(true)
+    return open ? <Sheet sid="U23" label="정책 시트" onClose={() => setOpen(false)}><button type="button">확인</button></Sheet> : null
+  }
+  renderAt('/me/pay', <Other />)
+  expect(await screen.findByRole('dialog', { name: '정책 시트' })).toBeTruthy()
+  act(() => go('/'))
+  expect(sheet()).toBeNull()
+  expect(screen.getByRole('dialog', { name: '정책 시트' })).toBeTruthy()
 })

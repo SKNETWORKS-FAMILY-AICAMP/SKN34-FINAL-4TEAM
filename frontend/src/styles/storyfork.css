@@ -102,10 +102,6 @@ main.wrap{padding-top:32px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}.chips::-webkit-scrollbar{display:none}
 .chips button{flex:none;height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:700;font-size:14px;color:var(--ink2)}
 .chips button:hover{border-color:var(--ink)}.chips button.on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}
-.guide{display:flex;align-items:center;gap:14px;margin-top:16px;padding:12px 14px 12px 18px;border-radius:12px;background:var(--pri-soft);border:0;font-size:14px}
-.guide ol{display:flex;gap:6px;margin:0;padding:0;list-style:none;flex-wrap:wrap}.guide li{display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:999px;padding:5px 12px 5px 6px;font-weight:600;font-size:13px}
-.guide li i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;font-size:11px;font-weight:800}
-.guide .x{margin-left:auto;border:0;background:none;color:var(--faint);font-size:18px;width:32px;height:32px;border-radius:50%}
 .hero{position:relative;margin-top:18px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:12px}.hero>.vp{flex:1 0 100%}.hero .vp{overflow:hidden;border-radius:16px}
 .track{display:flex;gap:14px;transition:transform .42s cubic-bezier(.4,0,.2,1)}
 .slide{flex:0 0 calc((100% - 28px)/3);height:460px;border-radius:16px;border:0;padding:0;position:relative;overflow:hidden;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;color:#fff}
@@ -384,7 +380,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;co
 /* 토스트는 role=status 노드 하나를 계속 두고 글자만 바꾼다. 비어 있을 때도 hidden 속성의 display:none을 풀어 보조기기에 라이브 영역으로 남긴다(안이 빈 0×0 상자라 보이지 않는다). */
 #toast[hidden]{display:block;padding:0;border:0}
 #toast:not([hidden]){animation:up .3s var(--ease)}
-@media (max-width:900px){.tri,.wk,.wgrid,.whero,.inbox,.imp,.simg,.snap{grid-template-columns:1fr}.slide{flex-basis:80%}.whero{gap:20px}.whero .cover{max-width:220px}.whero h1{font-size:38px}.calm .whero{grid-template-columns:160px minmax(0,1fr);gap:0 24px}.calm .whero>.whero-body{display:contents}.calm .whero :is(.sum,.hashes,.stats,.acts){grid-column:1/-1}.sgrid{grid-template-columns:1fr}.seps{display:flex;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--tline);padding:8px;gap:6px}.seps .lab{display:none}.seps :is(button,a){flex:0 0 auto;white-space:nowrap}.seps :is(button,a) small{display:none}.side{border-left:0;border-top:1px solid var(--tline)}.editor{padding:24px 16px}.res3,.kpi{grid-template-columns:1fr 1fr}.flow{grid-template-columns:repeat(3,1fr)}.newbox{grid-template-columns:1fr}.wrap{padding:0 16px}.gnb .in{gap:10px}.search kbd{display:none}.search{min-width:0;flex:1}.arr{display:none}.guide{flex-wrap:wrap}.sbar{flex-wrap:wrap;height:auto;padding:10px 16px}}
+@media (max-width:900px){.tri,.wk,.wgrid,.whero,.inbox,.imp,.simg,.snap{grid-template-columns:1fr}.slide{flex-basis:80%}.whero{gap:20px}.whero .cover{max-width:220px}.whero h1{font-size:38px}.calm .whero{grid-template-columns:160px minmax(0,1fr);gap:0 24px}.calm .whero>.whero-body{display:contents}.calm .whero :is(.sum,.hashes,.stats,.acts){grid-column:1/-1}.sgrid{grid-template-columns:1fr}.seps{display:flex;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--tline);padding:8px;gap:6px}.seps .lab{display:none}.seps :is(button,a){flex:0 0 auto;white-space:nowrap}.seps :is(button,a) small{display:none}.side{border-left:0;border-top:1px solid var(--tline)}.editor{padding:24px 16px}.res3,.kpi{grid-template-columns:1fr 1fr}.flow{grid-template-columns:repeat(3,1fr)}.newbox{grid-template-columns:1fr}.wrap{padding:0 16px}.gnb .in{gap:10px}.search kbd{display:none}.search{min-width:0;flex:1}.arr{display:none}.sbar{flex-wrap:wrap;height:auto;padding:10px 16px}}
 @media (max-width:600px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.nav :is(button,a){padding:0 10px;font-size:14px}.search{flex:0 0 42px;width:42px;padding:0;justify-content:center;font-size:0}.search::after{content:'🔍';font-size:16px}.logo{font-size:0;gap:0}.logo b{font-size:13px}.cont .go{display:none}.cont .bar{width:160px}.slide{flex-basis:86%;height:360px}.wc{grid-template-columns:minmax(0,1fr) 80px}.whero h1{font-size:32px}.whero .cover{max-width:130px}.calm .whero{grid-template-columns:96px minmax(0,1fr);gap:0 16px;padding:24px 0 26px}}
 /* 동작 줄이기: 이동·확대·반복 애니메이션은 끄고, 눌림·선택 같은 상태 피드백은 색·불투명도 전환(150ms)으로 남긴다. */
 @media (prefers-reduced-motion:reduce){*,::before,::after{animation:none!important;transition-property:color,background-color,border-color,box-shadow,opacity!important;transition-duration:.15s!important;transition-delay:0s!important}}
@@ -620,9 +616,6 @@ input,textarea{caret-color:var(--pri)}
  .gnb .avatar{flex:none;width:44px;height:44px}
  .gnb .btn.sm,.screen-controls .btn.sm{flex-shrink:0;min-width:44px;height:44px}
  #home .chips button{min-width:44px;height:44px}
- #home .guide{position:relative;padding:16px 44px 16px 16px;gap:10px}
- #home .guide ol{gap:8px}
- #home .guide .x{position:absolute;right:4px;top:4px;width:44px;height:44px}
  #home .sec-h>.small{order:1;width:100%}
  #home .slide h3{font-size:24px}
  #home .t10 li :is(button,a){min-height:44px}
@@ -649,7 +642,7 @@ input,textarea{caret-color:var(--pri)}
    마우스가 주 입력인 데스크톱의 밀도는 그대로다. 체크박스는 라벨 전체를 누를 수 있다. 명시도가 같은 기본 규칙을 이기도록 파일 맨 끝에 둔다. */
 @media (max-width:600px),(pointer:coarse){
  .btn.sm,.adm .btn,.sortt :is(button,a),.tagbar :is(button,a),.seg button,.chq button,.pop button,.logo,.nav :is(button,a),.search,.chips button,.svw :is(button,a),.pick2 button,.inp.sm,select,.rback,.adm .admin-nav :is(button,a),.wcat>:is(button,a),.wdocs :is(button,a),.wcheck,.wev,.wmen,.mlist button,.sec-h .more,.t10h .more{min-height:44px}
- .sheet .x,.rib,.cm .lk,.thm,.guide .x,.narrative-row .move button{min-width:44px;min-height:44px}
+ .sheet .x,.rib,.cm .lk,.thm,.narrative-row .move button{min-width:44px;min-height:44px}
  button.avatar{width:44px;height:44px}
  .wdocs :is(button,a){display:flex;align-items:center}.sec-h .more,.t10h .more{display:inline-flex;align-items:center}
  .eps-q{height:auto}.eps-q input{min-height:44px}
