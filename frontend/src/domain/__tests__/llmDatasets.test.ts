@@ -384,9 +384,9 @@ it('itemSummary는 input을 한 줄로(공백 접기) 보이고 80자를 넘으�
   expect(itemSummary({ input: undefined })).toBe('')
 })
 
-it('DatasetInvalid는 거절된 줄 목록을 들고 있고, 줄 수를 문구로 말한다(서버의 400 DATASET_INVALID와 올리기 전 검사가 같은 오류다)', () => {
+it('DatasetInvalid는 거절된 줄 목록을 들고 있고, 줄 수를 문구로 말한다: 거절 사유가 형식이 아니라 중복일 수도 있어 사유를 짐작하지 않는 중립 문구다(서버의 400 DATASET_INVALID와 올리기 전 검사가 같은 오류다)', () => {
   const errors = [{ line: 2, message: MSG.json }, { line: 5, message: MSG.input }]
   const error = new DatasetInvalid(errors)
-  expect([error instanceof OperationsRejected, error.errors, error.message]).toEqual([true, errors, '형식이 맞지 않는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.'])
-  expect(new DatasetInvalid([]).message).toBe('형식이 맞지 않아요. 파일을 확인한 뒤 다시 올려 주세요.')
+  expect([error instanceof OperationsRejected, error.errors, error.message]).toEqual([true, errors, '올릴 수 없는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.'])
+  expect(new DatasetInvalid([]).message).toBe('올릴 수 없는 파일이에요. 파일을 확인한 뒤 다시 올려 주세요.')
 })

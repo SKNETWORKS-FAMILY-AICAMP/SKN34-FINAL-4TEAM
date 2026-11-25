@@ -484,7 +484,7 @@ describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () =>
     const errors = [{ line: 2, message: 'JSON으로 읽을 수 없어요.' }, { line: 9, message: 'input이 필요해요.' }]
     const invalid = await upload(fail(400, { code: 'DATASET_INVALID', errors })).catch((error) => error)
     expect(invalid).toBeInstanceOf(DatasetInvalid)
-    expect([invalid.errors, invalid.message]).toEqual([errors, '형식이 맞지 않는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.'])
+    expect([invalid.errors, invalid.message]).toEqual([errors, '올릴 수 없는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.'])
     expect((await upload(fail(400, { code: 'DATASET_INVALID' })).catch((error) => error)).errors).toEqual([])   // 줄 목록이 없어도 거절로 읽는다
     // 서버가 실제로 주는 본문(영문 고정 문구)은 상태·code로 정한 한국어 안내로 바꾼다.
     await expect(upload(fail(400, { code: 'COPYRIGHT_CONFIRM_REQUIRED', message: 'Confirm that the file contains no copyrighted text.' }))).rejects.toThrow(new OperationsRejected('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.'))

@@ -44,7 +44,7 @@ export type DatasetItem = { id: string; input?: unknown; expectedOutput?: unknow
 export class DatasetInvalid extends OperationsRejected {
   readonly errors: DatasetError[]
   constructor(errors: DatasetError[]) {
-    super(errors.length ? `형식이 맞지 않는 줄이 ${errors.length}개 있어요. 고친 뒤 다시 올려 주세요.` : '형식이 맞지 않아요. 파일을 확인한 뒤 다시 올려 주세요.')
+    super(errors.length ? `올릴 수 없는 줄이 ${errors.length}개 있어요. 고친 뒤 다시 올려 주세요.` : '올릴 수 없는 파일이에요. 파일을 확인한 뒤 다시 올려 주세요.')
     this.errors = errors
   }
 }

@@ -14,7 +14,7 @@ import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOpera
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import { InMemoryLlmDatasetRepository } from '../../../../data/mock/InMemoryLlmOpsRepositories'
 import { ADMIN_PERMISSIONS } from '../../../../domain/entities/admin'
-import { DatasetInvalid, GATE_UPLOAD_NOTICE, type EvalDataset } from '../../../../domain/entities/llmDatasets'
+import { DatasetInvalid, GATE_UPLOAD_NOTICE, type DatasetUploadResult, type EvalDataset } from '../../../../domain/entities/llmDatasets'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
 import { productionOf, type Evaluation } from '../../../../domain/entities/llmOps'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
@@ -30,7 +30,7 @@ import { OperationsWorkUseCase } from '../../../../domain/usecases/OperationsWor
 import { kstDateTime } from '../../../shared/format'
 import { AdminPage } from './AdminPage'
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.title = 'STORYFORK' })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); document.title = 'STORYFORK' })
 
 // 파이프라인 캔버스(react-force-graph, d3·canvas)는 jsdom에서 그리지 않는다. 프롬프트·평가 쪽의 AI 파이프라인 보기가 불러오기만 해도 대역으로 막는다.
 vi.mock('react-force-graph-2d', () => ({ default: () => null }))
@@ -2063,24 +2063,106 @@ it('올릴 세트는 늘 목록에 있는 세트다: 프롬프트의 짝 세트�
   expect(upload.mock.calls[0][0]).toBe('only.set')
 })
 
-it('서버가 거절하면(400 DATASET_INVALID) 거절된 줄을 보이고 아무것도 올라가지 않았다고 알리며 입력은 유지하고, 새 파일을 고르면 거절 표시를 지운다(#868)', async () => {
+it('서버가 거절하면(400 DATASET_INVALID) 거절된 줄과 중립 문구의 실패 안내를 폼 안 한 곳에만 보이고, 미리보기 요약은 파일 검사 통과와 서버 거절을 구분하며, 입력은 유지하고 새 파일을 고르면 거절 표시를 지운다(#868)', async () => {
   const errors = [{ line: 2, message: '서버 검사: input 형식이 맞지 않아요.' }, { line: 7, message: '서버 검사: metadata가 너무 커요.' }]
   vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockRejectedValue(new DatasetInvalid(errors))
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(11))
+  const summary = () => within(form).getByLabelText('업로드 미리보기').textContent
   pickFile(form, 'a.jsonl', jsonl('a', 'b'))
   await within(form).findByLabelText('업로드 미리보기')
+  expect(summary()).toContain('a.jsonl · 줄 2개 중 2개 통과')   // 서버에 보내기 전
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
   fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
-  expect((await within(form).findByRole('alert', { name: '' })).textContent).toContain('형식이 맞지 않는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.')
+  expect((await within(form).findByRole('alert', { name: '' })).textContent).toContain('올릴 수 없는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.')
+  // 같은 실패 문구가 페이지 위 배너에 또 나오지 않는다: 이 문구의 role=alert는 폼 안에 하나뿐이다.
+  const failures = screen.getAllByRole('alert').filter((alert) => alert.textContent?.includes('올릴 수 없는 줄이 2개'))
+  expect(failures).toHaveLength(1)
+  expect(form.contains(failures[0])).toBe(true)
+  expect(screen.queryByText(/형식이 맞지 않는 줄/)).toBeNull()
   const rejected = within(await within(form).findByLabelText('서버가 거절한 줄'))
   expect(rejected.getByText('서버가 거절한 줄(아무것도 올라가지 않았어요)')).toBeTruthy()
   expect(rejected.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['2번째 줄 · 서버 검사: input 형식이 맞지 않아요.', '7번째 줄 · 서버 검사: metadata가 너무 커요.'])
-  expect(within(form).getByLabelText('업로드 미리보기').textContent).toContain('a.jsonl')   // 입력은 유지한다
+  // 파일 검사는 통과했으므로 '줄 2개 중 2개 통과'만 남기면 서버 거절과 모순이다: 둘을 구분해 말한다.
+  expect(summary()).toContain('a.jsonl · 파일 검사는 통과했지만 서버가 2줄을 거절했어요')
+  expect(summary()).not.toMatch(/줄 \d+개 중/)
+  // 새 파일을 고르면 거절 표시와 요약이 처음으로 돌아간다.
   pickFile(form, 'b.jsonl', jsonl('c'))
   await within(form).findByText('b.jsonl')
   expect(within(form).queryByLabelText('서버가 거절한 줄')).toBeNull()
+  expect(summary()).toContain('b.jsonl · 줄 1개 중 1개 통과')
+})
+
+it('서버가 거절한 뒤 올릴 세트를 바꾸면 거절 표시를 지운다: 거절은 고른 세트에 대한 것이라 다른 세트의 미리보기에 서버 거절로 남기지 않는다(#868)', async () => {
+  vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockRejectedValue(new DatasetInvalid([{ line: 1, message: '이 세트에 이미 있는 input이에요.' }]))
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
+  await waitFor(() => expect(target.options.length).toBe(11))
+  pickFile(form, 'a.jsonl', generalJsonl('a'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.change(target, { target: { value: 'leak.spoiler' } })
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  const rejected = await within(form).findByLabelText('서버가 거절한 줄')
+  expect(within(rejected).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['1번째 줄 · 이 세트에 이미 있는 input이에요.'])
+  expect(within(form).getByLabelText('업로드 미리보기').textContent).toContain('a.jsonl · 파일 검사는 통과했지만 서버가 1줄을 거절했어요')
+  fireEvent.change(target, { target: { value: 'qa.grounding' } })
+  expect(within(form).queryByLabelText('서버가 거절한 줄')).toBeNull()
+  expect(within(form).getByLabelText('업로드 미리보기').textContent).not.toContain('서버가')
+})
+
+it('거절된 파일을 그대로 다시 올려 이번에 올라가면 거절 표시와 실패 안내는 사라지고 완료 안내만 남는다(#868)', async () => {
+  const upload = vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload')
+  upload.mockRejectedValueOnce(new DatasetInvalid([{ line: 1, message: '이 세트에 이미 있는 input이에요.' }])).mockResolvedValueOnce({ created: 1, kind: 'general', notice: null })
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
+  await waitFor(() => expect(target.options.length).toBe(11))
+  fireEvent.change(target, { target: { value: 'leak.spoiler' } })
+  pickFile(form, 'a.jsonl', generalJsonl('a'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  await within(form).findByLabelText('서버가 거절한 줄')
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))   // 입력은 그대로라 다시 올릴 수 있다
+  await within(form).findByText("1개 문항을 'leak.spoiler' 세트(범용)에 올렸어요.")
+  expect(within(form).queryByLabelText('서버가 거절한 줄')).toBeNull()
+  expect(within(form).queryByRole('alert')).toBeNull()
+  expect(upload).toHaveBeenCalledTimes(2)
+})
+
+it('올리기 안내(진행·완료·실패)는 폼 안에만 보이고 페이지 위 줄에 같은 문구가 또 나오지 않는다(#868)', async () => {
+  const upload = vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload')
+  let finish: (result: DatasetUploadResult) => void = () => {}
+  upload.mockReturnValue(new Promise<DatasetUploadResult>((resolve) => { finish = resolve }))
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
+  await waitFor(() => expect(target.options.length).toBe(11))
+  fireEvent.change(target, { target: { value: 'leak.spoiler' } })
+  pickFile(form, 'a.jsonl', generalJsonl('a'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  await within(form).findByText('요청을 처리하고 있어요. 중복으로 보내지 마세요.')
+  expect(screen.getAllByText('요청을 처리하고 있어요. 중복으로 보내지 마세요.').filter((line) => !form.contains(line))).toEqual([])
+  await act(async () => { finish({ created: 1, kind: 'general', notice: null }) })
+  await within(form).findByText("1개 문항을 'leak.spoiler' 세트(범용)에 올렸어요.")
+  expect(screen.getAllByText("1개 문항을 'leak.spoiler' 세트(범용)에 올렸어요.").filter((line) => !form.contains(line))).toEqual([])
+})
+
+it('시연 화면 안내(메모리에만 쌓여 새로 고치면 사라져요)는 실제 모드에는 없고 목업일 때만 보인다(#857)', async () => {
+  const hint = '(시연 화면에서는 메모리에만 쌓여 새로 고치면 사라져요)'
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  expect(form.textContent).toContain('저작권이 있는 원문은 올리지 말고 로컬 평가에서만 써요.')   // 실제 모드: 괄호 없이 문장이 끝난다
+  expect(form.textContent).not.toContain('시연 화면')
+  cleanup()
+  vi.stubEnv('MODE', 'mockup')
+  const mockupForm = await within(panelOf(await openSets())).findByRole('form', { name: 'JSONL 업로드' })
+  expect(mockupForm.textContent).toContain('로컬 평가에서만 써요' + hint + '.')
 })
 
 it('크레딧 탭은 회원을 고르면 상세 제목으로 초점을 옮기고, 같은 회원을 목록에서 다시 골라도 제목으로 되돌린다', async () => {

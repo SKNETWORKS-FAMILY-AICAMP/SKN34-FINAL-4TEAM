@@ -107,6 +107,8 @@ function ErrorLines({ errors }: { errors: { line: number; message: string }[] })
 function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
   const { form } = l.dataset, { preview, sets } = form
   const busy = !!vm.actions['dataset:upload']?.pending
+  // 서버가 거절했다면 파일 검사는 통과한 것이다(거절 표시는 같은 파일·세트에만 남는다). '줄 N개 중 N개 통과'만 남기면 거절과 모순이라 요약이 둘을 구분한다(예: 이 세트에 이미 있는 input).
+  const refused = form.rejected.length > 0
   return (
     <form className="dataset-upload" aria-label="JSONL 업로드" onSubmit={(e) => { e.preventDefault(); void form.submit() }}>
       <h4>JSONL 파일 올리기</h4>
@@ -127,7 +129,9 @@ function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
         {form.picked && preview && (
           <div className="dataset-preview wide" aria-label="업로드 미리보기">
             <p role="status">
-              <b>{form.picked.fileName}</b> · 줄 {preview.total}개 중 {preview.lines.length}개 통과{preview.errors.length ? ` · 오류 ${preview.errors.length}줄` : ''}
+              <b>{form.picked.fileName}</b> · {refused
+                ? `파일 검사는 통과했지만 서버가 ${form.rejected.length}줄을 거절했어요`
+                : `줄 ${preview.total}개 중 ${preview.lines.length}개 통과${preview.errors.length ? ` · 오류 ${preview.errors.length}줄` : ''}`}
               {preview.total === 0 && ' · 올릴 문항이 없어요'}
             </p>
             {preview.limit && <p className="admin-data-state" role="alert">{preview.limit}</p>}
@@ -150,7 +154,7 @@ function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
           <input type="checkbox" required checked={form.confirmed} onChange={(e) => form.setConfirmed(e.target.checked)} /> 저작권 있는 원문(웹소설·해리 포터 등)이 아님
         </label>
         <p className="small muted wide">
-          올린 문항은 서버를 거쳐 Langfuse Dataset에 저장되므로 저작권이 있는 원문은 올리지 말고 로컬 평가에서만 써요(시연 화면에서는 메모리에만 쌓여 새로 고치면 사라져요).
+          올린 문항은 서버를 거쳐 Langfuse Dataset에 저장되므로 저작권이 있는 원문은 올리지 말고 로컬 평가에서만 써요{import.meta.env.MODE === 'mockup' && '(시연 화면에서는 메모리에만 쌓여 새로 고치면 사라져요)'}.
           UTF-8로 저장한 .jsonl이고 줄마다 {'{"input", "expectedOutput", "metadata"}'} 모양의 JSON 객체예요. input(객체)과 expectedOutput은 필수(null·빈 값 불가, 보통은 글이고 추출 세트는 정답표, 라우팅 세트는 guard·capabilities 정답)이고 metadata는 선택이며, 문항 id(서버가 붙여요)를 비롯한 다른 칸은 오류예요.
           세트마다 채점 코드가 읽는 칸이 더 필요하고(시뮬레이션은 input.data·metadata.judge, 라우팅은 input.request, 추출은 회차 input과 설정에 드는 core 정답이 하나 이상 있는 정답표, Q&A는 question·contexts, 범용은 metadata.criteria)
           같은 input이 파일 안에 두 번 있거나 이 세트·짝 세트에 이미 있어도 오류예요(이미 있는 것은 올릴 때 서버가 알려 줘요).

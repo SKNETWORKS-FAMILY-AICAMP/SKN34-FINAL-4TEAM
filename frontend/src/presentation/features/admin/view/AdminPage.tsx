@@ -86,7 +86,7 @@ const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
 /** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리·관리자 계정 생성과 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode', 'admin']
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'dataset', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode', 'admin']
 const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
