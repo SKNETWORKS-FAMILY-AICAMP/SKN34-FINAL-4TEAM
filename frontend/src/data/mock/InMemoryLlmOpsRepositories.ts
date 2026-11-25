@@ -371,14 +371,14 @@ export class InMemoryLlmDatasetRepository implements LlmDatasetRepository {
     return [...this.sets].map(([name, items]) => ({ name, prompt: pairedPrompt(name), itemCount: items.length, description: SEED_SOURCE })).sort((a, b) => a.name.localeCompare(b.name))
   }
   async items(name: string, page: number) { return structuredClone(paged(found(this.sets.get(name)), page, DATASET_PAGE_SIZE)) }
-  /** 서버처럼 있는 세트에만 올리고(없으면 404), 저작권 확인과 줄 검사를 다시 하며, 전부 아니면 무입니다. 문항 id는 서버처럼 붙입니다. */
+  /** 서버처럼 있는 세트에만 올리고(없으면 404), 저작권 확인·크기·줄 검사를 같은 순서로 다시 하며, 전부 아니면 무입니다. 문항 id는 서버처럼 붙이고 값이 없는 칸은 서버가 주듯 null로 보입니다. */
   async upload(name: string, _fileName: string, text: string, copyrightConfirmed: boolean) {
     const set = found(this.sets.get(name))
     if (!copyrightConfirmed) throw new OperationsRejected('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.')
     const { total, lines, errors } = parseDatasetJsonl(text)
     if (datasetLimitError(total, new TextEncoder().encode(text).length)) throw new OperationsRejected(UPLOAD_LIMIT_MESSAGE)
     if (errors.length) throw new DatasetInvalid(errors)
-    lines.forEach((line) => set.push({ id: `${name}-${String(set.length + 1).padStart(2, '0')}`, input: line.input, expectedOutput: line.expectedOutput, metadata: line.metadata ?? null }))
+    lines.forEach((line) => set.push({ id: `${name}-${String(set.length + 1).padStart(2, '0')}`, input: line.input, expectedOutput: line.expectedOutput ?? null, metadata: line.metadata ?? null }))
     return lines.length
   }
 }

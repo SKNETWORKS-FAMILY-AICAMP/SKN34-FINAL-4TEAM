@@ -100,8 +100,9 @@ const pipelineRecord = z.object({
 
 // 평가 데이터셋(#868): 목록은 맨 배열이고(`{items}`로 와도 받는다), 문항은 `{items, total}`, 업로드는 `{created}`다.
 const dataset = z.object({ name: z.string(), prompt: text.transform((v) => v ?? null), itemCount: z.number(), description: text.transform((v) => v ?? null) })
-const datasets = z.union([z.array(dataset), z.object({ items: z.array(dataset) }).transform((v) => v.items)])
-const datasetItem = z.object({ id: z.string(), input: z.unknown().optional(), expectedOutput: z.unknown().optional(), metadata: z.record(z.string(), z.unknown()).nullish() })
+const datasets = z.array(dataset)
+// 문항의 세 값은 Langfuse에 저장된 JSON 그대로라 모양을 따지지 않는다(다른 도구가 만든 문항의 metadata가 객체가 아니어도 쪽 전체를 거부하지 않는다).
+const datasetItem = z.object({ id: z.string(), input: z.unknown().optional(), expectedOutput: z.unknown().optional(), metadata: z.unknown().optional() })
 const datasetItems = z.object({ items: z.array(datasetItem), total: z.number() })
 const uploaded = z.object({ created: z.number() })
 
@@ -131,12 +132,18 @@ const changeReason: ServerReason = (status, { code, message }) => {
 }
 const COPYRIGHT_MESSAGE = '저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.'
 const TOO_LARGE_MESSAGE = '파일이 너무 커요. 500줄·2MB까지 올릴 수 있으니 나눠서 올려 주세요.'
-/** 데이터셋 업로드의 거절 안내(#868): 400 DATASET_INVALID는 줄 목록을 든 DatasetInvalid이고, 한국어로 쓴 서버 안내는 그대로 보입니다. */
-const uploadReason: ServerReason = (status, { code, message, errors }) => {
+const UPLOAD_UNKNOWN_MESSAGE = '업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.'
+/** 서버가 문항을 Langfuse에 한 건씩 만들어 500줄이면 오래 걸린다. 앞단 nginx의 읽기 제한(90초)과 같게 기다린다. */
+const UPLOAD_TIMEOUT_MS = 90000
+/**
+ * 데이터셋 업로드의 거절 안내(#868): 400 DATASET_INVALID는 줄 목록을 든 DatasetInvalid, 저작권 확인 없음(400)·크기 초과(413: 서버 DATASET_TOO_LARGE, 3MB를 넘으면 JSON 없는 nginx 413)는 한국어 안내입니다.
+ * 서버의 그 밖의 문구는 영문 고정이라 상태별 일반 안내(MESSAGES_UPSTREAM)로 보입니다.
+ */
+const uploadReason: ServerReason = (status, { code, errors }) => {
   if (status === 400 && code === 'DATASET_INVALID') return new DatasetInvalid(errors ?? [])
   if (status === 400 && code === 'COPYRIGHT_CONFIRM_REQUIRED') return COPYRIGHT_MESSAGE
   if (status === 413) return TOO_LARGE_MESSAGE
-  return message && status === 400 && /[가-힣]/.test(message) ? message : undefined
+  return undefined
 }
 /** 비어 있는 조건은 서버에 보내지 않습니다. */
 function withQuery(path: string, params: Record<string, string | number>) {
@@ -200,10 +207,12 @@ export class HttpLlmDatasetRepository extends LlmOpsApi implements LlmDatasetRep
     const form = new FormData()
     form.append('file', new Blob([text], { type: 'application/x-ndjson' }), fileName)
     form.append('copyrightConfirmed', String(copyrightConfirmed))
-    const response = await send(this.fetcher, `/llmops/datasets/${id(name)}/items`, 'POST', form, MESSAGES_UPSTREAM, uploadReason)
+    // 응답을 못 받으면(연결 끊김·시간 초과) 서버가 계속 만들었을 수 있어 실패로 단정하지도 다시 올리라고 하지도 않는다(같은 파일을 다시 올리면 문항이 또 생긴다). 서버가 거절한 오류는 그대로 던진다.
+    const response = await send(this.fetcher, `/llmops/datasets/${id(name)}/items`, 'POST', form, MESSAGES_UPSTREAM, uploadReason, UPLOAD_TIMEOUT_MS)
+      .catch((error) => { throw error instanceof OperationsError ? error : new OperationsError(UPLOAD_UNKNOWN_MESSAGE) })
     const parsed = uploaded.safeParse(await response.json().catch(() => undefined))
     // 올라갔는지 모르는 채로 성공이라고 하지 않는다.
-    if (!parsed.success) throw new OperationsError('업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.')
+    if (!parsed.success) throw new OperationsError(UPLOAD_UNKNOWN_MESSAGE)
     return parsed.data.created
   }
 }

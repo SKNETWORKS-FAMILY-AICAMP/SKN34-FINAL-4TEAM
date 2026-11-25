@@ -1787,12 +1787,12 @@ it('JSONL 업로드는 올릴 세트(목록의 세트, 프롬프트의 짝 세�
   fireEvent.click(check)
   expect(submit.disabled).toBe(false)
   // 오류 줄이 있으면 줄 번호와 이유를 보이고(처음 5줄만, 나머지는 건수) 올릴 수 없다.
-  const broken = [jsonl('ok'), '{not json', ...Array.from({ length: 6 }, () => JSON.stringify({ input: null }))].join('\n')
+  const broken = [jsonl('ok'), '{not json', JSON.stringify({ id: 'x', input: 1 }), ...Array.from({ length: 5 }, () => JSON.stringify({ input: null }))].join('\n')
   pickFile(form, 'broken.jsonl', broken)
   const errors = within(await within(form).findByLabelText('업로드 미리보기'))
   expect(errors.getByRole('status').textContent).toContain('줄 8개 중 1개 통과 · 오류 7줄')
   expect(errors.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-    '2번째 줄 · JSON으로 읽을 수 없어요.', '3번째 줄 · expectedOutput이 필요해요.', '4번째 줄 · expectedOutput이 필요해요.', '5번째 줄 · expectedOutput이 필요해요.', '6번째 줄 · expectedOutput이 필요해요.', '…외 2줄',
+    '2번째 줄 · JSON으로 읽을 수 없어요.', '3번째 줄 · 알 수 없는 칸이 있어요: id', '4번째 줄 · input이 필요해요.', '5번째 줄 · input이 필요해요.', '6번째 줄 · input이 필요해요.', '…외 2줄',
   ])
   expect(submit.disabled).toBe(true)
   // 500줄을 넘으면 크기 제한을 알리고 올릴 수 없다.
@@ -1803,12 +1803,35 @@ it('JSONL 업로드는 올릴 세트(목록의 세트, 프롬프트의 짝 세�
   expect(upload).not.toHaveBeenCalled()
 })
 
+it('서버 규칙대로 input만 있는 줄도 올릴 수 있고(expectedOutput·metadata는 선택), 안내 문구가 같은 규칙을 말한다(#868)', async () => {
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  pickFile(form, 'min.jsonl', [JSON.stringify({ input: '질문만' }), JSON.stringify({ input: { q: 2 }, expectedOutput: null })].join('\n'))
+  const preview = within(await within(form).findByLabelText('업로드 미리보기'))
+  expect(preview.getByRole('status').textContent).toContain('줄 2개 중 2개 통과')
+  expect(within(form).queryByRole('alert')).toBeNull()
+  expect(form.textContent).toMatch(/input만 필수/)
+  expect(form.textContent).toMatch(/문항 id\(서버가 붙여요\)를 비롯한 다른 칸은 오류/)
+})
+
+it('UTF-8이 아닌 파일은 미리보기 없이 안내한다: 서버는 UTF-8만 받고, 느슨하게 읽어 보내면 깨진 글자(�)가 평가 데이터에 저장된다(#868)', async () => {
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [new File([new Uint8Array([0x7b, 0xb1, 0xc2, 0x7d])], 'euc-kr.jsonl')] } })
+  expect((await within(form).findByRole('alert')).textContent).toBe('UTF-8 텍스트 파일이 아니에요. UTF-8로 저장한 .jsonl 파일을 골라 주세요.')
+  expect(within(form).queryByLabelText('업로드 미리보기')).toBeNull()
+  pickFile(form, 'ok.jsonl', jsonl('a'))
+  await within(form).findByLabelText('업로드 미리보기')
+  expect(within(form).queryByRole('alert')).toBeNull()   // UTF-8 파일을 다시 고르면 안내가 지워진다
+})
+
 it('파일을 연달아 고르면 마지막에 고른 파일의 읽기 결과만 미리보기에 반영한다: 늦게 끝난 앞 파일이 덮어쓰지 않는다(#857)', async () => {
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  const bytes = (text: string) => new TextEncoder().encode(text).buffer
   let finishFirst: (text: string) => void = () => {}
   const first = new File([''], 'first.jsonl')
-  Object.defineProperty(first, 'text', { value: () => new Promise<string>((resolve) => { finishFirst = resolve }) })   // 첫 파일은 읽기가 오래 걸린다
+  Object.defineProperty(first, 'arrayBuffer', { value: () => new Promise<ArrayBuffer>((resolve) => { finishFirst = (text) => resolve(bytes(text)) }) })   // 첫 파일은 읽기가 오래 걸린다
   fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [first] } })
   pickFile(form, 'second.jsonl', jsonl('b-1'))
   const preview = await within(form).findByLabelText('업로드 미리보기')
@@ -1819,7 +1842,7 @@ it('파일을 연달아 고르면 마지막에 고른 파일의 읽기 결과만
   // 오래 걸린 읽기가 실패해도 새 선택에 오류를 남기지 않는다.
   const failing = new File([''], 'failing.jsonl')
   let failFirst: (error: Error) => void = () => {}
-  Object.defineProperty(failing, 'text', { value: () => new Promise<string>((_, reject) => { failFirst = reject }) })
+  Object.defineProperty(failing, 'arrayBuffer', { value: () => new Promise<ArrayBuffer>((_, reject) => { failFirst = reject }) })
   fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [failing] } })
   pickFile(form, 'third.jsonl', jsonl('c-1'))
   await within(form).findByText('third.jsonl')

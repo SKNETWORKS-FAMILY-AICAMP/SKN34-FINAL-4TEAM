@@ -137,7 +137,8 @@ function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
         </label>
         <p className="small muted wide">
           올린 문항은 서버를 거쳐 Langfuse Dataset에 저장되므로 저작권이 있는 원문은 올리지 말고 로컬 평가에서만 써요(시연 화면에서는 메모리에만 쌓여 새로 고치면 사라져요).
-          줄마다 {'{"input", "expectedOutput", "metadata"(선택)}'} 모양의 JSON이어야 하고 500줄·2MB까지, 한 줄이라도 틀리면 아무것도 올리지 않아요. 새 세트는 만들 수 없고 위 목록의 세트에만 올려요.
+          UTF-8로 저장한 .jsonl이고 줄마다 {'{"input", "expectedOutput", "metadata"}'} 모양의 JSON 객체예요. input만 필수이고(null 불가) expectedOutput·metadata는 선택이며, 문항 id(서버가 붙여요)를 비롯한 다른 칸은 오류예요.
+          500줄(빈 줄 제외)·2MB까지, 한 줄이라도 틀리면 아무것도 올리지 않아요. 새 세트는 만들 수 없고 위 목록의 세트에만 올려요.
         </p>
         <div className="rowend wide"><button type="submit" className="btn pri" disabled={!form.canSubmit}>{busy ? '올리는 중…' : '업로드'}</button></div>
       </fieldset>

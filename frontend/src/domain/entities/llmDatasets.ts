@@ -6,15 +6,15 @@ export const DATASET_MAX_BYTES = 2 * 1024 * 1024
 /** 문항 목록은 한 쪽에 20개씩 읽습니다. */
 export const DATASET_PAGE_SIZE = 20
 
-/** 업로드 줄 한 개의 모양(#868): `{input, expectedOutput, metadata?}`. 문항 id는 서버가 붙입니다. */
-export type DatasetLine = { input: unknown; expectedOutput: unknown; metadata?: Record<string, unknown> }
+/** 업로드 줄 한 개의 모양(#868 서버 규칙): `{input, expectedOutput?, metadata?}`. input은 null이 아닌 아무 JSON이고, 문항 id는 서버가 붙이므로 줄에 둘 수 없습니다. */
+export type DatasetLine = { input: unknown; expectedOutput?: unknown; metadata?: Record<string, unknown> }
 export type DatasetError = { line: number; message: string }
 /** total은 빈 줄을 뺀 줄 수, lines는 검사를 통과한 줄, errors는 통과하지 못한 줄(파일의 줄 번호)입니다. */
 export type DatasetParse = { total: number; lines: DatasetLine[]; errors: DatasetError[] }
 /** 서버 목록의 한 행: 세트 이름·짝 프롬프트(없으면 null)·문항 수·설명(없으면 null). */
 export type EvalDataset = { name: string; prompt: string | null; itemCount: number; description: string | null }
-/** 서버가 돌려주는 문항(id는 서버가 붙인 값). */
-export type DatasetItem = { id: string; input?: unknown; expectedOutput?: unknown; metadata?: Record<string, unknown> | null }
+/** 서버가 돌려주는 문항: id는 서버가 붙인 값이고 나머지는 Langfuse에 저장된 JSON 그대로(없으면 null)입니다. */
+export type DatasetItem = { id: string; input?: unknown; expectedOutput?: unknown; metadata?: unknown }
 
 /**
  * 올릴 수 없는 줄이 있다는 오류(서버의 400 DATASET_INVALID와 올리기 전 검사가 같은 오류): 한 줄이라도 틀리면 아무것도 올리지 않으므로(전부 아니면 무)
@@ -30,27 +30,39 @@ export class DatasetInvalid extends OperationsRejected {
 
 export const isJsonlFile = (fileName: string) => /\.jsonl$/i.test(fileName)
 
+/**
+ * 파일 바이트를 UTF-8 글자로 읽습니다(맨 앞 BOM은 버림). UTF-8이 아니면 null입니다: 서버도 UTF-8만 받고,
+ * 느슨하게 읽어(깨진 글자 �로 바꿔) 보내면 평가 데이터에 깨진 글자가 저장되기 때문입니다.
+ */
+export function decodeUtf8(bytes: BufferSource): string | null {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes) } catch { return null }
+}
+
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
 
+const LINE_KEYS = ['input', 'expectedOutput', 'metadata']
+
 /**
- * JSONL 본문을 줄마다 검사합니다(서버가 다시 검사하므로 사람이 곧바로 고칠 수 있는 입력 오류만 먼저 알립니다): 줄 하나가 JSON 객체이고 input·expectedOutput 칸이 있어야 하며
- * metadata는 있으면 JSON 객체(null은 없는 것과 같음)입니다. 빈 줄은 건너뛰고 한 줄의 문제는 첫 문제 하나만 알립니다.
+ * JSONL 본문을 줄마다 검사합니다. 서버(운영 DatasetService)가 줄마다 하는 검사와 같은 규칙·같은 문구·같은 순서라 파일이 양쪽에서 똑같이 읽힙니다(서버가 다시 검사하고 다르면 서버가 정본):
+ * JSON 한 값(뒤에 글이 붙으면 오류) → JSON 객체 → input·expectedOutput·metadata 밖의 칸은 오류(문항 id도, 오타도) → input 필수(null 불가) → metadata는 있으면 JSON 객체.
+ * expectedOutput·metadata는 선택이고 null은 없는 것과 같습니다. 줄 구분은 CRLF·LF·CR, 빈 줄은 건너뛰고 세지 않으며, 한 줄의 문제는 첫 문제 하나만 알립니다.
  */
 export function parseDatasetJsonl(text: string): DatasetParse {
   const lines: DatasetLine[] = [], errors: DatasetError[] = []
   let total = 0
-  text.replace(/^\uFEFF/, '').split(/\r?\n/).forEach((raw, index) => {
+  text.replace(/^\uFEFF/, '').split(/\r\n|\r|\n/).forEach((raw, index) => {
     if (!raw.trim()) return
     total++
     const line = index + 1, fail = (message: string) => errors.push({ line, message })
     let value: unknown
     try { value = JSON.parse(raw) } catch { return fail('JSON으로 읽을 수 없어요.') }
     if (!isObject(value)) return fail('줄 하나가 JSON 객체여야 해요.')
-    if (!('input' in value)) return fail('input이 필요해요.')
-    if (!('expectedOutput' in value)) return fail('expectedOutput이 필요해요.')
+    const extra = Object.keys(value).filter((key) => !LINE_KEYS.includes(key))
+    if (extra.length) return fail(`알 수 없는 칸이 있어요: ${extra.join(', ')}`)
     const { input, expectedOutput, metadata } = value
+    if (input == null) return fail('input이 필요해요.')
     if (metadata != null && !isObject(metadata)) return fail('metadata는 JSON 객체여야 해요.')
-    lines.push(metadata == null ? { input, expectedOutput } : { input, expectedOutput, metadata })
+    lines.push({ input, ...(expectedOutput == null ? {} : { expectedOutput }), ...(metadata == null ? {} : { metadata }) })
   })
   return { total, lines, errors }
 }

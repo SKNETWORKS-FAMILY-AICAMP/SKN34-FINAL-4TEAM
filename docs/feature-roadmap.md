@@ -676,7 +676,7 @@
 <tr><td>프롬프트 이전 버전 복원</td><td>✅</td></tr>
 <tr><td>생성 결과의 사용 모델·프롬프트 버전 조회</td><td>✅</td></tr>
 <tr><td>모든 LLM 호출의 모델·프롬프트 조합 선택·후보 등록·서비스 반영과 코드 시드 자동 등록</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/705">#705</a></td></tr>
-<tr><td>프롬프트 버전별 실제 사용 모델 조회: 버전이 고른 모델, 없으면 AI 서비스가 그 프롬프트에 쓰는 기본 모델(AI 내부 조회, 못 받으면 알 수 없음) <small>(서버 응답 구현, 화면은 아직 최근 사용 기록을 근거로 보임)</small></td><td>❌ <small>(부분: 서버 응답만)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/868">#868</a></td></tr>
+<tr><td>프롬프트 버전별 실제 사용 모델 조회: 버전이 고른 모델, 없으면 AI 서비스가 그 프롬프트에 쓰는 기본 모델(AI 내부 조회, 못 받으면 알 수 없음) <small>(서버 응답·화면 표시 구현: 서버가 준 실제 모델이 우선이고 못 받을 때만 최근 사용 기록, 실스택 확인 전)</small></td><td>❌ <small>(부분: 실스택 확인 전)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/868">#868</a></td></tr>
 <tr><td>평가 세트가 있는 프롬프트(Q&A 답변·인물 대사·나레이션·회차 설정 추출)의 후보 등록에 회귀 평가 통과 조건</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/787">#787</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/824">#824</a></td></tr>
 <tr><td>인물 대사·나레이션 지시문 자동 개선(GEPA): 새 버전 저장(라벨 없음)과 게이트 세트 회귀 평가까지 자동, 후보 등록·서비스 반영은 수동</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/823">#823</a></td></tr>
 <tr><td rowspan="8">40-C 회귀 평가</td><td>고정 평가 세트 관리 범위 확정</td><td>✅</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>

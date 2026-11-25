@@ -91,12 +91,12 @@ export type ServerReason = (status: number, error: { code?: string; message?: st
  * 운영 공개 API(/api/v1/operations) 공통 요청. 운영 서비스는 회원 Bearer만 확인하는 stateless API라 CSRF를 보내지 않습니다.
  * 실패 상태는 성공으로 숨기지 않고 화면에 보일 OperationsError로 바꿉니다. 403은 OperationsForbidden이고,
  * [serverMessages]에 든 상태는 서버가 보낸 안내 문구를 그대로 담은 OperationsRejected입니다(문구가 없으면 일반 문구).
- * 함수를 주면 상태·code·message를 보고 보일 문구를 정합니다(돌려준 문구가 없으면 일반 문구).
+ * 함수를 주면 상태·code·message를 보고 보일 문구를 정합니다(돌려준 문구가 없으면 일반 문구). 응답을 기다리는 시간은 기본 15초이고 오래 걸리는 요청(파일 업로드)만 [timeoutMs]로 늘립니다.
  */
-export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES, serverMessages: readonly number[] | ServerReason = []) {
+export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES, serverMessages: readonly number[] | ServerReason = [], timeoutMs = 15000) {
   // multipart(FormData)는 Content-Type을 브라우저가 경계와 함께 붙이도록 두지 않는다.
   const raw = body === undefined || body instanceof FormData
-  const init: RequestInit = { method, signal: AbortSignal.timeout(15000), headers: raw ? {} : { 'Content-Type': 'application/json' }, body: raw ? (body as FormData | undefined) : JSON.stringify(body) }
+  const init: RequestInit = { method, signal: AbortSignal.timeout(timeoutMs), headers: raw ? {} : { 'Content-Type': 'application/json' }, body: raw ? (body as FormData | undefined) : JSON.stringify(body) }
   let response: Response
   try {
     response = await protectedRequest('/api/v1/operations' + path, init, authVersion(), false, { fetcher, allowHttpError: true })

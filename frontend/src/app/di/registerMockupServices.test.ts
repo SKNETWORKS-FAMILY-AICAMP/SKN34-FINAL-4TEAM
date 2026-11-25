@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { DEMO_WORLDS } from '../../data/mock/demoPublicWorlds'
+import { DatasetInvalid } from '../../domain/entities/llmDatasets'
 import { createAppContainer } from './container'
 
 const id = 'e25ffb25-8128-48c0-8d66-e1d56831cd56'
@@ -115,6 +116,24 @@ it('평가 데이터셋(#868)은 실제 모드에서 운영 API를 읽고 올리
   const page = (await datasets.items('qa.grounding', 0))!
   expect([page.total, page.items.length, page.items.at(-1)]).toEqual([8, 8, { id: 'qa.grounding-08', input: '2', expectedOutput: '정답', metadata: null }])
   await expect(datasets.upload('nope', 'a.jsonl', text, true)).rejects.toThrow('대상을 찾을 수 없어요.')   // 새 세트 만들기는 범위 밖
+})
+
+it('메모리 평가 데이터셋도 서버 규칙을 따른다: input만 있는 줄은 올라가 값 없는 칸이 null로 보이고, id·오타 칸·input 없음은 줄 오류로 거절하며 아무것도 올리지 않고, 크기는 줄 오류보다 먼저 막는다(#868)', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const repo = createAppContainer().resolve('llmDatasetRepository')
+  const before = (await repo.datasets()).find((row) => row.name === 'leak.spoiler')!.itemCount
+  expect(await repo.upload('leak.spoiler', 'a.jsonl', ['{"input":"질문 하나"}', '', '{"input":{"q":2},"expectedOutput":null,"metadata":{"source":"시험"}}'].join('\n'), true)).toBe(2)
+  const page = await repo.items('leak.spoiler', 0)
+  expect([page.total, page.items.slice(-2).map(({ id: _id, ...item }) => item)]).toEqual([before + 2, [
+    { input: '질문 하나', expectedOutput: null, metadata: null },
+    { input: { q: 2 }, expectedOutput: null, metadata: { source: '시험' } },
+  ]])
+  const bad = await repo.upload('leak.spoiler', 'b.jsonl', ['{"input":1}', '{"id":"x","input":1}', '{"input":1,"expected_output":2}', '{"expectedOutput":1}'].join('\n'), true).catch((error) => error)
+  expect(bad).toBeInstanceOf(DatasetInvalid)
+  expect(bad.errors).toEqual([{ line: 2, message: '알 수 없는 칸이 있어요: id' }, { line: 3, message: '알 수 없는 칸이 있어요: expected_output' }, { line: 4, message: 'input이 필요해요.' }])
+  expect((await repo.datasets()).find((row) => row.name === 'leak.spoiler')!.itemCount).toBe(before + 2)   // 전부 아니면 무
+  const tooMany = Array.from({ length: 501 }, () => '{"input":1}').join('\n') + '\n{bad'
+  await expect(repo.upload('leak.spoiler', 'c.jsonl', tooMany, true)).rejects.toThrow('파일이 너무 커요.')   // 서버의 413처럼 크기 안내(줄 오류 목록이 아니다)
 })
 
 it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서 같은 목록을 보는 메모리를 쓰고 홈 칩·세계관 이름이 그 목록을 따른다', async () => {

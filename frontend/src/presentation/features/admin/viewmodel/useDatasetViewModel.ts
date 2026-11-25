@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 
-import { DatasetInvalid, datasetLimitError, isJsonlFile, parseDatasetJsonl, type DatasetError } from '../../../../domain/entities/llmDatasets'
+import { DatasetInvalid, datasetLimitError, decodeUtf8, isJsonlFile, parseDatasetJsonl, type DatasetError } from '../../../../domain/entities/llmDatasets'
 import type { LlmDatasetUseCase } from '../../../../domain/usecases/LlmDatasetUseCase'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import type { AdminMutate } from './useAdminViewModel'
@@ -48,8 +48,11 @@ export function useDatasetViewModel(mutate: AdminMutate, active: boolean, useCas
         if (!file) return
         if (!isJsonlFile(file.name)) return setPickError('.jsonl 파일만 올릴 수 있어요.')
         try {
-          const text = await file.text()
-          if (seq === pickSeq.current) setPicked({ fileName: file.name, text, size: file.size })
+          // 서버는 UTF-8만 받으므로 바이트로 읽어 엄격히 해석한다(file.text()는 깨진 글자로 바꿔 읽어 그대로 올라갈 수 있다).
+          const text = decodeUtf8(await file.arrayBuffer())
+          if (seq !== pickSeq.current) return
+          if (text === null) setPickError('UTF-8 텍스트 파일이 아니에요. UTF-8로 저장한 .jsonl 파일을 골라 주세요.')
+          else setPicked({ fileName: file.name, text, size: file.size })
         } catch {
           if (seq === pickSeq.current) setPickError('파일을 읽지 못했어요. 다시 골라 주세요.')
         }
