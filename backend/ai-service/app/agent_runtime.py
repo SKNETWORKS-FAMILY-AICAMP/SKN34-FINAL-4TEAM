@@ -206,7 +206,7 @@ class CreditLedger(BaseCallbackHandler):
 
 def run(name: str, label: str, failure: type[Exception], instructions: str, data: dict, *, prompt_name: str | None = None, max_tokens: int,
         timeout: int, trace: dict, schema: type[BaseModel] | None = None, web_search: bool = False,
-        credit: CreditMiddleware | None = None, model: str | None = None) -> tuple[AIMessage, Any]:
+        credit: CreditMiddleware | None = None, model: str | None = None, effort: str | None = None) -> tuple[AIMessage, Any]:
     """data(JSON 자료)를 지시문으로 한 번 처리해 마지막 모델 메시지와 구조화 결과(schema가 없으면 None)를 돌려준다.
 
     지시문은 Langfuse 프롬프트 prompt_name의 production 버전이고 instructions(코드 문자열)는 최초 등록용 기본값이다(tracing.prompt).
@@ -216,6 +216,7 @@ def run(name: str, label: str, failure: type[Exception], instructions: str, data
     model 인자: 평가하는 버전의 모델)이고 없으면 OPENAI_MODEL이다(#705).
     web_search면 OpenAI 내장 `web_search`를 반드시 쓰게 하고 검색 출처를 응답에 포함시킨다. trace는 추적에 남길 입력이다.
     credit을 주면 가장 바깥 미들웨어로 끼워 이 호출의 사용량을 그 인스턴스에 더하고, 상한에 닿았으면 모델을 부르지 않는다.
+    effort를 주면 OpenAI 추론 강도(reasoning_effort)로 보낸다(없으면 모델 기본값).
     """
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
@@ -228,7 +229,8 @@ def run(name: str, label: str, failure: type[Exception], instructions: str, data
     if not model:
         raise failure(503, f'{label} 모델 설정이 필요합니다.')
     chat = ChatOpenAI(model=model, api_key=key, use_responses_api=True, store=False, max_tokens=max_tokens, timeout=timeout,
-                      max_retries=0, include=['web_search_call.action.sources'] if web_search else None)
+                      max_retries=0, include=['web_search_call.action.sources'] if web_search else None,
+                      **({'reasoning_effort': effort} if effort else {}))
     agent = create_agent(
         # checkpointer=False: 오케스트레이션 노드 안에서 돌아도 바깥 대화 체크포인터를 이어받아 입력(원고·허용 문맥)을 남기지 않는다.
         chat, tools=[WEB_SEARCH] if web_search else [], system_prompt=managed.text, checkpointer=False,

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { login } from '../api/auth'
 import type { ChatAttachmentPayload } from '../../domain/entities/chatAttachment'
-import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
+import { replyOutcome, stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
 const input = { episode: 2, episodeVersionId: 'v2', request: '길드 규칙은?' }
@@ -119,6 +119,16 @@ describe('집필 AI 채팅 세션', () => {
     const history = await repo.history('w1', 't1')
     expect(fetcher.mock.calls[1][0]).toBe('/api/v1/works/w1/chat/sessions/t1')
     expect(history.turns[0].reply?.awaitingApproval).toBe('writing_editing')
+  })
+
+  it('되묻기 선택지(choices)를 읽고, 없는 옛 기록은 빈 목록으로 읽는다(#794)', async () => {
+    const choices = [{ label: 'IF로 시작', message: 'IF 시뮬레이션으로 해줘: 요청' }, { label: '양식에서 고르기', message: '요청', form: 'simulation' }]
+    const fetcher = vi.fn().mockResolvedValueOnce(Response.json({ threadId: 't1', title: '', turns: [
+      { request: '요청', reply: { status: 'clarify', message: '모드를 알려 주세요.', steps: [], missingInputs: [], choices } },
+      { request: '옛 질문', reply: { status: 'clarify', message: '어느 회차요?', steps: [], missingInputs: [] } },
+    ] }))
+    const turns = (await new HttpWritingChatRepository(fetcher).history('w1', 't1')).turns
+    expect(turns.map((t) => t.reply?.choices)).toEqual([choices, []])
   })
 
   it('답변 평가는 그 메시지의 feedback으로 PUT하고 이력에서 평가를 읽는다(#560)', async () => {
@@ -711,5 +721,32 @@ describe('계획 수정안 단계 결과(#578)', () => {
     ] }))
     const { turns } = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
     expect(turns[0].reply?.steps[0]).toMatchObject({ task: 'revise_plan', planRevision: { kind: 'scene' } })
+  })
+})
+
+describe('승인 카드 확장(#795) 응답', () => {
+  const run = async (...chunks: string[]) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(...chunks))).send('w1', 't1', input, (e) => events.push(e))
+    return events
+  }
+
+  it('원고 반영 대기의 남은 다시 쓰기 횟수를 waiting·done에서 읽고, 없는 옛 응답도 그대로 읽는다', async () => {
+    const waiting = { steps: [], missingInputs: [], awaitingApproval: 'writing_editing', rewritesLeft: 1 }
+    const events = await run(`event: waiting\ndata: ${JSON.stringify(waiting)}\n\n`, `event: done\ndata: ${JSON.stringify({ status: 'waiting', ...waiting })}\n\n`)
+    expect(events[0]).toMatchObject({ type: 'waiting', rewritesLeft: 1 })
+    expect(events[1]).toMatchObject({ type: 'done', reply: { rewritesLeft: 1 } })
+    const old = await run('event: done\ndata: {"status":"waiting","steps":[],"missingInputs":[],"awaitingApproval":"writing_editing"}\n\n')
+    expect(old[0].type === 'done' && old[0].reply.rewritesLeft).toBeFalsy()
+  })
+
+  it('World 제안 중 골라 반영한 번호(selected)를 읽고 반영 결과 글에 고른 개수를 보인다', async () => {
+    const step = { feature: 'world', task: 'enrich', status: 'completed', approval: 'approved', selected: [1], applied: { episode: 2, revision: 8 },
+      result: { worldId: 'w', revision: 7, note: '', model: 'm', fixes: [
+        { cardId: 'k', cardTitle: '카엘', target: 'soul', episode: null, text: '말이 짧다.' }, { cardId: 'r', cardTitle: '리나', target: 'body', episode: null, text: '항구 출신.' }] } }
+    const [event] = await run(`event: step\ndata: ${JSON.stringify(step)}\n\n`)
+    if (event.type !== 'step') throw new Error('step 이벤트가 아니에요')
+    expect(event.step.selected).toEqual([1])
+    expect(replyOutcome({ status: 'completed', steps: [event.step], missingInputs: [] })).toEqual(['→ 2개 중 1개를 설정집 초안에 반영했어요.'])
   })
 })

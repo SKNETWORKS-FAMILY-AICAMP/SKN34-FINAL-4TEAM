@@ -188,3 +188,48 @@ def test_the_size_limits_are_inclusive():
 def test_attachments_belong_to_a_new_request_not_a_resume():
     with pytest.raises(ValidationError):
         OrchestrationRequest(resume={'approved': True}, conversation=CONVERSATION, attachments=[PNG])
+
+
+@pytest.mark.parametrize('choices', [
+    [{'label': '가' * 21, 'message': '보낼 말'}],                          # label 20자 초과
+    [{'label': '고르기', 'message': '가' * 2001}],                          # message는 요청 request 한도와 같다
+    [{'label': '', 'message': '보낼 말'}],
+    [{'label': '  ', 'message': '보낼 말'}],
+    [{'label': '고르기', 'message': ' \n '}],
+    [{'label': f'{i}', 'message': '보낼 말'} for i in range(5)],          # 최대 4개
+])
+def test_reply_choices_are_at_most_four_short_labels_with_a_sendable_message(choices):
+    # 되묻기 선택지(#794): 누르면 message를 새 채팅 메시지로 보낸다.
+    with pytest.raises(ValidationError):
+        OrchestrationResponse.model_validate({'status': 'clarify', 'choices': choices})
+    assert OrchestrationResponse(status='clarify').choices == []
+
+
+# 승인 카드 확장(#795)
+
+@pytest.mark.parametrize('fix', [1, [1], [0, 2]])
+def test_the_author_may_pick_one_or_several_findings_to_fix(fix):
+    assert WritingInput(fix=fix).fix == fix
+
+
+@pytest.mark.parametrize('fix', [-1, [], [-1], [1, 1]])
+def test_picked_findings_are_distinct_non_negative_numbers(fix):
+    with pytest.raises(ValidationError):
+        WritingInput(fix=fix)
+
+
+@pytest.mark.parametrize('body', [
+    {'approved': False, 'selected': [0]},
+    {'approved': False, 'edited': {'id': 'w'}},
+    {'approved': True, 'selected': []},
+    {'approved': True, 'selected': [0, 0]},
+    {'approved': True, 'selected': [-1]},
+])
+def test_picked_proposals_and_edited_arguments_only_come_with_an_approval(body):
+    with pytest.raises(ValidationError):
+        Resume.model_validate(body)
+
+
+def test_an_approval_may_carry_the_picked_proposals_or_the_edited_arguments():
+    assert Resume(approved=True, selected=[1, 0]).selected == [1, 0]
+    assert Resume(approved=True, edited={'id': 'w'}).edited == {'id': 'w'}

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
 import { attachmentKind, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { streamedAnswer, trackActivity, type ChatActivity, type ChatBasis, type ChatEvent, type ChatFeature, type ChatFeedback, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
+import { streamedAnswer, trackActivity, type ApprovalPick, type ChatActivity, type ChatBasis, type ChatEvent, type ChatFeature, type ChatFeedback, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
 import { readAttachments } from './readAttachments'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
@@ -204,8 +204,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       return stream(text, { request: text, ...rest }, undefined, files)
     },
     edit: (index: number, text: string) => stream(text, { request: text }, index),
-    resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),
-    /** 오래된 Content 쓰기 제안만 다시 받는다(#662). 턴을 다시 실행하면 이미 저장한 쓰기까지 다시 제안된다. */
+    /** pick은 승인과 함께 보내는 고른 World 제안 번호·고친 Content 쓰기 인자다(#795). */
+    resume: (approved: boolean, inputs?: ChatStepInputs, pick?: ApprovalPick) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs, ...pick } }),
+    /** 오래된 Content 쓰기 제안만 다시 받거나(#662) 원고 반영 대기에서 같은 요청으로 다시 쓴다(#795). 턴을 다시 실행하면 이미 저장한 쓰기까지 다시 제안된다. */
     refreshProposal: () => stream(turns.at(-1)?.request ?? '', { resume: { approved: false, refresh: true } }),
     /** 무대의 장면 조작(다음 턴·줄 수정·다시 말하기·끝내기). 멈춘 장면을 이어 가는 요청이라 approved는 서버 검증용으로 함께 보낸다. */
     sceneAction: (action: SceneAction) => stream(turns.at(-1)?.request ?? '', { resume: { approved: true, scene: action } }),
