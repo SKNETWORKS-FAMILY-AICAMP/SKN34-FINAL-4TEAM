@@ -261,6 +261,40 @@ def test_gepa_gets_the_base_text_as_the_seed_the_pool_the_budget_and_the_reflect
     assert (options['adapter'].kind, options['adapter'].model) == ('act', 'gpt-6.1-terra')
 
 
+# GEPA 0.1.4가 logger.log(message)로 내는 줄(logging/utils.py·core/engine.py·proposer/reflective_mutation). 점수 줄은 숫자만 싣고, 나머지는 반성 모델이 쓴 새 지시문·예외 메시지·스택처럼 본문이 실릴 수 있다.
+GEPA_SCORE_LINES = [
+    'Iteration 0: Base program full valset score: 0.5 over 20 / 20 examples',
+    'Iteration 1: Selected program 0 score: 0.5',
+    'Iteration 1: New subsample score 2.5 is not better than old score 2.7, skipping',
+    'Iteration 2: Accepted candidate (subsample score 1.5 -> 2.5); running full eval.',
+    'Iteration 2: Valset score for new program: 0.62 (coverage 20 / 20)',
+    'Iteration 2: Individual valset scores for new program: {0: 1.0, 1: 0.25}',
+    'Iteration 2: Best score on valset: 0.62',
+]
+GEPA_TEXT_LINES = [
+    'Iteration 2: Proposed new text for instructions: 비밀 지시문 첫 줄\n비밀 지시문 둘째 줄',
+    'Iteration 3: Exception during optimization: 비밀 응답이 든 메시지',
+    'Traceback (most recent call last):\n  File "x.py", line 1, in f\nValueError: 비밀 응답이 든 메시지',
+    'Batched reflection failed (비밀 응답); retrying per task.',
+    'Per-task reflection failed: 비밀 응답',
+    'Iteration 4: Exception building reflective dataset: 비밀 응답',
+]
+
+
+def test_gepa_gets_a_logger_that_keeps_the_score_lines_and_drops_every_line_that_can_carry_text(world, caplog, capsys):
+    """#852: GEPA 기본 로거는 반복마다 반성 모델이 쓴 새 지시문 전체를 print해 워커 로그에 남겼다. 점수 줄만 로그로 남기고 표준 출력에는 아무것도 찍지 않는다."""
+    service.run_job(REQUEST.model_dump())
+    [options] = world.optimized
+
+    with caplog.at_level(logging.INFO):
+        for line in GEPA_SCORE_LINES + GEPA_TEXT_LINES:
+            options['logger'].log(line)
+
+    assert all(line in caplog.text for line in GEPA_SCORE_LINES)
+    assert '비밀' not in caplog.text and 'Traceback' not in caplog.text
+    assert capsys.readouterr() == ('', '')   # print로도 새지 않는다
+
+
 def test_a_missing_baseline_run_is_made_first_so_the_gate_has_something_to_compare_with(world):
     world.baseline = None
 
@@ -359,16 +393,21 @@ def test_a_base_version_that_does_not_exist_or_is_a_chat_prompt_fails_before_any
     assert attrs(root)['langfuse.observation.status_message']
 
 
-def test_an_unexpected_error_is_logged_by_class_and_place_only(world, caplog, monkeypatch):
-    """#841 첫 실행: 클래스 이름(TypeError)만으로는 원인을 찾지 못했다. 난 곳(파일:줄 함수)은 코드 위치라 본문이 섞이지 않는다."""
-    def broken(**options):
+def test_an_unexpected_error_is_logged_by_class_and_call_path_without_its_message(world, caplog, monkeypatch):
+    """#841 첫 실행: 클래스 이름(TypeError)만으로는 원인을 찾지 못했고(#850) 난 곳 한 줄로는 누가 불렀는지 알 수 없다. 호출 경로 전체(프레임마다 파일:줄 함수, 바깥 → 안쪽)를 남긴다.
+    메시지에는 입력·응답 본문이 섞일 수 있어 남기지 않는다(코드 위치뿐이라 본문이 섞이지 않는다)."""
+    def inner():
         raise RuntimeError('입력 원문이 든 메시지')
+
+    def broken(**options):
+        inner()
     install_gepa(monkeypatch, broken)
 
     with caplog.at_level(logging.ERROR):
         service.run_job(REQUEST.model_dump())
 
-    assert 'RuntimeError' in caplog.text and 'test_service.py:' in caplog.text and ' broken' in caplog.text
+    path = [name for name in re.findall(r'\.py:\d+ (\w+)', caplog.text) if name in {'run_job', '_optimize', 'broken', 'inner'}]
+    assert path == ['run_job', '_optimize', 'broken', 'inner'] and 'RuntimeError' in caplog.text
     assert '원문' not in caplog.text and status_of(root_of(world)) == 'failed'
 
 
