@@ -23,9 +23,8 @@ def offline(monkeypatch):
 
 
 def langfuse_stores(value, *, top=True):
-    """Langfuse가 항목의 값을 저장하는 모양. 2026-11-25 실스택에서 seed를 세 번 돌려 확인했다: 파일과 어긋난 문항 수가 simulation.act 24·extraction.extract 5·optimize.extraction.extract 36·
-    optimize.simulation.act 126이고 나머지 세트는 0이었고, 이 규칙으로 센 수와 정확히 같다. ① 최상위 값이 글이고 JSON으로 읽히면 읽은 값으로 저장한다(따옴표로 감싼 대사 정답은 바깥 따옴표가
-    벗겨지고 '12'는 숫자 12가 된다). 안쪽 글은 그대로다(narrate 세트는 안쪽 글 36문항이 JSON으로 읽히는데도 어긋난 문항이 0이었다). ② 실수는 16자리까지만 남는다(0.38461538461538464 → 0.3846153846153846, 1.0 → 1)."""
+    """Langfuse가 항목의 값을 저장하는 모양(실스택에서 확인한 근거와 수치는 seed._same의 설명). ① 최상위 값이 글이고 JSON으로 읽히면 읽은 값으로 저장한다(따옴표로 감싼 대사 정답은 바깥 따옴표가
+    벗겨지고 '12'는 숫자 12가 된다). 안쪽 글은 그대로다. ② 실수는 16자리까지만 남는다(0.38461538461538464 → 0.3846153846153846, 1.0 → 1)."""
     if isinstance(value, str) and top:
         try:
             return langfuse_stores(json.loads(value), top=False)
@@ -300,10 +299,6 @@ def test_a_text_langfuse_read_as_json_is_the_same_item(given, returned):
 ])
 def test_what_really_differs_is_not_the_same_item(field, returned, given):
     assert not same(stored(**{field: returned}), **{field: given})
-
-
-def test_an_item_langfuse_does_not_have_is_not_the_same_item():
-    assert not seed._same(None, {'id': 'x', 'input': {}, 'expectedOutput': None, 'metadata': {}})
 
 
 def test_a_missing_item_is_written_and_items_that_only_langfuse_has_are_left_alone():
