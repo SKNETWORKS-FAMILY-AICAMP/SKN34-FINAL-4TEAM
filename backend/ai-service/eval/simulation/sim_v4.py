@@ -269,7 +269,7 @@ async def _chain(plan, p: Planned, view: dict, limit, revised: list[asyncio.Futu
                 final.verdict, failed = PASSED, []
             else:
                 kinds = service.check_kinds(plan, p.kind, p.pov)
-                payload = service.check_payload({**view['asked'], **view['extra'], **({'actionStyle': view['style']} if view['style'] else {})}, kinds, prose, p.kind)
+                payload = service.check_payload({**view['asked'], **view['extra'], **({'actionStyle': view['style']} if view['style'] else {})}, kinds, prose)
                 final.verdict = await _call(limit, agent.check, payload)
                 final.calls += 1
                 service.verify(final.verdict, kinds, payload)

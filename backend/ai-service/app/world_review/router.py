@@ -6,7 +6,7 @@ from app import tracing
 from app.internal_auth import require_internal_token
 from app.world_review import service
 from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import WorldReviewRequest, WorldReviewResponse
+from app.world_review.models import FillRequest, FillResponse, WorldReviewRequest, WorldReviewResponse
 
 router = APIRouter()
 
@@ -22,5 +22,19 @@ def review(data: WorldReviewRequest, x_internal_token: str = Header(default=''),
     try:
         with tracing.request('world_review', user_id=tracing.member_id(x_user_authorization)):
             return service.review(data)
+    except WorldReviewFailure as error:
+        raise HTTPException(error.status, str(error)) from None
+
+
+@router.post('/internal/v1/world-reviews/fill')
+def fill(data: FillRequest, x_internal_token: str = Header(default=''), x_user_authorization: str = Header(default='')) -> FillResponse:
+    """Content가 보낸 원고 발췌에서 한 인물의 비어 있는 IDENTITY·SOUL을 채울 근거 문장(줄)을 골라 반환한다. 글을 새로 쓰지 않으며 카드를 바꾸지 않는다.
+
+    X-User-Authorization(선택)은 추적의 회원 식별에만 쓴다.
+    """
+    require_internal_token(x_internal_token)
+    try:
+        with tracing.request('world_review', user_id=tracing.member_id(x_user_authorization)):
+            return service.fill(data)
     except WorldReviewFailure as error:
         raise HTTPException(error.status, str(error)) from None

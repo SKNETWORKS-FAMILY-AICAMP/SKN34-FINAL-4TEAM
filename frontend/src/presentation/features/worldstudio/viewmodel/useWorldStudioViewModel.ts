@@ -5,6 +5,7 @@ import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from
 import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
 import { useCardImages } from './useCardImages'
 import { worldStudioStorage } from './worldStudioStorage'
+import { useDocFill } from './useDocFill'
 import { useWorldReview } from './useWorldReview'
 import {
   applyRelationChanges,
@@ -316,6 +317,8 @@ export function useWorldStudioViewModel(
   }
   // 설정집 AI 검토(#394): 게시판의 상태 칸과 편집 화면의 지적 목록이 같은 결과를 보도록 여기서 하나만 만든다.
   const review = useWorldReview({ useCase: reviewUseCase, saved, editing, unsaved: dirty || relationDirty, busy: busy || reviewBusy, patch })
+  // 인물 문서 '원고로 채우기 제안'(#847): 편집 화면의 문서 탭이 쓰는 제안 하나를 여기서 갖는다(같은 UseCase·동의 규칙).
+  const docFill = useDocFill({ useCase: reviewUseCase, saved, unsaved: dirty || relationDirty, busy: busy || reviewBusy })
   const reload = async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w}
   return {
     reviewWorldId:worldId,
@@ -324,6 +327,8 @@ export function useWorldStudioViewModel(
     setReviewBusy,
     /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 마지막 결과는 서버가 저장해 세계관을 읽으면 불러오고(#555), 세계관이 바뀌면 지운다. */
     review,
+    /** 인물 문서 '원고로 채우기 제안': 동의·요청·제안(원고 문장 줄). 받은 제안은 저장하지 않는 화면 상태이고 반영은 `useCharacterDocs`가 한다. */
+    docFill,
     reload,
     /** 채팅의 World 반영이 서버 초안을 바꿨다(#546): 저장하지 않은 변경이 없으면 다시 읽고(true), 있으면 덮어쓰지 않고 안내만 한다(false). */
     aiDraftChanged: async () => {

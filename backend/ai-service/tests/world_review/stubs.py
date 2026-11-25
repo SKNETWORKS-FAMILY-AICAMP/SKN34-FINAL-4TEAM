@@ -1,7 +1,8 @@
 from fake_chat import fake_chat
 
 from app.world_review import service
-from app.world_review.models import Affected, EnrichResult, Finding, Fix, ImpactResult, WorldReviewRequest, WorldReviewResult
+from app.world_review.models import (Affected, EnrichResult, Finding, Fix, FillLine, FillRequest, FillResult, ImpactResult, WorldReviewRequest,
+                                     WorldReviewResult)
 
 REL = {'id': 'rel-1', 'sourceCardId': 'seoyun', 'targetCardId': 'war', 'label': '겪음', 'polarity': 'asserted'}
 WORLD = {
@@ -79,6 +80,32 @@ def fake_impact(monkeypatch, *items, conflicts=(), gaps=()):
         return ImpactResult(affected=list(items), conflicts=list(conflicts), gaps=list(gaps)), META
 
     monkeypatch.setattr(service.agent, 'impact', impact)
+    return seen
+
+
+# 인물 문서 채우기(fill) 요청: 치삼 카드의 IDENTITY·SOUL이 비어 있고, 이름이 나온 발췌가 2화(첫 등장)와 4화에 있다.
+PASSAGES = [{'episode': 2, 'text': '장터의 소금장수 치삼이 다가왔다. 키가 작고 얼굴이 검게 탔다.'},
+            {'episode': 4, 'text': '"됐어, 난 안 할 거야." 치삼이 퉁명스럽게 말했다.'}]
+FILL = {'cardId': 'chisam', 'title': '치삼', 'aliases': ['치삼이'], 'targets': ['body', 'soul'], 'passages': PASSAGES}
+
+
+def fill_request(**override) -> FillRequest:
+    return FillRequest.model_validate({**FILL, **override})
+
+
+def fill_line(target='body', kind='description', episode=2, quote='키가 작고 얼굴이 검게 탔다.'):
+    return FillLine(target=target, kind=kind, episode=episode, quote=quote)
+
+
+def fake_fill(monkeypatch, *lines):
+    """agent.fill 대역. 받은 요청 DTO를 담은 dict를 돌려준다."""
+    seen = {}
+
+    def fill(data):
+        seen['data'] = data
+        return FillResult(lines=list(lines)), META
+
+    monkeypatch.setattr(service.agent, 'fill', fill)
     return seen
 
 

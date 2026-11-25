@@ -42,7 +42,7 @@ def generate(plan, world, actor, scene) -> list[dict]:
         if problem := scene_agent._problem(made, scene):
             failed = [problem]
         else:
-            body = service.check_payload(payload, kinds, prose, 'character')   # 운영 장면 에이전트와 같은 검사 입력(금지 목록은 문단·장면 관련분만, #646)
+            body = service.check_payload(payload, kinds, prose)   # 운영 장면 에이전트와 같은 검사 입력(금지 목록은 문단·장면 관련분만, #646)
             verdict = agent.check(body)
             service.verify(verdict, kinds, body)
             failed = [c for c in verdict.checks if not c.passed]

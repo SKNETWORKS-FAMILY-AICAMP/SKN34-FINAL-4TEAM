@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 
-from .stubs import WORLD, fake_agent, finding, fix
+from .stubs import FILL, WORLD, fake_agent, fake_fill, fill_line, finding, fix
 
 pytestmark = pytest.mark.integration
 
@@ -39,3 +39,19 @@ def test_old_memory_in_the_body_is_accepted_and_a_bad_body_is_422(monkeypatch):
 
     assert accepted.status_code == 200 and seen['data'].cards[0].characterDocs.episodes == {0: '옛 기억'}
     assert rejected.status_code == 422
+
+
+def test_fill_route_returns_the_contract_shape_and_a_bad_body_is_422(monkeypatch):
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
+    fake_fill(monkeypatch, fill_line(), fill_line('soul', 'fact', 4, '"됐어, 난 안 할 거야." 치삼이 퉁명스럽게 말했다.'))
+    with TestClient(create_app()) as client:
+        denied = client.post('/internal/v1/world-reviews/fill', json=FILL)
+        response = client.post('/internal/v1/world-reviews/fill', headers={'X-Internal-Token': 'test-token'}, json=FILL)
+        rejected = client.post('/internal/v1/world-reviews/fill', headers={'X-Internal-Token': 'test-token'}, json={**FILL, 'passages': []})
+
+    assert denied.status_code == 403 and rejected.status_code == 422
+    assert response.status_code == 200
+    assert response.json() == {
+        'lines': [{'target': 'body', 'kind': 'description', 'episode': 2, 'quote': '키가 작고 얼굴이 검게 탔다.'},
+                  {'target': 'soul', 'kind': 'fact', 'episode': 4, 'quote': '"됐어, 난 안 할 거야." 치삼이 퉁명스럽게 말했다.'}],
+        'skipped': 0, 'model': 'resolved-model'}
