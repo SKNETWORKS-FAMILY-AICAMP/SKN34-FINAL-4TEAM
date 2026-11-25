@@ -363,6 +363,48 @@ def test_only_a_new_scene_plan_keeps_the_position_the_model_gave(monkeypatch, na
     assert args['data'].get('position') == sent and args['data']['title'] == '첫 장면'
 
 
+SCENES = [{'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False}, {'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False},
+          {'kind': 'scene', 'episodeNumber': 4, 'episodeMissing': False}, {'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': True},
+          {'kind': 'plot', 'episodeNumber': None, 'episodeMissing': False}]  # 3회차의 읽을 수 있는 장면은 2개뿐이다
+
+
+@pytest.mark.parametrize('position, sent', [(3, None), (9, None), (2, 2), (1, 1), (0, 0)])
+def test_a_new_scene_position_beyond_the_scenes_of_its_episode_is_left_out_so_content_appends_it(monkeypatch, position, sent):
+    """Content는 장면 순서가 0..그 회차 장면 수가 아니면 422다(#917). 수보다 크면 position을 빼 맨 뒤에 붙게 하고 범위 안은 그대로 둔다."""
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': position}
+    fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    log = content(monkeypatch, story_plan_list=SCENES)
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    [(_, args)] = writes(log)
+    assert args['data'].get('position') == sent
+    assert [t for t, _ in log].count('story_plan_list') == (1 if position > 0 else 0)  # 장면 수는 필요할 때만 읽는다
+
+
+@pytest.mark.parametrize('position, saved, appended', [(9, 2, True), (1, 1, False)])
+def test_the_model_is_told_where_the_new_scene_was_really_put(monkeypatch, position, saved, appended):
+    """E2E에서 position을 빼 맨 뒤에 붙였는데 답은 '10번째로 추가했다'였다(#917). 모델이 실제 저장된 순서를 보고 답하게 한다."""
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': position}
+    calls = fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    content(monkeypatch, story_plan_list=SCENES, story_plan_create={'revision': 1, 'position': saved})
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    done = json.loads(next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'story_plan_create').content)
+    assert done['position'] == saved and ('appended' in done) == appended
+
+
+def test_a_new_scene_whose_scene_count_cannot_be_read_fails_the_step_without_writing(monkeypatch):
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': 5}
+    fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    log = content(monkeypatch, fail={'story_plan_list': ContentMcpFailure(503, '읽을 수 없어요.')})
+    thread = str(uuid4())
+    turn(thread)
+    done = resume(thread, True)
+    assert done.status == 'failed' and writes(log) == []
+
+
 def test_a_write_for_another_work_is_refused_before_any_approval_is_asked(monkeypatch):
     calls = fake_agents(monkeypatch, only_content(('work_update', {'id': 'someone-elses', 'data': {'title': 'x', 'revision': 1}})))
     log = content(monkeypatch)
