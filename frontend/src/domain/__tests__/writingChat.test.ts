@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyChoices, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, trackActivity, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -598,4 +598,30 @@ it('고증 조사의 platform 단계는 공개 세계관 참고로 보이고, ta
   expect(stepName({ feature: 'research', task: 'web', status: 'failed', error: '실패' })).toBe('고증 조사')
   expect(stepName({ feature: 'web_research', status: 'failed', error: '실패' })).toBe('고증 조사')
   expect(replyText({ status: 'failed', missingInputs: [], steps: [platform] })).toBe('[공개 세계관 참고] 실패: 실패')
+})
+
+
+describe('trackActivity(#784)', () => {
+  const row = (id: string, status: 'running' | 'done' | 'failed', label = '세계관 읽기'): ChatEvent => ({ type: 'activity', activity: { id, label, status } })
+  it('같은 id는 그 줄의 상태만 바꾸고 새 id는 끝에 덧붙인다. 다른 이벤트는 목록을 바꾸지 않는다', () => {
+    const list = [row('a', 'running'), row('b', 'running', '웹 검색'), row('a', 'done'), { type: 'answer', delta: '글' } as ChatEvent, row('b', 'failed', '웹 검색')]
+      .reduce(trackActivity, [])
+    expect(list).toEqual([{ id: 'a', label: '세계관 읽기', status: 'done' }, { id: 'b', label: '웹 검색', status: 'failed' }])
+  })
+})
+
+describe('replyChoices', () => {
+  const reply = (extra: Partial<ChatReply>): ChatReply => ({ status: 'completed', steps: [], missingInputs: [], ...extra })
+  it('되묻기 선택지는 서버가 준 그대로 쓴다(#794)', () => {
+    const choices = [{ label: '3화', message: '3화 결말을 고쳐줘' }]
+    expect(replyChoices(reply({ status: 'clarify', choices }))).toEqual(choices)
+    expect(replyChoices(reply({ status: 'clarify' }))).toEqual([])
+  })
+
+  it('기획 결과(plans)는 계획마다 그 계획대로 쓰라는 새 메시지 선택지가 된다(최대 4개)', () => {
+    const plans = Array.from({ length: 5 }, (_, i) => ({ title: `계획${i}`, beats: [] }))
+    const planned = reply({ steps: [{ feature: 'writing_editing', status: 'completed', result: { plans } }] })
+    expect(replyChoices(planned)).toEqual([1, 2, 3, 4].map((n) => ({ label: `계획 ${n}대로 쓰기`, message: `계획 ${n}대로 써줘` })))
+    expect(replyChoices(reply({ steps: [{ feature: 'writing_editing', status: 'failed', result: { plans } }] }))).toEqual([])
+  })
 })

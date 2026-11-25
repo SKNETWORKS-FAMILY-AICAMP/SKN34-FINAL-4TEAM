@@ -23,10 +23,9 @@ from app.orchestration.models import CONTENT_ACTION
 MCP_CALLS = 10  # 턴당 MCP 도구 호출 상한. 서브 에이전트 한도(TOOL_CALLS)와 따로 센다.
 READ_LIMIT = 20000  # 읽기 결과를 모델에 주는 최대 글자 수(Content 응답이 길면 잘라서 알린다)
 # 읽기(자동 실행) 6개와 쓰기(승인 뒤 실행) 4개의 한국어 고정 문구. 쓰기 문구는 승인 카드의 제목이다.
-READ = {'world_studio_read': '세계관 읽기', 'episode_read': '회차 읽기', 'episode_list': '회차 목록 읽기', 'work_read': '작품 읽기',
-        'story_plan_list': '계획 목록 읽기', 'story_plan_read': '계획 읽기'}
-WRITE = {'world_studio_edit_draft': '세계관 설정 카드 수정', 'work_update': '작품 정보 수정', 'story_plan_create': '플롯·장면 계획 추가',
-         'story_plan_update': '플롯·장면 계획 수정'}
+# 실행 진행 목록(#784)은 content_mcp.call이 호출마다 알리므로 같은 문구를 거기서 가져온다.
+READ = {n: content_mcp.LABELS[n] for n in ('world_studio_read', 'episode_read', 'episode_list', 'work_read', 'story_plan_list', 'story_plan_read')}
+WRITE = {n: content_mcp.LABELS[n] for n in ('world_studio_edit_draft', 'work_update', 'story_plan_create', 'story_plan_update')}
 LABELS = {**READ, **WRITE}
 # Content의 도구 설명만으로는 모델이 request를 풀어 평평하게 보내는 일이 있어 모양을 덧붙인다.
 HINTS = {'world_studio_edit_draft': ' 인자는 {id, request: {expectedDraftRevision(world_studio_read의 draftRevision), name, description, key, replace: false, cards: [바꿀 카드]}} 모양이다. 바꿀 카드만 cards에 넣는다.'}
@@ -37,6 +36,10 @@ NOT_THIS_WORK = '지금 보는 작품이 아닌 작품은 다룰 수 없어요.'
 NOT_THIS_WORLD = '지금 보는 작품에 연결된 세계관이 아닌 세계관은 다룰 수 없어요.'
 WORLD_TOOLS = ('world_studio_read', 'world_studio_edit_draft')
 LIMIT_REACHED = '이번 요청에서 부를 수 있는 Content 도구 횟수를 넘었어요.'
+# 고쳐서 승인(#795)에서 작가가 바꿀 수 있는 글 필드. 세계관 카드는 request.cards[]의 것, 나머지는 data의 것이다. id·revision·종류 등은 잠근다.
+TEXT_FIELDS = {'world_studio_edit_draft': ('title', 'body'), 'work_update': ('title', 'summary'), 'story_plan_create': ('title', 'content'),
+               'story_plan_update': ('title', 'content')}
+EDIT_LOCKED = '제안의 이름·제목·설명·내용 글만 고칠 수 있어요. 대화를 다시 불러온 뒤 고쳐 주세요.'
 
 
 # 도구 목록을 못 읽은 턴의 답 끝에 붙이는 안내(#639, 2026-11-23 사용자 결정: 진행하되 작가가 알아듣는 말로 알린다).
@@ -79,6 +82,38 @@ def mismatch(call: dict, turn: dict) -> str | None:
         return None if args.get(key) == (turn.get('target') or {}).get('workId') else NOT_THIS_WORK
     seen = (turn.get('page') or {}).get('worldId')
     return NOT_THIS_WORLD if seen and args.get('id') != seen else None
+
+
+def _texts(name: str, args) -> list:
+    """인자에서 글 필드를 담은 객체들. 세계관 수정은 모델이 request로 감싸지 않고 평평하게 보낸 인자도 읽는다(pendingChanges와 같다)."""
+    if not isinstance(args, dict):
+        return []
+    if name == 'world_studio_edit_draft':
+        cards = (args.get('request') if isinstance(args.get('request'), dict) else args).get('cards')
+        return [c for c in cards if isinstance(c, dict)] if isinstance(cards, list) else []
+    return [args['data']] if isinstance(args.get('data'), dict) else []
+
+
+def edit_refused(name: str, asked: dict, edited) -> str | None:
+    """작가가 고친 인자(edited)가 승인 카드의 인자(asked)와 글 필드(TEXT_FIELDS)의 값만 다르면 None, 아니면 이유 글.
+
+    글 필드는 원래 있던 것만 고칠 수 있고 새 값도 글이어야 한다. 그 밖의 값(작품·세계관·카드·계획 id, revision, 종류)과 모양은 그대로여야 해서
+    잠긴 JSON 값의 타입도 보존한다. 실행 직전 대상 작품을 다시 확인하고 Content가 기존 도구 입력 제약을 검증한다.
+    화면 밖에서 보낸 이어가기도 이 검사를 지난다.
+    """
+    def masked(args):
+        copy = json.loads(json.dumps(args))
+        for part in _texts(name, copy):
+            for field in TEXT_FIELDS[name]:
+                if field in part:
+                    part[field] = None
+        return json.dumps(copy, sort_keys=True)
+    if name not in TEXT_FIELDS or not isinstance(edited, dict) or masked(asked) != masked(edited):
+        return EDIT_LOCKED
+    for before, after in zip(_texts(name, asked), _texts(name, edited)):
+        if any(field in before and not isinstance(after[field], str) for field in TEXT_FIELDS[name]):
+            return EDIT_LOCKED
+    return None
 
 
 def _run(name: str, args: dict, turn: dict):
@@ -126,7 +161,7 @@ async def execute(request) -> Command:
             # 이어 갈 때 이 함수가 처음부터 다시 돌아(낡은 호출은 409로 끝나 쓰지 않는다) 다시 읽은 revision이 그 사이 달라졌을 수 있다. 그래서 쓰는 것은
             # 다시 읽은 값이 아니라 작가가 답한 카드의 인자(service._target이 결정에 싣는다)다. 그 사이 또 낡아 409면 이 자리로 돌아와 최신 revision으로 다시 묻는다.
             decision = interrupt({'action_requests': [{'name': name, 'args': card, 'description': label}], 'steps': request.state.get('steps', [])})['decisions'][0]
-            if decision['type'] != 'approve':
+            if decision['type'] not in ('approve', 'edit'):  # 고쳐서 승인(#795)이면 args가 작가가 고친 인자다
                 return _result(None, call, decision.get('message', ''), failed=True)
             args = decision['args']
     if not write:

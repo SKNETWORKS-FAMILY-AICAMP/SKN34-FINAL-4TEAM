@@ -1,4 +1,4 @@
-"""메인 에이전트의 서브 에이전트 도구 `ask_*` 7종(#473). 각 도구는 기존 업무 Agent 서비스를 그대로 감싼다.
+"""메인 에이전트의 서브 에이전트 도구 `ask_*` 7종(#473)과 작가에게 선택지로 되묻는 `ask_author`(#794). 각 서브 에이전트 도구는 기존 업무 Agent 서비스를 그대로 감싼다.
 
 모델이 정하는 인자는 작업 지시 `request`(2,000자 이하)와 열거형(`check`·`task`·`fix`)뿐이다. 작품·회차·revision·scope 토큰·선택 구간·
 외부 전송 동의는 도구가 Content가 확인한 상태(바깥 그래프 상태 = 실행 context, 메인 에이전트 상태의 inputs·retrievalScope)에서 읽는다.
@@ -22,7 +22,7 @@ from langchain_core.tools import tool
 from langgraph.types import Command, interrupt
 from pydantic import Field
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.prompt import CAPABILITY_NAMES, FEATURES
@@ -46,7 +46,7 @@ from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import QaStepResult, current_feature
+from app.orchestration.models import Choice, QaStepResult, current_feature
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
@@ -72,6 +72,8 @@ NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어�
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
+FIX_TOO_FAR = '고른 지적이 서로 멀어 한 번에 고칠 수 없어요. 가까운 지적끼리 나눠 골라 주세요.'
+FIX_DETAILS_TOO_LONG = '고른 지적의 설명이 너무 길어요. 한 번에 고칠 지적을 나눠 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
@@ -79,6 +81,7 @@ NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요
 NO_PLAN_CHANGE = '요청대로 바꿀 내용이 없어요. 고칠 방향을 더 구체적으로 알려 주세요.'
 PLAN_EPISODE_MISSING = '연결한 회차가 삭제됐어요. 계획 패널에서 회차 연결을 해제한 뒤 다시 요청해 주세요.'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
+CHOICES = 4  # 되묻기 선택지 수 상한(#794, OrchestrationResponse.choices)
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
               'research': 'ask_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
@@ -120,7 +123,16 @@ class Skipped(Exception):
 
 
 class Clarify(Exception):
-    """대상을 하나로 정할 수 없어 아무것도 만들지 않고 작가에게 되묻는다. 메시지가 작가에게 보일 한 문장이다."""
+    """대상을 하나로 정할 수 없어 아무것도 만들지 않고 작가에게 되묻는다. 메시지가 작가에게 보일 한 문장이고 choices는 고를 수 있는 답이다(#794)."""
+
+    def __init__(self, message: str, choices: list[dict] = ()):
+        super().__init__(message)
+        self.choices = list(choices)
+
+
+def _clarify(message: str, choices: list[dict] = ()) -> dict:
+    """남은 호출을 막고 되묻기로 끝내는 stopped. 요청 한도(2,000자)를 넘는 선택지는 자르면 다른 요청이 되므로 빼고 작가가 입력창으로 답한다."""
+    return {'stopped': {'status': 'clarify', 'message': message, 'choices': [c for c in choices if len(c['message']) <= 2000][:CHOICES]}}
 
 
 def previous(turn: dict) -> list[dict]:
@@ -199,6 +211,22 @@ SUMMARIES: dict[str, Callable[[dict], dict]] = {
 }
 
 
+# 다시 쓰기(#795)가 같은 입력으로 다시 부를 수 있는 Writing 호출과 그 입력 모델
+REWRITABLE = {'draft': DraftRequest, 'patch': PatchRequest, 'plan_and_draft': PlanRequest}
+
+
+def write(call: dict):
+    """기록한 Writing 호출 {call, input, gaps?}을 실행한다. 첫 실행과 다시 쓰기(#795)가 같은 경로라 같은 입력이면 같은 방식으로 쓴다."""
+    result = getattr(writing, call['call'])(REWRITABLE[call['call']].model_validate(call['input']))
+    return result.model_copy(update={'gaps': call['gaps']}) if 'gaps' in call else result
+
+
+def _recorded(recipe: dict, name: str, data, gaps: list[str] | None = None):
+    """Writing 호출을 recipe에 기록하고 실행한다. 승인 대기의 다시 쓰기가 이 기록으로 같은 입력을 다시 보낸다."""
+    recipe.update(call=name, input=data.model_dump(mode='json'), **({'gaps': gaps} if gaps is not None else {}))
+    return write(recipe)
+
+
 def _reply(runtime: ToolRuntime, feature: str, content: str, update: dict, failed: bool = False, artifact=None) -> Command:
     message = ToolMessage(content=content, artifact=artifact, tool_call_id=runtime.tool_call_id, name=TOOL_NAMES[feature],
                           status='error' if failed else 'success')
@@ -217,7 +245,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
     turn, steps = runtime.context, list(runtime.state.get('steps', []))
     step = {'feature': feature, 'when': when, 'status': 'not_started', **({'task': task_kind} if task_kind else {})}
     read, scope = inputs(runtime.state), runtime.state.get('retrievalScope')
-    name, answered = _name(step), {}
+    name, answered, ran = _name(step), {}, False
     try:
         while needs(read, scope):
             if not turn.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
@@ -231,14 +259,19 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             scope = answer.get('scope') or scope
             answered = {'inputs': read, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
+        agent_runtime.report(runtime.tool_call_id, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
+        ran = True
         with tracing.observe(f'step.{feature}', as_type='agent'):
             step.update(status='completed', result=call(read, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
-        return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', {'stopped': {'status': 'clarify', 'message': str(ask)}}, failed=True)
+        agent_runtime.report(runtime.tool_call_id, name, 'done', feature=feature)
+        return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', _clarify(str(ask), ask.choices), failed=True)
     except FAILURES as error:
         step.update(status='failed', error=str(error))
+    if ran:  # 실패는 failed로 보이고, 조건이 거짓이라 건너뛴 단계(skipped)는 끝난 작업이다
+        agent_runtime.report(runtime.tool_call_id, name, 'failed' if step['status'] == 'failed' else 'done', feature=feature)
     return _reply(runtime, feature, _summary(step), {'steps': [step], **answered}, failed=step['status'] == 'failed',
                   artifact=step.get('result'))
 
@@ -372,7 +405,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     if fixing:
         return _fix(runtime, reviewed, fix)
 
-    base = None
+    base, recipe = None, {}
 
     def run(inputs, scope):
         nonlocal base
@@ -386,25 +419,34 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
             patch = PatchRequest.model_validate(data['patch'])
             if target and not patch.context:  # 채팅 구간 입력(#497): Content는 구간만 검증하므로 허용 문맥은 여기서 채운다. gaps는 PatchResponse에 없어 버린다
                 patch.context, _ = _allowed_context(target, patch.instruction)
-            return writing.patch(patch)
+            return _recorded(recipe, 'patch', patch)
         if task == 'patch' and selected and 'draft' not in data:  # 선택한 글이 있으면 입력 대기 없이 그 글을 수정한다. 반영 때 초안에 한 번만 있어야 한다
-            return writing.patch(PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
+            return _recorded(recipe, 'patch', PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
         if 'draft' in data:
             draft, gaps = DraftRequest.model_validate(data['draft']), []
             if target and not draft.context:
                 draft.context, gaps = _allowed_context(target, draft.plan)
-            return writing.draft(draft).model_copy(update={'gaps': gaps})
+            return _recorded(recipe, 'draft', draft, gaps)
         if not target:
             raise WritingFailure(422, NO_WRITING_TARGET)
         context, gaps = _allowed_context(target, request)
         planned = PlanRequest(episodeNumber=target['episode'], request=request, context=context, previousPlans=_previous_plans(turn))
-        return (writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)).model_copy(update={'gaps': gaps})
+        if task == 'plan':  # 기획은 원고가 아니라 반영·다시 쓰기가 없다
+            return writing.plan(planned).model_copy(update={'gaps': gaps})
+        return _recorded(recipe, 'plan_and_draft', planned, gaps)
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
     needs = lambda inputs, scope: task == 'patch' and not selected and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
-    command = _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
-    if base is not None and command.update['steps'][0]['status'] == 'completed':
-        command.update['writingBase'] = base
+    return _written(_ask(runtime, 'writing_editing', run, needs=needs, task_kind=task), recipe, base)
+
+
+def _written(command: Command, recipe: dict, base: dict | None) -> Command:
+    """완료한 Writing 단계면 다시 쓰기용 호출 기록(writingCall, 후보 검수를 다시 돌릴 집필 직전 초안 base 포함)과 검수 기준 초안을 남긴다."""
+    if command.update.get('steps', [{}])[0].get('status') == 'completed':
+        if recipe:
+            command.update['writingCall'] = {**recipe, **({'base': base} if base is not None else {})}
+        if base is not None:
+            command.update['writingBase'] = base
     return command
 
 
@@ -428,7 +470,8 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
         if (picked := writing.pick_plan(PlanPickRequest(request=request, plans=briefs))) not in titles:
             shown = ', '.join(f"'{b.title}'" for b in briefs[:PLAN_CANDIDATES])
             more = f' 외 {len(briefs) - PLAN_CANDIDATES}개' if len(briefs) > PLAN_CANDIDATES else ''
-            raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}')
+            raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}',
+                          [{'label': f"'{b.title[:13]}' 고치기", 'message': f"'{b.title}' 계획을 고쳐줘: {task(turn)}"} for b in briefs[:CHOICES]])
         current = content_mcp.read_plan(work, picked)
         if current.episodeMissing:  # 그대로 저장하면 Content가 승인 순간 거절하므로 제안 전에 알린다(#641)
             raise WritingFailure(422, PLAN_EPISODE_MISSING)
@@ -441,12 +484,13 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
 
 
 def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Command:
-    """조건부 수정(#370): 이번 턴 Review의 확정 지적 하나를 부분 수정한다. 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
+    """조건부 수정(#370): 이번 턴 Review의 확정 지적을 부분 수정한다. 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
 
-    확정 지적(위치가 하나로 정해진 지적)만 고친다. 작가가 고른 번호(inputs.writing_editing.fix) > 메인 에이전트의 fix > 유일한 확정 지적 순이며,
-    여러 개인데 정해지지 않으면 대화에서 작가가 고른다. 앞뒤 문장은 검수한 판본 그대로인지 확인한 초안에서 자른다.
+    확정 지적(위치가 하나로 정해진 지적)만 고친다. 작가가 고른 번호(inputs.writing_editing.fix, 하나 또는 여럿 #795) > 메인 에이전트의 fix > 유일한 확정 지적 순이며,
+    여러 개인데 정해지지 않으면 대화에서 작가가 고른다. 여럿이면 첫 지적부터 끝 지적까지를 한 구간(5,000자 이하)으로 한 번에 고친다.
+    앞뒤 문장은 검수한 판본 그대로인지 확인한 초안에서 자른다.
     """
-    turn = runtime.context
+    turn, recipe = runtime.context, {}
     pick = lambda inputs: (inputs.get('writing_editing') or {}).get('fix', fix)  # noqa: E731
 
     def needs(inputs, scope):
@@ -465,23 +509,34 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Comman
     def run(inputs, scope):
         findings = reviewed['result']['findings']
         confirmed = [i for i, f in enumerate(findings) if f['status'] == 'confirmed']
-        chosen_at = pick(inputs) if pick(inputs) is not None else confirmed[0]
-        if chosen_at not in confirmed:
+        picks = pick(inputs) if pick(inputs) is not None else confirmed[0]
+        picks = picks if isinstance(picks, list) else [picks]
+        if not set(picks) <= set(confirmed):
             raise WritingFailure(422, BAD_FIX)
-        chosen, target = findings[chosen_at], turn['target']
+        target = turn['target']
         try:
             draft = content_mcp.call('episode_read', {'id': target['workId'], 'number': target['episode']})['draft']
             body, revision = draft['body'], draft['revision']
         except (LookupError, TypeError):
             raise ContentMcpFailure(502, BAD_DRAFT) from None
-        at = content_mcp.place(body, chosen['quote']) if isinstance(body, str) else None
-        if revision != reviewed['result']['revision'] or at is None:
+        chosen = [(content_mcp.place(body, findings[i]['quote']) if isinstance(body, str) else None, findings[i]) for i in picks]
+        if revision != reviewed['result']['revision'] or any(at is None for at, _ in chosen):
             raise ContentMcpFailure(409, DRAFT_CHANGED)
+        chosen.sort(key=lambda placed: placed[0])  # 지시는 원고 순서로 적는다
+        start, end = chosen[0][0], max(at + len(f['quote']) for at, f in chosen)
+        if end - start > 5000:  # PatchRequest.selection 상한
+            raise WritingFailure(422, FIX_TOO_FAR)
+        if content_mcp.place(body, body[start:end]) != start:  # 반영은 고칠 구간이 초안에 한 곳만 있어야 한다
+            raise ContentMcpFailure(409, DRAFT_CHANGED)
+        lines = [f"{f['reason']} 제안: {f['suggestion']}" for _, f in chosen]
+        instruction = lines[0] if len(lines) == 1 else '\n'.join(f'{n}. "{f["quote"]}": {line}' for n, ((_, f), line) in enumerate(zip(chosen, lines), 1))
+        if len(lines) > 1 and len(instruction) > 2000:
+            raise WritingFailure(422, FIX_DETAILS_TOO_LONG)
         # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
-        return writing.patch(PatchRequest(selection=chosen['quote'], instruction=f"{chosen['reason']} 제안: {chosen['suggestion']}"[:2000],
-                                          precedingText=body[:at][-2000:], followingText=body[at + len(chosen['quote']):][:2000]))
+        return _recorded(recipe, 'patch', PatchRequest(selection=body[start:end], instruction=instruction[:2000],
+                                                        precedingText=body[:start][-2000:], followingText=body[end:][:2000]))
 
-    return _ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch')
+    return _written(_ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch'), recipe, None)
 
 
 def _previous_plans(turn: dict) -> list[dict]:
@@ -542,8 +597,24 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     if gaps := drafted.gaps():
         asked = ', '.join(GAP_LABELS[g] for g in gaps)
         message = f'시뮬레이션을 시작하려면 {asked}을(를) 알려 주세요.'
-        return _reply(runtime, 'character_simulation', f'[확인 필요] 인물 시뮬레이션: {message}', {'stopped': {'status': 'clarify', 'message': message}}, failed=True)
+        # 모드는 바로 고르는 버튼, 여러 명을 고르는 인물은 집필실 시작 양식을 여는 버튼이다(#794). 전제·비트는 글로 답한다.
+        choices = [{'label': label, 'message': f'{mode} 시뮬레이션으로 해줘: {task(turn)}'}
+                   for label, mode in (('IF로 시작', 'IF'), ('흐름대로 시작', '흐름'))] if 'mode' in gaps else []
+        if 'characterIds' in gaps:
+            choices.append({'label': '양식에서 고르기', 'message': task(turn), 'form': 'simulation'})
+        return _reply(runtime, 'character_simulation', f'[확인 필요] 인물 시뮬레이션: {message}', _clarify(message, choices), failed=True)
     plan = drafted.model_dump(mode='json')
     content = json.dumps({'feature': 'character_simulation', 'status': 'planned', 'mode': plan['mode'],
                           'characters': len(plan['characterIds'])}, ensure_ascii=False)
     return _reply(runtime, 'character_simulation', content, {'steps': [step], 'simulationPlan': plan})
+
+
+@tool
+def ask_author(question: Annotated[str, Field(min_length=1, max_length=500, description='작가에게 보일 확인 질문 한 문장')],
+               options: Annotated[list[Choice], Field(min_length=2, max_length=4, description='고를 수 있는 답 2~4개. label은 버튼 글(20자 이하), '
+                                                      'message는 누르면 작가 이름으로 보낼 요청 문장(그것만 읽어도 할 일이 분명하게)')],
+               runtime: ToolRuntime) -> Command:
+    """작가에게 선택지로 되묻는다(#794): 대상·작업을 정할 수 없고 고를 후보(회차·인물·계획·작업 등)가 있을 때만 부른다. 부르면 이번 턴은 이 질문으로 끝난다.
+    후보가 없으면 이 도구 없이 확인 질문 한 문장으로 답한다."""
+    return Command(update={**_clarify(question, [o.model_dump() for o in options]),
+                           'messages': [ToolMessage(content='[확인 필요] 작가에게 물었어요.', tool_call_id=runtime.tool_call_id, name='ask_author')]})
