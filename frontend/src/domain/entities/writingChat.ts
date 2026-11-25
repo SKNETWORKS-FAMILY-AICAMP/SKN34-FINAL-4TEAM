@@ -84,10 +84,14 @@ export type ChatStep = {
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
+  /** World 보강 제안 중 작가가 골라 반영한 수정안 번호(#795). 없으면 모두 반영했다. */
+  selected?: number[] | null
 }
 /** 작가의 승인을 기다리는 Content 쓰기 도구(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자다. label은 서버의 도구별 고정 문구다. */
 export type PendingAction = { tool: string; label: string; args: Record<string, unknown> }
 export type ChatStatus = 'completed' | 'failed' | 'clarify' | 'rejected' | 'unsupported' | 'needs_input' | 'waiting' | 'cancelled'
+/** 되묻기 선택지(#794). 누르면 message를 새 채팅 메시지로 보낸다(resume이 아니다). form이면 메시지 대신 그 양식(시뮬레이션 시작)을 연다. */
+export type ChatChoice = { label: string; message: string; form?: 'simulation' | null }
 export type ChatReply = {
   status: ChatStatus
   message?: string | null
@@ -99,6 +103,10 @@ export type ChatReply = {
   approvalEpisode?: number | null
   /** awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자 */
   pendingAction?: PendingAction | null
+  /** clarify의 선택지(#794, 최대 4개). 옛 기록에는 없다. */
+  choices?: ChatChoice[]
+  /** 원고 반영 대기에서 남은 다시 쓰기 횟수(#795). 다시 쓸 수 없는 대기(계획 수정·옛 기록)에는 없다. */
+  rewritesLeft?: number | null
 }
 export type ChatFeedback = 'up' | 'down'
 /** attachments는 그 턴에 보낸 첨부의 이름·종류다(원본은 남지 않는다). 첨부 기능 전의 턴과 첨부 없는 턴은 비었거나 없다.
@@ -114,7 +122,7 @@ export type ChatEvent =
   | { type: 'plan'; steps: ChatStep[] }
   | { type: 'started'; feature: ChatFeature }
   | { type: 'step'; step: ChatStep }
-  | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null; pendingAction?: PendingAction | null }
+  | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null; pendingAction?: PendingAction | null; rewritesLeft?: number | null }
   | { type: 'done'; reply: ChatReply }
   | { type: 'answer'; delta: string | null }
   | { type: 'error'; message: string }
@@ -218,13 +226,49 @@ export function pendingChanges(action: PendingAction, cardOf?: (id: string) => {
     ]
   })
 }
+/**
+ * 고쳐서 승인(#795)에서 작가가 고칠 수 있는 글 필드. 세계관 카드는 request.cards[]의 것, 나머지는 data의 것이며 id·revision 등은 잠근다(AI가 다시 확인한다).
+ * 인자에 이미 있는 글 필드만 고칠 수 있다.
+ */
+const TEXT_FIELDS: Record<string, [field: string, name: string][]> = {
+  world_studio_edit_draft: [['title', '이름'], ['body', '설명']],
+  work_update: [['title', '작품 제목'], ['summary', '작품 소개']],
+  story_plan_create: [['title', '계획 제목'], ['content', '계획 내용']],
+  story_plan_update: [['title', '계획 제목'], ['content', '계획 내용']],
+}
+const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value)
+function textParts(tool: string, args: Record<string, unknown>): Record<string, unknown>[] {
+  if (tool !== 'world_studio_edit_draft') return isRecord(args.data) ? [args.data] : []
+  const cards = (isRecord(args.request) ? args.request : args).cards // 평평하게 보낸 호출도 읽는다(pendingChanges와 같다)
+  return Array.isArray(cards) ? cards.filter(isRecord) : []
+}
+/** 고칠 수 있는 글 칸 하나. key로 editedArgs에 값을 돌려준다. title은 비울 수 없다. */
+export type EditableText = { key: string; label: string; value: string; title: boolean }
+export function editableTexts(action: PendingAction, cardOf?: (id: string) => { title: string } | undefined): EditableText[] {
+  return textParts(action.tool, action.args).flatMap((part, i) => (TEXT_FIELDS[action.tool] ?? []).flatMap(([field, name]): EditableText[] => {
+    const value = part[field]
+    if (typeof value !== 'string') return []
+    const card = typeof part.id === 'string' ? cardOf?.(part.id)?.title : undefined
+    const label = action.tool === 'world_studio_edit_draft' ? `${card ?? (typeof part.title === 'string' && part.title ? part.title : '설정 카드')} · ${name}` : name
+    return [{ key: `${i}.${field}`, label, value, title: field === 'title' }]
+  }))
+}
+/** 승인 카드의 인자에 고친 글만 바꿔 넣은 새 인자. 나머지 값은 그대로다. */
+export function editedArgs(action: PendingAction, values: Record<string, string>): Record<string, unknown> {
+  const args = JSON.parse(JSON.stringify(action.args)) as Record<string, unknown>
+  textParts(action.tool, args).forEach((part, i) => {
+    for (const [field] of TEXT_FIELDS[action.tool] ?? []) if (`${i}.${field}` in values) part[field] = values[`${i}.${field}`]
+  })
+  return args
+}
+
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
   research?: { question: string }
   manuscript_review?: { check: ReviewCheck }
-  /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
+  /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. 여럿이면 한 수정안에 모두 고친다(#795). */
   /** span은 채팅 입력 대기에서 고른 초안 구간이다(#497). Content가 검증해 patch로 바꿔 AI에 넘긴다. start·end는 초안 본문의 UTF-16 위치 [start, end)다. */
-  writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
+  writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number | number[] }
     | { span: { episode: number; revision: number; start: number; end: number; instruction: string } }
 }
 /** 시뮬레이션 무대에서 작가가 장면에 거는 조작(AI `Resume.scene`, Content `WritingAiResume.scene`을 그대로 통과한다). */
@@ -234,7 +278,9 @@ export type SceneAction =
   | { action: 'redo'; turn: number; note?: string }
   | { action: 'stop' }
 /** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). refresh는 오래된 Content 쓰기 제안을 멈춘 자리에서 다시 받는 답이다(#662, approved는 false). */
-export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction; refresh?: true }
+export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction; refresh?: true } & ApprovalPick
+/** 승인과 함께 보내는 고른 World 제안 번호(selected)·고친 Content 쓰기 인자(edited)(#795). refresh는 원고 반영 대기에서 다시 쓰기이기도 하다. */
+export type ApprovalPick = { selected?: number[]; edited?: Record<string, unknown> }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
 /** attachments는 새 요청에서만 보내는 이번 턴의 참고 자료(최대 3개, #617)다. 이어가기·메시지 수정에는 싣지 않는다. */
 export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart; page?: ChatPage; attachments?: ChatAttachmentPayload[] } | { resume: ChatResume }
@@ -294,6 +340,8 @@ const worldReviewText = ({ reviewedCards, findings }: ChatWorldReview) =>
  */
 const fixField = (f: WorldFix, all: WorldFix[]) =>
   f.target === 'episode' ? `${f.episode}회차 문서` : f.target === 'body' ? (all.some((o) => o.cardId === f.cardId && o.target !== 'body') ? 'IDENTITY' : '본문') : f.target.toUpperCase()
+/** 수정안 하나의 이름(카드 · 칸). 승인 카드에서 반영할 제안을 고를 때 쓴다(#795). */
+export const fixLabel = (f: WorldFix, all: WorldFix[]) => `${f.cardTitle} · ${fixField(f, all)}`
 const impactCertainty: Record<WorldImpact['certainty'], string> = { confirmed: '확정', inferred: '추정' }
 
 // enrich는 승인 전에 읽는 제안이라 바꿀 새 글을 그대로 보인다(반영하지 않아도 제안은 대화에 남는다).
@@ -405,7 +453,7 @@ export const stepName = (s: ChatStep) =>
   s.feature === 'research' && (s.task === 'platform' || s.result?.references) ? '공개 세계관 참고' : featureLabel[s.feature] ?? s.feature
 const stepLabel = (s: ChatStep) => `[${stepName(s)}]`
 const appliedLine = (s: ChatStep) => (s.applied
-  ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
+  ? (s.feature === 'world' ? `→ ${s.selected && s.world?.task === 'enrich' ? `${s.world.fixes.length}개 중 ${s.selected.length}개를 ` : ''}설정집 초안에 반영했어요.` : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
   : s.approval === 'declined' ? (s.task === 'revise_plan' ? '→ 저장하지 않았어요.' : '→ 반영하지 않았어요.') : '')
 
 /**
@@ -414,3 +462,12 @@ const appliedLine = (s: ChatStep) => (s.applied
  */
 export const replyOutcome = (reply: ChatReply): string[] =>
   reply.steps.flatMap((s) => [s.status === 'failed' ? `${stepLabel(s)} ${stepText(s)}` : '', appliedLine(s)].filter(Boolean))
+
+/**
+ * 답변 아래 버튼으로 보일 선택지(#794): 서버의 되묻기 선택지와, 기획 결과(plans)의 "계획 N대로 쓰기"(서버는 최근 기획 결과로 쓴다).
+ * 입력창은 그대로라 작가는 선택지 밖의 답도 보낼 수 있다.
+ */
+export const replyChoices = (reply: ChatReply): ChatChoice[] => {
+  const plans = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed' && s.result?.plans?.length)?.result?.plans ?? []
+  return [...(reply.choices ?? []), ...plans.slice(0, 4).map((_, i) => ({ label: `계획 ${i + 1}대로 쓰기`, message: `계획 ${i + 1}대로 써줘` }))]
+}
