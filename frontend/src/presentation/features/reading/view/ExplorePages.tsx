@@ -140,20 +140,23 @@ function Group<T>({ tab, name, what, href, query, onMore, r, hint, children }: {
   )
 }
 
-/** 캐릭터챗은 검색하지 않고 목록(/chat)으로 안내한다. 전체 탭의 묶음과 캐릭터챗 탭이 함께 쓴다. */
-const ChatNotice = () => (
-  <div className="rp muted">
-    <p>목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모</p>
-    <Go to="/chat" className="btn sm">캐릭터챗 목록 보기</Go>
-  </div>
-)
+/** 전체 탭과 캐릭터챗 탭에서 각 모드의 /chat 화면으로 안내한다. */
+function ChatNotice() {
+  const mockup = import.meta.env.MODE === 'mockup'
+  return (
+    <div className="rp muted">
+      <p>{mockup ? '목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모' : '캐릭터챗은 준비 중이에요.'}</p>
+      <Go to="/chat" className="btn sm">{mockup ? '캐릭터챗 목록 보기' : '캐릭터챗 안내 보기'}</Go>
+    </div>
+  )
+}
 
 const NEEDS_QUERY = '검색어를 입력하면 공개 세계관의 설정 카드를 찾아요.'
 
 /**
  * 목업 searchPage(): U36. 대상 탭(전체·작품·세계관·설정 카드·캐릭터챗, 주소 `?type=`)을 머리말 아래에 두고 검색어는 탭을 옮겨도 이어 갑니다.
  * 전체는 작품·세계관·설정 카드를 묶음별로 몇 개씩 보이고, 세계관·설정 카드는 번호 쪽(`Pager`)이고, 작품은 '더 보기'입니다.
- * 범위·정렬은 작품 탭에만 있습니다. 캐릭터챗은 검색하지 않고 목록(/chat) 링크만 보입니다.
+ * 범위·정렬은 작품 탭에만 있습니다. 캐릭터챗은 검색하지 않고 안내와 /chat 링크만 보입니다.
  */
 export function SearchPage() {
   const vm = useSearchViewModel()

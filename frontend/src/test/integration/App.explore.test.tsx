@@ -350,13 +350,13 @@ describe('세계관·설정 카드 검색 (#505)', () => {
     expect(main().queryByRole('alert')).toBeNull()
   })
 
-  it('캐릭터챗 탭은 검색하지 않고 머리말은 검색어가 있어도 캐릭터챗이며 안내와 /chat 목록 링크만 보인다', async () => {
+  it('실서버 캐릭터챗 탭은 준비 중 안내를 보이고 검색하지 않는다', async () => {
     const list = vi.spyOn(publicWorlds(), 'list')
     const searchCards = vi.spyOn(publicWorlds(), 'searchCards')
     renderApp('/search?type=chat&q=하린')
-    await screen.findByText('목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모')
+    await screen.findByText('캐릭터챗은 준비 중이에요.')
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('캐릭터챗')
-    expect(screen.getByRole('link', { name: '캐릭터챗 목록 보기' }).getAttribute('href')).toBe('/chat')
+    expect(screen.getByRole('link', { name: '캐릭터챗 안내 보기' }).getAttribute('href')).toBe('/chat')
     expect(screen.queryByLabelText('검색어')).toBeNull()
     expect([workSearch().mock.calls.length, list.mock.calls.length, searchCards.mock.calls.length]).toEqual([0, 0, 0])
   })

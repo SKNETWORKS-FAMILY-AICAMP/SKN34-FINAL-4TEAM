@@ -13,7 +13,7 @@ import { STUB_RANKED_AT, stubWorkSearch } from '../../../../test/stubWorkSearch'
 import { IfsPage, RankPage, SearchPage, TagPage } from './ExplorePages'
 
 beforeEach(() => { stubWorkSearch() })
-afterEach(() => { cleanup(); vi.restoreAllMocks() })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllEnvs() })
 
 function renderAt(path: string) {
   return render(<Provider store={createAppStore()}><MemoryRouter initialEntries={[path]} useTransitions={false}>
@@ -437,11 +437,15 @@ describe('전체 탭 (#505)', () => {
     region('설정 카드').getByRole('link', { name: '‘서진’ 설정 카드 더 보기 ›' })
   })
 
-  it('캐릭터챗 묶음은 안내 한 줄과 /chat 링크만 있고 검색하지 않는다', async () => {
+  it.each([
+    ['production', '캐릭터챗은 준비 중이에요.', '캐릭터챗 안내 보기'],
+    ['mockup', '목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모', '캐릭터챗 목록 보기'],
+  ])('검색 전체 탭에서 %s 모드의 캐릭터챗 안내를 보이고 검색하지 않는다', async (mode, notice, link) => {
+    vi.stubEnv('MODE', mode)
     const searchCards = vi.spyOn(publicWorlds(), 'searchCards')
     renderAt('/search?q=하린')
-    region('캐릭터챗').getByText('목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모')
-    expect(region('캐릭터챗').getByRole('link', { name: '캐릭터챗 목록 보기' }).getAttribute('href')).toBe('/chat')
+    region('캐릭터챗').getByText(notice)
+    expect(region('캐릭터챗').getByRole('link', { name: link }).getAttribute('href')).toBe('/chat')
     await waitFor(() => expect(searchCards).toHaveBeenCalledTimes(1)) // 설정 카드 묶음의 요청 하나뿐
   })
 })

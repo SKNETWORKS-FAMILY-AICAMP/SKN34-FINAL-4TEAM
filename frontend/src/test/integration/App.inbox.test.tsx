@@ -4,7 +4,7 @@ import '../fixtureApp'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '../scrollToSpy'
 import App from '../../App'
@@ -294,7 +294,10 @@ describe('권리 신고 소명 (data-appeal-form)', () => {
   })
 })
 
-describe('캐릭터챗 (U27)', () => {
+describe('목업 캐릭터챗 (U27)', () => {
+  beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+  afterEach(() => { vi.unstubAllEnvs() })
+
   it('목록에서 인물을 골라 읽은 회차까지만 대답한다', async () => {
     renderAt('/chat')
     await screen.findByRole('heading', { name: '캐릭터챗' })

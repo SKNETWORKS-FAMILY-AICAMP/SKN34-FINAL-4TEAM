@@ -419,7 +419,7 @@
 <tr><td rowspan="3">검색 트렌드 검토</td><td rowspan="3">47 인기 검색어(추가 검토)</td><td>인기 검색어 제공 여부 결정</td><td>❌</td><td rowspan="3">—</td></tr>
 <tr><td>인기 검색어 집계 기준 결정</td><td>❌</td></tr>
 <tr><td>인기 검색어 순위 조회(도입 승인 후)</td><td>❌</td></tr>
-<tr><td rowspan="17">캐릭터챗 관리</td><td rowspan="9">76 캐릭터챗 탐색·대화방</td><td>대화 가능한 공개 작품·캐릭터챗 목록 조회</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/47">#47</a></td></tr>
+<tr><td rowspan="17">캐릭터챗 관리</td><td rowspan="9">76 캐릭터챗 탐색·대화방</td><td>대화 가능한 공개 작품·캐릭터챗 목록 조회</td><td>❌ <small>(#512 실서버는 준비 중 안내, 목업은 데모 목록 제공)</small></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/47">#47</a></td></tr>
 <tr><td>캐릭터챗 원작·Fork 유형 필터</td><td>❌</td></tr>
 <tr><td>캐릭터챗 작품 필터</td><td>❌</td></tr>
 <tr><td>캐릭터챗 인물 필터</td><td>❌</td></tr>

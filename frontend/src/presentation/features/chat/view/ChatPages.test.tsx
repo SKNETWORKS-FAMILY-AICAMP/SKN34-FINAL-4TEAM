@@ -2,13 +2,14 @@
 import '../../../../test/fixtureApp'
 
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { renderApp } from '../../../../test/renderApp'
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); document.title = 'STORYFORK' })
+beforeEach(() => { vi.stubEnv('MODE', 'mockup') })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllEnvs(); document.title = 'STORYFORK' })
 
 const expectOneMain = () => {
   const mains = document.querySelectorAll('main')
@@ -21,6 +22,28 @@ const h1s = () => screen.getAllByRole('heading', { level: 1 }).map((h) => h.text
 const chat = () => appContainer.resolve('chatUseCase')
 const user = () => createAppStore({ role: 'user' })
 const room = '/chat/guunmong/' + encodeURIComponent('성진')
+
+it.each([
+  ['/chat', null],
+  ['/chat?kind=fork', 'user'],
+  [room, null],
+  [room, 'user'],
+] as const)('실서버의 %s는 역할 %s에도 대화 데이터를 읽기 전에 준비 중을 안내한다', async (path, role) => {
+  vi.stubEnv('MODE', 'production')
+  const list = vi.spyOn(chat(), 'list')
+  const page = vi.spyOn(chat(), 'page')
+  const { store } = renderApp(path, createAppStore({ role }))
+  const notice = await screen.findByText('캐릭터챗은 준비 중이에요.')
+  expect(expectOneMain().contains(notice)).toBe(true)
+  expect(h1s()).toEqual(['캐릭터챗'])
+  expect(screen.queryByRole('navigation', { name: '작품 유형' })).toBeNull()
+  expect(screen.queryByRole('log')).toBeNull()
+  expect(screen.queryByRole('heading', { name: '로그인' })).toBeNull()
+  expect(store.getState().session.next).toBeNull()
+  expect(store.getState().ui.screen.base).toBe('U27')
+  expect(list).not.toHaveBeenCalled()
+  expect(page).not.toHaveBeenCalled()
+})
 
 it('캐릭터챗 목록은 main 하나와 h1 하나를 갖고 탭 제목은 캐릭터챗이다', async () => {
   renderApp('/chat', user())
