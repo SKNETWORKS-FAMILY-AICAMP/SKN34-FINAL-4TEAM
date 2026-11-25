@@ -128,18 +128,8 @@ private fun goldProblem(body: String, gold: JsonNode): String? {
     return if (counts) null else "정답표에 설정에 드는 core 정답이 하나 이상 있어야 해요."
 }
 
-/** Python's str.count: non-overlapping, and an empty text is found once more than it has characters. */
-private fun occurrences(text: String, part: String): Int {
-    if (part.isEmpty()) return text.length + 1
-    var count = 0
-    var from = 0
-    while (true) {
-        val at = text.indexOf(part, from)
-        if (at < 0) return count
-        count++
-        from = at + part.length
-    }
-}
+/** Python's str.count, which is how the scorer counts a name in the episode: non-overlapping, and an empty part is found once more than the text has characters. */
+private fun occurrences(text: String, part: String) = Regex.escape(part).toRegex().findAll(text).count()
 
 /** SHA-256 of the input with every object's keys in order (so key order and spacing never tell two equal inputs apart; an array keeps its order). */
 internal fun inputHash(input: JsonNode): String =

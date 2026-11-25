@@ -109,7 +109,7 @@ class LlmopsControllerTest {
 
     @Test
     fun `the dataset routes pass the member the set name the page and the uploaded file`() {
-        val sets = listOf(EvalDataset("simulation.act", "character_simulation.act", "gate", 24, null))
+        val sets = listOf(EvalDataset("simulation.act", "character_simulation.act", "gate", 24, null, null))
         val page = DatasetItemPage(emptyList(), 0)
         val uploaded = DatasetUploadResponse(3, "general", null)
         val file = MockMultipartFile("file", "set.jsonl", "application/octet-stream", """{"input":"a"}""".toByteArray())

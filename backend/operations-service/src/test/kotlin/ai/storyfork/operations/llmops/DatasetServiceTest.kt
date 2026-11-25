@@ -8,7 +8,11 @@ import ai.storyfork.operations._common.exception.DatasetTooLargeException
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.DatasetService
 import ai.storyfork.operations.llmops.service.inputHash
+import ai.storyfork.operations.llmops.service.dto.EvalDataset
 import ai.storyfork.operations.llmops.service.splitFor
+import java.time.Duration
+import java.time.Instant
+import java.util.Collections
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
@@ -24,13 +28,16 @@ class DatasetServiceTest {
     private val created = mutableListOf<List<Any?>>()
     private val deleted = mutableListOf<String>()
     private val deleteFails = mutableSetOf<String>()
-    private val reads = mutableListOf<Triple<String, Int, Int>>()   // datasetItems(name, page, limit)
+    private val totals = mutableMapOf<String, Long>()   // a total Langfuse reports that differs from the items it lists
+    private val lookupFails = mutableSetOf<String>()   // the sets whose lookup fails with a Langfuse error that is not a 404
+    private val reads = Collections.synchronizedList(mutableListOf<Triple<String, Int, Int>>())   // datasetItems(name, page, limit); the list reads the sets in parallel
     private var failOnCreate: Int? = null   // the 1-based create call that Langfuse refuses
     private var looked = false
     private val langfuse = mock(LangfuseClient::class.java, withSettings().defaultAnswer { call ->
         when (call.method.name) {
             "dataset" -> {
                 val name = call.arguments[0] as String
+                if (name in lookupFails) throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
                 if (name !in sets) throw ResponseStatusException(HttpStatus.NOT_FOUND)
                 looked = true
                 json("""{"name":"$name"}""")
@@ -39,7 +46,7 @@ class DatasetServiceTest {
                 val (name, page, limit) = Triple(call.arguments[0] as String, call.arguments[1] as Int, call.arguments[2] as Int)
                 reads += Triple(name, page, limit)
                 val all = sets[name].orEmpty()   // a name Langfuse does not have has no items (the stubs of the read tests ask for names outside the map)
-                DatasetItems(all.drop((page - 1) * limit).take(limit), all.size.toLong())
+                DatasetItems(all.drop((page - 1) * limit).take(limit), totals[name] ?: all.size.toLong())
             }
             "createDatasetItem" -> {
                 check(looked) { "an item was created before the set was looked up" }
@@ -72,6 +79,9 @@ class DatasetServiceTest {
 
     /** A line the simulation act scorer accepts (an input.data object, an expected text, the judge inputs). */
     private fun act(n: Int, metadata: String = judged()) = """{"input":{"set":"dialogue","data":{"n":$n}},"expectedOutput":"대사 $n","metadata":$metadata}"""
+
+    /** An item as Langfuse lists it with its creation time ([createdAt] null: the payload carries none). */
+    private fun createdAt(createdAt: String?) = json("""{"id":"i","createdAt":${createdAt?.let { "\"$it\"" }},"input":{},"expectedOutput":"답","metadata":null}""")
 
     /** An item as Langfuse lists it. */
     private fun stored(input: String, metadata: String = "null") = json("""{"id":"i","input":$input,"expectedOutput":"답","metadata":$metadata}""")
@@ -107,7 +117,7 @@ class DatasetServiceTest {
     }
 
     @Test
-    fun `the list names each set's kind and pairs a gate with its prompt, with the item count and the description`() {
+    fun `the list names each set's kind and pairs a gate with its prompt, with the item count, the time of the newest item and the description`() {
         val names = listOf("qa.grounding", "simulation.act", "simulation.narrate", "extraction.extract", "optimize.simulation.act", "leak.spoiler", "optimize.foo")
         `when`(langfuse.datasets()).thenReturn(listOf(
             json("""{"id":"d0","name":"qa.grounding","description":null}"""),
@@ -118,18 +128,51 @@ class DatasetServiceTest {
             json("""{"id":"d5","name":"leak.spoiler","description":null}"""),
             json("""{"id":"d6","name":"optimize.foo","description":null}"""),
         ))
-        names.forEachIndexed { index, name -> `when`(langfuse.datasetItems(name, 1, 1)).thenReturn(DatasetItems(listOf(json("{}")), (index * 10).toLong())) }
+        sets["qa.grounding"] = emptyList()   // a set without items has no newest item
+        sets["simulation.act"] = listOf(createdAt("2026-11-20T01:00:00Z"), createdAt("2026-11-24T09:30:15.123Z"), createdAt("2026-11-22T00:00:00Z"))   // the newest is neither the first nor the last
+        sets["simulation.narrate"] = List(150) { createdAt("2026-11-01T00:00:00Z") } + listOf(createdAt("2026-11-25T00:00:00Z"))   // the newest is on the second page
+        sets["extraction.extract"] = listOf(createdAt(null))   // an item without a time says nothing about the set
+        sets["optimize.simulation.act"] = List(3) { createdAt("2026-11-10T00:00:00Z") }
+        sets["leak.spoiler"] = listOf(createdAt("2026-11-12T00:00:00Z"))
+        sets["optimize.foo"] = List(7) { createdAt("2026-11-02T00:00:00Z") }
 
-        val sets = service.list(operators.llm)
+        val result = service.list(operators.llm)
 
-        assertEquals(names, sets.map { it.name })
-        assertEquals(listOf("gate", "gate", "gate", "gate", "pool", "general", "general"), sets.map { it.kind })   // a pool needs a gate behind it
+        assertEquals(names, result.map { it.name })
+        assertEquals(listOf("gate", "gate", "gate", "gate", "pool", "general", "general"), result.map { it.kind })   // a pool needs a gate behind it
         // The pair is the prompt that names the set as its evaluation set (the candidate gate); a pool or a set no prompt names has none.
-        assertEquals(listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "manuscript_extraction.extract", null, null, null), sets.map { it.prompt })
-        assertEquals(listOf(0L, 10L, 20L, 30L, 40L, 50L, 60L), sets.map { it.itemCount })
-        assertEquals(listOf(null, "인물 대사 평가", null, null, "최적화 풀", null, null), sets.map { it.description })
-        // The item API's own total is the count, so one item per set is enough.
-        for (name in names) verify(langfuse).datasetItems(name, 1, 1)
+        assertEquals(listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "manuscript_extraction.extract", null, null, null), result.map { it.prompt })
+        assertEquals(listOf(0L, 3L, 151L, 1L, 3L, 1L, 7L), result.map { it.itemCount })
+        // The newest creation time of the items, the same maximum the evaluation service takes to decide whether a baseline Run has seen the whole set.
+        assertEquals(
+            listOf(null, "2026-11-24T09:30:15.123Z", "2026-11-25T00:00:00Z", null, "2026-11-10T00:00:00Z", "2026-11-12T00:00:00Z", "2026-11-02T00:00:00Z").map { it?.let(Instant::parse) },
+            result.map { it.lastItemAt },
+        )
+        assertEquals(listOf(null, "인물 대사 평가", null, null, "최적화 풀", null, null), result.map { it.description })
+        // The order of the listing is not relied on (the newest item can be anywhere), so every item is read, a hundred at a time.
+        assertEquals(listOf(Triple("simulation.narrate", 1, 100), Triple("simulation.narrate", 2, 100)), reads.filter { it.first == "simulation.narrate" })
+    }
+
+    @Test
+    fun `the list is a JSON array with the time of the newest item as an ISO-8601 text or null`() {
+        `when`(langfuse.datasets()).thenReturn(listOf(json("""{"id":"d1","name":"simulation.act","description":"인물 대사 평가"}"""), json("""{"id":"d2","name":"my.set"}""")))
+        sets["simulation.act"] = listOf(createdAt("2026-11-24T09:30:15.123Z"), createdAt("2026-11-23T00:00:00Z"))
+
+        val body = json(testMapper.writeValueAsString(service.list(operators.llm)))
+
+        assertEquals(
+            json("""[{"name":"simulation.act","prompt":"character_simulation.act","kind":"gate","itemCount":2,"lastItemAt":"2026-11-24T09:30:15.123Z","description":"인물 대사 평가"},
+                |{"name":"my.set","prompt":null,"kind":"general","itemCount":0,"lastItemAt":null,"description":null}]""".trimMargin()),
+            body,
+        )
+    }
+
+    @Test
+    fun `an item time that is not a time fails the list like any other broken Langfuse answer`() {
+        `when`(langfuse.datasets()).thenReturn(listOf(json("""{"id":"d1","name":"my.set"}""")))
+        sets["my.set"] = listOf(createdAt("yesterday"))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm) }.statusCode)
     }
 
     @Test
@@ -174,6 +217,7 @@ class DatasetServiceTest {
         // The set is checked first (a missing set is 404 and nothing is created), and the audit comes only after every item is in.
         val order = inOrder(langfuse, activities)
         order.verify(langfuse).dataset("my.set")
+        order.verify(langfuse).datasetItems("my.set", 1, 100)   // its items are read for the duplicate check only once the set is known to exist
         order.verify(activities).record(operators.llm, "DATASET_UPLOAD", "DATASET", "my.set", "general · 3건 · set.jsonl")
     }
 
@@ -352,6 +396,29 @@ class DatasetServiceTest {
         sets["simulation.act"] = emptyList()   // optimize.simulation.act does not exist
 
         assertEquals(1, upload(act(1), name = "simulation.act").created)
+        assertTrue(reads.none { it.first == "optimize.simulation.act" })   // a set that is not there is not read
+    }
+
+    @Test
+    fun `a Langfuse failure while looking for the pair is not taken for a missing pair`() {
+        sets["simulation.act"] = emptyList()
+        sets["optimize.simulation.act"] = emptyList()
+        lookupFails += "optimize.simulation.act"
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { upload(act(1), name = "simulation.act") }.statusCode)
+
+        assertTrue(created.isEmpty())   // the check is not skipped on a guess
+        verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `an empty page ends the read even when the total says there are more items`() {
+        `when`(langfuse.datasets()).thenReturn(listOf(json("""{"id":"d1","name":"my.set"}""")))
+        totals["my.set"] = 5   // the set lists no items on any page
+
+        val sets = assertTimeoutPreemptively<List<EvalDataset>>(Duration.ofSeconds(10)) { service.list(operators.llm) }
+
+        assertEquals(5L, sets.single().itemCount)
     }
 
     @Test

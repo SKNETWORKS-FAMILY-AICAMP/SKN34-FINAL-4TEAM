@@ -53,7 +53,7 @@ CREATE INDEX admin_activity_created_idx ON operations.admin_activity (created_at
 | `card_category.create` · `card_category.update` | `card_category` · 카테고리 코드 | 카테고리 이름(Content 응답) |
 | `card_category.reorder` | `card_category` · `order` | 새 순서의 코드 목록(쉼표) |
 | `CREDIT_GRANT` · `CREDIT_REVOKE` | `MEMBER` · 회원 ID | `<금액> · <사유>`(앞뒤 공백을 뗀 사유, [크레딧 운영](operations-funnel-credit-contract.md#2-크레딧-운영-core-정본--운영-중계)) |
-| `DATASET_UPLOAD` | `DATASET` · 세트 이름 | `<건수>건 · <파일 이름>`(저작권 확인을 받은 업로드만, [평가 데이터셋 API](operations-llmops-contract.md#평가-데이터셋-api-868)) |
+| `DATASET_UPLOAD` | `DATASET` · 세트 이름 | `<kind> · <건수>건 · <파일 이름>`(kind는 `gate`·`pool`·`general`, 예 `gate · 24건 · set.jsonl`, 저작권 확인을 받은 업로드만, [평가 데이터셋 API](operations-llmops-contract.md#평가-데이터셋-api-868)) |
 
 `detail`은 500자를 넘으면 잘라 저장한다. 회차·세계관·카드 카테고리 조치(`episode.*`·`world.*`·`card_category.*`)의 `action`·`target_type`은 대문자 스네이크인 위 값들과 달리 소문자·점 표기다(2026-11-23 코디네이터 확정 계약, `target_type` 20자·`action` 40자 안에 든다).
 

@@ -169,7 +169,7 @@ def _run(plan: Plan) -> dict[str, float]:
 def _make_baseline(plan: Plan) -> Baseline:
     """유효한 기준 Run이 없을 때 같은 작업 안에서 production 버전을 먼저 평가해 기준을 만든다. 이 Run은 기준과 비교하지 않는다(그 Run이 곧 기준이다).
     점수를 하나도 남기지 못하면 비교할 기준이 없으니 후보를 평가하지 않고 실패로 끝낸다(기준 없이 지표 비교를 건너뛰지 않는다)."""
-    base = replace(prepare(EvaluationRequest(dataset=plan.request.dataset, prompt=plan.request.prompt, version=plan.base_version)), baseline=None, base_version=None)
+    base = prepare(EvaluationRequest(dataset=plan.request.dataset, prompt=plan.request.prompt, version=plan.base_version))   # production 버전 자신이라 기준 없는 계획이 나온다
     averages = _run(base)
     if not averages:
         raise EvaluationFailure(502, '기준(production) 평가가 점수를 하나도 남기지 못해 비교할 수 없어요.')
@@ -315,6 +315,6 @@ def baseline_run(client, dataset, prompt: str, dataset_name: str, production) ->
     for found in _experiments(client, dataset_id=dataset.id, fields='core,scores', limit=100):  # 최근 활동 순
         scores = {s.name: s.value for s in found.scores or []}
         if (found.name.startswith(prefix) and 'passed' in scores and set(metrics) <= scores.keys()
-                and (newest is None or (found.start_time is not None and found.start_time > newest))):
+                and (newest is None or found.start_time > newest)):
             return Baseline(found.name, production.version, {m: float(scores[m]) for m in metrics})
     return None

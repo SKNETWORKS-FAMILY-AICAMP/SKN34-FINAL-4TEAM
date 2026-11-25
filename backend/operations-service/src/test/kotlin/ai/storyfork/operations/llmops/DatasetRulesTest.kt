@@ -186,6 +186,18 @@ class DatasetRulesTest {
     }
 
     @Test
+    fun `a name is counted in the episode the way the scorer counts it`() {
+        fun check(body: String, name: String) = problem("extraction.extract", """{"number":3,"title":"3화","body":"$body"}""", gold(mentions = mention(name, "object")))
+        val none = "정답표에 설정에 드는 core 정답이 하나 이상 있어야 해요."
+
+        assertEquals(none, check("가가가", "가가"))   // hits that overlap are one hit (Python's str.count), not two
+        assertNull(check("가가 가가", "가가"))
+        assertNull(check("글", ""))   // an empty name is found once more than the text has characters, so twice here
+        assertNull(check("a.b a.b", "a.b"))   // the name is text, not a pattern
+        assertEquals(none, check("axb ayb", "a.b"))   // a pattern would find it twice
+    }
+
+    @Test
     fun `the split of a pool item is train or val and a gate or general set has no split to check`() {
         val base = """{"judge":{"character":"","scene":[],"facts":[]},"split":"SPLIT"}"""
         for (good in listOf("train", "val")) assertNull(problem("optimize.simulation.act", act, "\"가자.\"", base.replace("SPLIT", good)), good)

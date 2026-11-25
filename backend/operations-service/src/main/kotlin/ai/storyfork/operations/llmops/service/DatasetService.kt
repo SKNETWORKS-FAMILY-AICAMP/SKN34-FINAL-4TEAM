@@ -1,6 +1,8 @@
 package ai.storyfork.operations.llmops.service
 
+import ai.storyfork.operations._common.client.DatasetItems
 import ai.storyfork.operations._common.client.LangfuseClient
+import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations._common.exception.CopyrightConfirmRequiredException
 import ai.storyfork.operations._common.exception.DatasetInvalidException
@@ -30,7 +32,7 @@ private const val LLM = "llm"
 private const val NAME_MAX = 200
 private const val MAX_ITEMS = 500
 private const val MAX_PAGE_SIZE = 100
-private const val READ_PAGE = 100   // the page size of the existing items read for the duplicate check
+private const val READ_PAGE = 100   // the page size of the items read for the list and for the duplicate check
 
 /** The only keys of an uploaded line; a typo such as expected_output is an error, not a dropped value. */
 private val LINE_KEYS = setOf("input", "expectedOutput", "metadata")
@@ -58,10 +60,13 @@ class DatasetService(
 
     fun list(member: OperationsMember): List<EvalDataset> {
         permissions.requirePermission(member, LLM)
-        // A Langfuse dataset carries no count, so each set's own item total is read (one item is enough), in parallel like the prompt reads.
+        // A Langfuse dataset carries neither a count nor the time of its newest item, so every item of every set is read, in parallel like the prompt reads: the listing's order is
+        // not relied on (the newest item can be anywhere), so the maximum is taken over all of them, the same way the evaluation service decides whether a baseline Run is valid.
         return langfuse.datasets().parallelStream().map { node ->
             val name = node.path("name").asString()
-            EvalDataset(name, EVALUATION_SETS.entries.firstOrNull { it.value == name }?.key, datasetKind(name), langfuse.datasetItems(name, 1, 1).total, node.path("description").textOrNull())
+            val read = allItems(name)
+            val newest = read.items.mapNotNull { it.path("createdAt").instantOrNull() }.maxOrNull()
+            EvalDataset(name, EVALUATION_SETS.entries.firstOrNull { it.value == name }?.key, datasetKind(name), read.total, newest, node.path("description").textOrNull())
         }.toList()
     }
 
@@ -152,9 +157,9 @@ class DatasetService(
      * without a split gets one from its input hash in the pool's own proportion of val items. Every such line is reported at once; the lines to create come back otherwise.
      */
     private fun resolve(lines: List<Line>, name: String, pair: String?): List<Line> {
-        val here = allItems(name)
+        val here = allItems(name).items
         val inHere = here.map { inputHash(it.path("input")) }.toSet()
-        val inPair = pair?.let { allItems(it) }.orEmpty().map { inputHash(it.path("input")) }.toSet()
+        val inPair = pair?.let { allItems(it).items }.orEmpty().map { inputHash(it.path("input")) }.toSet()
         val share = if (datasetKind(name) == "pool") valShare(here) else null
         val first = HashMap<String, Int>()
         val errors = mutableListOf<DatasetLineError>()
@@ -190,14 +195,14 @@ class DatasetService(
         return Line(line.number, line.input, line.expectedOutput, metadata, line.hash)
     }
 
-    /** Every item of a set, page by page: the duplicate check needs all of them. */
-    private fun allItems(name: String): List<JsonNode> {
+    /** Every item of a set, page by page, with the total Langfuse reports: the duplicate check and the list's newest-item time need all of them. */
+    private fun allItems(name: String): DatasetItems {
         val items = mutableListOf<JsonNode>()
         var page = 1
         while (true) {
             val read = langfuse.datasetItems(name, page++, READ_PAGE)
             items += read.items
-            if (read.items.isEmpty() || items.size >= read.total) return items
+            if (read.items.isEmpty() || items.size >= read.total) return DatasetItems(items, read.total)
         }
     }
 
