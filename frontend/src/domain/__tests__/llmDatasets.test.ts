@@ -114,6 +114,17 @@ describe('평가 데이터셋 JSONL 검사(서버 DatasetService와 같은 줄 �
     expect(parsed.errors).toEqual([{ line: 2, message: sameInput(1) }, { line: 5, message: sameInput(1) }])
   })
 
+  it('파일 안 중복 input은 서버처럼 실수를 Langfuse가 저장하는 모양으로 견준다: 마지막 자리를 잃은 실수(0.38461538461538464와 0.3846153846153846)는 같은 input이고, 다른 실수나 글은 다른 input이다', () => {
+    const dup = (x: unknown, n: unknown = 1) => line({ input: { x, y: [n], z: '1' }, expectedOutput: '정답' })
+    const parsed = parseDatasetJsonl([
+      dup(0.38461538461538464, 1), dup(0.3846153846153846, 1.0), dup(0.3846153, 1), dup('0.38461538461538464', 1), dup(0.38461538461538464, 2),
+      dup(0.5, 12345678901234), dup(0.5, 12345678901235),   // 정수는 모든 자리를 견준다
+      line({ input: { x: 0.38461538461538464, y: [1], z: '"1"' }, expectedOutput: '정답' }),   // 안쪽 글은 읽지 않는다: Langfuse도 안쪽 글은 그대로 저장한다
+    ].join('\n'))
+    expect(parsed.lines).toHaveLength(7)   // 8줄 가운데 둘째 줄만 첫 줄과 같다
+    expect(parsed.errors).toEqual([{ line: 2, message: sameInput(1) }])
+  })
+
   it('질문 검사(같은 input)는 형식이 모두 맞은 뒤에만 한다(서버와 같다): 형식 오류가 있는 파일은 형식 오류만 알리고, 고치면 그제야 중복이 보인다', () => {
     const dup = line({ input: { q: 1 }, expectedOutput: '정답' })
     const broken = parseDatasetJsonl([dup, dup, '{not json'].join('\n'))

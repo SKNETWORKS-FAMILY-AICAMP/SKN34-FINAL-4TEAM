@@ -177,9 +177,13 @@ function checkLine(raw: string, set: string | undefined): DatasetLine | string {
   return lineProblem(set, line) ?? line
 }
 
-/** 키 순서·공백이 달라도 같은 JSON이면 같은 글이 되게 객체의 키를 정렬해 만든 글(파일 안 중복 input 찾기용). */
+/**
+ * 키 순서·공백이 달라도 같은 JSON이면 같은 글이 되게 객체의 키를 정렬하고 실수는 Langfuse가 저장하는 모양으로 쓴 글(파일 안 중복 input 찾기용, 서버 inputHash와 같은 규칙).
+ * Langfuse는 실수를 16자리까지만 남겨(0.38461538461538464는 0.3846153846153846으로 돌아온다) 같은 질문을 다시 올려도 못 찾으므로 실수는 12자리로 견준다(1.0은 JS에서 이미 정수 1이다).
+ * 안쪽 글은 그대로 둔다(Langfuse도 건드리지 않는다).
+ */
 const canonical = (value: unknown) =>
-  JSON.stringify(value, (_, v) => (isObject(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v))
+  JSON.stringify(value, (_, v) => (isObject(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : typeof v === 'number' && !Number.isInteger(v) ? Number(v.toPrecision(12)) : v))
 
 /**
  * JSONL 본문을 줄마다 검사합니다(서버가 다시 검사하고 다르면 서버가 정본). 줄 구분은 CRLF·LF·CR이고 빈 줄은 건너뛰고 세지 않으며 한 줄의 문제는 첫 문제 하나만 알립니다.

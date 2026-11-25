@@ -22,12 +22,32 @@ def offline(monkeypatch):
     monkeypatch.delenv('LANGFUSE_SECRET_KEY', raising=False)
 
 
+def langfuse_stores(value, *, top=True):
+    """Langfuse가 항목의 값을 저장하는 모양. 2026-11-25 실스택에서 seed를 세 번 돌려 확인했다: 파일과 어긋난 문항 수가 simulation.act 24·extraction.extract 5·optimize.extraction.extract 36·
+    optimize.simulation.act 126이고 나머지 세트는 0이었고, 이 규칙으로 센 수와 정확히 같다. ① 최상위 값이 글이고 JSON으로 읽히면 읽은 값으로 저장한다(따옴표로 감싼 대사 정답은 바깥 따옴표가
+    벗겨지고 '12'는 숫자 12가 된다). 안쪽 글은 그대로다(narrate 세트는 안쪽 글 36문항이 JSON으로 읽히는데도 어긋난 문항이 0이었다). ② 실수는 16자리까지만 남는다(0.38461538461538464 → 0.3846153846153846, 1.0 → 1)."""
+    if isinstance(value, str) and top:
+        try:
+            return langfuse_stores(json.loads(value), top=False)
+        except ValueError:
+            return value
+    if isinstance(value, float):
+        kept = float(f'{value:.16g}')
+        return int(kept) if kept.is_integer() else kept
+    if isinstance(value, dict):
+        return {key: langfuse_stores(item, top=False) for key, item in value.items()}
+    if isinstance(value, list):
+        return [langfuse_stores(item, top=False) for item in value]
+    return value
+
+
 class Langfuse:
-    """Langfuse upsert 대역: dataset은 이름, 항목은 id가 같으면 덮어쓴다. get_dataset은 SDK처럼 그 세트의 항목을 한 번에 돌려주고(id·input·expected_output·metadata),
-    읽은 세트 이름(reads)과 올린 항목 id(writes)를 순서대로 남긴다. 지우는 메서드는 없다(지우려 하면 AttributeError)."""
+    """Langfuse upsert 대역: dataset은 이름, 항목은 id가 같으면 덮어쓴다. 값은 실제 Langfuse처럼 저장해(langfuse_stores) 올린 값(sent)과 읽히는 값(items)이 다를 수 있다.
+    get_dataset은 SDK처럼 그 세트의 항목을 한 번에 돌려주고(id·input·expected_output·metadata), 읽은 세트 이름(reads)과 올린 항목 id(writes)를 순서대로 남긴다.
+    지우는 메서드는 없다(지우려 하면 AttributeError)."""
 
     def __init__(self):
-        self.datasets, self.items, self.reads, self.writes = {}, {}, [], []
+        self.datasets, self.items, self.sent, self.reads, self.writes = {}, {}, {}, [], []
 
     def create_dataset(self, *, name):
         self.datasets[name] = name
@@ -39,7 +59,8 @@ class Langfuse:
 
     def create_dataset_item(self, *, dataset_name, id, input, expected_output, metadata):
         self.writes.append(id)
-        self.items[id] = (dataset_name, input, expected_output, metadata)
+        self.sent[id] = (dataset_name, input, expected_output, metadata)
+        self.items[id] = (dataset_name, *(langfuse_stores(value) for value in (input, expected_output, metadata)))
 
 
 def test_the_optimization_pools_are_seeded_as_datasets_named_optimize_dot_the_gate_set():
@@ -194,6 +215,9 @@ def test_the_first_register_writes_every_item_and_a_second_one_writes_none():
 
     assert all(total == done for total, done in first.values()) and len(written) == sum(totals(first).values())
     # 같은 id·input·expectedOutput·metadata는 다시 올리지 않는다: 올릴 때 Langfuse가 문항 시각을 바꾸면 배포마다 기준 Run이 무효가 되어 production을 다시 평가하게 된다.
+    # Langfuse가 파일과 다르게 저장하는 값이 있어도 그렇다(처음에는 파일 값 그대로 견주어 simulation.act·extraction 게이트와 두 풀이 배포마다 다시 올라갔다).
+    stored_differently = {id for id, (_, *values) in langfuse.sent.items() if values != list(langfuse.items[id][1:])}
+    assert 'simulation.act-01' in stored_differently and any(id.startswith('extraction.extract') for id in stored_differently)   # 따옴표로 감싼 대사 정답·마지막 자리를 잃는 실수를 실제로 다룬다
     assert langfuse.writes == written and all(done == 0 for _, done in second.values())
 
 
@@ -220,6 +244,66 @@ def test_an_item_whose_content_differs_is_written_again_and_the_others_are_left(
 
     assert langfuse.writes == [target] and stats['simulation.act'][1] == 1   # 바뀐 문항만 올린다(내용이 바뀐 게이트 문항은 올려야 하고 그러면 기준 Run이 무효가 되는 것이 맞다)
     assert langfuse.items[target] == (dataset, input, expected, metadata)
+
+
+def stored(input=None, expected=None, metadata=None):
+    """Langfuse가 돌려준 항목(SDK의 DatasetItem 모양)."""
+    return SimpleNamespace(id='x', input=input, expected_output=expected, metadata=metadata)
+
+
+def same(returned, *, input=None, expected=None, metadata=None):
+    """returned(Langfuse가 돌려준 항목)가 파일의 항목과 같은 내용으로 보이는가."""
+    return seed._same(returned, {'id': 'x', 'input': input, 'expectedOutput': expected, 'metadata': metadata})
+
+
+def test_a_float_whose_last_digit_langfuse_dropped_is_the_same_item():
+    """실스택 응답: 파일의 0.38461538461538464를 Langfuse는 0.3846153846153846으로, 1.0은 1로 돌려준다(metadata.gold.agreement)."""
+    gold = {'model': 'gpt-6.2-sol', 'agreement': {'mentions': 0.38461538461538464, 'statements': 1.0, 'relationships': 0.7142857142857143}}
+    returned = {'model': 'gpt-6.2-sol', 'agreement': {'mentions': 0.3846153846153846, 'statements': 1, 'relationships': 0.7142857142857143}}
+
+    assert same(stored(metadata={'gold': returned}), metadata={'gold': gold})
+    assert same(stored(input={'x': [returned]}), input={'x': [gold]})   # 어디에 있든 같다
+
+
+@pytest.mark.parametrize('given, returned', [
+    ('"아모리 하와도 내 눈으로 보지 못하면 의심이 플이지 아니하오니."', '아모리 하와도 내 눈으로 보지 못하면 의심이 플이지 아니하오니.'),   # 따옴표로 감싼 대사 정답: simulation.act의 모든 정답이다
+    ('12', 12), ('true', True), ('null', None), ('{"a": 1}', {'a': 1}), ('[1, "b"]', [1, 'b']),
+    ('"12"', 12),   # 읽은 값이 또 글이면 끝까지 읽는다(Langfuse가 저장·읽기에서 몇 번 읽든 같게)
+])
+def test_a_text_langfuse_read_as_json_is_the_same_item(given, returned):
+    """실스택 응답: 최상위 글이 JSON으로 읽히면 Langfuse는 읽은 값을 저장한다(따옴표로 감싼 글은 바깥 따옴표를 벗긴다)."""
+    assert same(stored(expected=returned), expected=given)
+    assert same(stored(metadata=returned), metadata=given)
+    assert same(stored(expected=given), expected=returned)   # 반대로 Langfuse에 글 그대로 있어도 같은 값이다
+
+
+@pytest.mark.parametrize('field, returned, given', [
+    ('metadata', {'a': 0.3846153}, {'a': 0.38461538461538464}),   # 일곱째 자리에서 다르다: 마지막 자리를 잃은 것이 아니다
+    ('metadata', {'a': 0.5}, {'a': 0.6}),
+    ('metadata', {'a': 1}, {'a': 2}),
+    ('metadata', {'a': 1000000000000}, {'a': 1000000000001}),   # 정수는 정확히 견준다(오차를 허용하는 것은 실수뿐이다)
+    ('metadata', {'a': True}, {'a': 1}),   # 참·거짓은 수가 아니다
+    ('metadata', {'a': 1}, {'a': '1'}),   # 안쪽 글은 읽지 않는다: 글 '1'은 수 1이 아니다
+    ('metadata', {'judge': {'scene': [{'text': '가자.'}]}}, {'judge': {'scene': [{'text': '"가자."'}]}}),   # Langfuse는 안쪽 글의 따옴표를 건드리지 않으니 달라졌다면 파일을 고친 것이다
+    ('metadata', {'a': 1}, {'a': 1, 'b': 2}),
+    ('metadata', {'a': 1, 'b': 2}, {'a': 1}),
+    ('metadata', {'a': 1}, {'b': 1}),
+    ('metadata', {'a': [1, 2]}, {'a': [2, 1]}),
+    ('metadata', {'a': [1, 2]}, {'a': [1, 2, 3]}),
+    ('metadata', {'a': None}, {'a': ''}),
+    ('input', {'q': 1}, {'q': 2}),
+    ('expected', '가자.', '"가자!"'),
+    ('expected', '가자.', '가자?'),
+    ('expected', 13, '12'),
+    ('expected', None, ''),
+    ('expected', [1], {'a': 1}),
+])
+def test_what_really_differs_is_not_the_same_item(field, returned, given):
+    assert not same(stored(**{field: returned}), **{field: given})
+
+
+def test_an_item_langfuse_does_not_have_is_not_the_same_item():
+    assert not seed._same(None, {'id': 'x', 'input': {}, 'expectedOutput': None, 'metadata': {}})
 
 
 def test_a_missing_item_is_written_and_items_that_only_langfuse_has_are_left_alone():
@@ -278,10 +362,10 @@ def test_register_sends_the_fixed_item_id_input_expected_output_and_metadata():
 
     seed.register(langfuse)
 
-    name, input, expected, metadata = langfuse.items['qa.grounding-01']
+    name, input, expected, metadata = langfuse.sent['qa.grounding-01']   # 보낸 값은 파일 값 그대로다(Langfuse가 저장하는 모양은 langfuse_stores)
     assert (name, expected) == ('qa.grounding', seed.load()['qa.grounding'][0]['expectedOutput'])
     assert input['question'] and metadata['source']['work'] == '홍길동전'
-    name, input, expected, metadata = langfuse.items['simulation.act-01']
+    name, input, expected, metadata = langfuse.sent['simulation.act-01']
     assert (name, input['set'], expected) == ('simulation.act', 'dialogue', seed.load()['simulation.act'][0]['expectedOutput']) and metadata['judge']['facts'] is not None
 
 

@@ -245,6 +245,20 @@ class DatasetRulesTest {
     }
 
     @Test
+    fun `a float hashes the way Langfuse stores it, so the digits it drops and 1 point 0 against 1 make no difference but a text stays a text`() {
+        // Langfuse keeps 16 digits of a float: 0.38461538461538464 is read back as 0.3846153846153846 and 1.0 as 1.
+        val a = inputHash(json("""{"x":0.38461538461538464,"y":[1.0,{"z":2.5}],"n":1}"""))
+
+        assertEquals(a, inputHash(json("""{"x":0.3846153846153846,"y":[1,{"z":2.50}],"n":1.0}""")))
+        for (other in listOf("""{"x":0.3846153,"y":[1.0,{"z":2.5}],"n":1}""", """{"x":0.38461538461538464,"y":[1.0,{"z":2.6}],"n":1}""", """{"x":0.38461538461538464,"y":[1.0,{"z":2.5}],"n":2}""")) {
+            assertNotEquals(a, inputHash(json(other)), other)   // seven digits, 2.6 and 2 are other numbers
+        }
+        assertNotEquals(inputHash(json("""{"n":12345678901234567}""")), inputHash(json("""{"n":12345678901234568}""")))   // an integer keeps every digit
+        assertNotEquals(inputHash(json("""{"q":"1.0"}""")), inputHash(json("""{"q":"1"}""")))   // a text is not read as a number
+        assertNotEquals(inputHash(json("""{"q":"\"가자.\""}""")), inputHash(json("""{"q":"가자."}""")))   // and its quotes stay: Langfuse leaves a text inside an object as it is
+    }
+
+    @Test
     fun `the split is val below the share of the first 32 bits of the hash and train from there`() {
         fun hash(top: String) = top + "0".repeat(56)
 

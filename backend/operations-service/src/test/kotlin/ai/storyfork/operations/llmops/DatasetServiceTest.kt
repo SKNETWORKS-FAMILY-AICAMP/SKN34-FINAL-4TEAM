@@ -395,6 +395,18 @@ class DatasetServiceTest {
     }
 
     @Test
+    fun `an input is a duplicate even when Langfuse stored its floats with fewer digits`() {
+        sets["my.set"] = listOf(stored("""{"x":0.3846153846153846,"n":1}"""))   // what Langfuse keeps of 0.38461538461538464 and 1.0
+        val line = { x: String, n: String -> """{"input":{"x":$x,"n":$n},"expectedOutput":"답","metadata":{"criteria":"기준"}}""" }
+
+        assertEquals(listOf(1 to "이 세트에 이미 있는 input이에요."), errors(lines(line("0.38461538461538464", "1.0"))).map { it.line to it.message })
+        // The same holds inside the file, where nothing was stored yet: the line that repeats an input says which line it repeats.
+        sets["my.set"] = emptyList()
+        assertEquals(listOf(2 to "파일의 1번째 줄과 input이 같아요."), errors(lines(line("0.38461538461538464", "1.0"), line("0.3846153846153846", "1"))).map { it.line to it.message })
+        assertEquals(2, upload(lines(line("0.38461538461538464", "1.0"), line("0.38", "1.0"))).created)   // another float is another input
+    }
+
+    @Test
     fun `a pair that Langfuse does not have is no reason to refuse`() {
         sets["simulation.act"] = emptyList()   // optimize.simulation.act does not exist
 

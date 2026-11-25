@@ -1,5 +1,6 @@
 package ai.storyfork.operations.llmops.service
 
+import java.math.MathContext
 import java.security.MessageDigest
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.node.StringNode
@@ -145,13 +146,19 @@ private fun goldProblem(body: String, gold: JsonNode): String? {
 /** Python's str.count, which is how the scorer counts a name in the episode: non-overlapping, and an empty part is found once more than the text has characters. */
 private fun occurrences(text: String, part: String) = Regex.escape(part).toRegex().findAll(text).count()
 
-/** SHA-256 of the input with every object's keys in order (so key order and spacing never tell two equal inputs apart; an array keeps its order). */
+/**
+ * SHA-256 of the input with every object's keys in order (so key order and spacing never tell two equal inputs apart; an array keeps its order) and every float spelled the way
+ * Langfuse stores it: the input of an item already in a set comes back from Langfuse, which keeps 16 digits of a float (0.38461538461538464 is read back as 0.3846153846153846,
+ * 1.0 as 1), so the same question uploaded again would not be found. A text inside is left as it is (Langfuse does not touch it either).
+ */
 internal fun inputHash(input: JsonNode): String =
     MessageDigest.getInstance("SHA-256").digest(canonical(input).toByteArray()).joinToString("") { "%02x".format(it) }
 
 private fun canonical(node: JsonNode): String = when {
     node.isObject -> node.properties().sortedBy { it.key }.joinToString(",", "{", "}") { "${StringNode.valueOf(it.key)}:${canonical(it.value)}" }   // the key as a JSON text, escaped like a value
     node.isArray -> node.values().joinToString(",", "[", "]") { canonical(it) }
+    // 12 of the 16 digits Langfuse keeps (a dropped last digit moves a float over a rounding edge only about once in ten thousand); 1.0 is the integer 1
+    node.isFloatingPointNumber -> node.decimalValue().round(MathContext(12)).stripTrailingZeros().toPlainString()
     else -> node.toString()
 }
 
