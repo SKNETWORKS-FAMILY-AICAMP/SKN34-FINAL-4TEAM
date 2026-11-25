@@ -401,7 +401,7 @@ class WorldStudioServicePostgresTest {
             assertEquals(3,service.revision(id,owner,after.currentRevisionId!!).revisionNo)
         } }
     }
-    @Test fun `public relation reads hide partial expansion and reject completion during graph read`() {
+    @Test fun `public relation reads hide partial expansion and re-read when completion lands during graph read`() {
         WorldStudioPostgresFixture("independent").use { db -> context(db).use { ctx ->
             val service=ctx.getBean(WorldStudioService::class.java);val owner=GenreTemplateSeeder.TEMPLATE_OWNER;val id=UUID.randomUUID()
             val a=GenreTemplateCard(UUID.randomUUID(),"하나","원문","character")
@@ -450,7 +450,8 @@ class WorldStudioServicePostgresTest {
                     service.saveExpanded(id,"digest",1,SaveWorldRequest(changed.draftRevision,"expanded-$id-save"))
                     assertEquals(listOf(relation.id),view.detail(id).relationships.map { it.id })
                 } finally { release.countDown() }
-                assertEquals("unavailable",running.get(10,TimeUnit.SECONDS).relationshipStatus)
+                // 읽던 도중 확장이 완료돼 확정 버전이 바뀌면 옛 스냅샷을 unavailable로 두지 않고 처음부터 다시 읽어 완료된 세계관을 돌려준다(안정 읽기, 2026-11-25)
+                assertEquals(view.detail(id),running.get(10,TimeUnit.SECONDS))
             }
         } }
     }
