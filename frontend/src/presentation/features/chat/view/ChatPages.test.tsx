@@ -40,6 +40,7 @@ it.each([
   expect(screen.queryByRole('log')).toBeNull()
   expect(screen.queryByRole('heading', { name: '로그인' })).toBeNull()
   expect(store.getState().session.next).toBeNull()
+  expect(store.getState().ui.screen.base).toBe('U27')
   expect(list).not.toHaveBeenCalled()
   expect(page).not.toHaveBeenCalled()
 })

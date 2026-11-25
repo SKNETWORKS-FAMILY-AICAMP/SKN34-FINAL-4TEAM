@@ -6,6 +6,7 @@ import { CoverOf } from '../../../shared/art'
 import { ago, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Portrait } from '../../../shared/Portrait'
+import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useChatListViewModel, useChatViewModel } from '../viewmodel/useChatViewModel'
@@ -14,6 +15,7 @@ import './character-chat.css'
 export function ChatPage() {
   const { wid, cn } = useParams()
   useDocumentTitle('캐릭터챗')
+  useScreenId('U27')
 
   if (import.meta.env.MODE !== 'mockup') {
     return (

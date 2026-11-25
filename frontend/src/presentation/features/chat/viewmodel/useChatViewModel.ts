@@ -7,13 +7,11 @@ import type { ChatLine } from '../../../../domain/entities/chat'
 import type { ChatFilter, ChatUseCase } from '../../../../domain/usecases/ChatUseCase'
 import { toast } from '../../../shared/events'
 import { qs } from '../../../shared/format'
-import { useScreenId } from '../../../shared/screenIds'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /** 목업 chatListPage()·bindChatList(): U27 캐릭터챗 목록 */
 export function useChatListViewModel(f: ChatFilter, chatUseCase: ChatUseCase = appContainer.resolve('chatUseCase')) {
   const navigate = useNavigate()
-  useScreenId('U27')
   // 필터는 조회 범위가 아니라 같은 목록 안의 화면 선택이다(refresh). 범위로 두면 고를 때마다 목록이 사라져 조작하던 select와 초점을 잃는다.
   const key = [f.kind, f.work, f.character, f.sort].join('|')
   const { data, isError, retry } = useAsyncData(async () => ({ key, ...await chatUseCase.list(f) }), [chatUseCase], [key])
@@ -33,7 +31,6 @@ const EMPTY_QUESTION = '물어볼 내용을 입력해 주세요'
 /** 목업 chatPage()·bindChat(): 질문을 남기고 0.45초 뒤 인물의 답을 붙입니다 (고정 데모 응답). */
 export function useChatViewModel(wid: string, cn: string | undefined, chatUseCase: ChatUseCase = appContainer.resolve('chatUseCase')) {
   const role = useAppSelector((s) => s.session.role)
-  useScreenId('U27')
   const { data: page, isError, retry } = useAsyncData(() => chatUseCase.page(wid, cn), [chatUseCase, wid, cn])
   // 질문·답은 저장소에 남긴 뒤 화면 기록에만 덧붙인다. 대화방 조회는 작품 목록까지 다시 읽으므로 한 줄마다 부르지 않는다.
   // 덧붙인 줄은 그 줄을 얹은 조회 결과(of)에만 속한다. 다시 읽으면 저장소 기록에 이미 들어 있어 버린다.
