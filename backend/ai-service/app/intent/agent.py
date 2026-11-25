@@ -64,9 +64,6 @@ class ModerationGuard(OpenAIModerationMiddleware):
     def before_model(self, state, runtime):
         return None
 
-    async def abefore_model(self, state, runtime):  # decide는 동기 실행이지만 비동기 경로도 직렬 검사로 돌아가지 않게 막는다
-        return None
-
     def wrap_model_call(self, request, handler):
         with ThreadPoolExecutor(1) as pool:
             moderated = pool.submit(self._moderate_inputs, request.messages)
