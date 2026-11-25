@@ -93,7 +93,7 @@ it('Guard 기록은 결과 칸에 허용·거절과 이유·기능을, 오류는
   const rows = await table('Decision Guard')
   expect(dataRows(rows)).toHaveLength(4)
   expect(rows.getByText('허용').closest('td')!.textContent).toContain('기능 작품 질문') // 기능 코드(story_context)가 아니라 집필 채팅과 같은 표시 이름
-  expect(rows.getByText('거절').closest('td')!.textContent).toContain('out_of_scope')
+  expect(rows.getByText('거절').closest('td')!.textContent).toContain('prompt_injection')
   expect(rows.getByText('거절').className).not.toContain('bad')
   expect(rows.getByText('오류').className).toContain('bad')
   expect(rows.getByText('통과')).toBeTruthy()

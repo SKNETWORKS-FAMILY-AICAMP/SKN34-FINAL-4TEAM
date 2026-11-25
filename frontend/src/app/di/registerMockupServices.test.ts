@@ -108,15 +108,15 @@ it('평가 데이터셋(#868)은 실제 모드에서 운영 API를 읽고 올리
   const mockup = createAppContainer()
   expect(mockup.resolve('llmDatasetRepository').constructor.name).toBe('InMemoryLlmDatasetRepository')
   const datasets = mockup.resolve('llmDatasetUseCase')
-  // 평가 게이트 4개(에이전트별 평가 표의 짝 세트)·범용 3개와 최적화 풀(optimize.<게이트>, 풀 파일 문항 수 그대로)이 목록에 있다(#868 정확 구현 계약 1).
+  // 평가 게이트 5개(에이전트별 평가 표의 짝 세트)·범용 3개와 최적화 풀(optimize.<게이트>, 풀 파일 문항 수 그대로)이 목록에 있다(#868 정확 구현 계약 1).
   expect((await datasets.datasets())!.map((row) => [row.name, row.kind, row.itemCount])).toEqual([
-    ['extraction.extract', 'gate', 30], ['leak.spoiler', 'general', 5], ['optimize.extraction.extract', 'pool', 157], ['optimize.simulation.act', 'pool', 126], ['optimize.simulation.narrate', 'pool', 54],
+    ['decision_guard.routing', 'gate', 49], ['extraction.extract', 'gate', 30], ['leak.spoiler', 'general', 5], ['optimize.extraction.extract', 'pool', 157], ['optimize.simulation.act', 'pool', 126], ['optimize.simulation.narrate', 'pool', 54],
     ['qa.grounding', 'gate', 6], ['simulation.act', 'gate', 24], ['simulation.narrate', 'gate', 46], ['world.conflict', 'general', 5], ['writing.fix', 'general', 5],
   ])
   // 마지막 문항 시각(lastItemAt)은 시드 문항이 만들어진 때라 시연 평가 Run보다 먼저다: 처음에는 어느 프롬프트도 '세트가 바뀌어 기준을 다시 만들어요'가 아니다.
   const llm = mockup.resolve('llmOpsUseCase')
   const gatePrompts = (await llm.prompts())!.filter((prompt) => prompt.evaluationDataset)
-  expect(gatePrompts.map((prompt) => prompt.evaluationDataset)).toEqual(expect.arrayContaining(['simulation.act', 'simulation.narrate', 'qa.grounding']))
+  expect(gatePrompts.map((prompt) => prompt.evaluationDataset)).toEqual(expect.arrayContaining(['simulation.act', 'simulation.narrate', 'qa.grounding', 'decision_guard.routing']))
   const lastOf = async (name: string) => (await datasets.datasets())!.find((row) => row.name === name)!.lastItemAt
   for (const prompt of gatePrompts) expect([prompt.name, staleBaseline(prompt, await lastOf(prompt.evaluationDataset!))]).toEqual([prompt.name, null])
   const seeded = await lastOf('qa.grounding')

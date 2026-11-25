@@ -8,6 +8,8 @@ import pytest
 from app.evaluation import service
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import EvaluationRequest, LeakCheckRequest, LeakCheckResponse
+from app.intent import service as intent
+from app.intent.models import DecisionResult
 
 from .stubs import (ACT_INPUT, ACT_REQUEST, CRITERIA, DATASET_ID, GEVAL_REQUEST, JUDGE, NARRATE_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared,
                     prompt, stub_models, stub_simulation)
@@ -575,3 +577,36 @@ def test_a_caller_can_name_the_run_before_it_exists_with_the_same_format(monkeyp
     install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3)})
     assert service.prepare(QA_REQUEST, run_name=name).run_name == name
     assert service.prepare(QA_REQUEST).run_name != name   # 안 주면 지금처럼 새로 만든다
+
+
+# --- 라우팅 세트(decision_guard.routing, #783): 실제 판정으로 만들고 정답과 견줘 모델 없이 채점한다 ---
+
+ROUTING_REQUEST = EvaluationRequest(dataset='decision_guard.routing', prompt='decision_guard.judge', version=2)
+
+
+def test_a_routing_run_judges_with_the_version_body_and_records_guard_precision_and_recall(monkeypatch):
+    items = [item(1, {'request': '검수하고 고쳐줘'}, {'guard': 'none', 'capabilities': ['manuscript_review', 'writing_editing']}, None, 'decision_guard.routing'),
+             item(2, {'request': '안녕'}, {'guard': 'none', 'capabilities': []}, None, 'decision_guard.routing')]
+    _, client, plan = prepared(monkeypatch, items, request=ROUTING_REQUEST)
+    evaluation = stub_models(monkeypatch)
+    seen = []
+
+    def judge(request, operation=None, materials=(), history=(), instructions=None):
+        seen.append((request, instructions))
+        return DecisionResult(allowed=True, capabilities=['manuscript_review'])
+    monkeypatch.setattr(intent, 'judge', judge)
+
+    service.run(plan)
+
+    assert sorted(seen) == [('검수하고 고쳐줘', '지시문'), ('안녕', '지시문')] and evaluation.generate == [] and evaluation.geval == []
+    assert {s['name']: s['value'] for s in client.scores} == {'guard': 1.0, 'precision': 0.5, 'recall': 0.75, 'passed': 1.0}
+
+
+def test_the_routing_set_only_evaluates_the_guard_instructions(monkeypatch):
+    install(monkeypatch, FakeDataset([item(1, {'request': '안녕'}, {'guard': 'none', 'capabilities': []}, None, 'decision_guard.routing')], 'decision_guard.routing'),
+            {('qa.answer', 1): prompt('지시문', 1)})
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(EvaluationRequest(dataset='decision_guard.routing', prompt='qa.answer', version=1))
+
+    assert error.value.status == 422

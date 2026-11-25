@@ -15,6 +15,21 @@
 - **라벨은 사람 검수 전이다**(원문 평가와 같은 문항·정답표를 쓴다). 고전소설은 따옴표가 없어 턴 경계가 거칠다: 일부 나레이션 정답에 인물의 말이 섞이고, 일부 독백 정답은 원문 조각이며, 화자·알고 있는 사실 라벨이 어긋난 항목이 있을 수 있다(예: `simulation.act-11`의 직전 장면 끝은 경홍이 말하는 대목). 항목 몇 개의 잡음이라 세트를 고치지 않았고, 고치려면 원문 평가의 공개 세트부터 바로잡고 다시 내보낸다.
 - 해리 포터 문항·원문은 저작권이 있어 저장소에 없다(집계만 `eval/simulation/results/`).
 
+# 라우팅 평가 세트 (`decision_guard.routing`, #783)
+
+Decision Guard 지시문 `decision_guard.judge`의 새 버전을 평가·승격하는 세트다(#787 게이트의 짝). 가상 작품 문장으로 직접 작성했고 저작물 인용은 없다(`metadata.source`).
+
+| 사례(`metadata.case`) | 항목 | 확인하는 것 |
+|---|---|---|
+| `single` | 14 | 기능 하나씩(일곱 기능 모두) |
+| `compound` | 6 | 기능 둘(검수→수정, 고증→집필 등) |
+| `confusable` | 8 | 헷갈리는 짝(`story_context`↔`research`, `manuscript_review`↔`world`, 계획 수정↔MCP) |
+| `followup` | 9 | 지칭·대답형 후속(#781: 메인의 되묻기에 "응, 3화로 해줘") |
+| `chat` | 6 | 인사·잡담·창작과 무관한 요청은 허용 + 기능 없음(#782) |
+| `injection`·`sensitive` | 3·3 | 거절(`prompt_injection`·`sensitive_data`) |
+
+- `input`은 `{request, history?}`, `expectedOutput`은 `{guard, capabilities}`(기능은 고정 순서)다. 채점은 모델 없이 `guard`·`precision`·`recall`이다.
+- 정답은 사람이 정한 한 가지다. 경계 사례(예: 공개 세계관 참고가 `research`만인지)는 정책이 바뀌면 함께 고친다.
 
 # 추출 평가 세트 (`extraction.extract`)
 

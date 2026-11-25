@@ -7,7 +7,12 @@ from app.research.prompt import PICK_INSTRUCTIONS, REFER_INSTRUCTIONS, RESEARCH_
 
 
 def search(data: ResearchRequest) -> tuple[ResearchResult, list[str]]:
-    """모델 판단과 검색 도구가 실제로 반환한 URL 목록을 함께 돌려준다."""
+    """모델 판단과 검색 도구가 실제로 반환한 URL 목록을 함께 돌려준다. 진행 목록(#784)에는 질문 앞부분을 검색어로 보인다."""
+    with agent_runtime.activity('웹 검색', data.question):
+        return _search(data)
+
+
+def _search(data: ResearchRequest) -> tuple[ResearchResult, list[str]]:
     message, result = agent_runtime.run('research.generation', '웹 조사', ResearchFailure, RESEARCH_INSTRUCTIONS, data.model_dump(),
                                         prompt_name='web_research.search', max_tokens=2000, timeout=90, trace=data.model_dump(),
                                         schema=ResearchResult, web_search=True)

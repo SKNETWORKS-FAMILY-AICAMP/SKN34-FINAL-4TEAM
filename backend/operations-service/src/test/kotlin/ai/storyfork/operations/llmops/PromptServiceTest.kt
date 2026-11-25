@@ -271,6 +271,15 @@ class PromptServiceTest {
     }
 
     @Test
+    fun `only the answer prompt, the two simulation prompts and the decision guard name an evaluation set`() {
+        givenRuns()
+        val names = listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "decision_guard.judge", "world_review.check")
+        `when`(langfuse.prompts()).thenReturn(names.map { json("""{"name":"$it","versions":[1],"labels":[]}""") })
+
+        assertEquals(listOf("qa.grounding", "simulation.act", "simulation.narrate", "decision_guard.routing", null), service.list(operators.llm).items.map { it.evaluationDataset })
+    }
+
+    @Test
     fun `only the answer, the two simulation and the extraction prompts name an evaluation set`() {
         givenRuns()
         val names = listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "manuscript_extraction.extract", "world_review.check")

@@ -326,15 +326,35 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     await within(await card()).findByText('발행은 집필실에서 할 수 있어요.')
   })
 
-  it('기준 발행본이 바뀌어 승인이 409로 거절되면 서버 안내를 보이고 목록을 다시 읽는다', async () => {
-    const repo = await open([suggestion()], (r) => r.approve.mockRejectedValueOnce(new Error('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.')))
+  it('기준 발행본이 바뀌어 재시도가 409로 실패하면 해당 회차 집필실로 안내한다', async () => {
+    const failed = suggestion({ status: 'approved', applyResult: 'failed', applyFailure: '초안에서 고칠 문장을 찾을 수 없어요.' })
+    const repo = await open([failed], (r) => r.approve.mockRejectedValueOnce(new Error('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.')))
+    const c = await card()
+    fireEvent.click(within(c).getByRole('button', { name: '다시 반영 시도' }))
+    const alert = await within(c).findByRole('alert')
+    expect(alert.textContent).toBe('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고쳐 주세요.')
+    expect(document.activeElement).toBe(alert)
+    expect(repo.approve).toHaveBeenCalledWith('w1', 's1')
+    await waitFor(() => expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2))
+    within(c).getByText('승인됨 · 반영 실패')
+    expect(within(c).getAllByRole('link')).toHaveLength(1)
+    expect(within(c).getByRole('link', { name: '3화 집필실 열기' }).getAttribute('href')).toBe('/studio/w1?ep=3')
+    expect(within(c).queryByRole('button', { name: '거절' })).toBeNull()
+  })
+
+  it.each([
+    ['pending', '검토 대기'],
+    ['held', '보류'],
+  ] as const)('%s 제안의 승인이 409로 실패하면 서버 안내를 보이고 목록을 다시 읽는다', async (status, label) => {
+    const repo = await open([suggestion({ status })], (r) => r.approve.mockRejectedValueOnce(new Error('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.')))
     fireEvent.click(within(await card()).getByRole('button', { name: '승인하고 초안에 반영' }))
     const alert = await within(await card()).findByRole('alert')
     expect(alert.textContent).toBe('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고치거나 거절해 주세요.')
     await waitFor(() => expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2))
     const c = await card()
-    within(c).getByText('검토 대기')
+    within(c).getByText(label)
     expect(within(c).getByRole('button', { name: '승인하고 초안에 반영' }).hasAttribute('disabled')).toBe(false)
+    within(c).getByRole('button', { name: '거절' })
     // 다음 행동: 바뀐 발행본은 집필실에서 확인한다.
     expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1?ep=3')
   })

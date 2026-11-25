@@ -5,6 +5,7 @@
  */
 export const PROMPT_NAMES = new Map<string, string>([
   ['orchestration.main', '메인 에이전트 · 작가 요청 처리(main)'],
+  ['orchestration.summary', '메인 에이전트 · 이전 대화 요약(summary)'],
   ['decision_guard.judge', 'Decision Guard · 요청 판정(judge)'],
   ['story_context.answer', 'Q&A · 작품 질문 답변(answer)'],
   ['writing_editing.plan', 'Writing · 전개 기획(plan)'],
@@ -17,6 +18,7 @@ export const PROMPT_NAMES = new Map<string, string>([
   ['world_review.check', 'World · 설정집 오류 검토(check)'],
   ['world_review.enrich', 'World · 설정집 보강(enrich)'],
   ['world_review.impact', 'World · 설정 변경 영향 분석(impact)'],
+  ['world_review.fill', 'World · 인물 문서 채우기(fill)'],
   ['web_research.search', 'Research · 웹 고증 검색(search)'],
   ['research.pick', 'Research · 참고 세계관 고르기(pick)'],
   ['research.refer', 'Research · 참고 설정 카드 찾기(refer)'],

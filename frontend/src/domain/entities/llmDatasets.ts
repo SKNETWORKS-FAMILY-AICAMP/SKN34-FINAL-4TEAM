@@ -68,13 +68,13 @@ const listOf = (fields: Record<string, (value: unknown) => boolean>) => (value: 
 const texts = (value: unknown) => Array.isArray(value) && value.every(isText)
 const flag = (value: unknown) => typeof value === 'boolean'
 
-// 아래 규칙은 서버 DatasetRules(운영 서비스)와 문구·순서까지 같다. 서버가 AI의 채점 코드(app/evaluation/service·simulation·extraction.py)와 seed 항목에서 읽어 정한 규칙이고,
+// 아래 규칙은 서버 DatasetRules(운영 서비스)와 문구·순서까지 같다. 서버가 AI의 채점 코드(app/evaluation/service·simulation·routing·extraction.py)와 seed 항목에서 읽어 정한 규칙이고,
 // 채점기가 거절할 문항이 한 줄이라도 들어가면 그 세트의 이후 평가가 모두 실패하기 때문에 올리기 전에 거절합니다(서버가 다시 검사하며 다르면 서버가 정본).
-type Scorer = 'qa' | 'act' | 'narrate' | 'extraction' | 'geval'
-/** 세트 이름으로 채점기를 고르는 평가 서비스와 같은 규칙: qa.는 Ragas, 시뮬레이션 둘과 추출 세트는 코드 채점, 그 밖은 GEval. 풀은 짝 게이트와 같다. */
+type Scorer = 'qa' | 'act' | 'narrate' | 'routing' | 'extraction' | 'geval'
+/** 세트 이름으로 채점기를 고르는 평가 서비스와 같은 규칙: qa.는 Ragas, 시뮬레이션 둘과 라우팅·추출 세트는 코드 채점, 그 밖은 GEval. 풀은 짝 게이트와 같다. */
 const scorerOf = (set: string): Scorer => {
   const base = datasetKindOf(set) === 'pool' ? set.slice(POOL_PREFIX.length) : set
-  return base.startsWith('qa.') ? 'qa' : base === 'simulation.act' ? 'act' : base === 'simulation.narrate' ? 'narrate' : base === 'extraction.extract' ? 'extraction' : 'geval'
+  return base.startsWith('qa.') ? 'qa' : base === 'simulation.act' ? 'act' : base === 'simulation.narrate' ? 'narrate' : base === 'decision_guard.routing' ? 'routing' : base === 'extraction.extract' ? 'extraction' : 'geval'
 }
 
 const NARRATION_SETS = ['narration', 'monologue']
@@ -88,6 +88,9 @@ function inputProblem(scorer: Scorer, input: Record<string, unknown>): string | 
     case 'narrate':
       if (!isObject(input.data)) return 'input.data(객체)가 필요해요.'
       return NARRATION_SETS.includes(input.set as string) ? null : 'input.set은 narration 또는 monologue여야 해요.'
+    case 'routing':   // routing.py generate: request는 판정할 글, history는 있으면 목록(이전 턴은 모양 그대로 판정에 보낸다)
+      if (!filled(input.request)) return 'input.request가 필요해요.'
+      return 'history' in input && !Array.isArray(input.history) ? 'input.history는 목록이어야 해요.' : null
     case 'extraction':
       return Number.isInteger(input.number) && (input.number as number) >= 1 && isText(input.title) && isText(input.body) ? null : 'input에는 number(1 이상 정수)·title·body가 필요해요.'
     default:
@@ -124,9 +127,14 @@ function hasSettingCore(body: string, { mentions, statements, relationships }: G
 }
 const goldProblem = (body: string, gold: unknown) => (!isGold(gold) ? 'expectedOutput이 정답표(mentions·statements·relationships) 모양이 아니에요.' : hasSettingCore(body, gold) ? null : '정답표에 설정에 드는 core 정답이 하나 이상 있어야 해요.')
 
-/** 추출은 정답표, 그 밖의 세트는 모두 글입니다. */
+/** 라우팅 정답(routing.py evaluate): guard는 글, capabilities는 판정이 골랐어야 할 기능 이름의 목록(글이 아닌 이름은 견줄 수도 없다). */
+const isRoutingAnswer = (value: unknown) => isObject(value) && isText(value.guard) && texts(value.capabilities)
+
+/** 추출은 정답표, 라우팅은 정답 {guard, capabilities}, 그 밖의 세트는 모두 글입니다. */
 const expectedProblem = (scorer: Scorer, input: Record<string, unknown>, expected: unknown) =>
-  scorer === 'extraction' ? goldProblem(input.body as string, expected) : isText(expected) ? null : 'expectedOutput은 글이어야 해요.'
+  scorer === 'extraction' ? goldProblem(input.body as string, expected)
+    : scorer === 'routing' ? (isRoutingAnswer(expected) ? null : 'expectedOutput이 정답(guard·capabilities) 모양이 아니에요.')
+      : isText(expected) ? null : 'expectedOutput은 글이어야 해요.'
 
 /** 루브릭 입력(simulation.py의 _judge_inputs): 인물 글(나레이션은 빈 글), 장면 줄 {by, text}, 사실 {id, text}. */
 const judgeFits = (judge: unknown) => isObject(judge) && isText(judge.character) && listOf({ by: isText, text: isText })(judge.scene) && listOf({ id: isText, text: isText })(judge.facts)
@@ -141,7 +149,7 @@ const splitProblem = (metadata: Record<string, unknown> | undefined) => {
 }
 
 /**
- * 줄의 첫 문제(서버 lineProblem과 같은 순서): input의 세트별 칸 → expectedOutput 있음 → expectedOutput의 모양(추출은 정답표) → metadata의 세트별 칸 → 풀의 split.
+ * 줄의 첫 문제(서버 lineProblem과 같은 순서): input의 세트별 칸 → expectedOutput 있음 → expectedOutput의 모양(추출은 정답표, 라우팅은 정답) → metadata의 세트별 칸 → 풀의 split.
  * 올릴 세트(set)를 모르면 세트별 규칙은 보지 않고 expectedOutput이 있는지만 봅니다.
  */
 function lineProblem(set: string | undefined, { input, expectedOutput, metadata }: DatasetLine) {

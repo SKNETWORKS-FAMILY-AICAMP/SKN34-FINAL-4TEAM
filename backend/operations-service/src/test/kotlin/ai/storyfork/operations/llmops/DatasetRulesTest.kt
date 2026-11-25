@@ -21,7 +21,7 @@ class DatasetRulesTest {
 
     @Test
     fun `a prompt's evaluation set is a gate, optimize dot a gate is its pool and every other name is general`() {
-        for (gate in listOf("qa.grounding", "simulation.act", "simulation.narrate", "extraction.extract")) {
+        for (gate in listOf("qa.grounding", "simulation.act", "simulation.narrate", "decision_guard.routing", "extraction.extract")) {
             assertEquals("gate", datasetKind(gate), gate)
             assertEquals("optimize.$gate", pairedDataset(gate))
             assertEquals("pool", datasetKind("optimize.$gate"), gate)
@@ -40,7 +40,7 @@ class DatasetRulesTest {
         val root = Path.of("..", "ai-service", "app", "evaluation", "datasets")
         val files = Files.list(root).use { it.filter { path -> path.toString().endsWith(".jsonl") }.toList() } +
             Files.list(root.resolve("optimize")).use { it.filter { path -> path.toString().endsWith(".jsonl") }.toList() }
-        assertEquals(10, files.size)   // 7 sets and 3 pools
+        assertEquals(11, files.size)   // 8 sets and 3 pools
         for (path in files) {
             val name = path.fileName.toString().removeSuffix(".jsonl").let { if (path.parent.fileName.toString() == "optimize") "optimize.$it" else it }
             val rows = Files.readAllLines(path).filter { it.isNotBlank() }.map(::json)
@@ -119,6 +119,28 @@ class DatasetRulesTest {
             }
         }
         assertNull(problem("simulation.act", """{"set":"anything","data":{"a":1}}""", "\"가자.\"", judge))   // the act call does not read input.set
+    }
+
+    @Test
+    fun `a routing set needs the request and the answer the guard scorer compares`() {
+        val answer = """{"guard":"none","capabilities":["story_context"]}"""
+        val turn = """{"request":"다음 화에 넣을 사건을 추천해줘","reply":"사건 세 개를 제안했어요.","features":["writing_editing"]}"""
+        assertNull(problem("decision_guard.routing", """{"request":"카엘의 목표가 뭐였지?"}""", answer))
+        assertNull(problem("decision_guard.routing", """{"request":"응, 3화로 해줘","history":[$turn]}""", answer))   // the turns are sent to the guard as they are, so only a list is checked
+        assertNull(problem("decision_guard.routing", """{"request":"안녕","history":[]}""", """{"guard":"none","capabilities":[]}"""))   // a chat message picks no feature and a refusal picks none either
+        assertNull(problem("decision_guard.routing", """{"request":"질문"}""", answer, """{"case":"single"}"""))   // nothing in metadata is read
+        for (bad in listOf("""{"history":[]}""", """{"request":""}""", """{"request":"  "}""", """{"request":3}""", """{"request":null}""")) {
+            assertEquals("input.request가 필요해요.", problem("decision_guard.routing", bad, answer), bad)
+        }
+        // history is read as `item_input.get('history', [])` and must be a list: a key that is there as null, text or an object fails the item.
+        for (bad in listOf("""{"request":"질문","history":null}""", """{"request":"질문","history":"이전"}""", """{"request":"질문","history":{"request":"x"}}""")) {
+            assertEquals("input.history는 목록이어야 해요.", problem("decision_guard.routing", bad, answer), bad)
+        }
+        for (bad in listOf("\"none\"", "[1]", """{"guard":"none"}""", """{"capabilities":[]}""", """{"guard":1,"capabilities":[]}""", """{"guard":"none","capabilities":"story_context"}""",
+            """{"guard":"none","capabilities":[1]}""", """{"guard":"none","capabilities":[{"a":1}]}""")) {
+            assertEquals("expectedOutput이 정답(guard·capabilities) 모양이 아니에요.", problem("decision_guard.routing", """{"request":"질문"}""", bad), bad)
+        }
+        assertEquals("expectedOutput이 필요해요.", problem("decision_guard.routing", """{"request":"질문"}""", "{}"))   // an empty answer is no answer, like for every set
     }
 
     private val body = "길동은 칼을 들었다. 칼은 무거웠다. 홍문이 보았다."

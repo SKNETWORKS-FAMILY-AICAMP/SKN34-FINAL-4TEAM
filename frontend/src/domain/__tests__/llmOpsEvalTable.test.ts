@@ -20,7 +20,8 @@ describe('에이전트별 평가 표', () => {
     for (const name of ['메인 에이전트', 'Decision Guard', 'Q&A', 'Manuscript Review', 'World', 'Writing', 'Research', 'Rating', '인물 시뮬레이션', '전처리 설정 추출']) expect(agents, name).toContain(name)
     expect(AGENT_EVALUATIONS.map((row) => row.feature)).toEqual(expect.arrayContaining(['character_simulation.act', 'character_simulation.narrate']))
     const empty = AGENT_EVALUATIONS.filter((row) => row.set === NO_SET)
-    expect(empty.map((row) => row.agent)).toEqual(expect.arrayContaining(['메인 에이전트', 'Decision Guard', 'Manuscript Review', 'Research', 'Rating']))
+    expect(empty.map((row) => row.agent)).toEqual(expect.arrayContaining(['메인 에이전트', 'Manuscript Review', 'Research', 'Rating']))
+    expect(empty.map((row) => row.agent)).not.toContain('Decision Guard')   // 라우팅 세트(#783)가 생겼다
     for (const row of empty) expect([row.dataset, row.metrics, row.result], row.feature).toEqual([undefined, '—', '—'])
   })
 
@@ -55,6 +56,7 @@ describe('프롬프트 개선 루프의 짝 평가 세트(#857)', () => {
   it('pairSets는 그 프롬프트를 새 답변 생성으로 평가하는 행의 세트를 주고, 세트가 없는 프롬프트·모르는 프롬프트는 빈 목록이다', () => {
     expect(pairSets('character_simulation.act').map((row) => row.dataset)).toEqual(['simulation.act'])
     expect(pairSets('manuscript_extraction.extract').map((row) => row.set)).toEqual(['extraction.extract(30)'])
+    expect(pairSets('decision_guard.judge').map((row) => row.dataset)).toEqual(['decision_guard.routing'])
     expect(pairSets('orchestration.main')).toEqual([])
     expect(pairSets('nope')).toEqual([])
   })
@@ -62,6 +64,7 @@ describe('프롬프트 개선 루프의 짝 평가 세트(#857)', () => {
   it('setItems는 표의 세트 칸 괄호 안 항목 수를 주고, 항목 수가 없는 칸은 없음이다', () => {
     expect(pairSets('story_context.answer').map(setItems)).toEqual([6])
     expect(pairSets('character_simulation.narrate').map(setItems)).toEqual([46])
+    expect(pairSets('decision_guard.judge').map(setItems)).toEqual([49])
     expect([NO_SET, '한국어 62문항(설정 14·누설 62)', '제외(결과가 시점마다 달라 재현 불가)'].map((set) => setItems({ set }))).toEqual([undefined, undefined, undefined])
   })
 
@@ -101,7 +104,7 @@ describe('프롬프트 개선 루프의 짝 평가 세트(#857)', () => {
   })
 
   it('pairedPrompt는 세트의 짝 프롬프트를 주고, 범용 세트·모르는 세트는 없음이다(데이터셋 목록의 짝 프롬프트 칸)', () => {
-    expect(['simulation.act', 'simulation.narrate', 'qa.grounding', 'extraction.extract'].map(pairedPrompt)).toEqual(['character_simulation.act', 'character_simulation.narrate', 'story_context.answer', 'manuscript_extraction.extract'])
+    expect(['simulation.act', 'simulation.narrate', 'qa.grounding', 'extraction.extract', 'decision_guard.routing'].map(pairedPrompt)).toEqual(['character_simulation.act', 'character_simulation.narrate', 'story_context.answer', 'manuscript_extraction.extract', 'decision_guard.judge'])
     expect(['leak.spoiler', 'world.conflict', 'writing.fix', 'my-upload'].map(pairedPrompt)).toEqual([null, null, null, null])
   })
 })

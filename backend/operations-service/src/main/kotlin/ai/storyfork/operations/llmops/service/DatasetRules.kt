@@ -5,7 +5,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.node.StringNode
 
 /*
- * What an evaluation dataset item has to look like (#868), read from the AI service scorers (app/evaluation/service.py, simulation.py, extraction.py) and the items of the
+ * What an evaluation dataset item has to look like (#868), read from the AI service scorers (app/evaluation/service.py, simulation.py, routing.py, extraction.py) and the items of the
  * seed sets (DatasetRulesTest checks every real item against these rules): an item the scorer would refuse makes every later evaluation of that set fail, so it is
  * refused at the upload. The scorer is picked by the set name like the evaluation service does it.
  */
@@ -28,15 +28,16 @@ internal fun pairedDataset(name: String): String? = when (datasetKind(name)) {
     else -> null
 }
 
-private enum class Scorer { QA, ACT, NARRATE, EXTRACTION, GEVAL }
+private enum class Scorer { QA, ACT, NARRATE, ROUTING, EXTRACTION, GEVAL }
 
-/** qa. is Ragas, the two simulation sets and the extraction set are scored by code, everything else is GEval; a pool is scored like its gate. */
+/** qa. is Ragas, the two simulation sets, the routing set and the extraction set are scored by code, everything else is GEval; a pool is scored like its gate. */
 private fun scorerOf(dataset: String): Scorer {
     val base = if (datasetKind(dataset) == POOL) dataset.removePrefix(POOL_PREFIX) else dataset
     return when {
         base.startsWith("qa.") -> Scorer.QA
         base == "simulation.act" -> Scorer.ACT
         base == "simulation.narrate" -> Scorer.NARRATE
+        base == "decision_guard.routing" -> Scorer.ROUTING
         base == "extraction.extract" -> Scorer.EXTRACTION
         else -> Scorer.GEVAL
     }
@@ -70,6 +71,12 @@ private fun inputProblem(scorer: Scorer, input: JsonNode): String? = when (score
         input.get("set")?.let { it.isString && it.stringValue() in setOf("narration", "monologue") } != true -> "input.set은 narration 또는 monologue여야 해요."
         else -> null
     }
+    // routing.py generate: request is the text the guard judges and history, when it is there, a list (the turns are sent on as they are).
+    Scorer.ROUTING -> when {
+        !filled(input.get("request")) -> "input.request가 필요해요."
+        input.has("history") && !input.get("history").isArray -> "input.history는 목록이어야 해요."
+        else -> null
+    }
     Scorer.EXTRACTION -> input.let { episode ->
         val number = episode.get("number")
         if (number != null && number.isIntegralNumber && number.canConvertToLong() && number.asLong() >= 1 && isText(episode.get("title")) && isText(episode.get("body"))) null
@@ -78,8 +85,15 @@ private fun inputProblem(scorer: Scorer, input: JsonNode): String? = when (score
     Scorer.GEVAL -> null
 }
 
-private fun expectedProblem(scorer: Scorer, input: JsonNode, expected: JsonNode): String? =
-    if (scorer == Scorer.EXTRACTION) goldProblem(input.get("body").stringValue(), expected) else if (expected.isString) null else "expectedOutput은 글이어야 해요."
+private fun expectedProblem(scorer: Scorer, input: JsonNode, expected: JsonNode): String? = when (scorer) {
+    Scorer.EXTRACTION -> goldProblem(input.get("body").stringValue(), expected)
+    Scorer.ROUTING -> if (routingAnswerFits(expected)) null else "expectedOutput이 정답(guard·capabilities) 모양이 아니에요."
+    else -> if (expected.isString) null else "expectedOutput은 글이어야 해요."
+}
+
+/** What the guard scorer compares (routing.py evaluate): the guard as text and the features the guard should have picked as a list of feature names (a name that is no text would not even be comparable). */
+private fun routingAnswerFits(expected: JsonNode) =
+    isText(expected.get("guard")) && expected.get("capabilities")?.let { list -> list.isArray && list.values().all(::isText) } == true
 
 private fun metadataProblem(scorer: Scorer, metadata: JsonNode?): String? = when (scorer) {
     Scorer.GEVAL -> if (filled(metadata?.get("criteria"))) null else "metadata.criteria가 필요해요."

@@ -119,7 +119,7 @@ class DatasetServiceTest {
 
     @Test
     fun `the list names each set's kind and pairs a gate with its prompt, with the item count, the time of the newest item and the description`() {
-        val names = listOf("qa.grounding", "simulation.act", "simulation.narrate", "extraction.extract", "optimize.simulation.act", "leak.spoiler", "optimize.foo")
+        val names = listOf("qa.grounding", "simulation.act", "simulation.narrate", "extraction.extract", "optimize.simulation.act", "leak.spoiler", "optimize.foo", "decision_guard.routing")
         `when`(langfuse.datasets()).thenReturn(listOf(
             json("""{"id":"d0","name":"qa.grounding","description":null}"""),
             json("""{"id":"d1","name":"simulation.act","description":"인물 대사 평가"}"""),
@@ -128,6 +128,7 @@ class DatasetServiceTest {
             json("""{"id":"d4","name":"optimize.simulation.act","description":"최적화 풀"}"""),
             json("""{"id":"d5","name":"leak.spoiler","description":null}"""),
             json("""{"id":"d6","name":"optimize.foo","description":null}"""),
+            json("""{"id":"d7","name":"decision_guard.routing","description":"Decision Guard 라우팅 평가"}"""),   // the gate of decision_guard.judge (#783)
         ))
         sets["qa.grounding"] = emptyList()   // a set without items has no newest item
         sets["simulation.act"] = listOf(createdAt("2026-11-20T01:00:00Z"), createdAt("2026-11-24T09:30:15.123Z"), createdAt("2026-11-22T00:00:00Z"))   // the newest is neither the first nor the last
@@ -136,20 +137,21 @@ class DatasetServiceTest {
         sets["optimize.simulation.act"] = List(3) { createdAt("2026-11-10T00:00:00Z") }
         sets["leak.spoiler"] = listOf(createdAt("2026-11-12T00:00:00Z", "2026-11-13T12:00:00Z"))   // changed after it was created (Langfuse may keep the creation time on an update)
         sets["optimize.foo"] = List(7) { createdAt("2026-11-02T00:00:00Z") }
+        sets["decision_guard.routing"] = List(2) { createdAt("2026-11-15T00:00:00Z") }
 
         val result = service.list(operators.llm)
 
         assertEquals(names, result.map { it.name })
-        assertEquals(listOf("gate", "gate", "gate", "gate", "pool", "general", "general"), result.map { it.kind })   // a pool needs a gate behind it
+        assertEquals(listOf("gate", "gate", "gate", "gate", "pool", "general", "general", "gate"), result.map { it.kind })   // a pool needs a gate behind it
         // The pair is the prompt that names the set as its evaluation set (the candidate gate); a pool or a set no prompt names has none.
-        assertEquals(listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "manuscript_extraction.extract", null, null, null), result.map { it.prompt })
-        assertEquals(listOf(0L, 3L, 151L, 1L, 3L, 1L, 7L), result.map { it.itemCount })
+        assertEquals(listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "manuscript_extraction.extract", null, null, null, "decision_guard.judge"), result.map { it.prompt })
+        assertEquals(listOf(0L, 3L, 151L, 1L, 3L, 1L, 7L, 2L), result.map { it.itemCount })
         // The latest time any item was created or changed, the same maximum the evaluation service takes to decide whether a baseline Run has seen the whole set.
         assertEquals(
-            listOf(null, "2026-11-24T09:30:15.123Z", "2026-11-25T00:00:00Z", null, "2026-11-10T00:00:00Z", "2026-11-13T12:00:00Z", "2026-11-02T00:00:00Z").map { it?.let(Instant::parse) },
+            listOf(null, "2026-11-24T09:30:15.123Z", "2026-11-25T00:00:00Z", null, "2026-11-10T00:00:00Z", "2026-11-13T12:00:00Z", "2026-11-02T00:00:00Z", "2026-11-15T00:00:00Z").map { it?.let(Instant::parse) },
             result.map { it.lastItemAt },
         )
-        assertEquals(listOf(null, "인물 대사 평가", null, null, "최적화 풀", null, null), result.map { it.description })
+        assertEquals(listOf(null, "인물 대사 평가", null, null, "최적화 풀", null, null, "Decision Guard 라우팅 평가"), result.map { it.description })
         // The order of the listing is not relied on (the newest item can be anywhere), so every item is read, a hundred at a time.
         assertEquals(listOf(Triple("simulation.narrate", 1, 100), Triple("simulation.narrate", 2, 100)), reads.filter { it.first == "simulation.narrate" })
     }

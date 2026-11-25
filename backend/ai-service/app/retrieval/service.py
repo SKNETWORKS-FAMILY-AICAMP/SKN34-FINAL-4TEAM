@@ -10,7 +10,7 @@ import os
 import httpx
 from pydantic import ValidationError
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult, RetrievalScope
 
@@ -22,7 +22,7 @@ def retrieve(scope: RetrievalScope, question: str) -> RetrievalResult:
     base, token = os.environ.get('CONTENT_SERVICE_BASE_URL'), os.environ.get('INTERNAL_TOKEN')
     if not base or not token:
         raise RetrievalFailure(503, 'Content 검색 설정이 필요합니다.')
-    with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'},
+    with agent_runtime.activity('원고·설정 검색', question), tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'},
                          input={'question': question[:500]}) as span:
         try:
             response = httpx.post(f'{base.rstrip("/")}/internal/v1/ai/qa/retrieval',

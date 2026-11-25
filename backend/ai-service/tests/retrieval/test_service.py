@@ -100,3 +100,13 @@ def test_scope_only_accepts_the_content_signed_token():
     from pydantic import ValidationError
     with _pytest.raises(ValidationError):
         RetrievalScope.model_validate({'scopeToken': 'x', 'owner': 'someone-else'})
+
+
+def test_search_reports_an_activity_with_the_question(monkeypatch):
+    from app import agent_runtime
+    seen = []
+    monkeypatch.setattr(agent_runtime, 'get_stream_writer', lambda: seen.append)
+    content(monkeypatch)
+    service.retrieve(SCOPE, '용은 언제 왔나?')
+    assert [(s['activity']['label'], s['activity']['target'], s['activity']['status']) for s in seen] == [
+        ('원고·설정 검색', '용은 언제 왔나?', 'running'), ('원고·설정 검색', '용은 언제 왔나?', 'done')]

@@ -4,6 +4,7 @@
 평가 세트 이름이 qa.로 시작하면 Ragas(faithfulness·context precision), simulation.act·simulation.narrate면 원문 평가 루브릭(voice·intent·pov_ok / style·info·pov_ok), 그 밖은
 DeepEval GEval(항목 metadata.criteria)로 채점한다. 항목 input은 객체이며 프롬프트 본문(지시문)과 함께 업무 Agent와 같은 실행 틀(app/agent_runtime.py)로 모델에 보낸다.
 시뮬레이션 세트만 업무 Agent 틀 대신 실제 서비스 호출(app/simulation/agent의 act·narrate에 그 버전 본문)로 만든다(app/evaluation/simulation.py).
+라우팅 세트(decision_guard.routing, #783)는 실제 Decision Guard 판정에 그 버전 본문을 주고 정답과 견줘 모델 없이 guard·precision·recall로 채점한다(app/evaluation/routing.py).
 추출 세트(extraction.extract)도 실제 서비스 호출(manuscript_extraction.service.extract에 그 버전 본문)로 만들고 채점 모델 없이 정답표와 코드로 대조한다(recall·quote_ok, app/evaluation/extraction.py).
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
 기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이고, 그 평가 세트의 **마지막 문항이 만들어지거나 바뀐 뒤에 시작한** Run만
@@ -27,7 +28,7 @@ from langfuse import Evaluation
 from langfuse.api import NotFoundError
 
 from app import tracing
-from app.evaluation import agent, extraction, scoring, simulation
+from app.evaluation import agent, extraction, routing, scoring, simulation
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import EvaluationRequest, LeakCheckRequest, LeakCheckResponse
 
@@ -80,6 +81,8 @@ def prepare(request: EvaluationRequest, run_name: str | None = None) -> Plan:
     kind = simulation.KINDS.get(request.dataset)
     if kind and request.prompt != f'character_simulation.{kind}':   # 다른 호출의 지시문으로 돌리면 점수가 뜻이 없다
         raise EvaluationFailure(422, '시뮬레이션 평가 세트는 같은 호출의 지시문(character_simulation.act·narrate)만 평가할 수 있어요.')
+    if request.dataset == routing.DATASET and request.prompt != routing.PROMPT:
+        raise EvaluationFailure(422, '라우팅 평가 세트는 Decision Guard 지시문(decision_guard.judge)만 평가할 수 있어요.')
     if request.dataset == extraction.DATASET and request.prompt != extraction.PROMPT:   # 추출 세트도 같은 호출의 지시문만 평가한다
         raise EvaluationFailure(422, '추출 평가 세트는 같은 호출의 지시문(manuscript_extraction.extract)만 평가할 수 있어요.')
     client = _client()
@@ -146,10 +149,13 @@ def _run(plan: Plan) -> dict[str, float]:
     if plan.base_version is not None:
         plan = replace(plan, baseline=_make_baseline(plan), base_version=None)
     request, baseline = plan.request, plan.baseline
-    qa, kind, code = request.dataset.startswith(QA_PREFIX), simulation.KINDS.get(request.dataset), request.dataset == extraction.DATASET
+    qa, kind = request.dataset.startswith(QA_PREFIX), simulation.KINDS.get(request.dataset)
+    routed, code = request.dataset == routing.DATASET, request.dataset == extraction.DATASET
 
     async def execute(*, item, **_):
         # 모델 호출은 블로킹이라 스레드로 보내 항목을 동시에 돌린다(추적 문맥은 to_thread가 복사한다).
+        if routed:  # 라우팅 세트는 실제 판정이다(Decisions는 고정 모델이라 버전의 모델을 쓰지 않는다)
+            return await asyncio.to_thread(routing.generate, plan.instructions, _input(item))
         if kind:  # 시뮬레이션 세트는 업무 Agent 틀이 아니라 실제 서비스 호출로 만든다
             return await asyncio.to_thread(simulation.generate, kind, plan.instructions, _input(item), plan.model)
         if code:  # 추출 세트도 실제 서비스 호출로 만들고 코드로 채점한다
@@ -159,7 +165,8 @@ def _run(plan: Plan) -> dict[str, float]:
     result = plan.dataset.run_experiment(
         name=f'{request.prompt} v{request.version} 회귀 평가', run_name=plan.run_name,
         description=f'프롬프트 {request.prompt} 버전 {request.version}을 평가 세트 {request.dataset}로 평가',
-        task=execute, evaluators=[_ragas_evaluator if qa else _simulation_evaluator(kind) if kind else _extraction_evaluator if code else _geval_evaluator],
+        task=execute, evaluators=[_ragas_evaluator if qa else _routing_evaluator if routed else _simulation_evaluator(kind) if kind
+                                  else _extraction_evaluator if code else _geval_evaluator],
         max_concurrency=MAX_CONCURRENCY,
         metadata={'prompt': request.prompt, 'version': str(request.version), 'dataset': request.dataset, 'tolerance': str(plan.tolerance),
                   'baselineRun': baseline.run if baseline else '', 'baselineVersion': str(baseline.version) if baseline else ''})
@@ -224,12 +231,18 @@ def _simulation_evaluator(kind: str):
     return evaluate
 
 
+async def _routing_evaluator(*, output, expected_output=None, **_):
+    return await routing.evaluate(output, expected_output)
+
+
 async def _extraction_evaluator(*, input, output, expected_output=None, **_):
     return extraction.evaluate(input, output, expected_output)
 
 
 def _metrics(dataset: str) -> tuple[str, ...]:
-    """평가 세트가 Run 수준 점수로 남기는 지표 이름: qa.는 Ragas 둘, 시뮬레이션 세트는 루브릭 셋, 추출 세트는 recall·quote_ok, 그 밖은 GEval 하나다."""
+    """평가 세트가 Run 수준 점수로 남기는 지표 이름: qa.는 Ragas 둘, 시뮬레이션 세트는 루브릭 셋, 라우팅 세트는 guard·precision·recall, 추출 세트는 recall·quote_ok, 그 밖은 GEval 하나다."""
+    if dataset == routing.DATASET:
+        return routing.METRICS
     kind = simulation.KINDS.get(dataset)
     return (QA_METRICS if dataset.startswith(QA_PREFIX) else simulation.METRICS[kind] if kind else extraction.METRICS if dataset == extraction.DATASET
             else GEVAL_METRICS)

@@ -1819,6 +1819,7 @@ it('② 평가 세트에는 평가 데이터셋 목록(세트 이름·종류·�
   const rows = within(table).getAllByRole('row').slice(1)
   const SEED = '저장소 시드(ai-eval-seed)'
   expect(rows.map(cellsOf)).toEqual([
+    ['decision_guard.routing', '평가 게이트', 'Decision Guard · 요청 판정(judge) decision_guard.judge', '49문항', SEED],
     ['extraction.extract', '평가 게이트', '전처리 설정 추출 · 회차 설정 추출(extract) manuscript_extraction.extract', '30문항', SEED],
     ['leak.spoiler', '범용', '—', '5문항', SEED],
     ['optimize.extraction.extract', '최적화 풀', '—', '157문항', SEED],
@@ -1855,19 +1856,19 @@ it('데이터셋 목록은 종류로 거를 수 있고(전체·평가 게이트�
   await within(panelOf(detail)).findByRole('region', { name: '평가 데이터셋 표' })
   const kind = within(panelOf(detail)).getByLabelText<HTMLSelectElement>('세트 종류')
   expect([...kind.options].map((o) => [o.value, o.textContent])).toEqual([['', '전체'], ['gate', '평가 게이트'], ['pool', '최적화 풀'], ['general', '범용']])
-  expect(datasetNames(detail)).toHaveLength(10)
+  expect(datasetNames(detail)).toHaveLength(11)
   fireEvent.change(kind, { target: { value: 'pool' } })
   expect(datasetNames(detail)).toEqual(['optimize.extraction.extract', 'optimize.simulation.act', 'optimize.simulation.narrate'])
   fireEvent.change(kind, { target: { value: 'gate' } })
-  expect(datasetNames(detail)).toEqual(['extraction.extract', 'qa.grounding', 'simulation.act', 'simulation.narrate'])
+  expect(datasetNames(detail)).toEqual(['decision_guard.routing', 'extraction.extract', 'qa.grounding', 'simulation.act', 'simulation.narrate'])
   fireEvent.change(kind, { target: { value: 'general' } })
   expect(datasetNames(detail)).toEqual(['leak.spoiler', 'world.conflict', 'writing.fix'])
   fireEvent.change(kind, { target: { value: '' } })
-  expect(datasetNames(detail)).toHaveLength(10)
+  expect(datasetNames(detail)).toHaveLength(11)
   // 올릴 세트는 종류로 줄지 않는다(평가 게이트·최적화 풀·범용 모두 고를 수 있다).
   fireEvent.change(kind, { target: { value: 'pool' } })
   const target = within(panelOf(detail)).getByLabelText<HTMLSelectElement>('올릴 세트')
-  expect(target.options).toHaveLength(10)
+  expect(target.options).toHaveLength(11)
   expect([...target.options].filter((o) => o.value.startsWith('optimize.')).map((o) => o.textContent)).toEqual(['optimize.extraction.extract · 최적화 풀', 'optimize.simulation.act · 최적화 풀', 'optimize.simulation.narrate · 최적화 풀'])
   expect([...target.options].find((o) => o.value === 'simulation.act')?.textContent).toBe('simulation.act · 평가 게이트')
   expect([...target.options].find((o) => o.value === 'leak.spoiler')?.textContent).toBe('leak.spoiler · 범용')
@@ -1889,7 +1890,7 @@ it('JSONL 업로드는 올릴 세트(목록의 세트, 프롬프트의 짝 세�
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
   await waitFor(() => expect([...target.options].map((o) => o.value)).toEqual([
-    'extraction.extract', 'leak.spoiler', 'optimize.extraction.extract', 'optimize.simulation.act', 'optimize.simulation.narrate', 'qa.grounding', 'simulation.act', 'simulation.narrate', 'world.conflict', 'writing.fix',
+    'decision_guard.routing', 'extraction.extract', 'leak.spoiler', 'optimize.extraction.extract', 'optimize.simulation.act', 'optimize.simulation.narrate', 'qa.grounding', 'simulation.act', 'simulation.narrate', 'world.conflict', 'writing.fix',
   ]))
   expect(target.value).toBe('simulation.act')   // 이 프롬프트의 짝 세트
   const submit = within(form).getByRole('button', { name: '업로드' }) as HTMLButtonElement
@@ -1930,7 +1931,7 @@ it('미리보기는 올릴 세트 종류의 필수 칸으로 검사하고 세트
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
-  await waitFor(() => expect(target.options.length).toBe(10))
+  await waitFor(() => expect(target.options.length).toBe(11))
   // 범용 세트용 줄은 시뮬레이션 세트(처음 골라진 짝 세트)의 모양이 아니다.
   pickFile(form, 'general.jsonl', generalJsonl('a', 'b'))
   const bad = within(await within(form).findByLabelText('업로드 미리보기'))
@@ -1947,7 +1948,8 @@ it('미리보기는 올릴 세트 종류의 필수 칸으로 검사하고 세트
   expect(form.textContent).toMatch(/input\(객체\)과 expectedOutput은 필수/)
   expect(form.textContent).toMatch(/문항 id\(서버가 붙여요\)를 비롯한 다른 칸은 오류/)
   expect(form.textContent).toMatch(/채점 코드가 읽는 칸/)
-  expect(form.textContent).toMatch(/추출 세트 말고는 글/)
+  expect(form.textContent).toMatch(/추출 세트는 정답표, 라우팅 세트는 guard·capabilities 정답/)
+  expect(form.textContent).toMatch(/라우팅은 input\.request/)
   expect(form.textContent).toMatch(/설정에 드는 core 정답이 하나 이상/)
   expect(form.textContent).toMatch(/이 세트·짝 세트에 이미 있어도 오류예요/)
 })
@@ -1956,7 +1958,7 @@ it('올릴 세트가 평가 게이트이면 기준 버전을 다시 평가한다
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
-  await waitFor(() => expect(target.options.length).toBe(10))
+  await waitFor(() => expect(target.options.length).toBe(11))
   const notice = () => within(form).queryByText(GATE_UPLOAD_NOTICE)
   expect([target.value, !!notice()]).toEqual(['simulation.act', true])
   for (const [set, shown] of [['optimize.simulation.act', false], ['leak.spoiler', false], ['qa.grounding', true]] as const) {
@@ -2005,7 +2007,7 @@ it('검사를 통과한 파일은 고른 세트에 올라가 서버가 만든 �
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
-  await waitFor(() => expect(target.options.length).toBe(10))
+  await waitFor(() => expect(target.options.length).toBe(11))
   fireEvent.change(target, { target: { value: 'leak.spoiler' } })
   pickFile(form, 'upload-me.jsonl', generalJsonl('x-1', 'x-2'))
   await within(form).findByLabelText('업로드 미리보기')
@@ -2025,7 +2027,7 @@ it('올렸다는 문구는 올리기 전 미리보기 건수가 아니라 서버
   vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockResolvedValue({ created: 3, kind: 'gate', notice: GATE_UPLOAD_NOTICE })
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
-  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(10))
+  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(11))
   pickFile(form, 'a.jsonl', jsonl('a', 'b'))
   await within(form).findByLabelText('업로드 미리보기')
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
@@ -2037,7 +2039,7 @@ it('세트 종류와 안내는 고른 세트가 아니라 서버의 응답을 �
   vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockResolvedValue({ created: 2, kind: 'pool', notice: null })
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
-  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(10))
+  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(11))
   pickFile(form, 'a.jsonl', jsonl('a', 'b'))
   await within(form).findByLabelText('업로드 미리보기')
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
@@ -2066,7 +2068,7 @@ it('서버가 거절하면(400 DATASET_INVALID) 거절된 줄을 보이고 아�
   vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockRejectedValue(new DatasetInvalid(errors))
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
-  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(10))
+  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(11))
   pickFile(form, 'a.jsonl', jsonl('a', 'b'))
   await within(form).findByLabelText('업로드 미리보기')
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))

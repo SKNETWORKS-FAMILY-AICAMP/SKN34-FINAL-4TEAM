@@ -15,6 +15,7 @@ const MSG = {
   episode: 'input에는 number(1 이상 정수)·title·body가 필요해요.', goldShape: 'expectedOutput이 정답표(mentions·statements·relationships) 모양이 아니에요.',
   noCore: '정답표에 설정에 드는 core 정답이 하나 이상 있어야 해요.', criteria: 'metadata.criteria가 필요해요.', judge: 'metadata.judge(character·scene·facts)가 필요해요.',
   split: 'metadata.split은 train 또는 val이어야 해요.',
+  request: 'input.request가 필요해요.', history: 'input.history는 목록이어야 해요.', routingShape: 'expectedOutput이 정답(guard·capabilities) 모양이 아니에요.',
 }
 const sameInput = (first: number) => '파일의 ' + first + '번째 줄과 input이 같아요.'
 
@@ -141,14 +142,15 @@ const gold = (table: { mentions?: unknown[]; statements?: unknown[]; relationshi
 const EXTRACT = { input: EPISODE, expectedOutput: gold({ mentions: [mention('길동', 'character')] }) }
 const QA = { input: { question: '질문', contexts: ['근거'] }, expectedOutput: '답' }
 const GENERAL = { input: { question: '질문' }, expectedOutput: '답', metadata: { criteria: '기준' } }
+const ROUTING = { input: { request: '카엘의 목표가 뭐였지?' }, expectedOutput: { guard: 'none', capabilities: ['story_context'] } }
 const problem = (set: string, item: unknown) => parseDatasetJsonl(line(item), set).errors.map((error) => error.message)
 const goldProblem = (table: unknown, input: Record<string, unknown> = EPISODE) => problem('extraction.extract', { input, expectedOutput: table })
 
 describe('세트 종류별 필수 칸(세트 이름으로 정하고 최적화 풀 optimize.<게이트>는 그 게이트와 같다)', () => {
-  it('종류는 서버 datasetKind와 같게 이름으로 정한다: 후보 등록 게이트의 짝 세트 4개가 gate, optimize.<게이트>가 pool, 그 밖은 general이다(게이트 없는 optimize.…·대소문자 다른 이름도 general)', () => {
+  it('종류는 서버 datasetKind와 같게 이름으로 정한다: 후보 등록 게이트의 짝 세트 5개가 gate, optimize.<게이트>가 pool, 그 밖은 general이다(게이트 없는 optimize.…·대소문자 다른 이름도 general)', () => {
     expect(DATASET_KINDS.map(([kind, label]) => [kind, label])).toEqual([['gate', '평가 게이트'], ['pool', '최적화 풀'], ['general', '범용']])
     expect([datasetKindLabel('gate'), datasetKindLabel('pool'), datasetKindLabel('general')]).toEqual(['평가 게이트', '최적화 풀', '범용'])
-    for (const gate of ['qa.grounding', 'simulation.act', 'simulation.narrate', 'extraction.extract']) {
+    for (const gate of ['qa.grounding', 'simulation.act', 'simulation.narrate', 'decision_guard.routing', 'extraction.extract']) {
       expect([gate, datasetKindOf(gate)]).toEqual([gate, 'gate'])
       expect([poolOf(gate), datasetKindOf(poolOf(gate))]).toEqual([poolOf(gate), 'pool'])
     }
@@ -160,6 +162,7 @@ describe('세트 종류별 필수 칸(세트 이름으로 정하고 최적화 �
     expect(problem('simulation.act', ACT)).toEqual([])
     expect(problem('simulation.narrate', NARRATE)).toEqual([])
     expect(problem('extraction.extract', EXTRACT)).toEqual([])
+    expect(problem('decision_guard.routing', ROUTING)).toEqual([])
     expect(problem('qa.grounding', QA)).toEqual([])
     expect(problem('leak.spoiler', GENERAL)).toEqual([])
     expect(parseDatasetJsonl(line(QA)).errors).toEqual([])   // 세트 이름 없이도 공통 규칙은 통과
@@ -208,6 +211,20 @@ describe('세트 종류별 필수 칸(세트 이름으로 정하고 최적화 �
     expect(problem('simulation.narrate', { ...NARRATE, input: { set: 'narration' } })).toEqual([MSG.data])   // data가 set보다 먼저다
     expect(problem('optimize.simulation.narrate', { ...NARRATE, input: { set: 'x', data: {} } })).toEqual([MSG.set])
     expect(problem('simulation.act', { ...ACT, input: { set: 'anything', data: {} } })).toEqual([])
+  })
+
+  it('라우팅 세트(decision_guard.routing)는 input.request(비지 않은 글)와 선택 input.history(목록), 정답 {guard 글, capabilities 글 목록}이 필요하고 metadata는 보지 않는다(채점기 routing.py)', () => {
+    const turn = { request: '다음 화에 넣을 사건을 추천해줘', reply: '사건 세 개를 제안했어요.', features: ['writing_editing'] }
+    expect(problem('decision_guard.routing', { ...ROUTING, input: { request: '응, 3화로 해줘', history: [turn] } })).toEqual([])   // 이전 턴은 모양 그대로 판정에 보내지므로 목록만 본다
+    expect(problem('decision_guard.routing', { input: { request: '안녕', history: [] }, expectedOutput: { guard: 'none', capabilities: [] } })).toEqual([])   // 잡담·거절은 기능이 없다
+    expect(problem('decision_guard.routing', { ...ROUTING, metadata: { case: 'single' } })).toEqual([])
+    for (const bad of [{ history: [] }, { request: '' }, { request: '  ' }, { request: 3 }, { request: null }]) expect([JSON.stringify(bad), problem('decision_guard.routing', { ...ROUTING, input: bad })]).toEqual([JSON.stringify(bad), [MSG.request]])
+    // history는 채점기가 get('history', [])로 읽어 목록이어야 하니, 있는 키가 null·글·객체이면 그 항목이 실패한다.
+    for (const bad of [null, '이전', { request: 'x' }]) expect([JSON.stringify(bad), problem('decision_guard.routing', { ...ROUTING, input: { request: '질문', history: bad } })]).toEqual([JSON.stringify(bad), [MSG.history]])
+    for (const bad of ['none', [1], { guard: 'none' }, { capabilities: [] }, { guard: 1, capabilities: [] }, { guard: 'none', capabilities: 'story_context' }, { guard: 'none', capabilities: [1] }, { guard: 'none', capabilities: [{ a: 1 }] }]) {
+      expect([JSON.stringify(bad), problem('decision_guard.routing', { ...ROUTING, expectedOutput: bad })]).toEqual([JSON.stringify(bad), [MSG.routingShape]])
+    }
+    expect(problem('decision_guard.routing', { ...ROUTING, expectedOutput: {} })).toEqual([MSG.expected])   // 빈 정답은 정답이 없는 것과 같다
   })
 
   it('추출 세트(extraction.extract, 풀 포함)의 input은 회차 {number(1 이상 정수)·title·body 글}이다', () => {
@@ -319,8 +336,8 @@ const seedSets = [
   ...readdirSync(new URL('optimize/', DATASETS)).filter((name) => name.endsWith('.jsonl')).map((name) => [POOL_PREFIX + name.replace(/\.jsonl$/, ''), new URL('optimize/' + name, DATASETS)] as const),
 ]
 
-it('저장소의 실제 평가 세트·풀 파일(7개 세트와 풀 3개)의 모든 문항이 자기 세트의 검사를 통과한다: 검사가 현실보다 엄격하지 않다(서버 DatasetRulesTest와 같은 확인)', () => {
-  expect(seedSets.map(([name]) => name)).toHaveLength(10)
+it('저장소의 실제 평가 세트·풀 파일(8개 세트와 풀 3개)의 모든 문항이 자기 세트의 검사를 통과한다: 검사가 현실보다 엄격하지 않다(서버 DatasetRulesTest와 같은 확인)', () => {
+  expect(seedSets.map(([name]) => name)).toHaveLength(11)
   for (const [name, url] of seedSets) {
     const rows = readFileSync(url, 'utf8').split('\n').filter((text) => text.trim()).map((text) => JSON.parse(text))
     // 문항 id는 서버가 붙이므로 올리는 줄에는 없다.

@@ -37,6 +37,7 @@ const stepFields = {
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
   applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
+  selected: z.array(z.number().int().nonnegative()).nullish(), // World 보강 제안 중 골라 반영한 번호(#795)
 }
 // 원고 검수(#59) 단계 결과. AI ReviewResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
 const manuscriptReview: z.ZodType<ChatReview> = z.object({
@@ -135,6 +136,8 @@ const reply: z.ZodType<ChatReply> = z.object({
   awaitingScene: z.string().nullish(),
   approvalEpisode: z.number().int().positive().nullish(),
   pendingAction: pendingAction.nullish(),
+  choices: z.array(z.object({ label: z.string(), message: z.string(), form: z.enum(['simulation']).nullish() })).default([]),
+  rewritesLeft: z.number().int().nonnegative().nullish(),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
@@ -146,8 +149,10 @@ const events = {
   started: z.object({ feature: featureKey }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
   answer: z.object({ delta: z.string().nullable() }).transform((d) => ({ type: 'answer' as const, ...d })),
-  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish() })
-    .transform((d) => ({ type: 'waiting' as const, ...d })),
+  activity: z.object({ id: z.string(), label: z.string(), target: z.string().nullish(), status: z.enum(['running', 'done', 'failed']) })
+    .transform((activity) => ({ type: 'activity' as const, activity })),
+  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish(),
+    rewritesLeft: z.number().int().nonnegative().nullish() }).transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
   error: z.object({ message: z.string() }).transform((d) => ({ type: 'error' as const, ...d })),
 }
@@ -166,12 +171,14 @@ function parse(block: string): ChatEvent | null {
     if (line.startsWith('event:')) name = line.slice(6).trim()
     else if (line.startsWith('data:')) data.push(line.slice(5).trimStart())
   }
+  if (!Object.hasOwn(events, name) || !data.length) return null
   const schema = events[name as keyof typeof events]
-  if (!schema || !data.length) return null
   let value: unknown
   try { value = JSON.parse(data.join('\n')) } catch { value = undefined }
   const parsed = schema.safeParse(value)
-  return parsed.success ? parsed.data : { type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' }
+  if (parsed.success) return parsed.data
+  // 진행 목록(#784)은 표시용이라 형식이 어긋난 줄만 버린다. 턴 결과(plan·step·done 등)의 형식 오류는 숨기지 않는다.
+  return name === 'activity' ? null : { type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' }
 }
 
 /** 집필 AI 채팅 세션 API. 일반 요청은 HttpEpisodeRepository.request(Bearer·CSRF·오류 문구)를, 전송은 fetch 스트림을 쓴다. */

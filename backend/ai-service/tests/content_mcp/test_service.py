@@ -452,3 +452,16 @@ def test_apply_plan_keeps_contents_status_and_detail_when_the_plan_is_gone_or_ed
     with pytest.raises(ContentMcpFailure) as error:
         service.read_plan('work', 'scene-1')
     assert (error.value.status, str(error.value)) == (404, '계획을 찾을 수 없어요.')
+
+
+def test_call_reports_a_short_activity_and_failure_without_raw_arguments(monkeypatch):
+    from app import agent_runtime
+    seen = []
+    monkeypatch.setattr(agent_runtime, 'get_stream_writer', lambda: seen.append)
+    content(monkeypatch, {'episode_read': (False, json.dumps(EPISODE)), 'world_studio_edit_draft': (True, 'HTTP 409\n충돌')})
+    service.call('episode_read', {'id': 'work-uuid', 'number': 3})
+    with pytest.raises(ContentMcpFailure):
+        service.call('world_studio_edit_draft', {'id': 'w', 'request': {'cards': [{'id': 'k', 'title': '카엘'}, {'title': '리나'}]}})
+    assert [(r['label'], r['target'], r['status']) for r in (s['activity'] for s in seen)] == [
+        ('회차 읽기', '3화', 'running'), ('회차 읽기', '3화', 'done'),
+        ('세계관 설정 카드 수정', '카엘, 리나', 'running'), ('세계관 설정 카드 수정', '카엘, 리나', 'failed')]
