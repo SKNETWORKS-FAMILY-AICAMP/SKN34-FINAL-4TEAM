@@ -187,6 +187,7 @@ it('합칠 수 있는 회차에만 뒤 회차 제목이 본문에 남는다고 �
   const merge = (number: number) => screen.getByRole('button', { name: `${number}번째 회차를 다음 회차와 합치기` })
 
   const explanation = screen.getByText(notice)
+  expect(explanation.id).not.toBe('')
   expect(merge(1).getAttribute('aria-describedby')).toBe(explanation.id)
   expect(merge(2).getAttribute('aria-describedby')).toBe(explanation.id)
   expect(merge(3).hasAttribute('aria-describedby')).toBe(false)
