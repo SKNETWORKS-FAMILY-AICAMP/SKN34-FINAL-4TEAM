@@ -393,16 +393,21 @@ def test_a_base_version_that_does_not_exist_or_is_a_chat_prompt_fails_before_any
     assert attrs(root)['langfuse.observation.status_message']
 
 
-def test_an_unexpected_error_is_logged_by_class_and_place_only(world, caplog, monkeypatch):
-    """#841 첫 실행: 클래스 이름(TypeError)만으로는 원인을 찾지 못했다. 난 곳(파일:줄 함수)은 코드 위치라 본문이 섞이지 않는다."""
-    def broken(**options):
+def test_an_unexpected_error_is_logged_by_class_and_call_path_without_its_message(world, caplog, monkeypatch):
+    """#841 첫 실행: 클래스 이름(TypeError)만으로는 원인을 찾지 못했고(#850) 난 곳 한 줄로는 누가 불렀는지 알 수 없다. 호출 경로 전체(프레임마다 파일:줄 함수, 바깥 → 안쪽)를 남긴다.
+    메시지에는 입력·응답 본문이 섞일 수 있어 남기지 않는다(코드 위치뿐이라 본문이 섞이지 않는다)."""
+    def inner():
         raise RuntimeError('입력 원문이 든 메시지')
+
+    def broken(**options):
+        inner()
     install_gepa(monkeypatch, broken)
 
     with caplog.at_level(logging.ERROR):
         service.run_job(REQUEST.model_dump())
 
-    assert 'RuntimeError' in caplog.text and 'test_service.py:' in caplog.text and ' broken' in caplog.text
+    path = [name for name in re.findall(r'\.py:\d+ (\w+)', caplog.text) if name in {'run_job', '_optimize', 'broken', 'inner'}]
+    assert path == ['run_job', '_optimize', 'broken', 'inner'] and 'RuntimeError' in caplog.text
     assert '원문' not in caplog.text and status_of(root_of(world)) == 'failed'
 
 

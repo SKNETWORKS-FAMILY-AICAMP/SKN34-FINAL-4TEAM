@@ -121,7 +121,7 @@ class _ScoreLog:
 
 
 def run_job(job: dict) -> None:
-    """워커의 진입점(예외를 올리지 않는다). 실패는 trace ERROR로 남고 로그에는 고정 문구(없으면 예외 이름)만 남는다."""
+    """워커의 진입점(예외를 올리지 않는다). 실패는 trace ERROR로 남고 로그에는 고정 문구(없으면 예외 이름과 호출 경로)만 남는다."""
     request = OptimizationRequest.model_validate(job)
     try:
         with tracing.request('prompt_optimization', prompt=request.prompt, baseVersion=str(request.version), maxMetricCalls=str(request.maxMetricCalls)):
@@ -129,15 +129,15 @@ def run_job(job: dict) -> None:
                 if not acquired:   # 접수 뒤 큐에서 기다리는 사이에 다른 실행이 시작했다
                     raise OptimizationFailure(409, RUNNING)
                 _optimize(request)
-    except Exception as error:   # 입력·응답 본문이 섞일 수 있어 고정 문구(실패 클래스)가 아니면 예외 이름과 난 곳만 남긴다
+    except Exception as error:   # 입력·응답 본문이 섞일 수 있어 고정 문구(실패 클래스)가 아니면 예외 이름과 호출 경로만 남긴다
         known = isinstance(error, (OptimizationFailure, EvaluationFailure))
-        logger.error('프롬프트 자동 개선 %s v%s 실패: %s', request.prompt, request.version, error if known else f'{type(error).__name__} ({_where(error)})')
+        logger.error('프롬프트 자동 개선 %s v%s 실패: %s', request.prompt, request.version, error if known else f'{type(error).__name__}\n{_stack(error)}')
 
 
-def _where(error: BaseException) -> str:
-    """예외가 난 곳(폴더/파일:줄 함수). 메시지에는 입력·응답 본문이 섞일 수 있어 코드 위치만 남긴다(#841 첫 실행: 클래스 이름만으로는 TypeError의 원인을 찾지 못했다)."""
-    frame = traceback.extract_tb(error.__traceback__)[-1]
-    return f"{'/'.join(Path(frame.filename).parts[-2:])}:{frame.lineno} {frame.name}"
+def _stack(error: BaseException) -> str:
+    """예외가 난 길: 바깥에서 안쪽으로 프레임마다 `패키지/폴더/파일:줄 함수`(#850). 메시지에는 입력·응답 본문이 섞일 수 있어 코드 위치만 남긴다
+    (#841 첫 실행: 클래스 이름만으로는 TypeError의 원인을 찾지 못했고, 난 곳 한 줄로는 누가 불렀는지 알 수 없다)."""
+    return '\n'.join(f"  {'/'.join(Path(frame.filename).parts[-3:])}:{frame.lineno} {frame.name}" for frame in traceback.extract_tb(error.__traceback__))
 
 
 def _optimize(request: OptimizationRequest) -> None:
