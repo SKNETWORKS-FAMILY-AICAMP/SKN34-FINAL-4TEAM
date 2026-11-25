@@ -97,7 +97,7 @@ CONVERSATION_NOT_FOUND_MESSAGE = '대화나 메시지를 찾을 수 없습니다
 CONVERSATION_BUSY_MESSAGE = '진행 중인 작업이 끝난 뒤에 바꿀 수 있습니다.'
 TITLE_LENGTH = 40
 STREAM_FAILED_MESSAGE = '작업을 완료할 수 없습니다.'
-SUMMARY_MAX = 2000  # 요약 지시는 1,000자 이내다. 넘으면 쓰지 않고 실패로 둔다
+SUMMARY_MAX = 2000  # 요약 지시는 1,000자 이내다. 넘으면 이 길이에서 잘라 쓴다(사용자 결정 2026-11-25, #891)
 REWRITES = 2  # 원고 반영 대기에서 턴당 다시 쓰기 횟수(#795, 비용 상한)
 REWRITE_LIMIT = '이 요청에서는 더 다시 쓸 수 없어요. 반영하거나 반영하지 않기로 정해 주세요.'
 NOT_PICKABLE = '고를 수 있는 보강 제안이 아니에요. 대화를 다시 불러온 뒤 골라 주세요.'
@@ -437,9 +437,9 @@ def summarize(text: str, turns: list[dict]) -> str:
         message, _ = agent_runtime.run('orchestration.summary.generation', '대화 요약', SummaryFailure, SUMMARY_INSTRUCTIONS, data,
                                        prompt_name='orchestration.summary', max_tokens=2000, timeout=40, trace=trace, effort='low')
         summary = message.text.strip()
-        if not summary or len(summary) > SUMMARY_MAX:
+        if not summary:
             raise SummaryFailure(502, '대화 요약 모델 응답을 확인할 수 없습니다.')
-    return summary
+    return summary[:SUMMARY_MAX]
 
 
 def _next(state: State) -> str:

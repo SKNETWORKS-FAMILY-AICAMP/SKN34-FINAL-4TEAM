@@ -2967,10 +2967,9 @@ def test_summarize_sends_the_old_summary_and_the_turns_with_low_effort(monkeypat
     assert json.loads(generation.attributes['langfuse.observation.input']) == {'turns': 2}
 
 
-def test_a_summary_over_the_limit_is_a_failure_and_the_limit_itself_is_kept(monkeypatch):
+def test_a_summary_over_the_limit_is_cut_to_the_limit_and_one_within_it_is_kept(monkeypatch):
     fake_chat(monkeypatch, text='가' * (service.SUMMARY_MAX + 1))
-    with pytest.raises(service.SummaryFailure):
-        service.summarize('', [{'request': '하나'}])
+    assert service.summarize('', [{'request': '하나'}]) == '가' * service.SUMMARY_MAX  # 사용자 결정(2026-11-25): 실패로 두지 않고 자른다
     fake_chat(monkeypatch, text='가' * service.SUMMARY_MAX)
     assert service.summarize('', [{'request': '하나'}]) == '가' * service.SUMMARY_MAX
 
