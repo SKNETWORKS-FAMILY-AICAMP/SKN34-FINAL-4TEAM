@@ -483,7 +483,7 @@ it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행�
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { manuscript_review: { check: 'semantic' } } } })
 })
 
-it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 지적 번호를 단계 입력으로 보낸다(#370)', async () => {
+it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 지적 번호들을 단계 입력으로 보낸다(#370·#795)', async () => {
   const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: '', start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
   const review = { check: 'mechanical', episode: 2, revision: 4, gaps: [], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
   openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, approvalEpisode: 2, steps: [
@@ -492,13 +492,14 @@ it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
   const group = within(form).getByRole('group', { name: '고칠 지적 · 2화 초안' })
-  expect(within(group).getAllByRole('radio').map((r) => r.closest('label')?.textContent)).toEqual(['"웃엇다" — 웃엇다 오류', '"말햇다" — 말햇다 오류'])
+  expect(within(group).getAllByRole('checkbox').map((r) => r.closest('label')?.textContent)).toEqual(['"웃엇다" — 웃엇다 오류', '"말햇다" — 말햇다 오류'])
   expect(within(form).queryByRole('textbox')).toBeNull()  // 장면 계획을 적는 새 원고 입력이 아니다
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
-  fireEvent.click(within(group).getByRole('radio', { name: /말햇다/ }))
+  fireEvent.click(within(group).getByRole('checkbox', { name: /말햇다/ }))
+  fireEvent.click(within(group).getByRole('checkbox', { name: /웃엇다/ }))
   fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { writing_editing: { fix: 2 } } } })
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { writing_editing: { fix: [0, 2] } } } })
 })
 
 it('조건부 수정 지적 고르기 중에도 직전 검수 결과(제안·의심·확인 못 함)가 보인다(#391)', async () => {
@@ -1429,4 +1430,94 @@ describe('되묻기 선택지(#794)', () => {
     expect(await screen.findByText('어느 회차 결말을 고칠까요?')).toBeTruthy()
     expect(screen.queryByRole('button', { name: '양식에서 고르기' })).toBeNull()
   })
+})
+
+// ── 승인 카드 확장(#795): 원고 다시 쓰기, World 제안 골라 반영, Content 쓰기 고쳐서 승인 ──
+const patchStep: ChatStep = { feature: 'writing_editing', task: 'patch', status: 'completed', result: { before: '그는 웃었다.', after: '그는 차갑게 웃었다.' } }
+const writingApproval = (rewritesLeft?: number) => openThread([{ request: '다듬어 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, rewritesLeft, steps: [patchStep] } }])
+
+it('원고 반영 대기에서 다시 쓰기는 남은 횟수를 보이고 반영하지 않은 채 같은 요청으로 다시 쓰게 한다(#795)', async () => {
+  writingApproval(2)
+  send.mockResolvedValue(undefined)
+  renderChat()
+  fireEvent.click(await screen.findByRole('button', { name: '다시 쓰기 (2번 남음)' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: false, refresh: true } })
+})
+
+it('다시 쓰기 한도에 닿으면 버튼을 잠그고, 다시 쓸 수 없는 대기(계획 수정·옛 기록)에는 버튼이 없다(#795)', async () => {
+  writingApproval(0)
+  const view = renderChat()
+  expect(await screen.findByRole('button', { name: '다시 쓰기 (0번 남음)' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '초안에 반영' })).toHaveProperty('disabled', false)
+  view.unmount()
+  writingApproval()
+  renderChat()
+  await screen.findByRole('button', { name: '초안에 반영' })
+  expect(screen.queryByRole('button', { name: /다시 쓰기/ })).toBeNull()
+})
+
+it('World 제안이 여럿이면 반영할 칸을 고르게 하고, 일부만 고르면 고른 번호를 보낸다(#795)', async () => {
+  worldApproval()
+  send.mockResolvedValue(undefined)
+  renderChat()
+  const group = await screen.findByRole('group', { name: '반영할 제안' })
+  const boxes = within(group).getAllByRole('checkbox')
+  expect(boxes.map((b) => (b as HTMLInputElement).checked)).toEqual([true, true])
+  fireEvent.click(boxes[0])
+  fireEvent.click(screen.getByRole('button', { name: '고른 1개 설정집 초안에 반영' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, selected: [1] } })
+})
+
+it('World 제안을 하나도 고르지 않으면 반영 버튼을 잠그고, 모두 고르면 번호 없이 승인한다(#795)', async () => {
+  worldApproval()
+  send.mockResolvedValue(undefined)
+  renderChat()
+  const boxes = within(await screen.findByRole('group', { name: '반영할 제안' })).getAllByRole('checkbox')
+  boxes.forEach((b) => fireEvent.click(b))
+  expect(screen.getByRole('button', { name: '고른 0개 설정집 초안에 반영' })).toHaveProperty('disabled', true)
+  boxes.forEach((b) => fireEvent.click(b))
+  fireEvent.click(screen.getByRole('button', { name: '설정집 초안에 반영' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  expect(send.mock.calls[0][2].resume).not.toHaveProperty('selected')
+})
+
+it('Content 쓰기 승인은 글 필드만 고쳐서 승인할 수 있고, 고친 인자를 그대로 보낸다(#795)', async () => {
+  openThread([{ request: '카엘을 고쳐 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+    pendingAction: { ...pendingAction, args: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', title: '카엘', body: '모델 설명.' }] } } } } }])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '고쳐서 승인' }))
+  expect((screen.getByRole('textbox', { name: '카엘 · 이름' }) as HTMLInputElement).value).toBe('카엘')
+  fireEvent.change(screen.getByRole('textbox', { name: '카엘 · 설명' }), { target: { value: '작가가 고친 설명.' } })
+  expect(screen.queryByRole('textbox', { name: /revision|id/i })).toBeNull()  // 식별자·revision은 고칠 수 없다
+  fireEvent.click(screen.getByRole('button', { name: '고친 내용으로 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, edited: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', title: '카엘', body: '작가가 고친 설명.' }] } } } })
+})
+
+it('고치는 중에 저장한 초안이 바뀌면 고치기 폼 대신 제안 다시 받기로 돌아간다(#795)', async () => {
+  approvalTurn()
+  const props = { workId: 'w', basis, emptyTitle: '새 대화', emptyText: '', suggestions: [] }
+  const view = render(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 4 }} />)
+  fireEvent.click(await screen.findByRole('button', { name: '고쳐서 승인' }))
+  expect(screen.getByRole('button', { name: '고친 내용으로 실행' })).toBeTruthy()
+  view.rerender(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 5 }} />)
+  expect(screen.queryByRole('button', { name: '고친 내용으로 실행' })).toBeNull()
+  expect(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' })).toBeTruthy()
+})
+
+it('작품 정보 수정은 제목·소개를 고칠 수 있고, 빈 제목으로는 실행할 수 없으며 고치기를 닫으면 원래 카드로 돌아간다(#795)', async () => {
+  openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+    pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 3 } } } } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '고쳐서 승인' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '작품 제목' }), { target: { value: ' ' } })
+  expect(screen.getByRole('button', { name: '고친 내용으로 실행' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('textbox', { name: '작품 소개' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '고치지 않기' }))
+  expect(screen.getByRole('button', { name: '실행' })).toBeTruthy()
+  expect(send).not.toHaveBeenCalled()
 })

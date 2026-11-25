@@ -4,7 +4,7 @@ import base64
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
@@ -33,15 +33,29 @@ def current_feature(feature: str) -> str:
 CurrentFeature = Annotated[Feature, BeforeValidator(current_feature)]
 
 
+Index = Annotated[int, Field(ge=0)]
+
+
+def _distinct(numbers: list[int] | None) -> list[int] | None:
+    if numbers is not None and len(set(numbers)) != len(numbers):
+        raise ValueError('같은 번호를 두 번 보낼 수 없습니다.')
+    return numbers
+
+
+Picks = Annotated[list[Index], Field(min_length=1), AfterValidator(_distinct)]  # 서로 다른 번호 1개 이상
+
+
 class WritingInput(BaseModel):
     """Writing & Editing은 한 기능이며 새 원고(draft)·선택 구간 수정(patch)·조건부 수정에서 고른 검수 지적 번호(fix) 중 하나만 받는다.
+
+    fix는 번호 하나 또는 여럿이다(#795). 여럿이면 그 지적을 모두 담은 한 구간을 한 번에 고친다.
 
     전개 기획과 계획 없는 바로 집필은 입력 없이 요청 문장과 반영 대상(target)으로 실행한다(#387).
     """
     model_config = ConfigDict(extra='forbid')
     draft: DraftRequest | None = None
     patch: PatchRequest | None = None
-    fix: int | None = Field(default=None, ge=0)  # 직전 Manuscript Review 결과 findings의 번호(#370)
+    fix: Index | Picks | None = None  # 직전 Manuscript Review 결과 findings의 번호(#370, 여럿은 #795)
 
     @model_validator(mode='after')
     def one(self):
@@ -150,6 +164,8 @@ class Resume(BaseModel):
     scene은 시뮬레이션 무대의 장면 조작(next·edit·redo·stop)이다. scene이 있으면 approved는 적용하지 않고 장면을 처리한 뒤 다시 멈춘다
     (승인·거절은 scene 없는 resume으로만 한다).
     refresh는 Content 쓰기 승인 대기에서 오래된 제안을 실행하지 않고 멈춘 자리에서 새 제안을 받는 답이다(#662, approved=false).
+    원고 반영 대기에서는 같은 입력으로 Writing을 다시 쓰는 답이다(#795, 턴당 REWRITES회).
+    selected는 World 보강 제안 중 반영할 수정안 번호(fixes 순서), edited는 Content 쓰기 승인에서 작가가 글 필드만 고친 도구 인자다(#795, approved=true).
     """
     model_config = ConfigDict(extra='forbid')
     approved: bool
@@ -157,11 +173,15 @@ class Resume(BaseModel):
     scope: RetrievalScope | None = None  # Content가 resume 때 새로 서명한 Q&A 조회 토큰
     scene: SceneAction | None = None
     refresh: bool = False
+    selected: Picks | None = None
+    edited: dict | None = None
 
     @model_validator(mode='after')
     def refresh_never_approves(self):
         if self.refresh and self.approved:
             raise ValueError('refresh는 approved=false로만 보낼 수 있습니다.')
+        if (self.selected is not None or self.edited is not None) and not self.approved:
+            raise ValueError('selected·edited는 approved=true로만 보낼 수 있습니다.')
         return self
 
 
@@ -235,6 +255,7 @@ class StepResult(BaseModel):
              | EnrichResponse | ImpactResponse | RatingResponse | ActionResult | None) = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
     approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안·계획 수정안 반영에 대한 작가의 답
+    selected: list[int] | None = None  # World 보강 제안 중 작가가 골라 반영한 수정안 번호(#795). 없으면 모두다
     applied: AppliedDraft | None = None  # World 보강 제안·계획 수정이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안·계획 revision이다
 
 
@@ -276,6 +297,7 @@ class OrchestrationResponse(BaseModel):
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     basis: Basis | None = None  # waiting에만 있다. 판본을 저장하기 전(#668)에 멈춘 턴에는 없다
     choices: list[ReplyChoice] = Field(default=[], max_length=4)  # clarify의 선택지(#794). 작가는 고르거나 입력창에 직접 답한다
+    rewritesLeft: int | None = None  # 원고 반영 대기에서 남은 다시 쓰기 횟수(#795). 다시 쓸 수 없는 대기(계획 수정·옛 체크포인트)에는 없다
     approvalEpisode: int | None = None  # 승인 질문·장면 대기·입력 대기(#635)에서 결과를 반영할 회차(target.episode). 편집기 회차 맞춤은 입력 대기를 빼고, 구간 카드는 이 회차에 고정한다
 
 

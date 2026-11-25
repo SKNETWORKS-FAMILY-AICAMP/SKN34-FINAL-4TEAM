@@ -5,7 +5,7 @@ Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 �
 있다. 선택지로 되묻는 `ask_author`(#794)는 기능과 무관하게 노출하고 도구 한도에 세지 않으며, 부르면 남은 호출 없이 clarify로 끝난다.
 모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
 - `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절이면 모델을 부르지 않고 끝낸다. 허용됐지만 기능이 비면 MCP 도구만으로 진행한다.
-- `WriteApproval`(`HumanInTheLoopMiddleware` 상속): 쓰기 MCP 도구 4개는 작가가 승인(approve)한 뒤에만 실행한다(reject면 실행하지 않는다). 다른 미들웨어가 이미 답한 호출은 묻지 않는다.
+- `WriteApproval`(`HumanInTheLoopMiddleware` 상속): 쓰기 MCP 도구 4개는 작가가 승인(approve)하거나 글 필드만 고쳐 승인(edit, #795)한 뒤에만 실행한다(reject면 실행하지 않는다). 다른 미들웨어가 이미 답한 호출은 묻지 않는다.
   멈출 때 그때까지의 단계를 payload에 싣는다(#587).
 - 제안 다시 받기(#662) 직후에는 `DynamicToolMiddleware`가 세계관 다시 읽기 → 재제안을 `tool_choice`로 강제한다.
 - `DynamicToolMiddleware`: 판정 기능의 도구와 MCP 도구만 모델에 보이고 실행 직전 다시 확인한다(MCP 도구는 `mcp_tools.execute`가 실행). 실패·취소·입력 대기·시뮬레이션 계획 뒤와
@@ -68,6 +68,7 @@ class MainState(AgentState):
     decision: NotRequired[dict]  # Decision Guard 판정 {allowed, reason, capabilities}
     steps: NotRequired[Annotated[list[dict], operator.add]]  # 이번 턴 서브 에이전트 결과. 도구마다 자기 단계 하나를 덧붙인다(호출 순서)
     writingBase: NotRequired[dict | None]  # 검수 후보의 기준이 되는 집필 직전 초안
+    writingCall: NotRequired[dict | None]  # 원고 반영 대기의 다시 쓰기(#795)가 같은 입력으로 다시 부를 Writing 호출 기록(tools.write)
     inputs: NotRequired[dict]  # Content가 확인한 단계 입력. 입력 대기 resume이 채운다
     retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. 입력·쓰기 승인 resume이 새 토큰으로 바꾼다
     stopped: NotRequired[dict | None]  # 남은 호출을 막고 끝낸 이유 {status: needs_input|cancelled|clarify, ...}
@@ -331,7 +332,8 @@ def build(found: list[dict] = ()):
                       reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0, streaming=True, callbacks=[AnswerStream()])
     mcp = mcp_tools.tools(found)
     # respond는 제안 다시 받기(#662)만 쓴다: 실행하지 않고 서버 문구를 거절 표시 없이 그대로 모델에게 준다.
-    approval = {t.name: {'allowed_decisions': ['approve', 'reject', 'respond'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
+    # edit는 고쳐서 승인(#795)이다: 글 필드만 고친 인자인지는 service._target이 이어가기 전에 확인한다(mcp_tools.edit_refused).
+    approval = {t.name: {'allowed_decisions': ['approve', 'edit', 'reject', 'respond'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
                 for t in mcp if t.name in mcp_tools.WRITE}
     return create_agent(chat, tools=[*TOOLS.values(), *mcp, tools.ask_author], system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
         # after_model 훅은 목록의 역순으로 돈다: 모델 호출 수 → 노출·묶음 확인 → 도구 한도 → 쓰기 승인. 순서를 바꾸면 막힌 호출이 한도를 쓰거나 승인을 묻는다.

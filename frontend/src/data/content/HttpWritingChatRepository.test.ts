@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { login } from '../api/auth'
 import type { ChatAttachmentPayload } from '../../domain/entities/chatAttachment'
-import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
+import { replyOutcome, stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
 const input = { episode: 2, episodeVersionId: 'v2', request: '길드 규칙은?' }
@@ -721,5 +721,32 @@ describe('계획 수정안 단계 결과(#578)', () => {
     ] }))
     const { turns } = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
     expect(turns[0].reply?.steps[0]).toMatchObject({ task: 'revise_plan', planRevision: { kind: 'scene' } })
+  })
+})
+
+describe('승인 카드 확장(#795) 응답', () => {
+  const run = async (...chunks: string[]) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(...chunks))).send('w1', 't1', input, (e) => events.push(e))
+    return events
+  }
+
+  it('원고 반영 대기의 남은 다시 쓰기 횟수를 waiting·done에서 읽고, 없는 옛 응답도 그대로 읽는다', async () => {
+    const waiting = { steps: [], missingInputs: [], awaitingApproval: 'writing_editing', rewritesLeft: 1 }
+    const events = await run(`event: waiting\ndata: ${JSON.stringify(waiting)}\n\n`, `event: done\ndata: ${JSON.stringify({ status: 'waiting', ...waiting })}\n\n`)
+    expect(events[0]).toMatchObject({ type: 'waiting', rewritesLeft: 1 })
+    expect(events[1]).toMatchObject({ type: 'done', reply: { rewritesLeft: 1 } })
+    const old = await run('event: done\ndata: {"status":"waiting","steps":[],"missingInputs":[],"awaitingApproval":"writing_editing"}\n\n')
+    expect(old[0].type === 'done' && old[0].reply.rewritesLeft).toBeFalsy()
+  })
+
+  it('World 제안 중 골라 반영한 번호(selected)를 읽고 반영 결과 글에 고른 개수를 보인다', async () => {
+    const step = { feature: 'world', task: 'enrich', status: 'completed', approval: 'approved', selected: [1], applied: { episode: 2, revision: 8 },
+      result: { worldId: 'w', revision: 7, note: '', model: 'm', fixes: [
+        { cardId: 'k', cardTitle: '카엘', target: 'soul', episode: null, text: '말이 짧다.' }, { cardId: 'r', cardTitle: '리나', target: 'body', episode: null, text: '항구 출신.' }] } }
+    const [event] = await run(`event: step\ndata: ${JSON.stringify(step)}\n\n`)
+    if (event.type !== 'step') throw new Error('step 이벤트가 아니에요')
+    expect(event.step.selected).toEqual([1])
+    expect(replyOutcome({ status: 'completed', steps: [event.step], missingInputs: [] })).toEqual(['→ 2개 중 1개를 설정집 초안에 반영했어요.'])
   })
 })

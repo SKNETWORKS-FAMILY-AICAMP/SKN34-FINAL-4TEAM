@@ -32,6 +32,7 @@ from fake_chat import fake_chat
 from traced import MEMBER, attrs, bearer, status_of
 
 from app.writing.errors import WritingFailure
+from app.writing.models import PatchResponse
 
 from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, PLAN_READ, PLAN_REVISION, QA, RANGE_PATCH, REVIEW, SCENE_TEXT, SCOPE,
                     WEB, NO_WORLD, WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_main, fake_scene, plan)
@@ -2881,3 +2882,202 @@ def test_a_choice_whose_message_would_pass_the_request_limit_is_left_out_not_cut
     fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan())
     result = run(long, target=TARGET)
     assert [(c.label, c.form) for c in result.choices] == [('양식에서 고르기', 'simulation')]
+
+
+# 승인 카드 확장(#795): 지적 여러 개 고치기, 원고 다시 쓰기, World 보강 일부 반영
+
+def picked(monkeypatch, *quotes, body=BODY):
+    """확정 지적 여럿 → 작가 선택 입력 대기. 그 대화 id와 호출 기록을 돌려준다."""
+    calls = conditional(monkeypatch, *(found(q) for q in quotes), body=body)
+    thread = str(uuid4())
+    waiting = write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    assert waiting.missingInputs == ['writing_editing']
+    return thread, calls
+
+
+def test_several_picked_findings_become_one_patch_over_the_span_that_holds_them(monkeypatch):
+    thread, calls = picked(monkeypatch, '서윤은 웃엇다.', '바람이 차가왔다.')
+    result = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': [1, 0]}}})
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    [patch] = [p for name, (p, *_), _ in calls if name == 'patch']
+    assert patch.selection == '서윤은 웃엇다. 바람이 차가왔다.' and (patch.precedingText, patch.followingText) == ('비가 왔다. ', '')
+    assert '서윤은 웃엇다. 맞춤법' in patch.instruction and '바람이 차가왔다. 맞춤법' in patch.instruction
+
+
+def test_a_single_pick_sent_as_a_list_patches_like_the_single_number(monkeypatch):
+    thread, calls = picked(monkeypatch, '서윤은 웃엇다.', '바람이 차가왔다.')
+    write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': [1]}}})
+    [patch] = [p for name, (p, *_), _ in calls if name == 'patch']
+    assert (patch.selection, patch.instruction) == ('바람이 차가왔다.', '바람이 차가왔다. 맞춤법 제안: 고친 말')
+
+
+def test_picks_too_far_apart_for_one_patch_fail_without_a_model_call(monkeypatch):
+    thread, calls = picked(monkeypatch, '서윤은 웃엇다.', '바람이 차가왔다.', body='서윤은 웃엇다.' + '가' * 5000 + '바람이 차가왔다.')
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': [0, 1]}}})
+    assert done.status == 'failed' and done.steps[1].error == tools.FIX_TOO_FAR and 'patch' not in names(calls)
+
+
+def test_an_overlong_batch_does_not_silently_cut_a_selected_finding(monkeypatch):
+    first = found('서윤은 웃엇다.').model_copy(update={'reason': '가' * 1100})
+    second = found('바람이 차가왔다.').model_copy(update={'reason': '나' * 1100})
+    calls = conditional(monkeypatch, first, second)
+    thread = str(uuid4())
+    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': [0, 1]}}})
+    assert done.status == 'failed'
+    assert done.steps[1].error == tools.FIX_DETAILS_TOO_LONG
+    assert 'patch' not in names(calls)
+
+
+def test_a_pick_list_with_a_finding_that_is_not_confirmed_fails_the_edit(monkeypatch):
+    calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'), found('비가', status='suspected'))
+    thread = str(uuid4())
+    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': [0, 2]}}})
+    assert done.status == 'failed' and done.steps[1].error == tools.BAD_FIX and 'patch' not in names(calls)
+
+
+def versions(monkeypatch):
+    """부를 때마다 다른 수정안을 내는 Writing patch 대역. 받은 입력을 순서대로 남긴다."""
+    seen = []
+
+    def patch(data):
+        seen.append(data)
+        return PatchResponse(before=data.selection, after=f'버전{len(seen)}', model='m', providerResponseId='r', usage=None)
+
+    monkeypatch.setattr(tools.writing, 'patch', patch)
+    return seen
+
+
+def rewrite(thread):
+    return write_turn(thread, resume={'approved': False, 'refresh': True})
+
+
+def test_rewriting_runs_the_same_writing_input_again_and_waits_again_until_the_limit(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    seen, applied = versions(monkeypatch), writer(monkeypatch)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    assert (first.awaitingApproval, first.rewritesLeft, first.steps[0].result.after) == ('writing_editing', 2, '버전1')
+    second = rewrite(thread)
+    assert (second.status, second.awaitingApproval, second.rewritesLeft, second.steps[0].result.after) == ('waiting', 'writing_editing', 1, '버전2')
+    assert rewrite(thread).rewritesLeft == 0 and seen[0] == seen[1] == seen[2] and applied == []
+    with pytest.raises(service.ResumeRejected) as refused:  # 화면을 거치지 않은 이어가기도 한도를 넘지 못한다
+        rewrite(thread)
+    assert str(refused.value) == service.REWRITE_LIMIT and len(seen) == 3
+    done = write_turn(thread, resume={'approved': True})
+    assert done.status == 'completed' and applied[0][2]['after'] == '버전3'
+
+
+@pytest.mark.parametrize('fails_once', [False, True])
+def test_rewriting_also_reruns_the_same_turns_candidate_review_on_the_new_result(monkeypatch, fails_once):
+    from app.manuscript_review.errors import ReviewFailure
+
+    fake_agents(monkeypatch, plan('writing_editing', 'manuscript_review'))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data, base, written['after']))
+        if fails_once and len(reviewed) == 2:
+            raise ReviewFailure(503, '검수 실패')
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId=f'r{len(reviewed)}', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH, 'manuscript_review': REVIEW})
+    again = rewrite(thread)
+    if fails_once:
+        assert (again.steps[1].status, again.steps[1].error) == ('failed', '검수 실패')
+    else:
+        assert again.steps[1].result.providerResponseId == 'r2'
+    third = rewrite(thread)
+    assert [after for *_, after in reviewed] == ['버전1', '버전2', '버전3']
+    assert reviewed[0][:2] == reviewed[1][:2] == reviewed[2][:2]
+    assert (third.steps[1].feature, third.steps[1].status, third.steps[1].error) == ('manuscript_review', 'completed', None)
+    assert third.steps[1].result.providerResponseId == 'r3'
+
+
+def test_a_failed_rewrite_keeps_the_last_result_and_fails_the_step(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    thread = str(uuid4())
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+
+    def broken(data):
+        raise WritingFailure(502, '수정안을 만들지 못했어요.')
+
+    monkeypatch.setattr(tools.writing, 'patch', broken)
+    done = rewrite(thread)
+    assert (done.status, done.steps[0].status, done.steps[0].error, done.steps[0].result.after) == ('failed', 'failed', '수정안을 만들지 못했어요.', '그는 차갑게 웃었다.')
+    assert applied == []
+
+
+def test_a_plan_revision_cannot_be_rewritten(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch)
+    thread = str(uuid4())
+    waiting = revise_turn(thread)
+    assert (waiting.awaitingApproval, waiting.rewritesLeft) == ('writing_editing', None)
+    with pytest.raises(service.NothingToResume):
+        rewrite(thread)
+
+
+def test_the_stream_shows_the_rewritten_result_then_waits_again(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    versions(monkeypatch)
+    thread = str(uuid4())
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+
+    async def collect():
+        data = OrchestrationRequest(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, resume={'approved': False, 'refresh': True})
+        return [(e.event, e.data) async for e in service.stream(data, 'Bearer user')]
+    events = asyncio.run(collect())
+    assert [name for name, _ in events] == ['step', 'waiting', 'done']
+    assert events[0][1]['result']['after'] == '버전2' and events[1][1]['rewritesLeft'] == 1 and events[-1][1]['rewritesLeft'] == 1
+
+
+TWO_FIXES = WORLD_ENRICH.model_copy(update={'fixes': [*WORLD_ENRICH.fixes, WORLD_ENRICH.fixes[0].model_copy(
+    update={'cardId': 'r', 'cardTitle': '리나', 'target': 'body', 'text': '항구 출신.'})]})
+
+
+def enrich_two(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('world', task='enrich')))
+    monkeypatch.setattr(tools.world_review, 'enrich', lambda request, data, world_id, revision: TWO_FIXES)
+    thread = str(uuid4())
+    write_turn(thread, request='카엘과 리나를 자세히 써줘', target=TARGET)
+    return thread
+
+
+def test_only_the_picked_world_proposals_are_applied_and_the_pick_is_recorded(monkeypatch):
+    thread = enrich_two(monkeypatch)
+    written = world_writer(monkeypatch)
+    done = write_turn(thread, resume={'approved': True, 'selected': [1]})
+    assert done.status == 'completed' and [f['cardId'] for _, _, fixes, _ in written for f in fixes] == ['r']
+    assert (done.steps[0].approval, done.steps[0].selected) == ('approved', [1])
+
+
+def test_approving_without_a_pick_applies_every_world_proposal(monkeypatch):
+    thread = enrich_two(monkeypatch)
+    written = world_writer(monkeypatch)
+    done = write_turn(thread, resume={'approved': True})
+    assert [f['cardId'] for _, _, fixes, _ in written for f in fixes] == ['k', 'r'] and done.steps[0].selected is None
+
+
+def test_a_pick_outside_the_proposals_is_refused_and_the_wait_is_kept(monkeypatch):
+    thread = enrich_two(monkeypatch)
+    written = world_writer(monkeypatch)
+    with pytest.raises(service.ResumeRejected):
+        write_turn(thread, resume={'approved': True, 'selected': [2]})
+    assert written == [] and asyncio.run(service.history(thread, 'user:1/work:1')).turns[-1].reply.awaitingApproval == 'world'
+
+
+def test_a_pick_is_refused_when_no_world_proposal_is_waiting(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    applied = writer(monkeypatch)
+    thread = str(uuid4())
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    with pytest.raises(service.ResumeRejected):
+        write_turn(thread, resume={'approved': True, 'selected': [0]})
+    assert applied == []

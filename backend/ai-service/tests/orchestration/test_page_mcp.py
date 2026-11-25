@@ -648,3 +648,98 @@ def test_the_stream_lists_content_reads_and_shows_a_write_only_after_approval(mo
     second = stream(thread, activities=True, request=None, resume={'approved': True})
     assert label(second) == ['started', ('세계관 읽기', 'running'), ('세계관 읽기', 'done'),
                              ('세계관 설정 카드 수정', 'running'), ('세계관 설정 카드 수정', 'done'), 'step', 'done']
+
+
+# 고쳐서 승인(#795): 작가는 쓰기 도구 인자 중 글 필드(카드 이름·설명, 작품 제목·소개, 계획 제목·내용)만 고쳐 승인할 수 있다.
+
+def edit(thread, edited):
+    data = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, resume={'approved': True, 'edited': edited})
+    return asyncio.run(service.run(data, 'Bearer user'))
+
+
+EDITED_CARD = {'id': 'w1', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘 경', 'body': '작가가 고친 설명.'}]}}
+
+
+def test_an_edited_card_text_is_what_gets_written_and_the_model_is_told_it_was_edited(monkeypatch):
+    calls = fake_agents(monkeypatch, only_content(('world_studio_edit_draft', {'id': 'w1', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘', 'body': '모델 설명.'}]}})))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    done = edit(thread, EDITED_CARD)
+    assert done.status == 'completed' and done.steps[0].approval == 'approved'
+    [(_, sent)] = writes(log)
+    assert sent['request']['cards'][0]['id'] == 'k' and (sent['request']['cards'][0]['title'], sent['request']['cards'][0]['body']) == ('카엘 경', '작가가 고친 설명.')
+    told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'world_studio_edit_draft')
+    assert told.status == 'success' and 'reviewer replaced this tool call' in told.content  # 라이브러리 안내: 모델이 원래 인자를 다시 보내지 않게 한다
+
+
+@pytest.mark.parametrize('name, args, edited', [
+    ('work_update', {'id': 'work', 'data': {'title': '제목', 'summary': '소개', 'revision': 1}}, {'id': 'work', 'data': {'title': '새 제목', 'summary': '새 소개', 'revision': 1}}),
+    ('story_plan_create', {'workId': 'work', 'data': {'kind': 'plot', 'title': '1막'}}, {'workId': 'work', 'data': {'kind': 'plot', 'title': '첫 막'}}),
+    ('story_plan_update', {'workId': 'work', 'id': 'p', 'data': {'title': '2막', 'content': '내용', 'revision': 2}},
+     {'workId': 'work', 'id': 'p', 'data': {'title': '2막', 'content': '고친 내용', 'revision': 2}}),
+])
+def test_every_write_tool_takes_its_edited_text_fields(monkeypatch, name, args, edited):
+    fake_agents(monkeypatch, only_content((name, args)))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread)
+    assert edit(thread, edited).status == 'completed' and writes(log) == [(name, edited)]
+
+
+@pytest.mark.parametrize('edited', [
+    {'id': 'w2', 'request': EDITED_CARD['request']},                                                     # 대상 세계관
+    {'id': 'w1', 'request': {**EDITED_CARD['request'], 'expectedDraftRevision': 9}},                    # revision
+    {'id': 'w1', 'request': {**EDITED_CARD['request'], 'cards': [{'id': 'other', 'body': '설명'}]}},    # 카드 식별자
+    {'id': 'w1', 'request': {**EDITED_CARD['request'], 'cards': [{'id': 'k', 'title': '카엘', 'body': 3}]}},  # 글이 아닌 값
+    {'id': 'w1', 'request': {**EDITED_CARD['request'], 'cards': [{'id': 'k', 'title': '카엘', 'body': '설명', 'cardType': 'place'}]}},  # 새 필드
+    {'id': 'w1', 'request': {**EDITED_CARD['request'], 'cards': []}},                                   # 카드 빼기
+])
+def test_an_edit_outside_the_text_fields_is_refused_and_the_wait_is_kept(monkeypatch, edited):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', {'id': 'w1', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘', 'body': '모델 설명.'}]}})))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    with pytest.raises(service.ResumeRejected) as refused:
+        edit(thread, edited)
+    assert str(refused.value) == mcp_tools.EDIT_LOCKED and writes(log) == []
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.awaitingApproval == 'content_action'
+
+
+def test_a_work_update_edit_cannot_touch_the_target_work_or_the_revision(monkeypatch):
+    fake_agents(monkeypatch, only_content(('work_update', {'id': 'work', 'data': {'title': '제목', 'revision': 1}})))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread)
+    for edited in ({'id': 'someone-elses', 'data': {'title': '제목', 'revision': 1}},
+                   *({'id': 'work', 'data': {'title': '제목', 'revision': revision}} for revision in (7, True, 1.0))):
+        with pytest.raises(service.ResumeRejected):
+            edit(thread, edited)
+    assert writes(log) == []
+
+
+def test_locked_values_are_compared_as_json_regardless_of_key_order():
+    original = {'id': 'w1', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'body': '원래 글'}]}}
+    edited = {'request': {'cards': [{'body': '고친 글', 'id': 'k'}], 'expectedDraftRevision': 4}, 'id': 'w1'}
+    assert mcp_tools.edit_refused('world_studio_edit_draft', original, edited) is None
+    edited['request']['expectedDraftRevision'] = 4.0
+    assert mcp_tools.edit_refused('world_studio_edit_draft', original, edited) == mcp_tools.EDIT_LOCKED
+
+
+def test_an_edit_is_refused_when_no_content_write_is_waiting(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('research', task='web')))
+    thread = str(uuid4())
+    turn(thread, request='고증해줘')
+    with pytest.raises(service.ResumeRejected):
+        edit(thread, {'question': 'q'})
+
+
+def test_an_edited_work_update_made_stale_asks_again_with_the_edited_text_and_the_fresh_revision(monkeypatch):
+    fake_agents(monkeypatch, only_content(STALE))
+    log = stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    again = edit(thread, {'id': 'work', 'data': {'title': '작가 제목', 'summary': '소개', 'revision': 12}})
+    assert (again.status, again.pendingAction.args) == ('waiting', {'id': 'work', 'data': {'title': '작가 제목', 'summary': '소개', 'revision': 16}})
+    assert edit(thread, {'id': 'work', 'data': {'title': '작가 제목', 'summary': '다시 고친 소개', 'revision': 16}}).status == 'completed'
+    assert writes(log)[-1] == ('work_update', {'id': 'work', 'data': {'title': '작가 제목', 'summary': '다시 고친 소개', 'revision': 16}})
