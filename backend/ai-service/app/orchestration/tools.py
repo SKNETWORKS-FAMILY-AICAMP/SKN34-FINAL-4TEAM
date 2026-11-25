@@ -140,6 +140,14 @@ def previous(turn: dict) -> list[dict]:
     return [] if turn.get('replaceHistory') else turn.get('turns', [])
 
 
+def last_review(turn: dict, steps: list[dict]) -> dict | None:
+    """조건부 수정(#370·#873)이 고칠 검수: 이번 턴에 완료된 마지막 검수, 없으면 가장 최근 턴의 마지막 검수. 이번 대상(작품·회차)과 다르면 없다."""
+    reviews = lambda items: [s for s in items if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed']  # noqa: E731
+    found = reviews(steps)[-1:] or next((r[-1:] for t in reversed(previous(turn)) if (r := reviews((t.get('reply') or {}).get('steps', [])))), [])
+    target = turn.get('target') or {}
+    return found[0] if found and (found[0]['result']['workId'], found[0]['result']['episode']) == (target.get('workId'), target.get('episode')) else None
+
+
 def history(turn: dict) -> list[str]:
     """이전 턴의 요청. 지칭 해석용 자료로만 쓴다."""
     return [t['request'] for t in previous(turn)][-HISTORY_TURNS:]
@@ -394,14 +402,15 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
     선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글은 검수를 함께 요청했어도, 확정 지적이 없어도 그렇다. 선택한 글이 없으면 작가가 구간을 고른다).
-    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 선택한 글이 없고 확정 지적이 하나면 fix를 비워도 된다.
+    이번 턴 또는 가장 최근 턴의 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 선택한 글이 없고 확정 지적이 하나면 fix를 비워도 된다.
     선택한 글이 남아 있어도 요청이 검수에서 나온 문제를 고치라는 것이면 확정 지적이 있을 때만 부르고 fix를 꼭 넣는다(fix를 비우면 선택한 글을 고친다).
     """
     if task == 'revise_plan':
         return _revise_plan(runtime, request)
     turn, steps = runtime.context, runtime.state.get('steps', [])
     selected = (turn.get('page') or {}).get('selection')  # 작가가 편집기에서 고른 글(#554, Content가 확인한 화면 정보)
-    reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
+    reviewed = last_review(turn, steps)
+    reviewed_now = any(s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed' for s in steps)  # 초안 읽기(writingBase)는 이번 턴 검수만 본다
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
     fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None and not selected)
     if fixing:
@@ -414,7 +423,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
         data = inputs.get('writing_editing') or {}
         target = turn.get('target')
         changes_draft = task != 'plan' or 'patch' in data or 'draft' in data
-        if target and changes_draft and reviewed is None and 'manuscript_review' in map(current_feature, runtime.state['decision']['capabilities']):
+        if target and changes_draft and not reviewed_now and 'manuscript_review' in map(current_feature, runtime.state['decision']['capabilities']):
             draft = content_mcp.read_draft(target['workId'], target['episode'])
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:
@@ -486,7 +495,7 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
 
 
 def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Command:
-    """조건부 수정(#370): 이번 턴 Review의 확정 지적을 부분 수정한다. 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
+    """조건부 수정(#370): 이번 턴 또는 가장 최근 턴 Review의 확정 지적을 부분 수정한다. 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
 
     확정 지적(위치가 하나로 정해진 지적)만 고친다. 작가가 고른 번호(inputs.writing_editing.fix, 하나 또는 여럿 #795) > 메인 에이전트의 fix > 유일한 확정 지적 순이며,
     여러 개인데 정해지지 않으면 대화에서 작가가 고른다. 여럿이면 첫 지적부터 끝 지적까지를 한 구간(5,000자 이하)으로 한 번에 고친다.

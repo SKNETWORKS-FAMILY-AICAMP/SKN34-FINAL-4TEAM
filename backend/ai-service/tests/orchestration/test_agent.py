@@ -275,6 +275,12 @@ def test_the_main_agent_is_told_how_to_choose_between_the_selection_and_a_findin
         assert '선택한 글이 남아 있어도' in told, told
 
 
+def test_the_main_agent_is_told_not_to_make_numbered_choices_for_a_past_reviews_findings():
+    """#873: 지난 턴 검수의 지적도 ask_writing이 받으니 ask_author 번호 선택지로 고르게 하지 않는다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    assert '이전 턴 검수' in rule and 'ask_author로 번호 선택지를 만들지' in rule
+
+
 def test_the_review_summary_says_the_whole_episode_was_reviewed(monkeypatch):
     """#636 E2E: 선택한 글이 실리면 그 문장만 검수했다고 답했다. 검수는 늘 회차 본문 전체를 본다."""
     calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical')))

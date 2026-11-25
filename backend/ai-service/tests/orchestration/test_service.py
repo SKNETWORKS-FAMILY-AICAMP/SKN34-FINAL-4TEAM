@@ -912,6 +912,45 @@ def test_several_confirmed_findings_wait_for_the_author_to_pick_one(monkeypatch)
     assert patch.selection == '바람이 차가왔다.'
 
 
+def review_then_fix(monkeypatch, *findings, review_target=TARGET, fix_target=TARGET, fix=None):
+    """한 대화의 첫 턴은 검수만, 둘째 턴은 검수 없는 조건부 수정(#873). 둘째 턴 결과와 호출 기록을 돌려준다."""
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('manuscript_review'))
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
+        workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
+        findings=list(findings)))
+    write_turn(thread, request='검수해줘', target=review_target, inputs={'manuscript_review': REVIEW})
+    calls = fake_agents(monkeypatch, plan(Step('writing_editing', 'if_issues_found', fix=fix)))
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': 4}})
+    return write_turn(thread, request='확정된 문제 고쳐줘', target=fix_target), calls
+
+
+def test_a_fix_in_the_next_turn_lets_the_author_pick_among_the_last_reviews_findings(monkeypatch):
+    result, calls = review_then_fix(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
+    assert (result.status, result.missingInputs, result.steps[0].when) == ('waiting', ['writing_editing'], 'if_issues_found')  # 지난 검수의 지적을 작가가 고른다
+    assert 'patch' not in names(calls)
+
+
+def test_a_fix_in_the_next_turn_patches_the_one_confirmed_finding_of_the_last_review(monkeypatch):
+    result, calls = review_then_fix(monkeypatch, found('서윤은 웃엇다.'))
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    [(_, (patch,), _)] = [c for c in calls if c[0] == 'patch']
+    assert patch.selection == '서윤은 웃엇다.'
+
+
+def test_a_fix_in_the_next_turn_ignores_a_review_of_another_episode(monkeypatch):
+    result, calls = review_then_fix(monkeypatch, found('서윤은 웃엇다.'), fix_target={'workId': 'work', 'episode': 4}, fix=0)
+    assert (result.status, result.steps[0].error) == ('failed', tools.BAD_FIX)
+    assert 'patch' not in names(calls)
+
+
+def test_the_last_review_is_not_used_after_the_history_is_replaced():
+    done = {'feature': 'manuscript_review', 'status': 'completed', 'result': {'workId': 'work', 'episode': 3, 'findings': []}}
+    turn = {'target': TARGET, 'turns': [{'reply': {'steps': [done]}}]}
+    assert tools.last_review(turn, []) is done
+    assert tools.last_review({**turn, 'replaceHistory': True}, []) is None
+
+
 def test_picking_a_finding_that_is_not_confirmed_fails_the_edit(monkeypatch):
     thread = str(uuid4())
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'), found('비가', status='suspected'))
