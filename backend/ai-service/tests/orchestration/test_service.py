@@ -1716,7 +1716,7 @@ def test_history_reads_a_manuscript_review_step_from_an_old_checkpoint():
     old_step = {'feature': 'review', 'when': 'always', 'status': 'completed', 'result': result}
     turn = {'request': '원고 검수', 'qa': None, 'reply': {'status': 'completed', 'steps': [old_step]}}
     asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
-                                          {'scope': ME, 'turns': [turn]}, as_node='finish'))
+                                          {'scope': ME, 'turns': [turn]}, as_node='summarize'))
 
     [saved] = conversation('history', thread, ME).turns
     [step] = saved.reply.steps
@@ -1728,7 +1728,7 @@ def test_history_reads_an_old_waiting_web_research_turn_that_still_has_the_remov
     old_step = {'feature': 'web_research', 'when': 'always', 'status': 'not_started'}
     reply = {'status': 'waiting', 'steps': [old_step], 'missingInputs': ['web_research'], 'unsupported': []}
     asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
-                                          {'scope': ME, 'turns': [{'request': '고증 조사', 'qa': None, 'reply': reply}]}, as_node='finish'))
+                                          {'scope': ME, 'turns': [{'request': '고증 조사', 'qa': None, 'reply': reply}]}, as_node='summarize'))
     [saved] = conversation('history', thread, ME).turns
     assert (saved.reply.status, saved.reply.steps[0].feature, saved.reply.missingInputs) == ('waiting', 'web_research', ['research'])
 
@@ -1869,7 +1869,7 @@ def test_feedback_of_a_traced_turn_is_sent_as_its_score(monkeypatch):
     thread = str(uuid4())
     reply = {'status': 'completed', 'runId': 'trace-1', 'message': '답', 'steps': [], 'missingInputs': []}
     asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
-                                          {'scope': ME, 'turns': [{'request': '질문', 'qa': None, 'reply': reply}]}, as_node='finish'))
+                                          {'scope': ME, 'turns': [{'request': '질문', 'qa': None, 'reply': reply}]}, as_node='summarize'))
     sent = scores(monkeypatch)
     conversation('feedback', thread, ME, 0, 'up')
     conversation('feedback', thread, ME, 0, None)
@@ -2967,6 +2967,41 @@ def test_summarize_sends_the_old_summary_and_the_turns_with_low_effort(monkeypat
     assert json.loads(generation.attributes['langfuse.observation.input']) == {'turns': 2}
 
 
+def test_a_summary_over_the_limit_is_a_failure_and_the_limit_itself_is_kept(monkeypatch):
+    fake_chat(monkeypatch, text='가' * (service.SUMMARY_MAX + 1))
+    with pytest.raises(service.SummaryFailure):
+        service.summarize('', [{'request': '하나'}])
+    fake_chat(monkeypatch, text='가' * service.SUMMARY_MAX)
+    assert service.summarize('', [{'request': '하나'}]) == '가' * service.SUMMARY_MAX
+
+
+def history_of(thread):
+    async def read():
+        return [s async for s in service.CHAT.aget_state_history(service._config(thread, ME))]
+    return asyncio.run(read())
+
+
+def test_the_turn_is_saved_by_finish_before_the_summary_node_runs(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:6])
+    # 요약 모델 호출이 도는 동안(next=summarize)에도 6번째 턴은 이미 저장돼 있고 요약은 아직 이전 값이다
+    saved = [s for s in history_of(thread) if s.next == ('summarize',) and len(s.values['turns']) == 6]
+    assert len(saved) == 1 and saved[0].values.get('summary') is None
+    assert summary_of(thread) == {'text': '요청1', 'upTo': 1}
+
+
+def test_a_fork_point_is_the_finished_checkpoint_after_the_summary_node(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS)
+    config = service._config(thread, ME)
+    snapshot = asyncio.run(service.CHAT.aget_state(config))
+    fork = asyncio.run(service._fork_point(config, snapshot, 6))
+    assert not fork.next and len(fork.values['turns']) == 6
+    assert fork.values['summary'] == {'text': '요청1', 'upTo': 1}  # 요약까지 끝난 그 시점의 요약이다
+
+
 def test_a_summary_failure_is_an_error_span(monkeypatch, spans):
     fake_chat(monkeypatch, text='')  # 빈 요약은 쓸 수 없다(프롬프트를 읽을 수 없어도 같은 실패다)
     with pytest.raises(service.SummaryFailure):
@@ -3241,3 +3276,16 @@ def test_a_pick_is_refused_when_no_world_proposal_is_waiting(monkeypatch):
     with pytest.raises(service.ResumeRejected):
         write_turn(thread, resume={'approved': True, 'selected': [0]})
     assert applied == []
+
+
+def test_a_conversation_whose_summary_was_cut_off_can_still_be_renamed_and_rated():
+    # 요약 노드가 끊겨 next=('summarize',)에 머물러도 턴은 저장됐으므로 진행 중으로 막지 않는다(#891 리뷰)
+    thread = str(uuid4())
+    reply = {'status': 'completed', 'steps': [], 'message': '답'}
+    asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
+                                          {'scope': ME, 'turns': [{'request': '질문', 'qa': None, 'reply': reply}]}, as_node='finish'))
+    assert history_of(thread)[0].next == ('summarize',)
+    conversation('rename', thread, ME, '새 제목')
+    conversation('feedback', thread, ME, 0, 'up')
+    history = conversation('history', thread, ME)
+    assert (history.title, history.turns[0].feedback) == ('새 제목', 'up')
