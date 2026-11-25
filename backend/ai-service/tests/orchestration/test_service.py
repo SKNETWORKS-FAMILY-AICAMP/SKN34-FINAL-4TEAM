@@ -912,15 +912,17 @@ def test_several_confirmed_findings_wait_for_the_author_to_pick_one(monkeypatch)
     assert patch.selection == '바람이 차가왔다.'
 
 
-def review_then_fix(monkeypatch, *findings, review_target=TARGET, fix_target=TARGET, fix=None):
-    """한 대화의 첫 턴은 검수만, 둘째 턴은 검수 없는 조건부 수정(#873). 둘째 턴 결과와 호출 기록을 돌려준다."""
+def review_then_fix(monkeypatch, *findings, review_target=TARGET, fix_target=TARGET, fix=None, from_review=True):
+    """한 대화의 첫 턴은 검수만, 둘째 턴은 검수 없는 ask_writing(task=patch) 호출(#873). 둘째 턴 결과와 호출 기록을 돌려준다."""
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('manuscript_review'))
     monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=list(findings)))
     write_turn(thread, request='검수해줘', target=review_target, inputs={'manuscript_review': REVIEW})
-    calls = fake_agents(monkeypatch, plan(Step('writing_editing', 'if_issues_found', fix=fix)))
+    planned = plan(Step('writing_editing', 'if_issues_found', fix=fix))
+    name, args = planned.calls[0]
+    calls = fake_agents(monkeypatch, planned._replace(calls=[(name, {**args, **({'from_review': True} if from_review else {})})]))
     monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': 4}})
     return write_turn(thread, request='확정된 문제 고쳐줘', target=fix_target), calls
 
@@ -941,6 +943,13 @@ def test_a_fix_in_the_next_turn_patches_the_one_confirmed_finding_of_the_last_re
 def test_a_fix_in_the_next_turn_ignores_a_review_of_another_episode(monkeypatch):
     result, calls = review_then_fix(monkeypatch, found('서윤은 웃엇다.'), fix_target={'workId': 'work', 'episode': 4}, fix=0)
     assert (result.status, result.steps[0].error) == ('failed', tools.BAD_FIX)
+    assert 'patch' not in names(calls)
+
+
+def test_a_plain_patch_after_a_past_review_still_lets_the_author_pick_the_passage(monkeypatch):
+    """검수 뒤 다른 턴의 '3문단 고쳐줘'(선택 글·fix·from_review 없음)는 지난 검수의 지적 고치기가 아니라 구간 수정이다(#873 리뷰)."""
+    result, calls = review_then_fix(monkeypatch, found('서윤은 웃엇다.'), from_review=False)
+    assert (result.status, result.missingInputs, result.steps[0].when) == ('waiting', ['writing_editing'], 'always')
     assert 'patch' not in names(calls)
 
 

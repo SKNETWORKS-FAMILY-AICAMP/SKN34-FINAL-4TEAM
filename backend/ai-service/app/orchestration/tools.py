@@ -396,13 +396,15 @@ def ask_research(task: Literal['web', 'platform'], runtime: ToolRuntime, request
 
 
 @tool
-def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revise_plan'], runtime: ToolRuntime, fix: int | None = None) -> Command:
+def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revise_plan'], runtime: ToolRuntime, fix: int | None = None,
+                from_review: bool = False) -> Command:
     """기획·집필·수정(Writing & Editing): plan은 전개 기획만(저장하지 않는다), draft는 계획을 세워 새 원고까지, patch는 기존 문장 수정안이다.
 
     revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
     선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글은 검수를 함께 요청했어도, 확정 지적이 없어도 그렇다. 선택한 글이 없으면 작가가 구간을 고른다).
-    이번 턴 또는 가장 최근 턴의 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 선택한 글이 없고 확정 지적이 하나면 fix를 비워도 된다.
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 선택한 글이 없고 확정 지적이 하나면 fix를 비워도 된다.
+    이전 턴 검수의 확정 지적을 고칠 때는 task=patch에 from_review=true를 더한다(고칠 번호를 알면 fix도 넣고, 모르면 비워 작가가 고르게 한다).
     선택한 글이 남아 있어도 요청이 검수에서 나온 문제를 고치라는 것이면 확정 지적이 있을 때만 부르고 fix를 꼭 넣는다(fix를 비우면 선택한 글을 고친다).
     """
     if task == 'revise_plan':
@@ -412,7 +414,8 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     reviewed = last_review(turn, steps)
     reviewed_now = any(s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed' for s in steps)  # 초안 읽기(writingBase)는 이번 턴 검수만 본다
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
-    fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None and not selected)
+    # 지난 턴 검수는 고치라고 밝힌 호출(fix·from_review)에만 쓴다. 아니면 검수한 회차의 '3문단 고쳐줘'까지 지적 고치기로 바뀐다(#873).
+    fixing = 'fix' in given or fix is not None or from_review or (task == 'patch' and 'patch' not in given and reviewed_now and not selected)
     if fixing:
         return _fix(runtime, reviewed, fix)
 
