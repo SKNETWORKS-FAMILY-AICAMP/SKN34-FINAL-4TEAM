@@ -22,22 +22,17 @@ def clarified(request: str) -> str | None:
     return _BY_NAME.get(_PLAIN.sub('', request))
 
 
-def judge(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> DecisionResult:
+def judge(request: str, operation: str | None = None, materials: list[str] = (), history: list[dict] = (),
+          instructions: str | None = None) -> DecisionResult:
     """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능 하나로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
 
-    자유 입력은 이번 요청만으로 먼저 판정한다. 이전 요청을 같이 보내면 이미 끝난 요청에 판정이 끌려가기 때문이다. 고른 기능이 없을 때만
-    history(같은 대화의 이전 요청)를 붙여 한 번 더 묻는다. "그거 고쳐줘" 같은 지칭은 이전 요청이 있어야 풀린다.
+    자유 입력은 history(같은 대화의 최근 턴: 요청·답변 앞부분·실행된 기능)를 처음부터 함께 보내 한 번만 판정한다(#781).
+    "응, 3화로 해줘"처럼 메인의 되묻기에 대한 대답이나 "그 문제들 고쳐줘" 같은 지칭은 이전 턴이 있어야 풀린다.
+    이미 끝난 요청에 판정이 끌려가지 않게 하는 것은 지시문(INSTRUCTIONS)이 맡는다. instructions는 회귀 평가가 돌릴 프롬프트 버전 본문이다.
     """
     if operation is not None and operation not in FEATURES:
         raise ValueError('등록되지 않은 기능입니다.')  # 모델 호출 전에 거절한다
-    if operation:
-        return _decide(request, materials, operation, history)
-    first = _decide(request, materials, None, ())
-    return _decide(request, materials, None, history) if first.allowed and not first.capabilities and history else first
-
-
-def _decide(request: str, materials: list[str], operation: str | None, history: list[str]) -> DecisionResult:
-    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else DECISION_QUESTIONS, list(history))
+    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else DECISION_QUESTIONS, list(history), instructions)
     if answers['guard'] != 'none':
         return DecisionResult(allowed=False, reason=answers['guard'])
     try:

@@ -8,8 +8,9 @@ from app.optimization import service
 
 PUBLIC = {'qa.grounding', 'world.conflict', 'writing.fix', 'leak.spoiler'}
 SIMULATION = {'simulation.act', 'simulation.narrate'}
+ROUTING = 'decision_guard.routing'
 EXTRACTION = {'extraction.extract'}
-NAMES = PUBLIC | SIMULATION | EXTRACTION
+NAMES = PUBLIC | SIMULATION | EXTRACTION | {ROUTING}
 
 
 class Langfuse:
@@ -60,6 +61,21 @@ def test_the_simulation_sets_are_the_public_original_eval_items_one_set_per_inst
             assert all(isinstance(f['text'], str) and f['text'] for f in judge['facts'])
         contents = [(json.dumps(it['input'], ensure_ascii=False, sort_keys=True), it['expectedOutput']) for it in data[name]]
         assert len(set(contents)) == len(contents)   # 같은 문항을 두 번 싣지 않는다(평균에 두 배 가중치가 붙는다)
+
+
+def test_the_routing_set_covers_every_guard_feature_and_case_with_valid_answers():
+    from app.intent.prompt import FEATURES, GUARDS
+    items = seed.load()[ROUTING]
+    assert 40 <= len(items) <= 60
+    for it in items:
+        expected, history = it['expectedOutput'], it['input'].get('history', [])
+        assert it['id'].startswith(ROUTING + '-') and it['input']['request'].strip()
+        assert expected['guard'] in GUARDS and set(expected['capabilities']) <= set(FEATURES)
+        assert expected['guard'] == 'none' or expected['capabilities'] == []   # 거절은 기능이 없다
+        assert all(set(turn) == {'request', 'reply', 'features'} for turn in history)   # 오케스트레이션이 보내는 이전 턴 모양 그대로
+    assert {g for it in items for g in [it['expectedOutput']['guard']]} == set(GUARDS)
+    assert {f for it in items for f in it['expectedOutput']['capabilities']} == set(FEATURES)
+    assert {it['metadata']['case'] for it in items} == {'single', 'compound', 'confusable', 'followup', 'chat', 'injection', 'sensitive'}
 
 
 POOL = seed.DATASETS / 'optimize' / 'extraction.extract.jsonl'   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)

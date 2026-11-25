@@ -217,6 +217,8 @@ internal class WritingAiService(
         }
         checkContent(request.attachments.isNullOrEmpty() || request.resume == null, message = "첨부는 새 요청에만 보낼 수 있어요.")
         checkContent(request.resume?.refresh != true || !request.resume.approved, message = "제안 다시 받기는 승인과 함께 보낼 수 없어요.")
+        checkContent(request.resume == null || request.resume.approved || (request.resume.selected == null && request.resume.edited == null),
+            message = "고른 제안·고친 내용은 승인과 함께만 보낼 수 있어요.")
         request.resume?.scene?.let { scene ->
             checkContent(scene.text == null || scene.text.isNotBlank(), message="고친 줄의 글은 비워 둘 수 없어요.")  // AI가 edit의 빈 글을 거절하면 502가 된다
         }
@@ -251,6 +253,8 @@ internal class WritingAiService(
                     }
                     request.resume.scene?.let { put("scene", body(it)) }
                     if (request.resume.refresh == true) put("refresh", true)
+                    request.resume.selected?.let { put("selected", it) }
+                    request.resume.edited?.let { put("edited", it) }
                 })
             } else {
                 put("request", request.request)

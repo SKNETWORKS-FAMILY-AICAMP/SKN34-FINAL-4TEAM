@@ -2,13 +2,16 @@
 
 질문(guard + 기능별 yes/no)은 service가 정하고 선택지·누락·중복·refusal 검증은 여기서 한다. 입력 가드레일 미들웨어(LangChain 기본 미들웨어 상속)가 Decisions보다 먼저 작가 요청만 거른다.
 - `SensitiveDataGuard`(PIIMiddleware): 요청에 이메일·카드번호·API 키가 있으면 어떤 모델도 부르지 않고 sensitive_data로 거절한다(외부 전송 방지).
-- `ModerationGuard`(OpenAIModerationMiddleware): OpenAI moderation이 BLOCKED 범주를 걸면 unsafe로 거절한다. 폭력·성 묘사 같은
-  창작 범주는 소설에 흔해 막지 않고 Decisions의 guard 질문이 판단한다.
-자료(materials)·이전 요청(history)은 원고·검색 본문이라 가드레일 검사 대상이 아니며 Decisions에만 자료로 보낸다.
+- `ModerationGuard`(OpenAIModerationMiddleware): moderation을 Decisions와 동시에 보내고(#783: 지연 한 왕복 단축) BLOCKED 범주를 걸면
+  받은 판정을 버리고 unsafe로 거절한다. 폭력·성 묘사 같은 창작 범주는 소설에 흔해 막지 않고 Decisions의 guard 질문이 판단한다.
+OpenAI 클라이언트는 키마다 하나를 재사용한다(#783): 판정마다 새로 만들면 매번 DNS·TLS 연결을 새로 맺어 moderation 앞에서 수백 ms~수 초가 걸렸다.
+자료(materials)·이전 턴(history: 요청·답변 앞부분·실행 기능)은 원고·검색 본문이라 가드레일 검사 대상이 아니며 Decisions에만 자료로 보낸다.
 """
 
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+from functools import cache
 from typing import Any
 
 from langchain.agents import create_agent
@@ -52,7 +55,29 @@ class SensitiveDataGuard(PIIMiddleware):
 
 
 class ModerationGuard(OpenAIModerationMiddleware):
-    """작가 요청을 moderation에 보내고 BLOCKED 범주만 unsafe 거절로 끝낸다. 그 밖의 표시는 통과시킨다."""
+    """작가 요청을 moderation에 보내고 BLOCKED 범주만 unsafe 거절로 끝낸다. 그 밖의 표시는 통과시킨다.
+
+    moderation은 모델 호출 앞(before_model)이 아니라 모델 호출과 동시에(wrap_model_call) 보낸다. 둘 다 OpenAI로 가는 같은 요청이라
+    외부 전송 범위는 같다. moderation 실패는 판정 결과와 상관없이 그대로 올려 실행하지 않는다(fail closed).
+    """
+
+    def before_model(self, state, runtime):
+        return None
+
+    async def abefore_model(self, state, runtime):  # decide는 동기 실행이지만 비동기 경로도 직렬 검사로 돌아가지 않게 막는다
+        return None
+
+    def wrap_model_call(self, request, handler):
+        with ThreadPoolExecutor(1) as pool:
+            moderated = pool.submit(self._moderate_inputs, request.messages)
+            try:
+                response = handler(request)
+            except Exception:
+                if blocked := moderated.result():  # Decisions가 실패해도 차단된 요청은 unsafe로 끝낸다
+                    return blocked['messages'][0]
+                raise
+            blocked = moderated.result()
+        return blocked['messages'][0] if blocked else response
 
     def _apply_violation(self, messages, *, index, stage, content, result):
         return _reject('unsafe') if any(getattr(result.categories, c) for c in BLOCKED) else None
@@ -61,13 +86,13 @@ class ModerationGuard(OpenAIModerationMiddleware):
 class DecisionsModel(BaseChatModel):
     """create_agent의 모델 슬롯에서 OpenAI Decisions를 부른다. 시스템 메시지는 developer 지시, 사용자 메시지는 작가 요청이다.
 
-    질문·자료·이전 요청은 호출마다 정해 필드로 받는다. 응답(dict)은 그대로 additional_kwargs['decision']에 담고 decide가 검증한다.
+    질문·자료·이전 턴은 호출마다 정해 필드로 받는다. 응답(dict)은 그대로 additional_kwargs['decision']에 담고 decide가 검증한다.
     호출은 generation으로 남기되 모델·사용량·프롬프트 버전만 담는다(요청·자료는 가드레일이 거른 작가 원문이라 이 observation에 넣지 않는다).
     """
     client: Any
     questions: list[dict]
     materials: list[str]
-    history: list[str]
+    history: list[dict]
     prompt: Any = None  # generation에 연결할 Langfuse 프롬프트
 
     @property
@@ -102,18 +127,28 @@ def _provider_message(error: OpenAIError) -> str:
     return ROUTER_FAILED_MESSAGE
 
 
-def decide(request: str, materials: list[str], questions: list[dict], history: list[str] = ()) -> dict[str, str]:
+@cache
+def _client(key: str) -> OpenAI:
+    return OpenAI(api_key=key, timeout=30, max_retries=0)
+
+
+def decide(request: str, materials: list[str], questions: list[dict], history: list[dict] = (), instructions: str | None = None) -> dict[str, str]:
+    """instructions가 있으면 평가할 프롬프트 버전 본문이다: production 버전을 읽지도 generation에 연결하지도 않는다(회귀 평가)."""
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
         raise IntentFailure()
+    if instructions is None:
+        try:
+            managed = tracing.prompt('decision_guard.judge', INSTRUCTIONS)
+        except tracing.PromptUnavailable:
+            raise IntentFailure() from None
+        text, linked = managed.text, managed.client
+    else:
+        text, linked = instructions, None
+    client = _client(key)
     try:
-        managed = tracing.prompt('decision_guard.judge', INSTRUCTIONS)
-    except tracing.PromptUnavailable:
-        raise IntentFailure() from None
-    client = OpenAI(api_key=key, timeout=30, max_retries=0)
-    try:
-        model = DecisionsModel(client=client, questions=questions, materials=list(materials), history=list(history), prompt=managed.client)
-        agent = create_agent(model, system_prompt=managed.text, checkpointer=False, middleware=[
+        model = DecisionsModel(client=client, questions=questions, materials=list(materials), history=list(history), prompt=linked)
+        agent = create_agent(model, system_prompt=text, checkpointer=False, middleware=[
             SensitiveDataGuard('email'), SensitiveDataGuard('credit_card'), SensitiveDataGuard('api_key', API_KEY),
             ModerationGuard(client=client, check_output=False, exit_behavior='end'),
             ModelCallLimitMiddleware(run_limit=1, exit_behavior='error')])
@@ -139,5 +174,3 @@ def decide(request: str, materials: list[str], questions: list[dict], history: l
         raise IntentFailure(_provider_message(error)) from None
     except ValidationError:
         raise IntentFailure() from None
-    finally:
-        client.close()

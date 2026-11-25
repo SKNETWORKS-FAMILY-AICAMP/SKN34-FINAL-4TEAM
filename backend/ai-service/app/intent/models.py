@@ -8,7 +8,7 @@ from app.intent.prompt import FEATURES
 
 Feature = Literal[tuple(FEATURES)]
 # unsafe는 가드레일을 통과하지 않은 채 모델이 질문을 거부(refusal)한 경우다. 실행하지 않는 쪽으로 닫는다.
-Reason = Literal['greeting', 'out_of_scope', 'inappropriate_edit', 'prompt_injection', 'sensitive_data', 'unsafe']
+Reason = Literal['prompt_injection', 'sensitive_data', 'unsafe']  # 보안 위험만 거절한다(#782)
 
 
 class DecisionResult(BaseModel):
