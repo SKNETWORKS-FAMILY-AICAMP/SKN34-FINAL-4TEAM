@@ -58,7 +58,6 @@ export class EpisodeUseCase {
     }
     return this.repository.create(title.trim(),summary.trim(),signal,registration)
   }
-  suggestWorkTags(id: string, signal?: AbortSignal) { return this.repository.suggestWorkTags(id,signal) }
   workSettings(id: string, signal?: AbortSignal) { return this.repository.workSettings(id, signal) }
   updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal) {
     return this.repository.updateWorkSettings(id, revision, writingMode, signal)

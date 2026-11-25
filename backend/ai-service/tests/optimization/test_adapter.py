@@ -122,20 +122,26 @@ def test_an_unexpected_error_is_not_swallowed_as_an_item_failure(monkeypatch):
         SimulationAdapter('act', None).evaluate([row(1)], CANDIDATE)
 
 
-def test_generation_inside_the_workers_stays_under_the_current_trace(monkeypatch, spans):
+def test_generation_and_grading_inside_the_workers_stay_under_the_current_trace(monkeypatch, spans):
     fakes(monkeypatch)
 
     def generate(kind, instructions, item_input, model=None):
         with tracing.observe('simulation.act'):
             return '생성'
+
+    async def grade(kind, item_input, output, expected, metadata):   # 채점 generation(#851)은 워커 스레드 안 asyncio.run에서 열린다
+        with tracing.observe('evaluation.rubric_grade'):
+            return {'voice': 0.5, 'intent': 1.0, 'pov_ok': 1.0}, []
     monkeypatch.setattr(simulation, 'generate', generate)
+    monkeypatch.setattr(simulation, 'grade', grade)
 
     with tracing.observe('prompt_optimization'):
         SimulationAdapter('act', None).evaluate([row(1), row(2)], CANDIDATE)
 
     root = next(s for s in spans() if s.name == 'prompt_optimization')
-    children = [s for s in spans() if s.name == 'simulation.act']
-    assert len(children) == 2 and all(c.parent is not None and c.parent.span_id == root.context.span_id for c in children)   # 스레드로 가도 같은 trace 아래다
+    for name in ('simulation.act', 'evaluation.rubric_grade'):
+        children = [s for s in spans() if s.name == name]
+        assert len(children) == 2 and all(c.parent is not None and c.parent.span_id == root.context.span_id for c in children)   # 스레드로 가도 같은 trace 아래다
 
 
 def test_the_reflective_dataset_gives_the_output_the_gold_the_scores_and_the_violated_fact_text(monkeypatch):

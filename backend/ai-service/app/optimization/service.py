@@ -8,6 +8,7 @@
 import json
 import logging
 import os
+import re
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -35,6 +36,12 @@ MIN_GAIN = 0.05   # 최고 후보가 시드보다 이만큼 나아야 저장한�
 MAX_GROWTH = 2   # 저장할 지시문 길이 상한(기준 본문의 배수)
 UNSUPPORTED = '자동 개선을 지원하지 않는 프롬프트예요.'
 RUNNING = '이 프롬프트의 자동 개선이 이미 실행 중이에요.'
+# GEPA 0.1.4(logging/utils.py·core/engine.py·proposer/reflective_mutation)가 logger.log로 내는 줄 중 숫자만 싣는 점수·진행 줄의 머리말. 이 밖의 줄(반성 모델이 쓴 새 지시문
+# 'Proposed new text for', 예외 메시지·스택)은 본문이 실릴 수 있어 버린다. 처음 보는 줄도 버려지므로 gepa를 올릴 때 이 목록을 다시 본다(#852).
+_SCORE_LINE = re.compile(
+    r'Iteration \d+: (Base program full valset score|Selected program \d+ score|New subsample score|Accepted candidate|Found a better program|Valset score for new program|'
+    r'Val aggregate for new program|Individual valset scores|New valset pareto front scores|Valset pareto front aggregate score|Updated valset pareto front programs|'
+    r'Best valset aggregate score|Best program as per|Best score on valset|Linear pareto front program index|New program candidate index)')
 
 
 def accept(request: OptimizationRequest) -> None:
@@ -120,8 +127,16 @@ def _reflect(text):
         raise _Stop(failure) from None
 
 
+class _ScoreLog:
+    """gepa.optimize의 logger(log(message) 하나). 기본 로거는 모든 줄을 print해 반성 모델이 쓴 지시문 본문까지 워커 로그에 남긴다(#852). 점수 줄만 로그로 남기고 print하지 않는다."""
+
+    def log(self, message: str) -> None:
+        if _SCORE_LINE.match(message):
+            logger.info('GEPA %s', message)
+
+
 def run_job(job: dict) -> None:
-    """워커의 진입점(예외를 올리지 않는다). 실패는 trace ERROR로 남고 로그에는 고정 문구(없으면 예외 이름)만 남는다."""
+    """워커의 진입점(예외를 올리지 않는다). 실패는 trace ERROR로 남고 로그에는 고정 문구(없으면 예외 이름과 호출 경로)만 남는다."""
     request = OptimizationRequest.model_validate(job)
     try:
         with tracing.request('prompt_optimization', prompt=request.prompt, baseVersion=str(request.version), maxMetricCalls=str(request.maxMetricCalls)):
@@ -129,15 +144,15 @@ def run_job(job: dict) -> None:
                 if not acquired:   # 접수 뒤 큐에서 기다리는 사이에 다른 실행이 시작했다
                     raise OptimizationFailure(409, RUNNING)
                 _optimize(request)
-    except Exception as error:   # 입력·응답 본문이 섞일 수 있어 고정 문구(실패 클래스)가 아니면 예외 이름과 난 곳만 남긴다
+    except Exception as error:   # 입력·응답 본문이 섞일 수 있어 고정 문구(실패 클래스)가 아니면 예외 이름과 호출 경로만 남긴다
         known = isinstance(error, (OptimizationFailure, EvaluationFailure))
-        logger.error('프롬프트 자동 개선 %s v%s 실패: %s', request.prompt, request.version, error if known else f'{type(error).__name__} ({_where(error)})')
+        logger.error('프롬프트 자동 개선 %s v%s 실패: %s', request.prompt, request.version, error if known else f'{type(error).__name__}\n{_stack(error)}')
 
 
-def _where(error: BaseException) -> str:
-    """예외가 난 곳(폴더/파일:줄 함수). 메시지에는 입력·응답 본문이 섞일 수 있어 코드 위치만 남긴다(#841 첫 실행: 클래스 이름만으로는 TypeError의 원인을 찾지 못했다)."""
-    frame = traceback.extract_tb(error.__traceback__)[-1]
-    return f"{'/'.join(Path(frame.filename).parts[-2:])}:{frame.lineno} {frame.name}"
+def _stack(error: BaseException) -> str:
+    """예외가 난 길: 바깥에서 안쪽으로 프레임마다 `패키지/폴더/파일:줄 함수`(#850). 메시지에는 입력·응답 본문이 섞일 수 있어 코드 위치만 남긴다
+    (#841 첫 실행: 클래스 이름만으로는 TypeError의 원인을 찾지 못했고, 난 곳 한 줄로는 누가 불렀는지 알 수 없다)."""
+    return '\n'.join(f"  {'/'.join(Path(frame.filename).parts[-3:])}:{frame.lineno} {frame.name}" for frame in traceback.extract_tb(error.__traceback__))
 
 
 def _optimize(request: OptimizationRequest) -> None:
@@ -152,7 +167,7 @@ def _optimize(request: OptimizationRequest) -> None:
     adapter = SimulationAdapter(simulation.KINDS[dataset], tracing.model_of(base.config))
     try:
         result = gepa.optimize(seed_candidate={'instructions': base.prompt}, trainset=train, valset=val, adapter=adapter, reflection_lm=_reflect,
-                               reflection_prompt_template=prompt.REFLECTION, max_metric_calls=request.maxMetricCalls, seed=0, raise_on_exception=True)
+                               reflection_prompt_template=prompt.REFLECTION, max_metric_calls=request.maxMetricCalls, seed=0, raise_on_exception=True, logger=_ScoreLog())
     except _Stop as stop:
         raise stop.failure from None
     seed_score, best_score = result.val_aggregate_scores[0], result.val_aggregate_scores[result.best_idx]
