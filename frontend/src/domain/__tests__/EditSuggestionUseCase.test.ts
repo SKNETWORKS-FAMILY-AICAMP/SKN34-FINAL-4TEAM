@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { approvalNotice, editedTextError, reasonError, suggestionInputError, suggestionStatus, type EditSuggestion } from '../entities/editSuggestion'
+import { approvalErrorNotice, approvalNotice, BASE_CHANGED_MESSAGE, editedTextError, reasonError, suggestionInputError, suggestionStatus, type EditSuggestion } from '../entities/editSuggestion'
 import type { EditSuggestionRepository } from '../repositories/EditSuggestionRepository'
 import { EditSuggestionUseCase } from '../usecases/EditSuggestionUseCase'
 
@@ -63,6 +63,16 @@ describe('수정 제안 상태 표시', () => {
     const unrecorded = suggestion({ status: 'approved', applyResult: null })
     expect(suggestionStatus(unrecorded)).toEqual({ label: '승인됨 · 반영 실패', tone: 'wait' })
     expect(approvalNotice(unrecorded)).toContain('반영하지 못했어요')
+  })
+
+  it('반영 실패 재시도의 기준 발행본 변경 안내는 집필실에서 직접 수정하도록 안내한다', () => {
+    const failed = suggestion({ status: 'approved', applyResult: 'failed' })
+    expect(approvalErrorNotice(failed, BASE_CHANGED_MESSAGE)).toBe('원문이 다시 발행돼 그대로 반영할 수 없어요. 집필실에서 직접 고쳐 주세요.')
+    expect(approvalErrorNotice(failed, '서버가 잠시 응답하지 않아요.')).toBe('서버가 잠시 응답하지 않아요.')
+  })
+
+  it.each(['pending', 'held'] as const)('%s 제안의 승인에는 기존 기준 발행본 변경 안내를 쓴다', (status) => {
+    expect(approvalErrorNotice(suggestion({ status }), BASE_CHANGED_MESSAGE)).toBe(BASE_CHANGED_MESSAGE)
   })
 
   it('승인 안내는 초안 반영과 발행을 구분하고 실패는 반영 완료로 안내하지 않는다', () => {
