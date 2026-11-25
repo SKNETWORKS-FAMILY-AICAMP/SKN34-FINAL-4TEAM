@@ -98,16 +98,23 @@ it('운영 대시보드·LLMOps·작업 감시 저장소는 실제 모드에서 
   expect((await mockup.resolve('operationsDashboardUseCase').dashboard()).unavailable).toEqual([])
 })
 
-it('평가 데이터셋(#857)은 서버 API가 없어 실제 모드에서는 UseCase가 없고(화면이 서버 준비 중으로 잠근다), mockup에서만 메모리 예시 세트를 읽고 올린다', async () => {
-  expect(createAppContainer().resolve('llmDatasetUseCase')).toBeNull()
+it('평가 데이터셋(#868)은 실제 모드에서 운영 API를 읽고 올리고, mockup에서만 메모리 예시 세트를 쓴다(있는 세트에만 올린다)', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('llmDatasetRepository').constructor.name).toBe('HttpLlmDatasetRepository')
+  expect(real.resolve('llmDatasetUseCase')).toBeTruthy()
   vi.stubEnv('MODE', 'mockup')
-  const datasets = createAppContainer().resolve('llmDatasetUseCase')!
-  expect((await datasets.datasets())!.map((row) => [row.name, row.items])).toEqual([
+  const mockup = createAppContainer()
+  expect(mockup.resolve('llmDatasetRepository').constructor.name).toBe('InMemoryLlmDatasetRepository')
+  const datasets = mockup.resolve('llmDatasetUseCase')
+  expect((await datasets.datasets())!.map((row) => [row.name, row.itemCount])).toEqual([
     ['extraction.extract', 30], ['leak.spoiler', 5], ['qa.grounding', 6], ['simulation.act', 24], ['simulation.narrate', 46], ['world.conflict', 5], ['writing.fix', 5],
   ])
-  await datasets.upload('mine', 'mine.jsonl', '{"id":"a","input":"q","metadata":{}}', true)
-  expect((await datasets.datasets())!.find((row) => row.name === 'mine')).toEqual({ name: 'mine', prompt: null, items: 1, source: '업로드 · mine.jsonl' })
-  expect(await datasets.items('mine')).toEqual([{ id: 'a', input: 'q', metadata: {} }])
+  const text = ['1', '2'].map((q) => JSON.stringify({ input: q, expectedOutput: '정답' })).join('\n')
+  expect(await datasets.upload('qa.grounding', 'more.jsonl', text, true)).toBe(2)
+  expect((await datasets.datasets())!.find((row) => row.name === 'qa.grounding')).toEqual({ name: 'qa.grounding', prompt: 'story_context.answer', itemCount: 8, description: '저장소 시드(ai-eval-seed)' })
+  const page = (await datasets.items('qa.grounding', 0))!
+  expect([page.total, page.items.length, page.items.at(-1)]).toEqual([8, 8, { id: 'qa.grounding-08', input: '2', expectedOutput: '정답', metadata: null }])
+  await expect(datasets.upload('nope', 'a.jsonl', text, true)).rejects.toThrow('대상을 찾을 수 없어요.')   // 새 세트 만들기는 범위 밖
 })
 
 it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서 같은 목록을 보는 메모리를 쓰고 홈 칩·세계관 이름이 그 목록을 따른다', async () => {

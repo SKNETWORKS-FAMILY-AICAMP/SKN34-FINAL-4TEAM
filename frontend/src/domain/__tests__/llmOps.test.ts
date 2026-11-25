@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, recentDefaultModel, usd, versionAction, type EvaluationItem, type Prompt, type PromptVersion,
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, defaultModelOf, modelLabel, pendingSeed, percent, periodRange, productionOf, recentDefaultModel, usd, versionAction, type EvaluationItem, type Prompt, type PromptVersion,
 } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import type { PipelineRecord } from '../entities/llmOpsPipeline'
@@ -121,6 +121,20 @@ describe('권한 안내 문구', () => {
     const recent = { model: 'gpt-demo', version: 3, at: '2026-11-24T01:00:00Z' }
     expect([modelLabel(null, recent), modelLabel(undefined, recent), modelLabel('gpt-x', recent), modelLabel(null, null)]).toEqual(['기본 모델 · 최근 사용 gpt-demo', '기본 모델 · 최근 사용 gpt-demo', 'gpt-x', '기본 모델(환경 설정)'])
     expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
+  })
+
+  it('서버가 알려 준 실제 기본 모델(effectiveModel, #868)이 있으면 \'기본 모델 · gpt-…\'로 보이고 최근 사용 근거보다 앞서며, 모델을 고른 버전은 그 이름이다. effectiveModel이 비었을 때만 근거·환경 설정 글이 쓰인다', () => {
+    const recent = { model: 'gpt-demo', version: 3, at: '2026-11-24T01:00:00Z' }
+    expect([modelLabel(null, recent, 'gpt-live'), modelLabel(undefined, null, 'gpt-live'), modelLabel('gpt-x', recent, 'gpt-x'), modelLabel(null, recent, null), modelLabel(null, null, undefined)])
+      .toEqual(['기본 모델 · gpt-live', '기본 모델 · gpt-live', 'gpt-x', '기본 모델 · 최근 사용 gpt-demo', '기본 모델(환경 설정)'])
+  })
+
+  it('프롬프트의 실제 기본 모델은 modelSource가 default인 버전의 effectiveModel(높은 버전 우선)이고, 서버가 못 알려 주면 null이다', () => {
+    const ver = (version: number, extra: Partial<PromptVersion> = {}): PromptVersion => ({ version, labels: [], ...extra })
+    const of = (...versions: PromptVersion[]) => defaultModelOf({ name: 'p', candidates: 0, versions })
+    expect(of(ver(1, { effectiveModel: 'gpt-old', modelSource: 'default' }), ver(3, { effectiveModel: 'gpt-new', modelSource: 'default' }), ver(2, { model: 'gpt-x', effectiveModel: 'gpt-x', modelSource: 'version' }))).toBe('gpt-new')
+    expect(of(ver(2, { model: 'gpt-x', effectiveModel: 'gpt-x', modelSource: 'version' }))).toBeNull()   // 고른 모델은 기본 모델이 아니다
+    expect(of(ver(1, { effectiveModel: null, modelSource: null }), ver(2))).toBeNull()
   })
 })
 

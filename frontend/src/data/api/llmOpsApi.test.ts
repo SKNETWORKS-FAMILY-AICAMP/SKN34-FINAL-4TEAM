@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '../../test/testLocks'
+import { DatasetInvalid } from '../../domain/entities/llmDatasets'
 import { OperationsError, OperationsForbidden, OperationsRejected } from '../../domain/entities/operations'
 import { login } from './auth'
-import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from './llmOpsApi'
+import { HttpJobMonitorRepository, HttpLlmDatasetRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from './llmOpsApi'
 
 type Call = [string, { method?: string; body?: string; headers: Record<string, string> }]
 const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
@@ -145,6 +146,17 @@ describe('HttpLlmOpsRepository 추적·지표', () => {
 
 describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
   const version = { version: 2, labels: ['production'], createdAt: AT, evaluation: { runId: 'r1', passed: true, createdAt: AT } }
+
+  it('프롬프트 버전의 실제 모델(effectiveModel·modelSource, #868)을 그대로 받고, 없는 칸은 비워 두며 모르는 출처 값은 null로 낮춘다(응답 전체를 거부하지 않는다)', async () => {
+    const fetcher = ok({ items: [{ name: 'a', candidates: 0, versions: [
+      { version: 2, labels: ['production'], model: 'gpt-x', effectiveModel: 'gpt-x', modelSource: 'version' },
+      { version: 1, labels: ['seed'], effectiveModel: 'gpt-default', modelSource: 'default' },
+      { version: 3, labels: [], effectiveModel: null, modelSource: null },
+      { version: 4, labels: [], modelSource: 'surprise' },
+    ] }] })
+    const [prompt] = await new HttpLlmOpsRepository(fetcher).prompts()
+    expect(prompt.versions.map((v) => [v.version, v.effectiveModel, v.modelSource])).toEqual([[2, 'gpt-x', 'version'], [1, 'gpt-default', 'default'], [3, null, null], [4, undefined, null]])
+  })
 
   it('프롬프트 목록·상세·새 버전 등록은 이름을 인코딩해 보낸다', async () => {
     const fetcher = ok({ items: [{ name: 'qa answer' }, { name: 'qa', versions: [version], candidates: 2, evaluationDataset: 'qa.grounding' }], page: 0, size: 100, total: 1 })
@@ -398,5 +410,55 @@ describe('HttpLlmOpsRepository AI 파이프라인(DEC-58)', () => {
     const detail = await new HttpLlmOpsRepository(ok({ ...trace, observations: [root, step, { ...root, id: 'o3', parentObservationId: null }] })).trace('t1')
     expect(detail.observations.map((o) => [o.id, o.parentObservationId ?? null])).toEqual([['o1', null], ['o2', 'o1'], ['o3', null]])
     expect(detail.observations[1]).toMatchObject({ input: [{ role: 'user', content: '질문' }], output: { answers: [] }, metadata: { turn: 1 } })
+  })
+})
+
+describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () => {
+  const TEXT = '{"input":"질문","expectedOutput":"정답"}\n{"input":"질문 2","expectedOutput":"정답 2","metadata":{"a":1}}'
+
+  it('목록은 맨 배열(또는 items)로 읽고, 문항은 쪽을 1부터로 바꿔 size 20과 함께 보내며 합계를 쪽 모양으로 돌려준다', async () => {
+    const row = { name: 'simulation.act', prompt: 'character_simulation.act', itemCount: 24, description: '저장소 시드' }
+    const listed = ok([row, { name: 'leak.spoiler', prompt: null, itemCount: 5, description: null }])
+    expect(await new HttpLlmDatasetRepository(listed).datasets()).toEqual([row, { name: 'leak.spoiler', prompt: null, itemCount: 5, description: null }])
+    expect(callsOf(listed)[0][0]).toBe('/api/v1/operations/llmops/datasets')
+    expect(await new HttpLlmDatasetRepository(ok({ items: [row] })).datasets()).toEqual([row])
+    const itemsFetcher = ok({ items: [{ id: 'i1', input: { q: 1 }, expectedOutput: '정답', metadata: null }, { id: 'i2', input: '글' }], total: 45 })
+    const page = await new HttpLlmDatasetRepository(itemsFetcher).items('simulation.act', 1)
+    expect(callsOf(itemsFetcher)[0][0]).toBe('/api/v1/operations/llmops/datasets/simulation.act/items?page=2&size=20')
+    expect(page).toEqual({ items: [{ id: 'i1', input: { q: 1 }, expectedOutput: '정답', metadata: null }, { id: 'i2', input: '글' }], page: 1, size: 20, total: 45, unavailable: [] })
+    await new HttpLlmDatasetRepository(ok({ items: [], total: 0 })).items('a b/c', 0)
+  })
+
+  it('업로드는 multipart(file·copyrightConfirmed)로 보내고 Content-Type은 브라우저가 경계와 함께 붙이게 두며 서버가 만든 문항 수를 돌려준다', async () => {
+    const fetcher = ok({ created: 2 }, 201)
+    expect(await new HttpLlmDatasetRepository(fetcher).upload('my set', 'items.jsonl', TEXT, true)).toBe(2)
+    const [[url, init]] = callsOf(fetcher)
+    const body = init.body as unknown as FormData
+    expect([url, init.method, Object.keys(init.headers)]).toEqual(['/api/v1/operations/llmops/datasets/my%20set/items', 'POST', ['Authorization']])
+    expect(body).toBeInstanceOf(FormData)
+    const file = body.get('file') as File
+    expect([file.name, await file.text(), body.get('copyrightConfirmed')]).toEqual(['items.jsonl', TEXT, 'true'])
+  })
+
+  it('400 DATASET_INVALID는 거절된 줄 목록을 든 DatasetInvalid로, 그 밖의 거절은 한국어 안내로 바꾼다(권한 없음은 OperationsForbidden)', async () => {
+    const upload = (f: ReturnType<typeof fail>) => new HttpLlmDatasetRepository(f).upload('s', 'a.jsonl', TEXT, true)
+    const errors = [{ line: 2, message: 'JSON으로 읽을 수 없어요.' }, { line: 9, message: 'input이 필요해요.' }]
+    const invalid = await upload(fail(400, { code: 'DATASET_INVALID', errors })).catch((error) => error)
+    expect(invalid).toBeInstanceOf(DatasetInvalid)
+    expect([invalid.errors, invalid.message]).toEqual([errors, '형식이 맞지 않는 줄이 2개 있어요. 고친 뒤 다시 올려 주세요.'])
+    expect((await upload(fail(400, { code: 'DATASET_INVALID' })).catch((error) => error)).errors).toEqual([])   // 줄 목록이 없어도 거절로 읽는다
+    await expect(upload(fail(400, { code: 'COPYRIGHT_CONFIRM_REQUIRED', message: 'copyrightConfirmed must be true' }))).rejects.toThrow(new OperationsRejected('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.'))
+    await expect(upload(fail(413, {}))).rejects.toThrow(new OperationsRejected('파일이 너무 커요. 500줄·2MB까지 올릴 수 있으니 나눠서 올려 주세요.'))
+    await expect(upload(fail(400, { code: 'TOO_LARGE', message: '줄이 500개를 넘어요.' }))).rejects.toThrow(new OperationsRejected('줄이 500개를 넘어요.'))   // 한국어로 쓴 서버 안내는 그대로 보인다
+    await expect(upload(fail(400, { code: 'X', message: 'Invalid request.' }))).rejects.toThrow(new OperationsError('입력값을 확인해 주세요.'))
+    await expect(upload(fail(404, { code: 'NOT_FOUND', message: 'Dataset not found.' }))).rejects.toThrow(new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'))
+    await expect(upload(fail(403))).rejects.toThrow(new OperationsForbidden('이 작업을 할 권한이 없어요.'))
+  })
+
+  it('응답이 계약과 다르면 성공을 흉내 내지 않고 오류로 알린다(업로드는 올라갔는지 확인을 안내)', async () => {
+    const repo = (f: ReturnType<typeof ok>) => new HttpLlmDatasetRepository(f)
+    await expect(repo(ok({ items: [{ name: 1 }] })).datasets()).rejects.toThrow(new OperationsError(FORMAT))
+    await expect(repo(ok({ items: [{ id: 1 }], total: 1 })).items('a', 0)).rejects.toThrow(new OperationsError(FORMAT))
+    await expect(repo(ok({ created: 'x' }, 201)).upload('s', 'a.jsonl', TEXT, true)).rejects.toThrow(new OperationsError('업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.'))
   })
 })

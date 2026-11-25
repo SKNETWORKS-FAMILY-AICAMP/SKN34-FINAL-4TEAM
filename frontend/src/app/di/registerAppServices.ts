@@ -23,6 +23,7 @@ import { OperationsFeedbackReportUseCase } from '../../domain/usecases/Operation
 import { OperationsCreditUseCase } from '../../domain/usecases/OperationsCreditUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
 import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
+import { LlmDatasetUseCase } from '../../domain/usecases/LlmDatasetUseCase'
 import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
 import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
@@ -34,7 +35,7 @@ import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
 import { HttpGenreRepository } from '../../data/content/HttpGenreRepository'
 import { HttpCardCategoryRepository } from '../../data/content/HttpCardCategoryRepository'
 import { HttpOperationsCardCategoryRepository } from '../../data/api/cardCategoryApi'
-import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
+import { HttpJobMonitorRepository, HttpLlmDatasetRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
@@ -143,8 +144,9 @@ export function registerAppServices(container: AppContainer) {
     operationsDashboardUseCase: asFunction(({ operationsDashboardRepository }) => new OperationsDashboardUseCase(operationsDashboardRepository)).singleton(),
     llmOpsRepository: asFunction(() => new HttpLlmOpsRepository()).singleton(),
     llmOpsUseCase: asFunction(({ llmOpsRepository }) => new LlmOpsUseCase(llmOpsRepository)).singleton(),
-    // 평가 데이터셋 API는 서버에 아직 없어(#857, 예정) HTTP 구현을 만들지 않았다: UseCase 없이 화면이 '서버 준비 중'으로 잠그고 성공을 흉내 내지 않는다.
-    llmDatasetUseCase: asValue(null),
+    // 평가 데이터셋 목록·문항·JSONL 업로드는 운영 서비스 LLMOps API(#868)를 쓴다.
+    llmDatasetRepository: asFunction(() => new HttpLlmDatasetRepository()).singleton(),
+    llmDatasetUseCase: asFunction(({ llmDatasetRepository }) => new LlmDatasetUseCase(llmDatasetRepository)).singleton(),
     jobMonitorRepository: asFunction(() => new HttpJobMonitorRepository()).singleton(),
     jobMonitorUseCase: asFunction(({ jobMonitorRepository }) => new JobMonitorUseCase(jobMonitorRepository)).singleton(),
     initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),

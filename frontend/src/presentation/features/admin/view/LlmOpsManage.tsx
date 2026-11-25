@@ -45,12 +45,12 @@ export function Prompts({ vm, l }: Props) {
             <tbody>
               {[...rows].sort((a, b) => a.name.localeCompare(b.name)).map((row) => {
                 const current = productionOf(row), pending = pendingSeed(row), candidates = row.candidates
-                const recent = current && !current.model && pool ? recentDefaultModel(row, pool) : null
+                const recent = current && !current.model && !current.effectiveModel && pool ? recentDefaultModel(row, pool) : null
                 return (
                   <tr key={row.name}>
                     <td><button type="button" className="admin-prompt-name" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}><PromptName code={row.name} /></button></td>
                     <td className="admin-num">{current ? `${current.version}번 버전` : '없음'}</td>
-                    <td>{current ? <ModelLabel model={current.model} recent={recent} /> : '—'}</td>
+                    <td>{current ? <ModelLabel model={current.model} effective={current.effectiveModel} recent={recent} /> : '—'}</td>
                     <td className="admin-num">{candidates ? `${candidates}개` : '—'}</td>
                     <td>{pending ? <span className="chip wait">코드 시드 {pending.version}번 버전 대기</span> : '—'}</td>
                   </tr>

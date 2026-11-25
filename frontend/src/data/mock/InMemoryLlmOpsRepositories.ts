@@ -1,5 +1,5 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
-import type { DatasetItem, EvalDataset } from '../../domain/entities/llmDatasets'
+import { DATASET_PAGE_SIZE, DatasetInvalid, datasetLimitError, parseDatasetJsonl, type DatasetItem, type EvalDataset } from '../../domain/entities/llmDatasets'
 import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import { AGENT_EVALUATIONS, pairedPrompt, setItems } from '../../domain/entities/llmOpsEvalTable'
 import type {
@@ -176,6 +176,16 @@ const recordsOf = (node: PipelineNode): PipelineRecord[] => PIPELINE_RECORDS[nod
   ?? [entry(`${node.id}-1`, 'trace-1', `step.${node.id}`, 8, { latencyMs: 900, input: { request: '예시 입력' }, output: '예시 출력' }), ...(node.errors ? [entry(`${node.id}-2`, 'trace-2', `step.${node.id}`, 60, { level: 'ERROR', statusMessage: '단계 실패(예시)' })] : [])]
 
 /** AI 서비스가 기동 때 등록하는 나머지 프롬프트(코드 시드 버전 1): 파이프라인 노드의 '프롬프트 보기'가 모두 열리도록 이름만 있는 예시 본문으로 채웁니다(#857). */
+/**
+ * 서버가 채우는 실제 기본 모델(#868) 예시: 모델을 고르지 않은 버전에 AI 서비스가 실제로 쓰는 기본 모델을 알려 준다. 여기 없는 프롬프트는 서버가 못 알려 준 것(null)이라 화면이 파이프라인 기록의 근거를 쓴다.
+ * 모델을 고른 버전은 그 모델이 그대로 effectiveModel(version)이다.
+ */
+const SERVED_DEFAULT_MODELS: Record<string, string> = { 'character_simulation.narrate': 'gpt-demo', 'rating.assess': 'gpt-demo-mini' }
+const withEffectiveModel = (name: string, versions: Prompt['versions']): Prompt['versions'] => versions.map((v) => {
+  const served = SERVED_DEFAULT_MODELS[name]
+  if (v.model) return { ...v, effectiveModel: v.model, modelSource: 'version' as const }
+  return { ...v, effectiveModel: served ?? null, modelSource: served ? 'default' as const : null }
+})
 const withSeeds = (rows: Omit<Prompt, 'candidates'>[]): Omit<Prompt, 'candidates'>[] => [
   ...rows,
   ...[...PROMPT_NAMES.keys()].filter((name) => !rows.some((row) => row.name === name)).map((name) => ({
@@ -300,12 +310,12 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   async prompts() {
     return structuredClone(this.prompts_.map(({ name, versions, evaluationDataset }) => ({
       name, candidates: candidatesOf(versions), evaluationDataset,
-      versions: versions.filter((v) => v.labels.includes('production') || v.labels.includes('seed')).map(({ prompt: _body, ...v }) => v),
+      versions: withEffectiveModel(name, versions.filter((v) => v.labels.includes('production') || v.labels.includes('seed'))).map(({ prompt: _body, ...v }) => v),
     })))
   }
   async prompt(name: string) {
     const p = found(this.prompts_.find((item) => item.name === name))
-    return structuredClone({ ...p, candidates: candidatesOf(p.versions), models: ['gpt-demo', 'gpt-demo-mini'] })
+    return structuredClone({ ...p, versions: withEffectiveModel(name, p.versions), candidates: candidatesOf(p.versions), models: ['gpt-demo', 'gpt-demo-mini'] })
   }
   async createPromptVersion(name: string, input: PromptVersionInput) {
     const p = found(this.prompts_.find((item) => item.name === name))
@@ -344,31 +354,32 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   async updateSettings(settings: LlmOpsSettings) { this.setting = { ...settings } }
 }
 
-/** 평가 데이터셋 예시(#857, 서버 API 예정): 저장소의 7개 세트를 에이전트별 평가 표의 문항 수에 맞춘 예시 문항으로 보이고, 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다. */
+/** 평가 데이터셋 예시(#868 계약의 메모리 구현): 저장소의 7개 세트를 에이전트별 평가 표의 문항 수에 맞춘 예시 문항으로 보이고, 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다. */
 const demoItems = (name: string, count: number): DatasetItem[] => Array.from({ length: count }, (_, i) => {
   const n = String(i + 1).padStart(2, '0')
   return { id: `${name}-${n}`, input: { 예시: `${name} 문항 ${n}의 입력(시연용 예시 문장)` }, expectedOutput: `${name} 문항 ${n}의 기대 답변(시연용)`, metadata: { source: '시연용 예시' } }
 })
 const SEED_SOURCE = '저장소 시드(ai-eval-seed)'
+const UPLOAD_LIMIT_MESSAGE = '파일이 너무 커요. 500줄·2MB까지 올릴 수 있으니 나눠서 올려 주세요.'
 
 export class InMemoryLlmDatasetRepository implements LlmDatasetRepository {
-  private readonly sets = new Map<string, { source: string; items: DatasetItem[] }>(
-    AGENT_EVALUATIONS.flatMap((row) => (row.dataset ? [[row.dataset, { source: SEED_SOURCE, items: demoItems(row.dataset, setItems(row) ?? 0) }] as const] : [])),
+  private readonly sets = new Map<string, DatasetItem[]>(
+    AGENT_EVALUATIONS.flatMap((row) => (row.dataset ? [[row.dataset, demoItems(row.dataset, setItems(row) ?? 0)] as const] : [])),
   )
 
   async datasets(): Promise<EvalDataset[]> {
-    return [...this.sets].map(([name, { source, items }]) => ({ name, prompt: pairedPrompt(name), items: items.length, source })).sort((a, b) => a.name.localeCompare(b.name))
+    return [...this.sets].map(([name, items]) => ({ name, prompt: pairedPrompt(name), itemCount: items.length, description: SEED_SOURCE })).sort((a, b) => a.name.localeCompare(b.name))
   }
-  async items(name: string) { return structuredClone(found(this.sets.get(name)).items) }
-  /** 서버가 Langfuse 항목을 id로 upsert하듯 같은 id는 덮어쓰고 새 id는 뒤에 붙입니다. */
-  async upload(name: string, fileName: string, items: DatasetItem[]) {
-    const set = this.sets.get(name) ?? { source: `업로드 · ${fileName}`, items: [] }
-    for (const item of items) {
-      const at = set.items.findIndex((row) => row.id === item.id)
-      if (at < 0) set.items.push(item)
-      else set.items[at] = item
-    }
-    this.sets.set(name, set)
+  async items(name: string, page: number) { return structuredClone(paged(found(this.sets.get(name)), page, DATASET_PAGE_SIZE)) }
+  /** 서버처럼 있는 세트에만 올리고(없으면 404), 저작권 확인과 줄 검사를 다시 하며, 전부 아니면 무입니다. 문항 id는 서버처럼 붙입니다. */
+  async upload(name: string, _fileName: string, text: string, copyrightConfirmed: boolean) {
+    const set = found(this.sets.get(name))
+    if (!copyrightConfirmed) throw new OperationsRejected('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.')
+    const { total, lines, errors } = parseDatasetJsonl(text)
+    if (datasetLimitError(total, new TextEncoder().encode(text).length)) throw new OperationsRejected(UPLOAD_LIMIT_MESSAGE)
+    if (errors.length) throw new DatasetInvalid(errors)
+    lines.forEach((line) => set.push({ id: `${name}-${String(set.length + 1).padStart(2, '0')}`, input: line.input, expectedOutput: line.expectedOutput, metadata: line.metadata ?? null }))
+    return lines.length
   }
 }
 

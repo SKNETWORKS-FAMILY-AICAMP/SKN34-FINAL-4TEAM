@@ -40,6 +40,8 @@ export const METRICS_GROUPS: [MetricsGroup, string][] = [['feature', '기능'], 
 export type PromptVersion = {
   version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
   model?: string | null; prompt?: string | null; commitMessage?: string | null
+  /** 서버가 정한 실제 모델(#868): 버전이 고른 모델이면 그 모델('version'), 아니면 AI 서비스가 실제로 쓰는 기본 모델('default'). 서버가 알 수 없으면 null이고 응답에 없을 수도 있습니다. */
+  effectiveModel?: string | null; modelSource?: 'version' | 'default' | null
 }
 /**
  * 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다.
@@ -146,9 +148,12 @@ export function pendingSeed(p: Prompt) {
 }
 /**
  * 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 프론트가 이름을 알 수 없습니다(#808).
- * 파이프라인 기록에서 실제로 쓰인 모델을 찾았다면(recentDefaultModel) '기본 모델 · 최근 사용 …'으로 근거와 함께 보이고, 못 찾았으면 이름을 지어내지 않습니다(#857).
+ * 서버가 실제 기본 모델(effectiveModel)을 알려 주면 '기본 모델 · gpt-…'(#868)이고, 못 알려 줬을 때만 파이프라인 기록에서 실제로 쓰인 모델을 찾은(recentDefaultModel) '기본 모델 · 최근 사용 …'을 근거와 함께 보입니다(#857). 둘 다 없으면 이름을 지어내지 않습니다.
  */
-export const modelLabel = (model: string | null | undefined, recent?: Pick<RecentModel, 'model'> | null) => model ?? (recent ? `기본 모델 · 최근 사용 ${recent.model}` : '기본 모델(환경 설정)')
+export const modelLabel = (model: string | null | undefined, recent?: Pick<RecentModel, 'model'> | null, effective?: string | null) =>
+  model ?? (effective ? `기본 모델 · ${effective}` : recent ? `기본 모델 · 최근 사용 ${recent.model}` : '기본 모델(환경 설정)')
+/** 프롬프트의 실제 기본 모델(#868): 모델을 고르지 않은 버전(modelSource가 default)에 서버가 채운 effectiveModel. 높은 버전부터 찾고, 서버가 못 알려 주면 null입니다. */
+export const defaultModelOf = (prompt: Prompt) => [...prompt.versions].sort((a, b) => b.version - a.version).find((v) => v.modelSource === 'default' && v.effectiveModel)?.effectiveModel ?? null
 
 /** 기본 모델로 도는 버전이 파이프라인 기록에 남긴 가장 최근 모델과 그 버전·시각. */
 export type RecentModel = { model: string; version: number; at: string | null }

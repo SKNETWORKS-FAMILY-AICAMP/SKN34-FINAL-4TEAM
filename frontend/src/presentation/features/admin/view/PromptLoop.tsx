@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 
 import {
-  LLM_FORBIDDEN, LOOP_STAGES, OPTIMIZATION_UNSUPPORTED_MESSAGE, fixedModel, isOptimizable, labelText, modelLabel, passTone, passedLabel, pendingSeed, productionOf, recentDefaultModel, versionAction, type Prompt, type RecentModel,
+  LLM_FORBIDDEN, LOOP_STAGES, OPTIMIZATION_UNSUPPORTED_MESSAGE, defaultModelOf, fixedModel, isOptimizable, labelText, modelLabel, passTone, passedLabel, pendingSeed, productionOf, recentDefaultModel, versionAction, type Prompt, type RecentModel,
 } from '../../../../domain/entities/llmOps'
 import { pairSets, setItems } from '../../../../domain/entities/llmOpsEvalTable'
 import { promptLabel } from '../../../../domain/entities/promptNames'
@@ -23,7 +23,7 @@ const mark = (index: number) => String.fromCodePoint(0x2460 + index)
 /**
  * 프롬프트 상세 = 프롬프트 개선 루프(#857): 위쪽 단계 표시(① 프롬프트 ─ ② 평가 세트 ─ ③ 평가 ─ ④ 자동 개선 ─ ⑤ 게이트 ─ ⑥ 서비스 반영)에서 단계를 고르면 아래 패널이 바뀝니다.
  * 패널은 기존 패널(버전 표·새 조합 폼·회귀 평가·자동 개선·후보 등록·서비스 반영)을 단계별로 옮긴 것입니다. 단계는 화면 상태라 주소에 두지 않고, 프롬프트를 열거나 닫으면 ①로 돌아갑니다.
- * 제목은 한국어 표시 이름과 작은 코드이고(PromptName), 모델을 고르지 않은 버전의 모델 칸은 파이프라인 기록에서 찾은 '기본 모델 · 최근 사용 …'(근거 없으면 '기본 모델(환경 설정)', #857)입니다.
+ * 제목은 한국어 표시 이름과 작은 코드이고(PromptName), 모델을 고르지 않은 버전의 모델 칸은 서버가 알려 준 실제 기본 모델 '기본 모델 · gpt-…'(#868), 못 알려 줬으면 파이프라인 기록에서 찾은 '기본 모델 · 최근 사용 …'(근거 없으면 '기본 모델(환경 설정)', #857)입니다.
  */
 export function PromptDetail({ vm, l }: Props) {
   const p = l.prompt.data, live = p && productionOf(p)
@@ -39,7 +39,7 @@ export function PromptDetail({ vm, l }: Props) {
           <h2 tabIndex={-1}><PromptName code={p.name} /></h2>
           <div className="admin-summary admin-prompt-live" role="group" aria-label="서비스 반영 중인 조합">
             <div><small>서비스 반영</small><b>{live ? `${live.version}번 버전` : '없음'}</b></div>
-            <div><small>모델</small><b>{live ? <ModelLabel model={live.model} recent={recent} basis /> : '—'}</b></div>
+            <div><small>모델</small><b>{live ? <ModelLabel model={live.model} effective={live.effectiveModel} recent={recent} basis /> : '—'}</b></div>
           </div>
           <nav className="loop-steps" aria-label="프롬프트 개선 루프 단계">
             <ol>
@@ -117,7 +117,7 @@ function PromptStage({ vm, l, p, recent }: StageProps) {
               className="inp" name="model" key={`${p.name}:${live?.version}`} defaultValue={live?.model ?? ''} disabled={fixedModel(p.name)}
               aria-describedby={fixedModel(p.name) ? 'prompt-model-fixed' : undefined}
             >
-              <option value="">{modelLabel(null, recent)}</option>
+              <option value="">{modelLabel(null, recent, defaultModelOf(p))}</option>
               {modelNames.map((name) => <option key={name} value={name}>{name}</option>)}
             </select>
           </label>
@@ -151,8 +151,8 @@ function SetStage({ vm, l, p }: Props & { p: Prompt }) {
         : <p className="admin-empty">이 프롬프트는 짝 평가 세트가 없어요(평가 세트 없음). 평가 없이 후보로 등록하고 서비스에 반영할 수 있어요. 범용 세트(leak.spoiler·world.conflict·writing.fix)는 평가 단계에서 데이터셋 이름을 골라 돌려 볼 수 있어요.</p>}
       <DatasetPanel vm={vm} l={l} />
       <p className="admin-note">
-        지금 실제 평가 세트는 저장소 파일(backend/ai-service/app/evaluation/datasets/, 파일 이름이 세트 이름)을 python -m app.evaluation.seed 명령으로 Langfuse Dataset에 등록하는 방식뿐이에요.
-        위의 JSONL 업로드와 데이터셋 목록은 운영 서버 API(예정)가 열리면 그 Dataset을 읽고 올려요. 저작권이 있는 원문(해리 포터·웹소설)은 저장소와 Langfuse에 올리지 않고 로컬 평가에서만 써요.
+        평가 세트는 저장소 파일(backend/ai-service/app/evaluation/datasets/, 파일 이름이 세트 이름)을 python -m app.evaluation.seed 명령으로 Langfuse Dataset에 등록해 만들어요.
+        위의 목록과 JSONL 업로드는 운영 서버 API로 그 Dataset을 읽고, 있는 세트에 문항을 더해요. 저작권이 있는 원문(해리 포터·웹소설)은 저장소와 Langfuse에 올리지 않고 로컬 평가에서만 써요.
       </p>
     </>
   )
@@ -181,7 +181,7 @@ function VersionsTable({ vm, l, p, recent, stage }: StageProps & { stage: keyof 
               <tr>
                 <td className="admin-num">{v.version}</td>
                 <td>{states.length ? states.map((text) => <span key={text} className={`chip ${text === '서비스 반영 중' ? 'ok' : ''}`}>{text}</span>) : '—'}</td>
-                {stage !== 'gate' && <td><ModelLabel model={v.model} recent={recent} /></td>}
+                {stage !== 'gate' && <td><ModelLabel model={v.model} effective={v.effectiveModel} recent={recent} /></td>}
                 {stage === 'prompt' && <td className="admin-date">{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>}
                 {stage === 'gate' && (
                   <td>
@@ -215,7 +215,7 @@ function VersionsTable({ vm, l, p, recent, stage }: StageProps & { stage: keyof 
                           <button
                             type="button" className="btn sm pri" disabled={busy} aria-label={`${p.name} ${v.version}번 버전 서비스에 반영`}
                             onClick={(e) => {
-                              if (!window.confirm(`${promptLabel(p.name)} ${v.version}번 버전을 서비스에 반영할까요? AI 서비스가 곧 이 조합(${modelLabel(v.model, recent)})을 쓰게 돼요.`)) return
+                              if (!window.confirm(`${promptLabel(p.name)} ${v.version}번 버전을 서비스에 반영할까요? AI 서비스가 곧 이 조합(${modelLabel(v.model, recent, v.effectiveModel)})을 쓰게 돼요.`)) return
                               // 반영되면 이 버튼이 '반영 중' 글자로 바뀌어 초점이 사라지므로 상세 제목으로 옮긴다.
                               const heading = e.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')
                               void l.promote(p.name, v.version).then((ok) => { if (ok) heading?.focus() })

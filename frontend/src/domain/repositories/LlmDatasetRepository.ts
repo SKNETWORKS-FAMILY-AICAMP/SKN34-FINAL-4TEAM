@@ -1,14 +1,17 @@
 import type { DatasetItem, EvalDataset } from '../entities/llmDatasets'
+import type { OperationsPage } from '../entities/operations'
 
 /**
- * 평가 데이터셋 API 계약(#857, 예정 — 서버 API는 아직 없고 메모리 구현만 있다).
- * 예정 경로: GET /llmops/datasets · GET /llmops/datasets/{name}/items · POST /llmops/datasets/{name}/items(JSONL 파일 업로드, Langfuse Dataset 연동).
- * 계약 문서: docs/design/operations-llmops-contract.md '평가 데이터셋(예정)'.
+ * 평가 데이터셋 API 계약(#868, 운영 서비스 LlmopsController와 같은 접두사·권한 llm): GET /llmops/datasets · GET /llmops/datasets/{name}/items?page&size ·
+ * POST /llmops/datasets/{name}/items(multipart file=.jsonl + copyrightConfirmed). Langfuse Dataset을 읽고 올린다.
  */
 export interface LlmDatasetRepository {
   datasets(): Promise<EvalDataset[]>
-  /** 한 세트의 문항(저장 순서). */
-  items(name: string): Promise<DatasetItem[]>
-  /** 검사를 통과한 문항을 그 이름의 세트에 올립니다(없으면 만들고, 같은 id는 덮어씁니다). */
-  upload(name: string, fileName: string, items: DatasetItem[]): Promise<void>
+  /** 한 세트의 문항(쪽은 0부터, 한 쪽 20개). */
+  items(name: string, page: number): Promise<OperationsPage<DatasetItem>>
+  /**
+   * .jsonl 본문을 있는 세트에 올립니다(새 세트 만들기는 범위 밖이라 없는 세트는 404). 전부 아니면 무: 틀린 줄이 하나라도 있으면 DatasetInvalid이고 아무것도 만들지 않습니다.
+   * 서버가 만든 문항 수를 돌려줍니다.
+   */
+  upload(name: string, fileName: string, text: string, copyrightConfirmed: boolean): Promise<number>
 }

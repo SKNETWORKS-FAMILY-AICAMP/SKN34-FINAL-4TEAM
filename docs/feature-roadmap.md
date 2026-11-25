@@ -685,7 +685,7 @@
 <tr><td>배포 전 평가 통과 여부 확인</td><td>✅</td></tr>
 <tr><td>평가 상세의 문항별 결과(실패 로그) 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/823">#823</a></td></tr>
 <tr><td>에이전트별 평가 모드·세트·지표 표와 세트별 최근 Run 조회(원문 검색은 CI 고정 평가로 표시, 세트 없는 에이전트는 '평가 세트 없음(후속)')</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/837">#837</a></td></tr>
-<tr><td>평가 데이터셋 목록·JSONL 업로드(Langfuse Dataset 연동): 화면·도메인 계약·메모리 구현만 있고 서버 API는 예정(실제 모드는 '서버 준비 중')</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/857">#857</a></td></tr>
+<tr><td>평가 데이터셋 목록·문항·JSONL 업로드(Langfuse Dataset 연동) <small>(있는 세트에만 올리고 전부 아니면 무)</small></td><td>❌ <small>(부분: 화면과 HTTP 연결 소스 구현·병합 전. 서버 API는 #868의 다른 브랜치)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/857">#857</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/868">#868</a></td></tr>
 <tr><td rowspan="9">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 시간 초과율 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 비용 지표 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
