@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type EvaluationItem, type PromptVersion,
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, defaultModelOf, modelLabel, pendingSeed, percent, periodRange, productionOf, recentDefaultModel, staleBaseline, usd, versionAction, type EvaluationItem, type Prompt, type PromptVersion,
 } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
+import type { PipelineRecord } from '../entities/llmOpsPipeline'
 import { lastPage } from '../entities/operations'
 
 describe('LLMOps 표시 값', () => {
@@ -116,7 +117,24 @@ describe('권한 안내 문구', () => {
   it('버전에 고른 모델이 없으면 기본 모델(환경 설정)로 보이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
     // 고르지 않은 버전의 실제 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808).
     expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델(환경 설정)', '기본 모델(환경 설정)'])
+    // 근거(최근 사용)가 있을 때만 기본 모델 뒤에 붙고, 고른 모델이 있으면 근거를 붙이지 않으며, 근거가 없으면 이름을 지어내지 않는다(#857).
+    const recent = { model: 'gpt-demo', version: 3, at: '2026-11-24T01:00:00Z' }
+    expect([modelLabel(null, recent), modelLabel(undefined, recent), modelLabel('gpt-x', recent), modelLabel(null, null)]).toEqual(['기본 모델 · 최근 사용 gpt-demo', '기본 모델 · 최근 사용 gpt-demo', 'gpt-x', '기본 모델(환경 설정)'])
     expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
+  })
+
+  it('서버가 알려 준 실제 기본 모델(effectiveModel, #868)이 있으면 \'기본 모델 · gpt-…\'로 보이고 최근 사용 근거보다 앞서며, 모델을 고른 버전은 그 이름이다. effectiveModel이 비었을 때만 근거·환경 설정 글이 쓰인다', () => {
+    const recent = { model: 'gpt-demo', version: 3, at: '2026-11-24T01:00:00Z' }
+    expect([modelLabel(null, recent, 'gpt-live'), modelLabel(undefined, null, 'gpt-live'), modelLabel('gpt-x', recent, 'gpt-x'), modelLabel(null, recent, null), modelLabel(null, null, undefined)])
+      .toEqual(['기본 모델 · gpt-live', '기본 모델 · gpt-live', 'gpt-x', '기본 모델 · 최근 사용 gpt-demo', '기본 모델(환경 설정)'])
+  })
+
+  it('프롬프트의 실제 기본 모델은 modelSource가 default인 버전의 effectiveModel(높은 버전 우선)이고, 서버가 못 알려 주면 null이다', () => {
+    const ver = (version: number, extra: Partial<PromptVersion> = {}): PromptVersion => ({ version, labels: [], ...extra })
+    const of = (...versions: PromptVersion[]) => defaultModelOf({ name: 'p', candidates: 0, versions })
+    expect(of(ver(1, { effectiveModel: 'gpt-old', modelSource: 'default' }), ver(3, { effectiveModel: 'gpt-new', modelSource: 'default' }), ver(2, { model: 'gpt-x', effectiveModel: 'gpt-x', modelSource: 'version' }))).toBe('gpt-new')
+    expect(of(ver(2, { model: 'gpt-x', effectiveModel: 'gpt-x', modelSource: 'version' }))).toBeNull()   // 고른 모델은 기본 모델이 아니다
+    expect(of(ver(1, { effectiveModel: null, modelSource: null }), ver(2))).toBeNull()
   })
 })
 
@@ -152,5 +170,75 @@ describe('문항별 결과의 진행 중 표시(#823)', () => {
     expect(itemWaiting(item({}))).toBe(true)
     // 점수가 있으면 끝난 문항이고, 실패(항목 오류)한 문항은 진행 중이 아니다.
     expect([itemWaiting(item({ scores: { voice: 0.5 } })), itemWaiting(item({ failed: true, error: '생성 또는 채점에 실패했어요.' }))]).toEqual([false, false])
+  })
+})
+
+describe('기본 모델의 근거: 모델을 고르지 않은 버전이 기록에 남긴 가장 최근 모델(#857)', () => {
+  const version = (n: number, model: string | null = null): PromptVersion => ({ version: n, labels: [], model })
+  const prompt: Prompt = { name: 'character_simulation.act', candidates: 0, versions: [version(1), version(2, 'gpt-pinned'), version(3)] }
+  const record = (extra: Partial<PipelineRecord> = {}): PipelineRecord => ({
+    id: 'o', traceId: 't', name: 'step.act', type: 'GENERATION', startTime: '2026-11-24T01:00:00Z', level: 'DEFAULT', promptName: prompt.name, promptVersion: 3, model: 'gpt-default', ...extra,
+  })
+
+  it('가장 최근 기록의 모델과 버전·시각을 주며, 목록 순서가 아니라 시작 시각으로 고른다', () => {
+    const rows = [record({ id: 'old', startTime: '2026-11-20T01:00:00Z', model: 'gpt-older', promptVersion: 1 }), record({ id: 'new', startTime: '2026-11-24T05:00:00Z', model: 'gpt-newer' }), record({ id: 'mid', startTime: '2026-11-22T01:00:00Z' })]
+    expect(recentDefaultModel(prompt, rows)).toEqual({ model: 'gpt-newer', version: 3, at: '2026-11-24T05:00:00Z' })
+  })
+
+  it('모델을 고른 버전·이 프롬프트에 없는 버전·버전 없는 기록·다른 프롬프트·모델 없는 기록은 기본 모델의 근거가 아니다', () => {
+    const rows = [
+      record({ id: 'pinned', promptVersion: 2, model: 'gpt-pinned', startTime: '2026-11-24T09:00:00Z' }), record({ id: 'unknown', promptVersion: 9, model: 'gpt-x', startTime: '2026-11-24T08:00:00Z' }),
+      record({ id: 'unversioned', promptVersion: null, model: 'gpt-x', startTime: '2026-11-24T07:00:00Z' }), record({ id: 'other', promptName: 'character_simulation.narrate', model: 'gpt-x', startTime: '2026-11-24T06:00:00Z' }),
+      record({ id: 'blank', model: null, startTime: '2026-11-24T05:00:00Z' }), record({ id: 'empty', model: '', startTime: '2026-11-24T04:30:00Z' }),
+      record({ id: 'ok', promptVersion: 1, model: 'gpt-default', startTime: '2026-11-24T04:00:00Z' }),
+    ]
+    expect(recentDefaultModel(prompt, rows)).toEqual({ model: 'gpt-default', version: 1, at: '2026-11-24T04:00:00Z' })
+  })
+
+  it('근거가 되는 기록이 없으면 null이고, 시작 시각이 없는 기록도 근거가 된다(시각만 없음)', () => {
+    expect(recentDefaultModel(prompt, [])).toBeNull()
+    expect(recentDefaultModel(prompt, [record({ promptVersion: 2, model: 'gpt-pinned' })])).toBeNull()
+    expect(recentDefaultModel(prompt, [record({ startTime: null })])).toEqual({ model: 'gpt-default', version: 3, at: null })
+  })
+})
+
+describe('세트가 바뀌어 기준 Run이 무효인가(#868 서버 규칙: 평가 서비스가 기준 Run을 가리는 방법과 같다)', () => {
+  const version = (n: number, labels: string[], runAt?: string): PromptVersion => ({ version: n, labels, ...(runAt ? { evaluation: { runId: 'run-' + n, passed: true, createdAt: runAt } } : {}) })
+  const prompt = (...versions: PromptVersion[]): Prompt => ({ name: 'character_simulation.act', versions, candidates: 0, evaluationDataset: 'simulation.act' })
+  const BASE = '2026-11-24T05:00:00Z'
+
+  it('production 버전의 가장 최근 Run이 세트의 마지막 문항 시각보다 먼저 시작했으면 마지막 문항을 보지 못한 점수라 무효이고, 두 시각을 돌려준다', () => {
+    const p = prompt(version(2, []), version(1, ['production', 'seed'], BASE))
+    expect(staleBaseline(p, '2026-11-24T05:00:01Z')).toEqual({ baselineAt: BASE, lastItemAt: '2026-11-24T05:00:01Z' })
+    expect(staleBaseline(p, '2026-11-25T00:00:00Z')).toEqual({ baselineAt: BASE, lastItemAt: '2026-11-25T00:00:00Z' })
+  })
+
+  it('같은 시각도 무효이고(서버: 마지막 문항을 본 Run만 기준이라 같은 시각은 뒤가 아니다), 한순간이라도 뒤에 시작했으면 유효하다', () => {
+    const p = prompt(version(1, ['production'], BASE))
+    expect(staleBaseline(p, BASE)).toEqual({ baselineAt: BASE, lastItemAt: BASE })
+    expect(staleBaseline(p, '2026-11-24T04:59:59.999Z')).toBeNull()
+    expect(staleBaseline(p, '2026-11-24T04:00:00Z')).toBeNull()
+  })
+
+  it('시각은 글이 아니라 순간으로 비교한다: 오프셋·소수 초 표기가 달라도 같은 순간이면 같은 시각이다', () => {
+    const p = prompt(version(1, ['production'], '2026-11-24T14:00:00.000+09:00'))
+    expect(staleBaseline(p, BASE)).not.toBeNull()   // 같은 순간(05:00:00Z)
+    expect(staleBaseline(p, '2026-11-24T04:59:59.5Z')).toBeNull()
+    expect(staleBaseline(p, '2026-11-24T05:00:00.500Z')).not.toBeNull()
+  })
+
+  it('기준 Run을 알 수 없거나(production 없음·그 버전의 평가 Run 없음) 세트에 문항 시각이 없으면 무효라고 단정하지 않는다(null)', () => {
+    expect(staleBaseline(prompt(version(1, ['seed'], BASE)), '2026-11-25T00:00:00Z')).toBeNull()   // production 라벨이 없다
+    expect(staleBaseline(prompt(version(1, ['production'])), '2026-11-25T00:00:00Z')).toBeNull()   // 평가 Run이 없다
+    expect(staleBaseline(prompt(), '2026-11-25T00:00:00Z')).toBeNull()
+    expect(staleBaseline(prompt(version(1, ['production'], BASE)), null)).toBeNull()   // 문항이 없거나 시각이 없는 세트
+    expect(staleBaseline(prompt(version(1, ['production'], BASE)), undefined)).toBeNull()   // 목록에 그 세트가 없다
+    expect(staleBaseline(prompt(version(1, ['production'], '시각이 아님')), '2026-11-25T00:00:00Z')).toBeNull()
+  })
+
+  it('production이 아닌 버전의 Run은 기준이 아니다: 후보·시드 버전의 Run이 세트보다 먼저여도 무효가 아니고, production의 Run만 본다', () => {
+    const fresh = '2026-11-26T00:00:00Z'
+    expect(staleBaseline(prompt(version(3, [], BASE), version(2, ['candidate-2'], BASE), version(1, ['production'], fresh)), '2026-11-25T00:00:00Z')).toBeNull()
+    expect(staleBaseline(prompt(version(2, ['candidate-2'], fresh), version(1, ['production'], BASE)), '2026-11-25T00:00:00Z')).not.toBeNull()
   })
 })

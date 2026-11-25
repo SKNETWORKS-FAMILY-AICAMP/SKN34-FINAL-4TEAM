@@ -33,7 +33,8 @@ export type AdminActionState = ActionState
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
 export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs', 'genres', 'credits', 'worlds', 'cardCategories']
 /** 운영 변경 조치 실행기: 서버 응답 성공만 완료로 표시하고 dataChanged로 화면의 조회를 다시 읽게 합니다(대시보드·LLMOps·작업 감시 화면이 씁니다). */
-export type AdminMutate = (key: string, message: string, action: () => Promise<void>) => Promise<boolean>
+/** message는 완료 문구이고, 서버가 돌려준 값으로 정해야 하면(예: 올린 문항 수) 조치가 끝난 뒤 부르는 함수로 줍니다. */
+export type AdminMutate = (key: string, message: string | (() => string), action: () => Promise<void>) => Promise<boolean>
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 
 /** 작품 탭을 떠나면 선택과 조회 결과도 함께 닫힌다. */
@@ -124,7 +125,7 @@ export function useAdminViewModel(
     })
   }
   /** 서버 응답 성공만 완료로 표시하고 dataChanged로 목록·상세를 다시 조회합니다. */
-  const runLive = (key: string, msg: string, action: () => Promise<void>) => run(key, async () => { await action(); return { ok: true, msg } })
+  const runLive = (key: string, msg: string | (() => string), action: () => Promise<void>) => run(key, async () => { await action(); return { ok: true, msg: typeof msg === 'function' ? msg() : msg } })
   const selectRecord = (kind: OperationsRecordKind, id: string | null) => { dispatch(adminViewActions.selectRecord({ kind, id })) }
   /**
    * 요청을 보내는 순간의 초안(`draftOf`)을 기억해 두었다가, 완료 때 호출하면 같은 mount·같은 선택에서

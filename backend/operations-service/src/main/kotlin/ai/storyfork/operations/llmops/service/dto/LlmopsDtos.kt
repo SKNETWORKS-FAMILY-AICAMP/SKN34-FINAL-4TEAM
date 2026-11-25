@@ -61,10 +61,12 @@ data class PromptEvaluation(val runId: String, val passed: Boolean?, val created
 /**
  * [createdAt] is null when Langfuse's prompt payload carries none. [model] is the model chosen for the version (its config.model, #705; null runs on the
  * AI service's environment default). [prompt] is the body, only in a prompt's detail (the list would carry every body of every version).
+ * [effectiveModel] is the model the version really runs on and [modelSource] says where it comes from: 'version' is [model], 'default' is what the AI service
+ * runs the prompt on when a version chooses none (#868); both are null when the AI service could not say (never a guess).
  */
 data class PromptVersion(
     val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
-    val commitMessage: String? = null,
+    val commitMessage: String? = null, val effectiveModel: String? = null, val modelSource: String? = null,
 )
 
 /**
@@ -116,6 +118,24 @@ data class OptimizationRequest(val version: Int, val maxMetricCalls: Int? = null
 data class OptimizationStartedResponse(val accepted: Boolean, val prompt: String, val version: Int, val maxMetricCalls: Int)
 
 data class EvaluationStartedResponse(val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String)
+
+// Evaluation datasets (#868): the sets of Langfuse the regression evaluation reads.
+
+/**
+ * [prompt] is the prompt that names the set as its evaluation set (the candidate gate), null for a set no prompt names; [itemCount] is all items of the set.
+ * [kind] is gate (a prompt's evaluation set), pool (optimize.<gate>: what the prompt improvement trains on) or general (any other name).
+ * [lastItemAt] is when the set last changed: the latest createdAt or updatedAt of its items (null for a set without items or times). A baseline Run that started
+ * before it has not seen the whole set, so the evaluation service does not take it as the baseline (the same maximum, #868).
+ */
+data class EvalDataset(val name: String, val prompt: String?, val kind: String, val itemCount: Long, val lastItemAt: Instant?, val description: String?)
+
+/** One item as Langfuse stores it; the three values are JSON as stored, null when the item has none. */
+data class DatasetItem(val id: String, val input: JsonNode?, val expectedOutput: JsonNode?, val metadata: JsonNode?)
+
+data class DatasetItemPage(val items: List<DatasetItem>, val total: Long)
+
+/** [notice] is a warning for the screen: only an upload to a gate set has one (it makes the next evaluation evaluate the baseline version again). */
+data class DatasetUploadResponse(val created: Int, val kind: String, val notice: String?)
 
 data class LeakCheck(
     val id: UUID, val traceId: String, val workId: String, val checkedAt: Instant, val matched: List<String>, val suspected: Boolean, val reason: String?,

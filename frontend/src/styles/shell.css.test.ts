@@ -288,6 +288,19 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(narrow('.adm .admin-brand-top', 'min-height')).toBe('44px')
   })
 
+  it('사이드바 하위 탭(.admin-subnav, #857 3차 정정)은 들여쓴 세로 목록이고 접히면(hidden) 그리지 않으며, 900px 이하 가로 메뉴 줄에서는 쪽 링크 옆으로 가로로 이어진다', () => {
+    const sub = '.adm .admin-nav .admin-subnav'
+    expect([value(sub, 'list-style'), value(sub, 'display'), value(`${sub}[hidden]`, 'display'), narrow(sub, 'display')]).toEqual(['none', 'grid', 'none', 'flex'])
+    // 들여쓰기와 왼쪽 안내선(세로)은 가로 메뉴 줄에서 안내선만 남기고 들여쓰기는 줄인다.
+    expect([value(sub, 'margin'), narrow(sub, 'margin'), value(sub, 'border-left')?.startsWith('1px solid')]).toEqual(['0 0 2px 14px', '0', true])
+    // 하위 탭 링크는 쪽 링크(38px)보다 한 단 작다. 900px 이하·터치 환경의 44px은 메뉴 항목 규칙이 올린다.
+    expect([value(`${sub} a`, 'height'), value(`${sub} a`, 'font-size')]).toEqual(['34px', '13px'])
+    // ▾/▸는 링크 글자 오른쪽 끝에 두고, 열린 쪽 링크는 선택 면 없이 글자만 밝다.
+    expect([value('.adm .admin-nav .nav-caret', 'margin-left'), value('.adm .admin-nav a.open', 'color')]).toEqual(['auto', 'var(--fixed-ink)'])
+    // 마크업: 접힘은 hidden 속성이 맡고 CSS display로 되살리지 않는다(위 [hidden] 규칙이 명시도로 이긴다).
+    expect(adminPage).toMatch(/hidden=\{!open\}/)
+  })
+
   it('cron 식(td code)은 공백에서 꺾이지 않는 한 줄이다', () => {
     // '0 30 4 1 1 *'은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다(390px 일정 표). 표 스크롤 영역 안에서 가로로 스크롤한다.
     expect(opsCss).toMatch(/\.adm td code \{[^}]*white-space: nowrap/)

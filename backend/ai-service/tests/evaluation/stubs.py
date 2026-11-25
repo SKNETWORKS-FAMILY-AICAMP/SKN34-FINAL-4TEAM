@@ -20,6 +20,7 @@ from app.evaluation.models import EvaluationRequest
 REAL_ITEM = json.loads((Path(__file__).parent / 'fixtures' / 'dataset-item.json').read_text(encoding='utf-8'))
 DATASET_ID = REAL_ITEM['datasetId']
 ISO = '2026-11-19T01:05:00.000Z'
+START = '2026-11-20T00:00:00.000Z'   # Run이 시작한 기본 시각: 픽스처 항목(2026-11-19T03:55:41Z)이 만들어진 뒤라 기준 Run으로 유효하다
 QA = {'question': '길동의 어머니는 누구인가?', 'contexts': ['길동의 어머니는 시비 춘섬이다.', '초낭은 홍문의 총첩이다.']}
 QA_REQUEST = EvaluationRequest(dataset='qa.grounding', prompt='qa.answer', version=3)
 GEVAL_REQUEST = EvaluationRequest(dataset='world.conflict', prompt='world.check', version=1)
@@ -30,10 +31,10 @@ JUDGE = {'character': '길동', 'scene': [{'by': '길동', 'text': '"가자."'}]
 CRITERIA = {'criteria': '충돌 지점을 짚으면 높은 점수'}
 
 
-def item(number, input, expected=None, metadata=None, dataset='qa.grounding') -> DatasetItem:
-    """실서버가 돌려준 데이터셋 항목 JSON에 값만 바꿔 SDK 모델로 읽는다."""
+def item(number, input, expected=None, metadata=None, dataset='qa.grounding', created=None, updated=None) -> DatasetItem:
+    """실서버가 돌려준 데이터셋 항목 JSON에 값만 바꿔 SDK 모델로 읽는다. created는 항목이 만들어진 시각, updated는 마지막으로 바뀐 시각(ISO)이다."""
     return parse_obj_as(DatasetItem, {**REAL_ITEM, 'id': f'{dataset}-{number}', 'datasetName': dataset, 'input': input, 'expectedOutput': expected,
-                                      'metadata': metadata})
+                                      'metadata': metadata, 'createdAt': created or REAL_ITEM['createdAt'], 'updatedAt': updated or REAL_ITEM['updatedAt']})
 
 
 def prompt(text, version, model=None):
@@ -46,12 +47,13 @@ def _score(name, value, data_type):
             'timestamp': ISO, 'environment': 'default', 'createdAt': ISO, 'updatedAt': ISO}
 
 
-def experiment(name, metrics, *, passed=True, id=None) -> dict:
-    """GET /api/public/experiments 응답 항목(Experiment) JSON. 끝난 Run은 지표 평균 점수와 passed 점수를 가진다. passed=None이면 아직 끝나지 않은 Run이다."""
+def experiment(name, metrics, *, passed=True, id=None, started=START) -> dict:
+    """GET /api/public/experiments 응답 항목(Experiment) JSON. 끝난 Run은 지표 평균 점수와 passed 점수를 가진다. passed=None이면 아직 끝나지 않은 Run이다.
+    started는 Run이 시작한 시각(ISO)이다."""
     scores = [_score(metric, value, 'NUMERIC') for metric, value in metrics.items()]
     if passed is not None:
         scores.append(_score('passed', passed, 'BOOLEAN'))
-    return {'id': id or f'exp-{name}', 'name': name, 'description': None, 'startTime': ISO, 'endTime': ISO, 'itemCount': 2, 'datasetId': DATASET_ID,
+    return {'id': id or f'exp-{name}', 'name': name, 'description': None, 'startTime': started, 'endTime': ISO, 'itemCount': 2, 'datasetId': DATASET_ID,
             'scores': scores}
 
 
@@ -65,10 +67,11 @@ class FakeDataset:
 
     def __init__(self, items, name='qa.grounding', *, links=True):
         self.id, self.name, self.items, self.links = DATASET_ID, name, items, links
-        self.experiment, self.runs = None, {}  # runs: 서버에 만들어진 Run 이름 → id
+        self.experiment, self.runs, self.history = None, {}, []  # runs: 서버에 만들어진 Run 이름 → id, history: run_experiment 호출 기록(오래된 순)
 
     def run_experiment(self, *, name, run_name, description, task, evaluators, max_concurrency, metadata=None):
         self.experiment = {'name': name, 'run_name': run_name, 'description': description, 'max_concurrency': max_concurrency, 'metadata': metadata}
+        self.history.append(self.experiment)
         results = []
         for it in self.items:
             if self.links:

@@ -167,6 +167,60 @@ def test_a_missing_empty_or_one_sided_pool_is_a_fixed_failure_not_a_run_on_nothi
         service.load_pool('simulation.act')
 
 
+# ---- 풀을 Langfuse에서 읽기(#868): 운영 화면에서 올린 문항이 풀에 들어간다 ----
+
+@pytest.fixture
+def langfuse_pool(monkeypatch):
+    """Langfuse 키가 있는 환경과 Dataset optimize.<세트> 대역(SDK 항목처럼 input·expected_output·metadata를 속성으로 준다)."""
+    monkeypatch.setenv('LANGFUSE_PUBLIC_KEY', 'pk')
+    monkeypatch.setenv('LANGFUSE_SECRET_KEY', 'sk')
+    state = SimpleNamespace(rows=[row(1), row(2, split='val'), row(3)], error=None, asked=[])
+
+    def get_dataset(name, **_):
+        state.asked.append(name)
+        if state.error:
+            raise state.error
+        return SimpleNamespace(items=[SimpleNamespace(id=r['id'], input=r['input'], expected_output=r['expectedOutput'], metadata=r['metadata']) for r in state.rows])
+    monkeypatch.setattr(tracing, 'client', lambda: SimpleNamespace(get_dataset=get_dataset))
+    return state
+
+
+def test_with_langfuse_keys_the_pool_is_read_from_the_optimize_dataset_and_not_the_file(langfuse_pool, tmp_path, monkeypatch):
+    write_pool(tmp_path, monkeypatch, [row(9)])   # 파일이 달라도 Langfuse가 정본이다
+
+    train, val = service.load_pool('simulation.act')
+
+    assert langfuse_pool.asked == ['optimize.simulation.act']
+    assert train == [row(1), row(3)] and val == [row(2, split='val')]   # 평가 세트 항목과 같은 모양, metadata.split으로 나눈다
+
+
+@pytest.mark.parametrize('error', [NotFoundError(body='missing'), RuntimeError('원문 일부')], ids=['not-found', 'unreadable'])
+def test_a_pool_langfuse_cannot_give_is_a_fixed_failure_and_never_the_file(langfuse_pool, tmp_path, monkeypatch, error):
+    write_pool(tmp_path, monkeypatch, [row(1), row(2, split='val')])   # 읽을 수 있는 파일이 있어도 몰래 대신 쓰지 않는다
+    langfuse_pool.error = error
+
+    with pytest.raises(OptimizationFailure) as failure:
+        service.load_pool('simulation.act')
+
+    assert failure.value.status == 503 and '원문 일부' not in str(failure.value) and failure.value.__suppress_context__
+
+
+@pytest.mark.parametrize('rows', [[], [row(1)], [row(1, split='val')]])
+def test_an_empty_or_one_sided_langfuse_pool_does_not_run_either(langfuse_pool, rows):
+    langfuse_pool.rows = rows
+
+    with pytest.raises(OptimizationFailure):
+        service.load_pool('simulation.act')
+
+
+def test_a_langfuse_item_without_metadata_is_in_neither_side(langfuse_pool):
+    langfuse_pool.rows = [row(1), row(2, split='val'), {**row(3), 'metadata': None}]
+
+    train, val = service.load_pool('simulation.act')
+
+    assert [r['id'][-3:] for r in train] == ['001'] and [r['id'][-3:] for r in val] == ['002']
+
+
 def test_a_candidate_must_keep_the_safety_sentence_and_stay_within_twice_the_base_length():
     assert service.rejection(BASE + ' 더하기', BASE) is None
     assert 'SAFETY' in service.rejection('안전 문장이 없는 지시문', BASE) or '안전' in service.rejection('안전 문장이 없는 지시문', BASE)
@@ -179,7 +233,7 @@ def test_a_candidate_must_keep_the_safety_sentence_and_stay_within_twice_the_bas
 @pytest.fixture
 def world(monkeypatch, spans):
     """run_job의 협력자: Langfuse 프롬프트(기준 v2·production v1·최신 v5)·평가 서비스·잠금·풀·GEPA."""
-    w = SimpleNamespace(created=[], prepared=[], ran=[], optimized=[], acquired=True, no_production=False, baseline=object(), created_version=6,
+    w = SimpleNamespace(created=[], prepared=[], ran=[], optimized=[], checked=[], acquired=True, no_production=False, baseline=object(), created_version=6,
                         scores=[0.50, 0.62], best=BASE + ' 고쳐 쓴 문장', chat=False)
     client = tracing.client()
 
@@ -196,7 +250,11 @@ def world(monkeypatch, spans):
 
     def prepare(request, run_name=None):
         w.prepared.append((request, run_name))
-        return SimpleNamespace(request=request, run_name=run_name or f'{request.prompt}@v{request.version}-base', baseline=w.baseline if request.version == 1 else 'compared')
+        return SimpleNamespace(request=request, run_name=run_name or f'{request.prompt}@v{request.version}-base', dataset='gate-dataset', baseline=None)
+
+    def baseline_run(client, dataset, prompt_name, dataset_name, production):
+        w.checked.append((dataset, prompt_name, dataset_name, production.version))
+        return w.baseline   # 유효한 기준 Run이 있는가(None이면 없다): 유효성 규칙은 평가 서비스 몫이다
 
     def optimize(**options):
         w.optimized.append(options)
@@ -205,6 +263,7 @@ def world(monkeypatch, spans):
     monkeypatch.setattr(client, 'get_prompt', get_prompt)
     monkeypatch.setattr(client, 'create_prompt', create_prompt)
     monkeypatch.setattr(evaluation, 'prepare', prepare)
+    monkeypatch.setattr(evaluation, 'baseline_run', baseline_run)
     monkeypatch.setattr(evaluation, '_run', w.ran.append)
     monkeypatch.setattr(service, 'hold', lambda prompt: contextlib.nullcontext(w.acquired))
     monkeypatch.setattr(service, 'load_pool', lambda dataset: ([row(1), row(2)], [row(3)]))
@@ -308,6 +367,12 @@ def test_an_existing_baseline_run_is_not_made_again(world):
     service.run_job(REQUEST.model_dump())
 
     assert [plan.request.version for plan in world.ran] == [6]
+
+
+def test_the_baseline_check_asks_for_a_valid_run_of_the_production_version_on_the_gate_set(world):
+    service.run_job(REQUEST.model_dump())
+
+    assert world.checked == [('gate-dataset', 'character_simulation.act', 'simulation.act', 1)]   # 게이트 세트 항목과 production(v1)의 Run을 묻는다
 
 
 def test_without_a_production_label_there_is_no_baseline_to_make_and_the_run_goes_on(world):

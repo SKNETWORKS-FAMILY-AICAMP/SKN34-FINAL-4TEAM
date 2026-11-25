@@ -1,6 +1,8 @@
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { DEMO_WORLDS } from '../../data/mock/demoPublicWorlds'
+import { DatasetInvalid, GATE_UPLOAD_NOTICE } from '../../domain/entities/llmDatasets'
+import { staleBaseline } from '../../domain/entities/llmOps'
 import { createAppContainer } from './container'
 
 const id = 'e25ffb25-8128-48c0-8d66-e1d56831cd56'
@@ -96,6 +98,71 @@ it('운영 대시보드·LLMOps·작업 감시 저장소는 실제 모드에서 
   expect(mockup.resolve('llmOpsRepository').constructor.name).toBe('InMemoryLlmOpsRepository')
   expect(mockup.resolve('jobMonitorRepository').constructor.name).toBe('InMemoryJobMonitorRepository')
   expect((await mockup.resolve('operationsDashboardUseCase').dashboard()).unavailable).toEqual([])
+})
+
+it('평가 데이터셋(#868)은 실제 모드에서 운영 API를 읽고 올리고, mockup에서만 메모리 예시 세트를 쓴다(있는 세트에만 올린다)', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('llmDatasetRepository').constructor.name).toBe('HttpLlmDatasetRepository')
+  expect(real.resolve('llmDatasetUseCase')).toBeTruthy()
+  vi.stubEnv('MODE', 'mockup')
+  const mockup = createAppContainer()
+  expect(mockup.resolve('llmDatasetRepository').constructor.name).toBe('InMemoryLlmDatasetRepository')
+  const datasets = mockup.resolve('llmDatasetUseCase')
+  // 평가 게이트 5개(에이전트별 평가 표의 짝 세트)·범용 3개와 최적화 풀(optimize.<게이트>, 풀 파일 문항 수 그대로)이 목록에 있다(#868 정확 구현 계약 1).
+  expect((await datasets.datasets())!.map((row) => [row.name, row.kind, row.itemCount])).toEqual([
+    ['decision_guard.routing', 'gate', 49], ['extraction.extract', 'gate', 30], ['leak.spoiler', 'general', 5], ['optimize.extraction.extract', 'pool', 157], ['optimize.simulation.act', 'pool', 126], ['optimize.simulation.narrate', 'pool', 54],
+    ['qa.grounding', 'gate', 6], ['simulation.act', 'gate', 24], ['simulation.narrate', 'gate', 46], ['world.conflict', 'general', 5], ['writing.fix', 'general', 5],
+  ])
+  // 마지막 문항 시각(lastItemAt)은 시드 문항이 만들어진 때라 시연 평가 Run보다 먼저다: 처음에는 어느 프롬프트도 '세트가 바뀌어 기준을 다시 만들어요'가 아니다.
+  const llm = mockup.resolve('llmOpsUseCase')
+  const gatePrompts = (await llm.prompts())!.filter((prompt) => prompt.evaluationDataset)
+  expect(gatePrompts.map((prompt) => prompt.evaluationDataset)).toEqual(expect.arrayContaining(['simulation.act', 'simulation.narrate', 'qa.grounding', 'decision_guard.routing']))
+  const lastOf = async (name: string) => (await datasets.datasets())!.find((row) => row.name === name)!.lastItemAt
+  for (const prompt of gatePrompts) expect([prompt.name, staleBaseline(prompt, await lastOf(prompt.evaluationDataset!))]).toEqual([prompt.name, null])
+  const seeded = await lastOf('qa.grounding')
+  expect(Number.isNaN(Date.parse(seeded!))).toBe(false)
+  const text = ['1', '2'].map((q) => JSON.stringify({ input: { question: q, contexts: ['근거'] }, expectedOutput: '정답' })).join('\n')
+  // 평가 게이트에 올리면 서버처럼 응답이 종류와 안내(notice)를 주고, 세트의 마지막 문항 시각이 지금으로 바뀌어 기준 Run이 무효가 된다.
+  expect(await datasets.upload('qa.grounding', 'more.jsonl', text, true)).toEqual({ created: 2, kind: 'gate', notice: GATE_UPLOAD_NOTICE })
+  expect((await datasets.datasets())!.find((row) => row.name === 'qa.grounding')).toEqual({ name: 'qa.grounding', kind: 'gate', prompt: 'story_context.answer', itemCount: 8, lastItemAt: expect.any(String), description: '저장소 시드(ai-eval-seed)' })
+  expect(Date.parse((await lastOf('qa.grounding'))!)).toBeGreaterThan(Date.parse(seeded!))
+  expect(staleBaseline(gatePrompts.find((prompt) => prompt.evaluationDataset === 'qa.grounding')!, await lastOf('qa.grounding'))).not.toBeNull()
+  expect(await lastOf('simulation.act')).toBe((await mockup.resolve('llmDatasetUseCase').datasets())!.find((row) => row.name === 'simulation.act')!.lastItemAt)   // 다른 세트의 시각은 그대로
+  const page = (await datasets.items('qa.grounding', 0))!
+  expect([page.total, page.items.length, page.items.at(-1)]).toEqual([8, 8, { id: 'qa.grounding-08', input: { question: '2', contexts: ['근거'] }, expectedOutput: '정답', metadata: null }])
+  const general = JSON.stringify({ input: { q: 1 }, expectedOutput: '정답', metadata: { criteria: '기준' } })
+  await expect(datasets.upload('nope', 'a.jsonl', general, true)).rejects.toThrow('대상을 찾을 수 없어요.')   // 새 세트 만들기는 범위 밖(서버처럼 줄 검사를 모두 통과한 뒤에야 세트를 찾는다)
+})
+
+it('메모리 평가 데이터셋도 서버 규칙을 따른다: 올릴 세트 종류의 필수 칸을 지킨 줄만 올라가 없는 metadata가 null로 보이고, id·오타 칸·필수 칸 없음·파일 안 중복은 줄 오류로 거절하며 아무것도 올리지 않고, 크기는 줄 오류보다 먼저 막는다(#868)', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  const repo = createAppContainer().resolve('llmDatasetRepository')
+  const line = (q: number, extra: Record<string, unknown> = {}) => JSON.stringify({ input: { q }, expectedOutput: '정답', metadata: { criteria: '기준' }, ...extra })
+  const count = async (name: string) => (await repo.datasets()).find((row) => row.name === name)!.itemCount
+  const before = await count('leak.spoiler')
+  expect(await repo.upload('leak.spoiler', 'a.jsonl', [line(1), '', line(2, { metadata: { criteria: '다른 기준', source: '시험' } })].join('\n'), true)).toEqual({ created: 2, kind: 'general', notice: null })
+  const page = await repo.items('leak.spoiler', 0)
+  expect([page.total, page.items.slice(-2).map(({ id: _id, ...item }) => item)]).toEqual([before + 2, [
+    { input: { q: 1 }, expectedOutput: '정답', metadata: { criteria: '기준' } },
+    { input: { q: 2 }, expectedOutput: '정답', metadata: { criteria: '다른 기준', source: '시험' } },
+  ]])
+  // metadata가 필요 없는 세트(Q&A)는 줄에 없으면 서버가 주듯 null로 보인다.
+  expect(await repo.upload('qa.grounding', 'q.jsonl', JSON.stringify({ input: { question: '질문', contexts: ['근거'] }, expectedOutput: '답' }), true)).toEqual({ created: 1, kind: 'gate', notice: GATE_UPLOAD_NOTICE })
+  expect((await repo.items('qa.grounding', 0)).items.at(-1)).toMatchObject({ input: { question: '질문', contexts: ['근거'] }, expectedOutput: '답', metadata: null })
+  const bad = await repo.upload('leak.spoiler', 'b.jsonl', [line(3), '{"id":"x","input":{"q":4},"expectedOutput":"a"}', '{"input":{"q":5},"expectedOutput":"a","metadata":{}}', line(3)].join('\n'), true).catch((error) => error)
+  expect(bad).toBeInstanceOf(DatasetInvalid)
+  expect(bad.errors).toEqual([{ line: 2, message: '알 수 없는 칸이 있어요: id' }, { line: 3, message: 'metadata.criteria가 필요해요.' }])
+  expect(await count('leak.spoiler')).toBe(before + 2)   // 전부 아니면 무
+  // 최적화 풀(optimize.<게이트>)은 그 게이트와 같은 모양이고 metadata.split이 있으면 train·val이어야 한다.
+  const act = { input: { set: 'dialogue', data: {} }, expectedOutput: '대사', metadata: { judge: { character: '연새', scene: [], facts: [] } } }
+  expect(await repo.upload('optimize.simulation.act', 'p.jsonl', JSON.stringify(act), true)).toEqual({ created: 1, kind: 'pool', notice: null })
+  await expect(repo.upload('optimize.simulation.act', 'p2.jsonl', JSON.stringify({ ...act, input: { set: 'dialogue', data: { n: 2 } }, metadata: { ...act.metadata, split: 'test' } }), true).catch((error) => { throw error.errors })).rejects.toEqual([{ line: 1, message: 'metadata.split은 train 또는 val이어야 해요.' }])
+  // 형식이 모두 맞아야 질문 검사(같은 input)를 한다: 서버처럼 중복은 그 뒤에 알린다.
+  const dup = await repo.upload('leak.spoiler', 'd.jsonl', [line(7), line(8), line(7)].join('\n'), true).catch((error) => error)
+  expect(dup.errors).toEqual([{ line: 3, message: '파일의 1번째 줄과 input이 같아요.' }])
+  expect(await count('leak.spoiler')).toBe(before + 2)
+  const tooMany = Array.from({ length: 501 }, (_, i) => line(i)).join('\n') + '\n{bad'
+  await expect(repo.upload('leak.spoiler', 'c.jsonl', tooMany, true)).rejects.toThrow('파일이 너무 커요.')   // 서버의 413처럼 크기 안내(줄 오류 목록이 아니다)
 })
 
 it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서 같은 목록을 보는 메모리를 쓰고 홈 칩·세계관 이름이 그 목록을 따른다', async () => {

@@ -43,7 +43,7 @@ def test_prepare_names_the_run_and_reads_the_requested_prompt_version(monkeypatc
     _, _, plan = prepared(monkeypatch, [item(1, QA)])
 
     assert re.fullmatch(r'qa\.answer@v3-\d{8}T\d{6}Z-[0-9a-f]{6}', plan.run_name)
-    assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.1, None)  # 기본 허용 오차는 0.1이고, production 라벨이 없으면 기준 Run도 없다
+    assert (plan.instructions, plan.tolerance, plan.baseline, plan.base_version) == ('지시문', 0.1, None, None)  # 기본 허용 오차는 0.1이고, production 라벨이 없으면 기준 Run도 먼저 만들 평가도 없다
 
 
 @pytest.mark.parametrize('blank', ['', '  '])
@@ -101,7 +101,7 @@ def test_baseline_is_the_latest_run_that_finished_with_passed_and_every_metric_a
 
     _, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
 
-    assert plan.baseline == service.Baseline(run='qa.answer@v2-latest', version=2, metrics=metrics)
+    assert plan.baseline == service.Baseline(run='qa.answer@v2-latest', version=2, metrics=metrics) and plan.base_version is None   # 기준이 있으면 먼저 평가할 것이 없다
     query = client.requests[-1].url.params  # 실제 SDK가 Experiments API(GET /api/public/experiments)로 보낸 쿼리
     assert (query['datasetId'], query['fields'], query['limit']) == (DATASET_ID, 'core,scores', '100') and 'fromStartTime' in query
 
@@ -300,7 +300,8 @@ def test_a_plan_travels_to_the_worker_as_json_without_the_dataset_items(monkeypa
 
     assert json.loads(json.dumps(job)) == job  # 브로커를 지나도 같다
     assert job == {'request': {'dataset': 'qa.grounding', 'prompt': 'qa.answer', 'version': 3}, 'runName': plan.run_name, 'instructions': '지시문',
-                   'model': None, 'tolerance': 0.1, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}}}
+                   'model': None, 'tolerance': 0.1, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}},
+                   'baseVersion': None}
     assert QA['question'] not in json.dumps(job, ensure_ascii=False)  # 채점 입력은 싣지 않는다: 워커가 평가 세트를 이름으로 읽는다
 
 
@@ -358,6 +359,109 @@ def test_leak_check_failure_keeps_status_and_message(monkeypatch):
         service.leak_check(LeakCheckRequest(response='응답', references=['카드']))
 
     assert (error.value.status, str(error.value)) == (502, '평가 채점에 실패했습니다.')
+
+
+# --- 기준 Run 무효화와 production 선평가(#868): 기준 Run은 세트의 마지막 문항보다 뒤에 시작한 Run뿐이다 ---
+
+METRICS = {'faithfulness': 0.95, 'context_precision': 0.85}
+NEWEST = '2026-11-19T05:00:00.000Z'   # 세트의 마지막 문항이 만들어진 시각
+PRODUCTION_V2 = {**PRODUCTION, ('qa.answer', 2): prompt('옛 지시문', 2)}   # production 라벨과 그 버전(v2) 본문
+
+
+def test_a_baseline_run_counts_only_if_it_started_after_the_newest_item_of_the_set(monkeypatch):
+    runs = [experiment('qa.answer@v2-same', METRICS, started=NEWEST),   # 마지막 문항과 같은 시각은 뒤가 아니다
+            experiment('qa.answer@v2-before', METRICS, started='2026-11-19T04:59:59.999Z')]   # 마지막 문항을 보지 못한 점수라 기준이 아니다
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), item(2, QA, created=NEWEST)], experiments=runs, prompts=PRODUCTION)
+
+    assert (plan.baseline, plan.base_version) == (None, 2)   # 유효한 기준이 없으면 같은 작업에서 production(v2)을 먼저 평가한다
+
+
+def test_a_baseline_run_that_started_before_an_item_was_changed_is_invalid(monkeypatch):
+    # 올라간 문항의 내용이 바뀌면(upsert) 만들어진 시각이 그대로여도 마지막으로 바뀐 시각이 기준이다: 그 전에 시작한 Run은 바뀐 문항을 보지 못했다.
+    changed = item(2, QA, created='2026-11-19T04:00:00.000Z', updated=NEWEST)
+    between = experiment('qa.answer@v2-between', METRICS, started='2026-11-19T04:30:00.000Z')   # 만들어진 뒤지만 바뀌기 전에 시작
+    after = experiment('qa.answer@v2-after', METRICS, started='2026-11-19T05:00:00.001Z')
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), changed], experiments=[between], prompts=PRODUCTION)
+    assert (plan.baseline, plan.base_version) == (None, 2)
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), changed], experiments=[between, after], prompts=PRODUCTION)
+    assert plan.baseline.run == 'qa.answer@v2-after' and plan.base_version is None
+
+
+def test_the_newest_item_decides_not_the_first_one(monkeypatch):
+    old = experiment('qa.answer@v2-old', METRICS, started='2026-11-19T04:00:00.000Z')   # 첫 문항(03:55)보다는 뒤지만 둘째 문항(05:00)보다 앞
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), item(2, QA, created=NEWEST)], experiments=[old], prompts=PRODUCTION)
+
+    assert (plan.baseline, plan.base_version) == (None, 2)
+
+
+def test_a_run_after_the_newest_item_is_the_baseline_and_older_runs_are_skipped(monkeypatch):
+    runs = [experiment('qa.answer@v2-after', METRICS, started='2026-11-19T05:00:00.001Z'),
+            experiment('qa.answer@v2-before', {'faithfulness': 0.1, 'context_precision': 0.1}, started='2026-11-19T04:00:00.000Z')]
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), item(2, QA, created=NEWEST)], experiments=runs, prompts=PRODUCTION)
+
+    assert plan.baseline == service.Baseline('qa.answer@v2-after', 2, METRICS) and plan.base_version is None
+
+
+def test_the_newest_valid_run_is_found_even_behind_invalid_newer_ones(monkeypatch):
+    runs = [experiment('qa.answer@v2-newest-but-before', METRICS, started='2026-11-19T04:00:00.000Z'),   # 목록은 최근 활동 순: 더 최근 활동이어도 시작이 문항보다 앞이면 건너뛴다
+            experiment('qa.answer@v2-valid', METRICS, started='2026-11-19T06:00:00.000Z')]
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA, created=NEWEST)], experiments=runs, prompts=PRODUCTION)
+
+    assert plan.baseline.run == 'qa.answer@v2-valid'
+
+
+def test_evaluating_the_production_version_itself_has_no_baseline_and_makes_none_first(monkeypatch):
+    valid = experiment('qa.answer@v3-valid', METRICS)   # 요청 v3이 production이면 유효한 옛 Run이 있어도 그 Run과 비교하지 않는다: 이 Run이 곧 기준이다
+
+    _, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=[valid], prompts={('qa.answer', 'production'): prompt('지시문', 3)})
+
+    assert (plan.baseline, plan.base_version) == (None, None) and client.requests == []   # 기준 Run을 찾으러 가지도 않는다
+
+
+def test_a_plan_without_a_valid_baseline_travels_with_the_production_version_to_evaluate_first(monkeypatch):
+    _, _, plan = prepared(monkeypatch, [item(1, QA)], prompts=PRODUCTION_V2)
+
+    job = service.to_job(plan)
+
+    assert json.loads(json.dumps(job)) == job and (job['baseline'], job['baseVersion']) == (None, 2)
+
+
+def test_the_worker_evaluates_the_production_version_first_and_compares_the_candidate_with_that_run(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)], prompts=PRODUCTION_V2)
+    job = json.loads(json.dumps(service.to_job(plan)))
+    calls = stub_models(monkeypatch, generate=lambda instructions, data: instructions + ':' + data['question'],
+                        ragas=lambda question, contexts, answer: {'faithfulness': 0.9 if answer.startswith('옛') else 0.7, 'context_precision': 0.8})
+
+    service.run_job(job)
+
+    assert [instructions for instructions, _ in calls.generate] == ['옛 지시문', '지시문']   # production(옛 지시문)이 먼저, 후보가 나중
+    base, candidate = dataset.history
+    assert re.fullmatch(r'qa\.answer@v2-\d{8}T\d{6}Z-[0-9a-f]{6}', base['run_name']) and candidate['run_name'] == plan.run_name
+    assert (base['metadata']['version'], base['metadata']['baselineRun']) == ('2', '')   # 기준 Run 자신은 비교하지 않는다
+    assert (candidate['metadata']['baselineRun'], candidate['metadata']['baselineVersion']) == (base['run_name'], '2')
+    first, second = client.scores[:3], client.scores[3:]   # Run마다 지표 둘과 passed를 남긴다
+    assert {s['name']: s['value'] for s in first} == {'faithfulness': 0.9, 'context_precision': 0.8, 'passed': 1.0}
+    scores = {s['name']: s for s in second}
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.9, 'delta': -0.2, 'tolerance': 0.1}   # 방금 만든 기준 평균과 비교한다
+    assert scores['passed']['value'] == 0.0 and scores['passed']['metadata']['baselineRun'] == base['run_name']
+
+
+def test_when_the_production_evaluation_leaves_no_score_the_candidate_is_not_evaluated(monkeypatch, caplog):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)], prompts=PRODUCTION_V2)
+    stub_models(monkeypatch, generate=refuse)   # 모든 항목이 실패해 기준이 될 지표 평균이 없다
+
+    with caplog.at_level(logging.ERROR):
+        service.run(plan)
+
+    assert len(dataset.history) == 1 and dataset.history[0]['run_name'] != plan.run_name   # 후보 Run은 만들지 않는다(기준 없이 지표 비교를 건너뛰지 않는다)
+    assert plan.run_name in caplog.text and '기준(production) 평가' in caplog.text and '지시문' not in caplog.text
+    assert [(s['name'], s['value']) for s in client.scores] == [('passed', 0.0)]   # production Run의 실패만 남는다
 
 
 # --- 시뮬레이션 세트(simulation.act·simulation.narrate): 서비스 호출로 만들고 원문 평가 루브릭으로 채점한다 ---

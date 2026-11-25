@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import type { PipelineNode, PipelineRecord, PipelineRecordQuery } from '../entities/llmOpsPipeline'
 import { OperationsError, OperationsForbidden } from '../entities/operations'
 import type { LlmOpsRepository } from '../repositories/LlmOpsRepository'
 import { LlmOpsUseCase } from '../usecases/LlmOpsUseCase'
@@ -156,5 +157,31 @@ describe('프롬프트 자동 개선 요청(#823)', () => {
   it('서버가 거절한 오류(이미 실행 중 등)는 그대로 던진다', async () => {
     const running = new OperationsError('이 프롬프트의 자동 개선이 이미 실행 중이에요.')
     await expect(make({ optimize: async () => { throw running } }).optimize('character_simulation.act', 1, 150)).rejects.toBe(running)
+  })
+})
+
+describe('프롬프트 기록(기본 모델의 근거, #857)', () => {
+  const node = (id: string, promptNames: string[]): PipelineNode => ({ id, label: id, next: [], standalone: false, count: 1, errors: 0, promptNames })
+  const record = (id: string, extra: Partial<PipelineRecord> = {}): PipelineRecord => ({ id, traceId: 't', name: 'n', type: 'GENERATION', level: 'DEFAULT', ...extra })
+  const page = (items: PipelineRecord[]) => ({ items, page: 0, size: 20, total: items.length, unavailable: [] })
+
+  it('프롬프트가 연결된 노드의 최근 7일 첫 쪽 기록만 읽고, 프롬프트와 모델이 모두 있는 기록만 모은다', async () => {
+    const pipeline = vi.fn(async () => [node('guard', ['decision_guard.judge']), node('apply', []), node('qa', ['story_context.answer'])])
+    const pipelineRecords = vi.fn(async ({ nodeId }: PipelineRecordQuery) => page(nodeId === 'guard'
+      ? [record('a', { promptName: 'decision_guard.judge', model: 'gpt-x' }), record('b', { promptName: null, model: 'gpt-x' })]
+      : [record('c', { promptName: 'story_context.answer', model: null }), record('d', { promptName: 'story_context.answer', model: 'gpt-y' })]))
+    const got = await make({ pipeline, pipelineRecords }).promptRecords(new Date('2026-11-24T00:00:00Z'))
+    expect(pipeline).toHaveBeenCalledWith({ from: '2026-11-17T00:00:00.000Z', to: '2026-11-24T00:00:00.000Z' })
+    expect(pipelineRecords.mock.calls.map(([query]) => [query.nodeId, query.page, query.level, query.from, query.to])).toEqual([
+      ['guard', 0, '', '2026-11-17T00:00:00.000Z', '2026-11-24T00:00:00.000Z'], ['qa', 0, '', '2026-11-17T00:00:00.000Z', '2026-11-24T00:00:00.000Z'],
+    ])
+    expect(got?.map((r) => r.id)).toEqual(['a', 'd'])
+  })
+
+  it('노드 목록이나 한 노드의 기록에 권한(403)이 없으면 그 부분은 비우고, 노드 목록이 막히면 null이다', async () => {
+    const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
+    expect(await make({ pipeline: forbidden }).promptRecords()).toBeNull()
+    const records = await make({ pipeline: async () => [node('guard', ['decision_guard.judge'])], pipelineRecords: forbidden }).promptRecords()
+    expect(records).toEqual([])
   })
 })

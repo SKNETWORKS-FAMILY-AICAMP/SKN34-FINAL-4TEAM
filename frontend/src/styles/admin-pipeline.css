@@ -1,7 +1,7 @@
-/* AI 파이프라인(DEC-58, LLM Ops 프롬프트·모델 > 전체). 위계는 선과 글자로만 만들고 색은 오류(위험)와 선택(주 색)에만 쓴다.
+/* AI 파이프라인(DEC-58, LLM Ops 프롬프트·평가 > AI 파이프라인 보기). 위계는 선과 글자로만 만들고 색은 오류(위험)와 선택(주 색)에만 쓴다.
    전역 storyfork.css는 @layer(base)라 이 비레이어 규칙이 늘 이기며, 선택자는 admin-operations.css의 같은 요소 규칙(.adm .admin-operations h3 등)보다 특이도를 한 칸 높였다. */
 
-/* 프롬프트·모델 쪽의 보기 전환(전체·프롬프트·모델): 현재 보기만 글자 색과 밑줄로 알린다. */
+/* LLM Ops 쪽 안의 보기 전환(에이전트 지표의 지표·추적, 프롬프트·평가의 에이전트별 평가·프롬프트·모델·AI 파이프라인): 현재 보기만 글자 색과 밑줄로 알린다. */
 .adm .pipe-views { display: flex; gap: 4px; margin: 0 0 12px; border-bottom: 1px solid var(--line2); }
 .adm .pipe-views a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--sub); font-size: 14px; font-weight: 600; text-decoration: none; }
 .adm .pipe-views a:hover { color: var(--ink); }
@@ -12,7 +12,7 @@
 .adm .admin-pipeline .pipe-diagram,
 .adm .admin-pipeline .pipe-records { min-width: 0; }
 /* content-box라 캔버스가 재는 폭·높이(내용 크기)가 그대로 캔버스 크기다. */
-.adm .admin-pipeline .pipe-canvas { box-sizing: content-box; min-height: 240px; border: 1px solid var(--line2); border-radius: 10px; overflow: hidden; }
+.adm .admin-pipeline .pipe-canvas { box-sizing: content-box; min-height: 160px; border: 1px solid var(--line2); border-radius: 10px; overflow: hidden; }
 .adm .admin-pipeline .pipe-canvas canvas { display: block; }
 
 /* 캔버스 아래 노드 버튼 목록: 키보드로 노드를 고르는 같은 목록. */
@@ -56,3 +56,20 @@
 .adm .admin-pipeline .pipe-step p { margin: 4px 0 0; }
 .adm .admin-pipeline .pipe-step details { margin-top: 4px; }
 .adm .admin-pipeline .pipe-step summary { color: var(--sub); font-size: 13px; cursor: pointer; }
+
+/* 파이프라인 노드의 '프롬프트 보기'(#857, NodePromptLink): 노드 버튼 목록 안 노드 아래와 기록 패널 머리의 글자 링크다. 캔버스 위에는 두지 않는다(그림이 지저분해지고 노드 이름을 가렸다). */
+.adm .admin-pipeline .pipe-nodes li { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.adm .admin-pipeline .pipe-prompt-link { display: inline-flex; align-items: center; min-height: 24px; padding: 0 4px; border: 0; background: none; color: var(--pri-ink); font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (pointer: coarse) { .adm .admin-pipeline .pipe-prompt-link { min-height: 44px; } }
+/* 프롬프트가 여럿인 노드는 목록 메뉴다: 트리거는 글자 링크이고(행 메뉴의 36px 원형 버튼 규칙을 덮는다), 목록은 이름이 길어 줄을 바꾼다. */
+.adm .row-menu.pipe-prompt-menu .pop-menu-btn { width: auto; height: auto; border-radius: 999px; color: inherit; }
+.adm .row-menu.pipe-prompt-menu .pop-menu-btn:hover, .adm .row-menu.pipe-prompt-menu .pop-menu-btn[aria-expanded="true"] { background: none; }
+.adm .pipe-prompt-menu .pop-menu-list [role="menuitem"] { height: auto; padding-top: 8px; padding-bottom: 8px; white-space: normal; }
+
+/* 워크플로우(#857 3차, 사이드바 하위 탭으로 고른다): 흐름 설명·서버 집계 줄, 서버 노드가 없는 단계(구조용 노드)는 점선 테두리, 기록 패널 머리의 통계·프롬프트 보기 줄, 단계 설명 패널. */
+.adm .admin-pipeline .pipe-flow-caption { margin: 0 0 10px; }
+.adm .admin-pipeline .pipe-flow-caption p { margin: 0 0 4px; }
+.adm .admin-pipeline .pipe-node.structural { border-style: dashed; }
+.adm .admin-pipeline .pipe-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.adm .admin-pipeline .pipe-meta p { margin: 0; }
+.adm .admin-pipeline .pipe-stepinfo p { margin: 8px 0 0; }

@@ -34,6 +34,12 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     for (const [code, label] of LLMOPS_ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
+  it('평가 데이터셋 업로드(#868)는 한국어 이름이고 대상은 세트 이름, 내역은 서버가 남긴 "<건수>건 · <파일 이름>" 그대로 보인다', () => {
+    expect(activityActionLabel('DATASET_UPLOAD')).toBe('평가 데이터셋 업로드')
+    expect(activityTarget({ targetType: 'DATASET', targetId: 'simulation.act' })).toBe('평가 데이터셋 simulation.act')
+    expect(activityDetail({ action: 'DATASET_UPLOAD', detail: '3건 · cases.jsonl' })).toBe('3건 · cases.jsonl')
+  })
+
   it('장르 관리 조치 3종(DEC-56)도 한국어 이름으로 보이고 대상은 장르 코드, 순서 변경은 장르 목록으로 보인다', () => {
     expect([['GENRE_CREATE', '장르 추가'], ['GENRE_UPDATE', '장르 수정'], ['GENRE_REORDER', '장르 순서 변경']].map(([code]) => activityActionLabel(code))).toEqual(['장르 추가', '장르 수정', '장르 순서 변경'])
     expect(activityTarget({ targetType: 'GENRE', targetId: 'genre-31' })).toBe('장르 genre-31')

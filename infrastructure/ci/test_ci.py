@@ -869,7 +869,8 @@ class ConfigurationTest(unittest.TestCase):
         routes = ['/api/v1/operations/dashboard', '/api/v1/operations/llmops/traces?from=2026-11-19',
                   '/api/v1/operations/llmops/prompts/p/production', '/api/v1/operations/alerts',
                   '/api/v1/operations/alerts/rules/ai_failure_rate', '/api/v1/operations/jobs/runs/id/retry',
-                  '/api/v1/operations/jobs/schedules']
+                  '/api/v1/operations/jobs/schedules', '/api/v1/operations/llmops/datasets',
+                  '/api/v1/operations/llmops/datasets/simulation.act/items?page=2&size=20']
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             for route in routes:
                 with self.subTest(proxy=path, route=route):
@@ -882,6 +883,16 @@ class ConfigurationTest(unittest.TestCase):
                       '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, pattern)
+
+    def test_llmops_proxy_accepts_evaluation_dataset_uploads(self):
+        # 평가 데이터셋 업로드(#868)는 파일 2 MB(multipart 3 MB)까지다. LLMOps 프록시의 본문 한도가 그보다 작으면 nginx가 먼저 413(HTML)으로 끊는다.
+        route = '/api/v1/operations/llmops/datasets/simulation.act/items'
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = read(path)
+            with self.subTest(proxy=path):
+                self.assertEqual('http://operations-service:8082', nginx_upstream(text, route))
+                body = re.search(r'location \^~ /api/v1/operations/llmops/ \{([^}]*)\}', text)[1]
+                self.assertGreaterEqual(int(re.search(r'client_max_body_size (\d+)m;', body)[1]), 3)
 
     def test_genre_routes_go_to_content_and_operations(self):
         # DEC-56: 공개 장르 목록은 Content, 운영 장르 관리(목록·추가와 {code} 수정·order 순서)는 Operations로 간다(일반 /api(Core)보다 구체적).

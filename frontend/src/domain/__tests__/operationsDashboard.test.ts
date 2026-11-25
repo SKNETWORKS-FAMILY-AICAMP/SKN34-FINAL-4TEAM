@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { alertRuleLabel, alertStatusLabel } from '../entities/operationsAlert'
-import { dashboardCards, type Dashboard } from '../entities/operationsDashboard'
+import { aiCards, dashboardCards, serviceCards, type Dashboard } from '../entities/operationsDashboard'
 
 const summary = (requests: number, failed: number, timeouts: number, failureRate: number | null, costUser: number, costPlatform: number) =>
   ({ requests, failed, timeouts, failureRate, costUser, costPlatform })
@@ -26,8 +26,8 @@ describe('운영 대시보드 카드 (DEC-55)', () => {
     expect(card(full, 'aiWeek').details[0]).toBe('실패 4건 · 실패율 데이터 없음')
     expect(card(full, 'reports')).toEqual({ key: 'reports', label: '접수 신고', value: '0건', details: [], to: '/admin?tab=rights' })
     expect(card(full, 'inquiries').to).toBe('/admin?tab=feedback')
-    // 경고 목록은 LLM Ops의 '경고' 보기에서 처리하므로 미확인 경고 카드가 거기로 잇는다.
-    expect(card(full, 'openAlerts')).toMatchObject({ value: '3건', to: '/admin?tab=llm' })
+    // 경고 목록은 LLM Ops의 '경고·누설 감시' 쪽에서 처리하므로 미확인 경고 카드가 거기로 잇는다(#857: 기본 쪽이 추적·지표라 view를 붙인다).
+    expect(card(full, 'openAlerts')).toMatchObject({ value: '3건', to: '/admin?tab=llm&view=alerts' })
     expect(card(full, 'jobs')).toMatchObject({ value: '2건', details: ['최근 24시간 실패 1건'], to: '/admin?tab=jobs' })
     expect(dashboardCards(full).map((c) => c.key)).toEqual(['members', 'aiToday', 'aiWeek', 'jobs', 'inquiries', 'reports', 'authorReviews', 'openAlerts'])
   })
@@ -39,6 +39,20 @@ describe('운영 대시보드 카드 (DEC-55)', () => {
     expect(cards.filter((c) => c.value === null).map((c) => c.key)).toEqual(['members', 'aiToday', 'aiWeek', 'reports', 'authorReviews', 'openAlerts'])
     expect(cards.find((c) => c.key === 'members')!.details).toEqual([])
     expect(cards.find((c) => c.key === 'inquiries')!.value).toBe('4건')
+  })
+})
+
+describe('대시보드와 에이전트 지표의 카드 나눔(#857)', () => {
+  it('대시보드(서비스 지표)에는 회원·미처리 업무 카드 넷만, 에이전트 지표 위에는 AI 요청·진행 중 작업·미확인 경고 카드 넷만 보이고, 둘을 합치면 전체 카드다', () => {
+    expect(serviceCards(full).map((c) => c.key)).toEqual(['members', 'inquiries', 'reports', 'authorReviews'])
+    expect(aiCards(full).map((c) => c.key)).toEqual(['aiToday', 'aiWeek', 'jobs', 'openAlerts'])
+    expect([...serviceCards(full), ...aiCards(full)].map((c) => c.key).sort()).toEqual(dashboardCards(full).map((c) => c.key).sort())
+  })
+
+  it('나뉜 카드도 읽지 못한 칸은 0이 아니라 값 없음이고, 미확인 경고 카드는 경고·누설 감시로 잇는다', () => {
+    const cards = aiCards({ ...full, ai: undefined, openAlerts: null, unavailable: ['langfuse'] })
+    expect(cards.map((c) => [c.key, c.value])).toEqual([['aiToday', null], ['aiWeek', null], ['jobs', '2건'], ['openAlerts', null]])
+    expect(aiCards(full).find((c) => c.key === 'openAlerts')!.to).toBe('/admin?tab=llm&view=alerts')
   })
 })
 

@@ -40,6 +40,8 @@
 @media (max-width: 900px) {
   .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
 }
+/* 흐름 범위 안내 줄(#857): 프롬프트 목록·에이전트별 평가 표 위에 현재 범위와 전체 보기 링크를 둔다. */
+.adm .admin-operations .pipe-scope { margin: 0 0 10px; }
 /* 운영 대시보드·LLMOps·작업 감시(DEC-55): 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
 .adm .admin-filter .field { min-width: 120px; }
@@ -109,9 +111,9 @@
 .adm progress { width: 100%; max-width: 160px; }
 /* 실패한 실행(상태 칩 .bad가 있는 행)의 진행 막대는 정상 색(기본 파랑)으로 가득 차 보이지 않게 실패 색으로 그린다. */
 .adm tr:has(.chip.bad) progress { accent-color: var(--danger); }
-/* 개요(data 탭)는 위에서부터 요약 띠 → 서비스 지표 → 최근 7일 AI 사용이고 사이는 모두 12px이다(요약 띠 아래 margin, 두 패널 사이는 위 .panel 규칙).
-   요약 띠: 카드 여덟 장을 따로 상자로 두지 않고 한 띠로 묶어 칸 사이를 가는 선으로만 나눈다. 칸마다 왼쪽·위·모서리에 선을 긋고 띠의 가장자리는 overflow가 잘라서 칸 수가 바뀌어도 맞는다.
-   열은 2열(넓은 화면 4열)로 고정해 여덟 장이 마지막 줄 없이 나뉜다(auto-fit은 1440px에서 5열이 되어 5+3으로 갈린다). 크레딧·LLM Ops 탭이 쓰는 공용 .kpi는 건드리지 않는다. */
+/* 대시보드(data 탭)는 요약 띠 → 서비스 지표, 에이전트 지표(LLM Ops 첫 쪽)는 요약 띠 → 최근 7일 AI 사용 → 에이전트별 지표 순이고 사이는 모두 12px이다(요약 띠 아래 margin, 패널 사이는 위 .panel 규칙).
+   요약 띠: 카드 넷을 따로 상자로 두지 않고 한 띠로 묶어 칸 사이를 가는 선으로만 나눈다. 칸마다 왼쪽·위·모서리에 선을 긋고 띠의 가장자리는 overflow가 잘라서 칸 수가 바뀌어도 맞는다.
+   열은 2열(넓은 화면 4열)로 고정해 넷씩 두 띠(대시보드의 서비스 지표 카드, 에이전트 지표 위의 AI 요청·작업·경고 카드)가 마지막 줄 없이 나뉜다(auto-fit은 1440px에서 5열이 되어 갈린다). 크레딧·LLM Ops 탭이 쓰는 공용 .kpi는 건드리지 않는다. */
 .adm .admin-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
 .adm .admin-summary > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; column-gap: 8px; padding: 12px 16px; box-shadow: -1px 0 0 var(--line), 0 -1px 0 var(--line), -1px -1px 0 var(--line); }
 .adm .admin-summary small { font-size: 12.5px; font-weight: 500; color: var(--sub); }
@@ -144,8 +146,8 @@
 .adm .admin-leak-rate { margin-top: 20px; border-top: 1px solid var(--line); }
 .adm .admin-operations .admin-leak-rate h3 { margin: 16px 0 8px; }
 .adm .admin-leak-rate fieldset.admin-filter { margin: 0 0 6px; }
-/* 회귀 평가 실행 폼: 데이터셋·프롬프트 이름·버전(좁게)과 실행 버튼을 표본 비율 줄처럼 한 줄에 두고 버튼은 입력 아래 끝(36px)에 맞춘다(입력 아래 줄에 따로 떨어져 있으면 표본 비율 줄과 버튼 자리가 달랐다). */
-.adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px auto; align-items: end; }
+/* 회귀 평가 실행 폼(프롬프트 상세의 평가 단계, 프롬프트는 상세가 정한다): 데이터셋·버전(좁게)과 실행 버튼을 표본 비율 줄처럼 한 줄에 두고 버튼은 입력 아래 끝(36px)에 맞춘다(입력 아래 줄에 따로 떨어져 있으면 표본 비율 줄과 버튼 자리가 달랐다). */
+.adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) 160px auto; align-items: end; }
 .adm .admin-eval-grid .rowend { grid-column: auto; }
 @media (max-width: 600px) { .adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr); } }
 
@@ -168,3 +170,67 @@
 /* 좁은 화면: 표는 600px로 가로 스크롤하므로 펼친 본문을 보이는 폭(카드 안쪽 ≈ 화면 − 90px)에 묶어 왼쪽에 고정한다. ponytail: 카드 여백이 바뀌면 90px도 맞춘다. */
 @media (max-width: 600px) { .adm .admin-prompt-body details { position: sticky; left: 12px; max-width: calc(100vw - 90px); } }
 @media (min-width: 1100px) { .adm .admin-prompt-live { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* 프롬프트 개선 루프(#857) 단계 표시: ① 프롬프트 ─ ② 평가 세트 ─ … ─ ⑥ 서비스 반영 한 줄. 현재 단계만 글자 색·밑줄(aria-current)로 알리고 단계 사이는 가는 선이다. 좁은 화면은 가로로 스크롤한다. */
+.adm .loop-steps { margin: 20px 0 16px; overflow-x: auto; border-bottom: 1px solid var(--line2); }
+.adm .loop-steps ol { display: flex; align-items: center; min-width: max-content; margin: 0; padding: 0; list-style: none; }
+.adm .loop-steps li { display: flex; align-items: center; }
+.adm .loop-steps li + li::before { content: ''; width: 20px; border-top: 1px solid var(--line3); }
+.adm .loop-steps button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--sub); font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.adm .loop-steps button:hover { color: var(--ink); }
+.adm .loop-steps button[aria-current="step"] { color: var(--ink); border-bottom-color: var(--pri); }
+@media (pointer: coarse) { .adm .loop-steps button { min-height: 44px; } }
+
+/* 에이전트 지표 카드(#857): 카드 하나 = 에이전트(기능) 하나. 숫자가 주이고 작은 막대(처리 결과·지연)는 보조다. 막대는 고른 기간 전체의 집계이고 색은 차트와 같은 토큰(주 색·위험·진한 호박)이다. */
+.adm .agent-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; margin: 12px 0 16px; padding: 0; list-style: none; }
+.adm .agent-cards > li { min-width: 0; }
+.adm .agent-card { display: grid; gap: 12px; height: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.adm .agent-card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.adm .admin-operations .agent-card-head h3 { margin: 0; font-size: 15px; }
+.adm .agent-card-head code { color: var(--sub); font-size: 12px; }
+.adm .agent-card-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 0; }
+.adm .agent-card-main b { font-size: 24px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.adm .agent-card-main span { color: var(--sub); font-size: 12.5px; }
+.adm .agent-card-nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin: 0; }
+.adm .agent-card-nums dt { color: var(--sub); font-size: 12px; }
+.adm .agent-card-nums dd { margin: 2px 0 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.adm .agent-meter-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; margin: 0 0 4px; color: var(--sub); font-size: 12px; font-variant-numeric: tabular-nums; }
+.adm .agent-legend { display: inline-flex; flex-wrap: wrap; gap: 0 10px; }
+.adm .agent-legend i { font-style: normal; }
+.adm .agent-legend i::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 50%; background: var(--pri); }
+.adm .agent-legend i.bad::before { background: var(--danger); }
+.adm .agent-legend i.wait::before { background: var(--acc-ink); }
+.adm .agent-bar { position: relative; display: flex; gap: 1px; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); }
+.adm .agent-bar > i { display: block; min-width: 2px; background: var(--pri); }
+.adm .agent-bar > i.bad { background: var(--danger); }
+.adm .agent-bar > i.wait { background: var(--acc-ink); }
+/* 지연 막대: 가장 느린 기능의 p95를 오른쪽 끝으로 보고 채움이 p50, 눈금이 p95다. */
+.adm .agent-bar-latency { display: block; }
+.adm .agent-bar-latency > i.p50 { position: absolute; inset: 0 auto 0 0; min-width: 2px; background: var(--pri); }
+.adm .agent-bar-latency > i.p95 { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -3px; min-width: 0; background: var(--acc-ink); }
+
+/* 모델 칸의 근거(#857, ModelLabel): 반영 중인 조합 요약(.admin-summary)의 모델 값은 큰 글씨 <b>이고, 그 안의 span이 요약 규칙(작은 회색 줄)을 받지 않게 값 글씨를 그대로 잇는다. */
+.adm .admin-summary b span { grid-column: auto; font-size: inherit; line-height: inherit; color: inherit; }
+.adm .admin-summary b .model-basis { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; line-height: 1.5; color: var(--sub); }
+.adm .model-basis { font-size: 12.5px; font-weight: 400; color: var(--sub); }
+
+/* 프롬프트 한국어 표시 이름 옆의 코드(#857): 이름이 주이고 코드는 작은 보조 글씨다. */
+.adm .prompt-code { font-family: var(--mono); font-size: 11.5px; font-weight: 400; color: var(--sub); overflow-wrap: anywhere; }
+
+/* 평가 데이터셋(#857, 프롬프트 상세 ② 평가 세트): 목록 아래에 고른 세트의 문항 목록과 JSONL 업로드 폼을 쌓는다. */
+.adm .admin-datasets { margin-top: 28px; }
+.adm .admin-datasets h3 { margin: 0 0 10px; }
+.adm .admin-datasets h4 { margin: 20px 0 8px; font-size: 14px; }
+.adm .dataset-items ul { max-height: 360px; margin: 0; padding: 0; overflow: auto; list-style: none; border: 1px solid var(--line2); border-radius: 10px; }
+.adm .dataset-items li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 6px 12px; border-top: 1px solid var(--line); }
+.adm .dataset-items li:first-child { border-top: 0; }
+.adm .dataset-items li pre.admin-prose { flex: 1 1 100%; margin: 4px 0 6px; }
+.adm .dataset-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
+.adm .dataset-toggle::before { content: '▸'; width: 1em; color: var(--sub); }
+.adm .dataset-toggle[aria-expanded="true"]::before { content: '▾'; }
+@media (pointer: coarse) { .adm .dataset-toggle { min-height: 44px; } }
+.adm .dataset-upload fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.adm .dataset-preview { min-width: 0; padding: 10px 12px; border: 1px solid var(--line2); border-radius: 10px; }
+.adm .dataset-preview p { margin: 0 0 4px; }
+.adm .dataset-preview pre.admin-prose { max-height: 200px; margin: 4px 0 8px; }
+.adm .dataset-errors { margin: 4px 0 0; padding-left: 18px; color: var(--danger); font-size: 13px; }

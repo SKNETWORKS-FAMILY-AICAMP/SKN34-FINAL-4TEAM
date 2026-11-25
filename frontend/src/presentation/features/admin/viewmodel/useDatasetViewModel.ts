@@ -1,0 +1,90 @@
+import { useMemo, useRef, useState } from 'react'
+
+import type { PipelineFlowKey } from '../../../../domain/entities/admin'
+import { DatasetInvalid, datasetKindLabel, datasetLimitError, decodeUtf8, isJsonlFile, parseDatasetJsonl, type DatasetError, type DatasetKind, type DatasetUploadResult } from '../../../../domain/entities/llmDatasets'
+import type { LoopStage } from '../../../../domain/entities/llmOps'
+import { scopeDatasets } from '../../../../domain/entities/llmOpsScope'
+import type { LlmDatasetUseCase } from '../../../../domain/usecases/LlmDatasetUseCase'
+import { useAsyncData } from '../../../shared/useAsyncData'
+import type { AdminMutate } from './useAdminViewModel'
+
+type Picked = { fileName: string; text: string; size: number }
+
+/**
+ * 프롬프트 상세 ② 평가 세트의 데이터셋(#868, 운영 서버 API): 목록·고른 세트의 문항(20개씩 쪽)·JSONL 업로드 폼. 목록은 ③ 평가·⑤ 게이트에서도 읽습니다(그 프롬프트에 짝 세트가 있을 때만):
+ * 짝 세트의 마지막 문항 시각(lastItemAt)을 기준 Run과 견주는 '세트가 바뀌어 기준을 다시 만들어요' 안내가 필요합니다(pair).
+ * 목록은 사이드바에서 고른 흐름(workflow)의 평가 게이트와 그 최적화 풀로 거르고(범용 세트는 전체에서만) 종류로도 거를 수 있습니다. 올릴 세트는 그 목록의 세트 중 하나(종류는 가리지 않음, 새 세트 만들기는 범위 밖)이고
+ * 처음에는 그 프롬프트의 짝 세트(preferred), 짝 세트가 목록에 없으면 목록의 첫 세트입니다(선택 상자에 없는 세트로 올라가지 않게 목록에 있는 것만 고릅니다).
+ * 업로드 전 미리보기는 파일을 읽은 즉시 올릴 세트 종류의 규칙(parseDatasetJsonl·datasetLimitError)으로 검사하고(세트를 바꾸면 다시 검사), 올릴 때 UseCase가 같은 검사와 확인란을 다시 확인한 뒤 서버가 한 번 더 검사합니다.
+ * 서버가 줄을 거절하면(DatasetInvalid) 그 줄 목록을 거절 표시로 남기고(아무것도 올라가지 않음) 입력은 유지합니다. 거절 표시는 그 세트에 묶여 다른 세트를 고르면 보이지 않고, 새 파일을 고르면 지워집니다.
+ */
+export function useDatasetViewModel(mutate: AdminMutate, stage: LoopStage | null, useCase: LlmDatasetUseCase, preferred?: string, flow: PipelineFlowKey = 'all') {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [itemsPage, setItemsPage] = useState(0)
+  const [chosen, setChosen] = useState('')
+  const [kind, setKind] = useState<DatasetKind | ''>('')
+  const [picked, setPicked] = useState<Picked | null>(null)
+  const [pickError, setPickError] = useState<string | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
+  // 서버가 거절한 줄은 올리려던 세트에 묶인다: 다른 세트가 골라지면(직접 바꾸거나 흐름 범위가 달라져 바뀌어도) 그 세트에 대한 거절로 보이지 않는다.
+  const [rejection, setRejection] = useState<{ set: string; errors: DatasetError[] } | null>(null)
+  // 올리기가 끝나면 올 때까지 남아 있는 파일 선택 표시를 지우려고 입력 칸을 새로 만드는 열쇠(고른 직후에는 바꾸지 않는다).
+  const [inputKey, setInputKey] = useState(0)
+  // 파일을 연달아 고르면 마지막 선택의 읽기 결과만 반영한다(먼저 고른 파일이 늦게 읽히며 덮어쓰거나 오류를 남기지 않게 선택마다 번호를 매긴다).
+  const pickSeq = useRef(0)
+  // 문항·업로드는 ② 평가 세트에서만, 목록은 짝 세트가 있는 프롬프트의 ③ 평가·⑤ 게이트에서도 읽는다(기준 Run 안내용).
+  const onSets = stage === 'set', listing = onSets || ((stage === 'eval' || stage === 'gate') && preferred !== undefined)
+  const datasets = useAsyncData(async () => (listing ? useCase.datasets() : null), [useCase, listing])
+  const items = useAsyncData(async () => (onSets && selected ? useCase.items(selected, itemsPage) : null), [useCase, onSets, selected, itemsPage])
+  const sets = useMemo(() => (datasets.data ? scopeDatasets(datasets.data, flow) : []), [datasets.data, flow])
+  const names = sets.map((row) => row.name)
+  const target = [chosen, preferred].find((name) => name && names.includes(name)) ?? names[0] ?? ''
+  const rejected = rejection?.set === target ? rejection.errors : []
+  const targetKind = sets.find((row) => row.name === target)?.kind
+  // 세트를 아직 모르면(목록을 읽기 전) 세트 공통 규칙만 보고, 알면 그 세트 종류의 필수 칸까지 본다.
+  const preview = useMemo(() => {
+    if (!picked) return null
+    const parsed = parseDatasetJsonl(picked.text, target || undefined)
+    return { ...parsed, limit: datasetLimitError(parsed.total, picked.size) }
+  }, [picked, target])
+  const canSubmit = !!picked && !!preview && preview.errors.length === 0 && preview.lines.length > 0 && !preview.limit && target !== '' && confirmed
+
+  return {
+    datasets, pair: datasets.data?.find((row) => row.name === preferred), flow, scopedCount: sets.length, rows: kind ? sets.filter((row) => row.kind === kind) : sets, kind, setKind, selected, select: (name: string | null) => { setSelected(name); setItemsPage(0) }, items, itemsPage, setItemsPage,
+    form: {
+      sets, target, targetKind, setTarget: setChosen, picked, pickError, preview, rejected, confirmed, setConfirmed, canSubmit, inputKey,
+      pick: async (file: File | undefined) => {
+        const seq = ++pickSeq.current
+        setPicked(null)
+        setPickError(null)
+        setRejection(null)
+        if (!file) return
+        if (!isJsonlFile(file.name)) return setPickError('.jsonl 파일만 올릴 수 있어요.')
+        try {
+          // 서버는 UTF-8만 받으므로 바이트로 읽어 엄격히 해석한다(file.text()는 깨진 글자로 바꿔 읽어 그대로 올라갈 수 있다).
+          const text = decodeUtf8(await file.arrayBuffer())
+          if (seq !== pickSeq.current) return
+          if (text === null) setPickError('UTF-8 텍스트 파일이 아니에요. UTF-8로 저장한 .jsonl 파일을 골라 주세요.')
+          else setPicked({ fileName: file.name, text, size: file.size })
+        } catch {
+          if (seq === pickSeq.current) setPickError('파일을 읽지 못했어요. 다시 골라 주세요.')
+        }
+      },
+      submit: async () => {
+        if (!picked || !canSubmit) return
+        const name = target
+        let result: DatasetUploadResult | undefined
+        setRejection(null)
+        // 문구는 서버의 응답을 따른다: 만든 문항 수·세트 종류와, 서버가 준 안내(평가 게이트에 올렸을 때만).
+        const said = ({ created, kind, notice }: DatasetUploadResult) => `${created}개 문항을 '${name}' 세트(${datasetKindLabel(kind)})에 올렸어요.${notice ? ` ${notice}` : ''}`
+        const ok = await mutate('dataset:upload', () => (result ? said(result) : ''), async () => {
+          try { result = await useCase.upload(name, picked.fileName, picked.text, confirmed) } catch (error) {
+            if (error instanceof DatasetInvalid) setRejection({ set: name, errors: error.errors })
+            throw error
+          }
+        })
+        if (ok) { setPicked(null); setConfirmed(false); setInputKey((key) => key + 1); setSelected(name); setItemsPage(0) }
+      },
+    },
+  }
+}

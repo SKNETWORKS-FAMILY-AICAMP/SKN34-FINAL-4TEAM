@@ -123,4 +123,26 @@ class AiClientTest {
             assertEquals(502, status { client(RecordingRequestFactory { Reply(failure, """{"detail":"x"}""") }).startOptimization("p", 1, 150) })
         }
     }
+
+    @Test
+    fun `the default models of the prompts are read with only the internal token`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"models":{"character_simulation.act":"gpt-6.1-terra","orchestration.main":null}}""") }
+
+        val models = client(factory).promptDefaultModels()
+
+        val call = factory.calls.single()
+        assertEquals(HttpMethod.GET, call.method)
+        assertEquals("/internal/v1/prompts/default-models", call.uri.path)
+        assertEquals("internal-token-1", call.headers.getFirst("X-Internal-Token"))
+        assertNull(call.headers.getFirst("X-Operations-Service-Token"))
+        assertEquals(mapOf("character_simulation.act" to "gpt-6.1-terra", "orchestration.main" to null), models)
+    }
+
+    @Test
+    fun `a failing or empty default models answer is a failure, never an empty success`() {
+        for (failure in listOf(500, 503, 403)) {
+            assertEquals(502, status { client(RecordingRequestFactory { Reply(failure, """{"detail":"x"}""") }).promptDefaultModels() }, failure.toString())
+        }
+        assertEquals(502, status { client(RecordingRequestFactory { Reply(200, "") }).promptDefaultModels() })
+    }
 }

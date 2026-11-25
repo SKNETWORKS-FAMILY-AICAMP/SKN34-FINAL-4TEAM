@@ -30,6 +30,7 @@ import ai.storyfork.operations.credit.service.dto.CreditBalancesRequest
 import ai.storyfork.operations.dashboard.controller.DashboardController
 import ai.storyfork.operations.dashboard.service.DashboardService
 import ai.storyfork.operations.llmops.controller.LlmopsController
+import ai.storyfork.operations.llmops.service.DatasetService
 import ai.storyfork.operations.llmops.service.EvaluationService
 import ai.storyfork.operations.llmops.service.LeakCheckService
 import ai.storyfork.operations.llmops.service.LlmopsSettingService
@@ -39,6 +40,7 @@ import ai.storyfork.operations.llmops.service.OptimizationService
 import ai.storyfork.operations.llmops.service.PipelineService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.TraceService
+import ai.storyfork.operations.llmops.service.dto.DatasetItemPage
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
 import ai.storyfork.operations.llmops.service.dto.TracePage
 import ai.storyfork.operations.event.controller.AdminEventController
@@ -74,12 +76,14 @@ import org.springframework.context.annotation.Import
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
@@ -118,6 +122,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var pipelines: PipelineService
     @MockitoBean lateinit var evaluations: EvaluationService
     @MockitoBean lateinit var optimizations: OptimizationService
+    @MockitoBean lateinit var datasets: DatasetService
     @MockitoBean lateinit var leakChecks: LeakCheckService
     @MockitoBean lateinit var llmopsSettings: LlmopsSettingService
     @MockitoBean lateinit var alerts: AlertService
@@ -493,6 +498,7 @@ class MemberSecurityIntegrationTest {
             get("/api/v1/operations/llmops/metrics"), get("/api/v1/operations/llmops/prompts"), put("/api/v1/operations/llmops/prompts/qa-answer/production"),
             post("/api/v1/operations/llmops/prompts/qa-answer/optimizations"), get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
             get("/api/v1/operations/llmops/settings"), get("/api/v1/operations/alerts"), put("/api/v1/operations/alerts/$id"),
+            get("/api/v1/operations/llmops/datasets"), get("/api/v1/operations/llmops/datasets/simulation.act/items"), post("/api/v1/operations/llmops/datasets/simulation.act/items"),
             get("/api/v1/operations/alerts/rules"), put("/api/v1/operations/alerts/rules/ai_failure_rate"),
         )) {
             val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
@@ -500,7 +506,7 @@ class MemberSecurityIntegrationTest {
             assertEquals("UNAUTHORIZED", code(response.contentAsString))
             assertNull(response.getHeader("Set-Cookie"))
         }
-        verifyNoInteractions(core, dashboard, traces, metrics, prompts, models, evaluations, leakChecks, llmopsSettings, alerts)
+        verifyNoInteractions(core, dashboard, traces, metrics, prompts, models, evaluations, leakChecks, llmopsSettings, alerts, datasets)
     }
 
     @Test
@@ -537,6 +543,58 @@ class MemberSecurityIntegrationTest {
             .contentType("application/json").content("""{"version":3}""")).andExpect(status().isConflict()).andReturn().response
 
         assertEquals("CANDIDATE_REQUIRED", code(response.contentAsString))
+    }
+
+    @Test
+    fun `a verified operator reads the dataset list and a page of items with the 1-based page and size`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(datasets.list(member)).thenReturn(emptyList())
+        `when`(datasets.items(member, "simulation.act", 2, 50)).thenReturn(DatasetItemPage(emptyList(), 0))
+        `when`(datasets.items(member, "simulation.act", 1, 20)).thenReturn(DatasetItemPage(emptyList(), 0))
+
+        // The list is a bare array, the items come as {items, total}.
+        mvc.perform(get("/api/v1/operations/llmops/datasets").header("Authorization", bearer)).andExpect(status().isOk()).andExpect(jsonPath("$").isArray())
+        mvc.perform(get("/api/v1/operations/llmops/datasets/simulation.act/items?page=2&size=50").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray()).andExpect(jsonPath("$.total").value(0))
+        mvc.perform(get("/api/v1/operations/llmops/datasets/simulation.act/items").header("Authorization", bearer)).andExpect(status().isOk())
+
+        verify(datasets).items(member, "simulation.act", 2, 50)
+        verify(datasets).items(member, "simulation.act", 1, 20)
+    }
+
+    @Test
+    fun `a verified operator uploads a dataset file as multipart with the copyright confirmation as a field`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        val file = MockMultipartFile("file", "set.jsonl", "application/octet-stream", """{"input":"a"}""".toByteArray())
+
+        // No CSRF token or session: the Bearer alone, like every other write of this chain.
+        mvc.perform(multipart("/api/v1/operations/llmops/datasets/simulation.act/items").file(file).param("copyrightConfirmed", "true").header("Authorization", bearer))
+            .andExpect(status().isCreated())
+        mvc.perform(multipart("/api/v1/operations/llmops/datasets/simulation.act/items").file(file).header("Authorization", bearer)).andExpect(status().isCreated())
+
+        // The service answers null for the missing confirmation on its own, so the missing field must reach it as null and not as a 400 of the binder.
+        val calls = mockingDetails(datasets).invocations.filter { it.method.name == "upload" }
+        assertEquals(2, calls.size)
+        assertEquals(listOf<Any?>(member, "simulation.act"), calls[0].arguments.take(2))
+        assertEquals("set.jsonl", (calls[0].arguments[2] as MultipartFile).originalFilename)
+        assertEquals(listOf<Any?>(true, null), calls.map { it.arguments[3] })
+    }
+
+    @Test
+    fun `a malformed copyright field is a 400 and a plain POST without a file reaches the service as no file`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        val file = MockMultipartFile("file", "set.jsonl", "application/octet-stream", """{"input":"a"}""".toByteArray())
+
+        mvc.perform(multipart("/api/v1/operations/llmops/datasets/simulation.act/items").file(file).param("copyrightConfirmed", "maybe").header("Authorization", bearer))
+            .andExpect(status().isBadRequest())
+        mvc.perform(multipart("/api/v1/operations/llmops/datasets/simulation.act/items").param("copyrightConfirmed", "true").header("Authorization", bearer))
+            .andExpect(status().isCreated())
+
+        val call = mockingDetails(datasets).invocations.single { it.method.name == "upload" }
+        assertNull(call.arguments[2])
     }
 
     @Test
