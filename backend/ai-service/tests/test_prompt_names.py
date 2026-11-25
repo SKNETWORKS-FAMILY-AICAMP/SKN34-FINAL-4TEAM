@@ -17,8 +17,8 @@ from app.work_tags import agent as work_tags
 from app.work_tags.models import Input as WorkTagsInput
 from app.work_tags.prompt import INSTRUCTIONS as WORK_TAGS
 from app.world_review import agent as world_review
-from app.world_review.models import WorldReviewRequest
-from app.world_review.prompt import ENRICH_INSTRUCTIONS, IMPACT_INSTRUCTIONS, INSTRUCTIONS as WORLD_REVIEW
+from app.world_review.models import FillRequest, WorldReviewRequest
+from app.world_review.prompt import ENRICH_INSTRUCTIONS, FILL_INSTRUCTIONS, IMPACT_INSTRUCTIONS, INSTRUCTIONS as WORLD_REVIEW
 from app.writing import agent as writing
 from app.writing.models import DraftRequest, PatchRequest, PlanBrief, PlanPickRequest, PlanRequest, PlanReviseRequest
 from app.writing.prompt import (DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PICK_PLAN_INSTRUCTIONS, PLAN_INSTRUCTIONS,
@@ -26,6 +26,7 @@ from app.writing.prompt import (DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PICK_PLA
 
 EPISODE = {'title': '3화', 'authorNote': None, 'draft': '본문', 'characters': [], 'signals': {}}
 WORLD = WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[])
+FILL = FillRequest(cardId='card-1', title='치삼', targets=['body'], passages=[{'episode': 2, 'text': '치삼이 왔다.'}])
 TAGS = {'schemaVersion': 'work-tags.v1', 'title': '작품', 'description': '', 'allowedGenres': ['판타지'], 'maxGenres': 1, 'maxHashtags': 1,
         'episodes': [{'number': 1, 'title': '', 'text': '본문'}]}
 
@@ -47,6 +48,7 @@ CASES = [
     (lambda: world_review.review(WORLD), 'world_review.check', WORLD_REVIEW),
     (lambda: world_review.enrich('인물을 보강해줘', WORLD), 'world_review.enrich', ENRICH_INSTRUCTIONS),
     (lambda: world_review.impact('나이를 바꾸면?', WORLD, {}, []), 'world_review.impact', IMPACT_INSTRUCTIONS),
+    (lambda: world_review.fill(FILL), 'world_review.fill', FILL_INSTRUCTIONS),
     (lambda: work_tags.propose(WorkTagsInput.model_validate(TAGS)), 'work_tags.suggest', WORK_TAGS),
 ]
 

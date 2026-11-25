@@ -17,7 +17,7 @@ data class WorldReviewAiOutput(val findings: List<WorldReviewFinding>, val model
 object WorldReviewOutputValidation {
     private val KINDS = setOf("contradiction", "doc_role", "missing_info", "other")
     private val TARGETS = setOf("body", "soul", "goal", "episode")
-    private val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build())
+    internal val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build())
         .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
         .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()

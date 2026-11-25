@@ -40,6 +40,7 @@ SEEDS: dict[str, str] = {
     'world_review.check': world_review.INSTRUCTIONS,
     'world_review.enrich': world_review.ENRICH_INSTRUCTIONS,
     'world_review.impact': world_review.IMPACT_INSTRUCTIONS,
+    'world_review.fill': world_review.FILL_INSTRUCTIONS,
     'web_research.search': research.RESEARCH_INSTRUCTIONS,
     'research.pick': research.PICK_INSTRUCTIONS,
     'research.refer': research.REFER_INSTRUCTIONS,

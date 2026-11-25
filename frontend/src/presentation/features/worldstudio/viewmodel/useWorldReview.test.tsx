@@ -32,7 +32,7 @@ function setup(
   const castle = card('성', '옛 설명'), harbor = card('항구')
   const saved = world('w1', [castle, harbor])
   const patch = vi.fn()
-  const initial: Props = { useCase: new WorldReviewUseCase({ review, latest }), saved, editing: structuredClone(saved), unsaved: false, busy: false, patch, ...over }
+  const initial: Props = { useCase: new WorldReviewUseCase({ review, latest, suggestDocs: vi.fn(async () => ({ lines: [], skipped: 0 })) }), saved, editing: structuredClone(saved), unsaved: false, busy: false, patch, ...over }
   const hook = renderHook((props: Props) => useWorldReview(props), { initialProps: initial })
   const ask = async () => {
     act(() => hook.result.current.setConsent(true))

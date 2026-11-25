@@ -75,6 +75,27 @@ export function characterDocIssues(setting: StudioSetting): string[] {
   ]
 }
 
+/** 원고로 채우기 제안(#847)이 채우는 서버 쪽 문서 이름: IDENTITY.md는 `body`(카드 본문), SOUL.md는 `soul`이다. GOAL.md·회차 기억은 채우지 않는다. */
+export type DocFillTarget = 'body' | 'soul'
+/**
+ * 제안의 줄 하나. `quote`는 연결된 소설의 `episode`화 저장 원고에 글자 그대로 있는 문장이다(서버가 원고와 대조한 것만 온다). `kind`는 인물을 단정하는 서술(`fact`)인지
+ * 겉모습·말투를 보여 주는 묘사·대사(`description`)인지다. 제안이 오는 것은 저장도 반영도 아니다: 작가가 `초안에 반영`해야 편집 초안의 문서가 바뀌고 세계관 저장으로 서버에 닿는다(DEC-36).
+ */
+export type DocFillLine = { target: DocFillTarget; kind: 'fact' | 'description'; episode: number; quote: string }
+/** 한 카드의 제안: 줄이 없으면 원고에서 근거를 찾지 못한 것이고, `skipped`는 서버가 원고에서 확인하지 못해 뺀 줄 수다. */
+export type DocFill = { lines: DocFillLine[]; skipped: number }
+
+const FILL_LABELS = { fact: '[사실]', description: '[묘사]' } as const
+
+/** 화면 문서가 채우는 서버 문서 이름(IDENTITY.md=body, SOUL.md=soul). 채우지 않는 문서는 없다. */
+export const docFillTarget = (key: CharacterDocKey): DocFillTarget | undefined => (key === 'identity' ? 'body' : key === 'soul' ? 'soul' : undefined)
+
+/** 줄이 문서에 실리는 글: 전처리가 카드 본문·문서에 쓰는 `<표지> <인용>` 줄과 같은 모양이다. */
+export const docFillLineText = ({ kind, quote }: DocFillLine) => `${FILL_LABELS[kind]} ${quote}`
+
+/** 제안의 줄들을 문서에 넣을 글로: 줄마다 한 줄이다. */
+export const docFillText = (lines: readonly DocFillLine[]) => lines.map(docFillLineText).join('\n')
+
 /** 문서가 하나라도 있는지: 내용이 있거나 회차별 기억을 만들었다. */
 export const hasCharacterDocs = (docs?: CharacterDocs) => !!docs && !!(docs.soul || docs.goal || Object.keys(docs.episodes).length)
 

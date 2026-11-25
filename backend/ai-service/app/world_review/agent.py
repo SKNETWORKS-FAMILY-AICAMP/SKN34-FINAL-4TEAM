@@ -4,8 +4,8 @@ from pydantic import BaseModel
 
 from app import agent_runtime
 from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import EnrichResult, ImpactResult, WorldReviewRequest, WorldReviewResult
-from app.world_review.prompt import ENRICH_INSTRUCTIONS, IMPACT_INSTRUCTIONS, INSTRUCTIONS
+from app.world_review.models import EnrichResult, FillRequest, FillResult, ImpactResult, WorldReviewRequest, WorldReviewResult
+from app.world_review.prompt import ENRICH_INSTRUCTIONS, FILL_INSTRUCTIONS, IMPACT_INSTRUCTIONS, INSTRUCTIONS
 
 
 def _run(name: str, label: str, prompt_name: str, instructions: str, data: dict, trace: dict, schema: type[BaseModel]) -> tuple[BaseModel, dict]:
@@ -35,3 +35,9 @@ def impact(request: str, data: WorldReviewRequest, context: dict, plans: list[di
     return _run('world_review.impact.generation', '설정 영향 분석', 'world_review.impact', IMPACT_INSTRUCTIONS,
                 {'request': request, 'world': data.model_dump(exclude_none=True), 'manuscript': context, 'plans': plans},
                 {'request': request, **data.refs()}, ImpactResult)
+
+
+def fill(data: FillRequest) -> tuple[FillResult, dict]:
+    """한 인물의 비어 있는 IDENTITY·SOUL을 채울 근거 문장을 원고 발췌에서 고른다. 카드 id는 모델에 보내지 않고, 추적에는 카드 id·대상·회차 번호만 남긴다."""
+    return _run('world_review.fill.generation', '인물 문서 채우기', 'world_review.fill', FILL_INSTRUCTIONS, data.model_dump(exclude={'cardId'}), data.refs(),
+                FillResult)

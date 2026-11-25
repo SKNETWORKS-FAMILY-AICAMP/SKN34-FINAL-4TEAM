@@ -2,6 +2,7 @@ import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } fr
 
 import { characterDocName, type CharacterDocKey, episodeDocFile } from '../../../../domain/entities/characterDocs'
 import type { useCharacterDocs } from '../viewmodel/useCharacterDocs'
+import { DocFill } from './DocFill'
 
 /** 문서마다 무엇을 쓰는지 한 줄 안내 */
 const GUIDES = {
@@ -22,6 +23,7 @@ const TABS = [['identity', '정체성'], ['soul', '성격·말투'], ['goal', '�
  * - `회차 기억 (N)`은 펼침 버튼(`aria-expanded`)이다. 펼치면 회차별 문서 버튼(`NN회차.md`, 고른 것은 `aria-current`)과 회차 번호(숫자만) + `추가`가 보인다: 이미 있는 회차면 그 문서를 고르고 없으면 만들어 고른다.
  *   0회차는 이야기 시작 전부터 아는 것이라고 폼 아래에서 알린다(옛 MEMORY.md가 옮겨 오는 자리다). 그 문서를 고른 동안은 편집기 위 안내가 같은 말을 하므로 되풀이하지 않는다.
  *   회차 문서를 고르면 접혀 있어도 이 탭에 그 파일 이름이 남고 고른 문서 모양이 된다. `회차 기억 삭제`는 회차별 기억을 고른 동안에만 편집기 아래에 있고 확인을 받은 뒤 지운다: 누른 버튼이 사라지므로 초점은 돌아온 문서(정체성) 탭으로 옮긴다.
+ * - 비어 있는 정체성·성격·말투에는 고른 문서의 안내 줄 아래, 편집기 위에 '원고로 채우기 제안'(`DocFill`, #847)이 있다: 연결된 소설의 저장 원고에서 AI가 고른 문장을 회차와 함께 제안하고 `초안에 반영`·`반영하지 않기`로 처리한다.
  * - `.md 파일 불러오기`는 제목 줄 오른쪽 `⋯`(인물 문서 더보기) 메뉴 안에 있다. 여러 파일을 받아 파일 이름으로 문서를 정한다. 기본 파일 입력은 숨기지 않고 라벨 버튼 위에 투명하게 덮어(`.ep-file-pick`) 키보드로 닿는다.
  *   `<details>`는 ⋯를 다시 눌러야만 닫혀 열린 채 뒤의 탭을 덮으므로, 메뉴 밖을 누르거나 밖으로 초점이 가면(`pointerdown`·`focusin`, PopMenu와 같은 방식) 닫고 Esc는 닫고 초점을 ⋯로 돌려준다.
  *   파일을 고르면 메뉴를 닫아 결과(제목 줄 아래 상태 문구)를 가리지 않는다.
@@ -109,6 +111,7 @@ export function CharacterDocs({ docs, children }: { docs: ReturnType<typeof useC
         )}
       </nav>
       <p className="small muted world-doc-guide"><strong>{docs.name}</strong> · {docs.doc === 'identity' ? '공개' : '작가만'} — {typeof docs.doc !== 'number' ? GUIDES[docs.doc] : docs.doc === 0 ? `${START_NOTE}.` : `${docs.doc}화에서 겪은 일과 알게 된 사실.`}</p>
+      {docs.fill && <DocFill fill={docs.fill} />}
       {children}
       {typeof docs.doc === 'number' && (
         <div className="world-doc-tools">
