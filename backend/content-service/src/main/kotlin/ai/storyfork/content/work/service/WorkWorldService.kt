@@ -100,6 +100,12 @@ class WorkWorldService(
         else publicWorlds.inheritedWorld(workId, worldId, minOf(requested ?: basis, basis))
     }
 
+    /**
+     * Fork [workId]가 자기 세계관 없이 원작 세계관을 이어받는지다([inheritedWorld]와 같은 판정이고 이어받는 세계관은 읽지 않는다). 요청자 [owner]의 작품이 아니면 404다.
+     * 첫 발행에서 세계관이 없는 소설에 비공개 세계관을 자동으로 만들 때 이런 Fork를 뺀다(DEC-53 보완, [ai.storyfork.content.preprocessing.service.PreprocessingService.startUpdate]).
+     */
+    fun inheritsWorld(workId: String, owner: String): Boolean = checkNotNull(transaction.execute { inheritance(access.own(workId, owner)).first != null })
+
     /** Fork [work]가 따라가는 원작이다: 추종(`following`) 중이고 자기 세계관이 없으며 삭제되지 않은 원작이 있을 때만이고, 아니면 null이다. Content 트랜잭션 안에서 부른다. */
     private fun followed(work: WorkAccessResult) = work.source?.takeUnless { it.deleted }?.takeIf {
         references.findById(work.id).orElse(null)?.referenceStatus == "following" && works.findById(work.id).orElseThrow().worldStudioId == null

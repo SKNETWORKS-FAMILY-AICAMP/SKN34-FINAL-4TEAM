@@ -3,6 +3,8 @@ import { appContainer } from '../../../../app/appContainer'
 import type { WritingEpisode, History, Work, WorkRegistration, WorkTaxonomy } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
+import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+import { privateThenUnlink, type WorldRelease } from './unlinkWorld'
 
 type Origin = '' | 'create' | 'fork' | 'link' | 'detach' | 'history'
 
@@ -16,6 +18,7 @@ export function useEpisodeViewModel(
   workId: string | null,
   useCase: EpisodeUseCase = appContainer.resolve('episodeUseCase'),
   media: Pick<MediaUseCase, 'upload'> = appContainer.resolve('mediaUseCase'),
+  worlds: Pick<WorldStudioUseCase, 'setPublication'> = appContainer.resolve('worldStudioUseCase'),
 ) {
   const [works, setWorks] = useState<Work[]>([])
   const [loaded, setLoaded] = useState<{ id: string; history: History } | null>(null)
@@ -182,14 +185,23 @@ export function useEpisodeViewModel(
     /**
      * 내 세계관(WorldStudio)과의 1:1 연결(DEC-46). worldId가 null이면 확인을 받고 해제한다. 서버가 돌려준 연결로 열린 작품을 바꾸며 작품 revision은 그대로다.
      * 남의 것·없는 세계관(404)이나 이미 다른 소설에 연결된 세계관(409)은 서버 사유를 오류로 알린다.
+     * 공개 세계관의 해제는 연결 해제 경고 대화 상자가 이미 확인을 받아 `release`를 넘기고(그래서 확인을 다시 묻지 않는다), `release.makePrivate`면 세계관을 비공개로 먼저 바꾼 뒤 성공했을 때만 해제한다(결정 4, `privateThenUnlink`).
+     * 비공개 요청이 실패하면 해제하지 않고 서버 사유를 이 카드 안에 알린다. 화면을 떠나면 이 요청도 다른 요청처럼 취소하고(`request` 취소 신호), 비공개 응답 뒤 취소됐으면 해제를 보내지 않는다.
      */
-    linkWorld: (worldId: string | null) => {
-      if (!worldId && !window.confirm('세계관 연결을 해제할까요? 독자 설정 위키에서 이 세계관의 설정 카드가 사라져요. 세계관과 설정 카드는 그대로 남아요.')) return Promise.resolve(false)
+    linkWorld: (worldId: string | null, release?: WorldRelease) => {
+      if (!worldId && !release && !window.confirm('세계관 연결을 해제할까요? 독자 설정 위키에서 이 세계관의 설정 카드가 사라져요. 세계관과 설정 카드는 그대로 남아요.')) return Promise.resolve(false)
       return run(async () => {
         if (!active) return
-        const linked = await useCase.linkWorldStudio(active.id, worldId)
+        const current = active.worldStudioId
+        const makePrivate = !worldId && current ? release?.makePrivate : undefined
+        const controller = new AbortController()
+        request.current = controller // 화면을 떠나면 목록 효과 정리가 이 요청도 취소한다
+        const linked = makePrivate && current
+          ? await privateThenUnlink(useCase, worlds, { id: active.id, worldId: current }, makePrivate.genre, controller.signal)
+          : await useCase.linkWorldStudio(active.id, worldId)
+        if (controller.signal.aborted) return
         install({ ...active, worldStudioId: linked.worldId })
-        setNotice(linked.worldId ? '세계관을 연결했어요.' : '세계관 연결을 해제했어요.')
+        setNotice(linked.worldId ? '세계관을 연결했어요.' : makePrivate ? '세계관을 비공개로 바꾸고 연결을 해제했어요.' : '세계관 연결을 해제했어요.')
       }, 'link')
     },
     /**

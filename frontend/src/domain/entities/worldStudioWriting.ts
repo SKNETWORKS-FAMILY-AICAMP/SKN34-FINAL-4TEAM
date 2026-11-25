@@ -1,6 +1,6 @@
 import {characterDocIssues} from './characterDocs'
 import {cardTypeOf,type CardType} from './studioCards'
-import {invalidReveal,lacksRelationFrom,RELATION_FROM_ERROR,REVEAL_EPISODE_ERROR,type StudioSetting,type StudioWorld} from './studioWorld'
+import {beyondNovel,invalidReveal,lacksRelationFrom,RELATION_FROM_ERROR,REVEAL_EPISODE_ERROR,revealBeyondNovelError,type StudioSetting,type StudioWorld} from './studioWorld'
 export function cardLibraryRows(settings:StudioSetting[],type:CardType|'all',query:string):StudioSetting[]{
  const search=query.trim().toLocaleLowerCase()
  return settings.filter(s=>{
@@ -14,17 +14,34 @@ export function selectCardForFilter(settings:StudioSetting[],selected:string,typ
 }
 export type WritingIssue={step:'info'|'cards'|'relations';id?:string;message:string}
 /**
+ * 연결된 소설의 마지막 회차([limit])를 넘는 공개 회차를 **새로 정했는지**(결정 5)를 카드마다 알려 주는 검사기를 만든다. 소설을 연결한 세계관([saved] 기준)에서 저장한 값과 달라진 값이 상한을 넘으면 그 안내, 아니면 빈 글이다.
+ * 저장해 둔 값은 소설보다 커도 거르지 않는다(자동으로 고치지 않고 보이는 글만 바꾼다). 소설의 마지막 회차를 모르거나(읽는 중·실패) 1 이상의 정수가 아닌 값(그건 `invalidReveal`이 가린다)이어도 빈 글이다.
+ * 저장 전 확인(`worldWritingIssues`)과 카드 편집 화면의 오류 표시가 같은 규칙을 쓴다. 저장한 초안의 공개 회차는 상한을 넘는 카드가 처음 나올 때 한 번만 센다(카드가 수천 장이어도 입력마다 제곱으로 늘지 않는다).
+ */
+export function newRevealBeyondNovel(saved:StudioWorld|undefined,limit:number|undefined){
+ let before:Map<string,number|undefined>|undefined
+ return (setting:StudioSetting):string=>{
+  if(limit===undefined||!saved?.linkedWorkId||invalidReveal(setting)||!beyondNovel(setting.revealFromEpisode,limit))return ''
+  before??=new Map(saved.settings.map(row=>[row.item.id,row.revealFromEpisode]))
+  return before.get(setting.item.id)===setting.revealFromEpisode?'':revealBeyondNovelError(limit)
+ }
+}
+/**
  * 저장 전에 확인할 문제. 소설을 연결한 세계관은 새로 쓰거나 바꾼 관계마다 N화부터(`fromEpisode`)가 있어야 저장된다(DEC-54 2단계): 저장한 초안(`saved`)과 달라진 관계 가운데 값이 없거나
  * 잘못된 것은 그 관계로 돌아가 고치게 한다. 저장한 초안을 모르는 점검(확정 버전)은 이 사유를 보지 않는다.
+ * 소설을 연결한 세계관은 소설의 마지막 회차([limit], 읽었을 때만)를 넘는 공개 회차도 새로 정한 것이면 막는다(결정 5, `newRevealBeyondNovel`): 저장한 값과 같은 값은 소설보다 커도 막지 않는다.
  */
-export function worldWritingIssues(world:StudioWorld,saved?:StudioWorld):WritingIssue[]{
+export function worldWritingIssues(world:StudioWorld,saved?:StudioWorld,limit?:number):WritingIssue[]{
  const issues:WritingIssue[]=[]
+ const beyond=newRevealBeyondNovel(saved,limit)
  if(!world.name.trim())issues.push({step:'info',message:'세계관 이름을 입력해 주세요.'})
  for(const setting of world.settings){
   const {item}=setting
   if(!item.title.trim())issues.push({step:'cards',id:item.id,message:'카드 이름을 입력해 주세요.'})
   if(item.kind!=='entity'&&!item.text.trim())issues.push({step:'cards',id:item.id,message:'이 설정의 설명을 입력해 주세요.'})
   if(invalidReveal(setting))issues.push({step:'cards',id:item.id,message:REVEAL_EPISODE_ERROR})
+  const late=beyond(setting)
+  if(late)issues.push({step:'cards',id:item.id,message:late})
   for(const message of characterDocIssues(setting))issues.push({step:'cards',id:item.id,message})
  }
  if(saved&&world.linkedWorkId){

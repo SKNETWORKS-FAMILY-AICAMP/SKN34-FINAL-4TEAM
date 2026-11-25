@@ -166,6 +166,9 @@ export const relationFromInvalid = (row: RelationDraftRow): boolean => applies(r
 export const endsIdentity = (initial: RelationDraftRow[], removed: string[]): boolean =>
   initial.some((row) => row.group === 'identity' && !!row.value.id && removed.includes(row.value.id))
 
-/** 카드가 '작가 전용'(공개 회차도 없고 공개 카드도 아님)인지. 본체가 작가 전용이면 인물 지식에 시점 제한이 없어 다른 인물이 본체를 알 수 있다(DEC-53). */
-export const isAuthorOnly = (setting: Pick<StudioSetting, 'revealFromEpisode' | 'visibility'> | undefined): boolean =>
-  !!setting && !setting.revealFromEpisode && setting.visibility !== 'public'
+/**
+ * 카드가 '작가 전용'(공개 회차도 없고 공개 카드도 아님)인지. 본체가 작가 전용이면 인물 지식에 시점 제한이 없어 다른 인물이 본체를 알 수 있다(DEC-53).
+ * 소설이 연결되지 않은 세계관([linked] false)은 지우지 않은 카드가 모두 공개라 저장된 값과 상관없이 작가 전용이 아니다(DEC-53 보완).
+ */
+export const isAuthorOnly = (setting: Pick<StudioSetting, 'revealFromEpisode' | 'visibility'> | undefined, linked: boolean): boolean =>
+  linked && !!setting && !setting.revealFromEpisode && setting.visibility !== 'public'
