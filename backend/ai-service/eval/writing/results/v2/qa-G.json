@@ -1,0 +1,207 @@
+{
+ "target": "qa",
+ "mode": "G",
+ "source": "qa-G.jsonl",
+ "cases": 4,
+ "captures": 4,
+ "usd": {
+  "generate": 0.0017,
+  "judge": 0.0035
+ },
+ "ms_p50": 8787,
+ "summary": {
+  "measured": {
+   "n": 4,
+   "of": 4
+  },
+  "abstain_ok": {
+   "k": 1,
+   "n": 1,
+   "value": 1.0,
+   "low": 0.2065,
+   "high": 1.0
+  },
+  "correctness": {
+   "k": 3,
+   "n": 3,
+   "value": 1.0,
+   "low": 0.4385,
+   "high": 1.0
+  },
+  "faithfulness": {
+   "mean": 0.6667,
+   "n": 3
+  },
+  "false_abstain": {
+   "k": 0,
+   "n": 3,
+   "value": 0.0,
+   "low": 0.0,
+   "high": 0.5615
+  },
+  "memorized": {
+   "k": 3,
+   "n": 4,
+   "value": 0.75,
+   "low": 0.3006,
+   "high": 0.9544
+  },
+  "noise_cited": {
+   "mean": 0.0,
+   "n": 3
+  },
+  "by_family": {
+   "future": {
+    "abstain_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "memorized": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "setting": {
+    "correctness": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "faithfulness": {
+     "mean": 1.0,
+     "n": 1
+    },
+    "false_abstain": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "memorized": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "noise_cited": {
+     "mean": 0.0,
+     "n": 1
+    }
+   },
+   "single": {
+    "correctness": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "faithfulness": {
+     "mean": 1.0,
+     "n": 1
+    },
+    "false_abstain": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "memorized": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "noise_cited": {
+     "mean": 0.0,
+     "n": 1
+    }
+   },
+   "subst": {
+    "correctness": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "faithfulness": {
+     "mean": 0.0,
+     "n": 1
+    },
+    "false_abstain": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "memorized": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "noise_cited": {
+     "mean": 0.0,
+     "n": 1
+    }
+   }
+  },
+  "by_split": {
+   "dev": {},
+   "test": {
+    "abstain_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "correctness": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    },
+    "faithfulness": {
+     "mean": 0.6667,
+     "n": 3
+    },
+    "false_abstain": {
+     "k": 0,
+     "n": 3,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.5615
+    },
+    "memorized": {
+     "k": 3,
+     "n": 4,
+     "value": 0.75,
+     "low": 0.3006,
+     "high": 0.9544
+    },
+    "noise_cited": {
+     "mean": 0.0,
+     "n": 3
+    }
+   }
+  }
+ },
+ "failed_cases": []
+}

@@ -27,7 +27,7 @@ sys.path.insert(0, os.environ.get('EVAL_APP_ROOT', str(HERE.parents[1])))   # ap
 import common  # noqa: E402
 from common import rate  # noqa: E402,F401  대상 모듈이 run.rate로도 쓴다
 
-RESULTS = HERE / 'results'
+RESULTS = HERE / 'results' / ('v2' if os.environ.get('EVAL_DATA') else '')   # v2 차수는 기준선 결과를 덮지 않는다
 
 
 def capture_path(target: str, mode: str) -> Path:
@@ -84,10 +84,11 @@ def main(argv=None) -> int:
     parser.add_argument('--reps', type=int, default=1)
     parser.add_argument('--rejudge', action='store_true', help='R 모드에서 의미 채점을 다시 받는다(채점 비용 발생)')
     parser.add_argument('--limit-usd', type=float, default=common.LIMIT_USD)
+    parser.add_argument('--ids', default='', help='쉼표로 나눈 사례 id만 돌린다(스모크)')
     args = parser.parse_args(argv)
     common.load_env()
     module = importlib.import_module(args.target)
-    cases = {c['id']: c for c in module.cases()}
+    cases = {c['id']: c for c in module.cases() if not args.ids or c['id'] in args.ids.split(',')}
     ledger = common.Ledger(common.DATA / 'cost.jsonl', args.limit_usd)
     print(f'장부 누적 {ledger.spent():.4f}달러 / 상한 {ledger.limit}달러', flush=True)
     if args.mode != 'R':
@@ -106,7 +107,7 @@ def main(argv=None) -> int:
               'ms_p50': sorted(r['ms'] for r in rows)[len(rows) // 2] if rows else None,
               'summary': module.summary(cases, scored),
               'failed_cases': sorted({cid for cid, _, _, s in scored if not s.get('measured') or s.get('correct') == 0 or s.get('pass') == 0})}
-    RESULTS.mkdir(exist_ok=True)
+    RESULTS.mkdir(parents=True, exist_ok=True)
     (RESULTS / f'{args.target}-{args.mode}.json').write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding='utf-8')
     print(json.dumps(result['summary'], ensure_ascii=False, indent=1))
     print(f'장부 누적 {ledger.spent():.4f}달러', flush=True)

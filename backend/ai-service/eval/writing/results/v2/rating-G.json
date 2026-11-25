@@ -1,0 +1,152 @@
+{
+ "target": "rating",
+ "mode": "G",
+ "source": "rating-G.jsonl",
+ "cases": 3,
+ "captures": 3,
+ "usd": {
+  "generate": 0.028,
+  "judge": 0
+ },
+ "ms_p50": 15058,
+ "summary": {
+  "measured": {
+   "n": 3,
+   "of": 3
+  },
+  "adult_case": {
+   "k": 1,
+   "n": 3,
+   "value": 0.3333,
+   "low": 0.0615,
+   "high": 0.7923
+  },
+  "correct": {
+   "k": 2,
+   "n": 3,
+   "value": 0.6667,
+   "low": 0.2077,
+   "high": 0.9385
+  },
+  "missed_adult": {
+   "k": 0,
+   "n": 3,
+   "value": 0.0,
+   "low": 0.0,
+   "high": 0.5615
+  },
+  "over_rated": {
+   "k": 1,
+   "n": 3,
+   "value": 0.3333,
+   "low": 0.0615,
+   "high": 0.7923
+  },
+  "by_family": {
+   "fixed": {
+    "adult_case": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "correct": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "over_rated": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    }
+   },
+   "hp-calm": {
+    "adult_case": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "correct": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "over_rated": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "language-heavy": {
+    "adult_case": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "correct": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "missed_adult": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "over_rated": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    }
+   }
+  },
+  "adult_recall": {
+   "k": 1,
+   "n": 1,
+   "value": 1.0,
+   "low": 0.2065,
+   "high": 1.0
+  },
+  "human_kappa": {
+   "value": null,
+   "n": 0
+  }
+ },
+ "failed_cases": [
+  "rating.hp-calm-001"
+ ]
+}
