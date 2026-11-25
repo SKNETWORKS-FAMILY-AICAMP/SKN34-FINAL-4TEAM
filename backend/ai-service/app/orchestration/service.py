@@ -536,11 +536,14 @@ async def _target(data: OrchestrationRequest):
     if data.resume is None:
         state = {**_initial(data), 'title': snapshot.values.get('title') or data.request[:TITLE_LENGTH]}
         if data.fromTurn is not None:
-            fork = await _fork_point(config, snapshot, data.fromTurn)
-            if fork is None:  # 새 첫 턴이 끝날 때까지 기존 이력을 보존한다.
-                state['replaceHistory'] = True
-            else:
-                config = await _branch(config, snapshot, fork, data.fromTurn)
+            # 평가·지우기·삭제와 차례로: 잠금 안에서 다시 읽은 턴으로 갈라진다(#775). 스트림 실행은 잠그지 않는다.
+            async with _THREAD_LOCKS[data.conversation.threadId]:
+                snapshot = await CHAT.aget_state(config)
+                fork = await _fork_point(config, snapshot, data.fromTurn)
+                if fork is None:  # 새 첫 턴이 끝날 때까지 기존 이력을 보존한다.
+                    state['replaceHistory'] = True
+                else:
+                    config = await _branch(config, snapshot, fork, data.fromTurn)
         return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
@@ -723,13 +726,14 @@ async def rename(thread_id: str, scope: str, title: str) -> None:
     await CHAT.aupdate_state(config, {'title': title}, as_node='finish')
 
 
-async def delete(thread_id: str, scope: str) -> None:
-    await _owned(thread_id, scope)
-    await CHAT.checkpointer.adelete_thread(thread_id)
-
-
-# ponytail: 같은 대화의 평가·지우기는 이 프로세스 안에서만 차례로 처리한다(uvicorn 단일 프로세스, 잠금은 지우지 않는다). 여러 프로세스로 늘리면 체크포인트 버전 비교로 바꾼다.
+# ponytail: 같은 대화의 평가·지우기·삭제·메시지 수정(갈라지는 지점)은 이 프로세스 안에서만 차례로 처리한다(uvicorn 단일 프로세스, 잠금은 지우지 않는다). 여러 프로세스로 늘리면 체크포인트 버전 비교로 바꾼다.
 _THREAD_LOCKS = defaultdict(asyncio.Lock)
+
+
+async def delete(thread_id: str, scope: str) -> None:
+    async with _THREAD_LOCKS[thread_id]:  # 먼저 읽은 평가가 삭제 뒤에 써서 지운 대화를 되살리지 못하게 한다
+        await _owned(thread_id, scope)
+        await CHAT.checkpointer.adelete_thread(thread_id)
 
 
 async def truncate(thread_id: str, scope: str, index: int) -> None:

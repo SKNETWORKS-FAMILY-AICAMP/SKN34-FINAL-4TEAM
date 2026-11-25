@@ -9,6 +9,7 @@ import ai.storyfork.content.world.studio.repository.owned
 import java.time.Instant
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -18,6 +19,7 @@ import org.springframework.transaction.support.TransactionTemplate
 class ManuscriptBuildExecution(
     private val jobs:ManuscriptBuildJobRepository,private val worlds:StudioWorldRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,
+    private val events:ApplicationEventPublisher,
 ) {
     private val transaction=TransactionTemplate(manager)
 
@@ -40,7 +42,7 @@ class ManuscriptBuildExecution(
     }
 
     /**
-     * 접수한 업데이트 작업을 AI가 받지 못했다. 실행권이 없는 queued 작업만 실패로 끝내 다음 발행이 그 회차를 다시 담게 한다.
+     * 접수한 업데이트 작업을 AI가 받지 못했다. 실행권이 없는 queued 작업만 실패로 끝내 운영에서 다시 실행할 수 있게 한다.
      * 응답만 잃고 AI가 받았다면 그 claim이 먼저 실행권을 가져가 이 요청이 거절되고, 늦게 도착한 접수는 claim이 queued가 아니라서 거절한다.
      */
     fun failQueued(id:UUID,owner:UUID,code:String) {
@@ -50,6 +52,7 @@ class ManuscriptBuildExecution(
             if(job.status!="queued" || job.executionToken!=null) throw WorldConflict()
             job.status="failed";job.failureCode=code
             jobs.flush()
+            events.updateFinished(job)
         }
     }
 
@@ -61,6 +64,7 @@ class ManuscriptBuildExecution(
             if(job.status!="running" || job.executionToken!=token) throw WorldConflict()
             job.status="failed";job.failureCode=code
             jobs.flush()
+            events.updateFinished(job)
         }
     }
 }

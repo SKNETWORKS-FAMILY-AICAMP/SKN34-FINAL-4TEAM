@@ -52,13 +52,48 @@ export type Model = { id: string; modelName: string; matchPattern: string; input
 export type ModelInput = { modelName: string; matchPattern: string; inputPrice: number; outputPrice: number }
 
 export type EvaluationMetric = { name: string; score: number; baseline?: number | null; delta?: number | null }
+/**
+ * 평가 세트 문항 하나의 결과(#823, 상세에만 옵니다). 실패 = 항목 오류(점수 없음)·pov_ok 0(위반 사실 있음)·지표 하나라도 0.5 미만이며 서버가 정합니다.
+ * error는 항목 오류일 때만 오는 고정 문구이고 문항 본문은 오지 않습니다.
+ */
+export type EvaluationItem = { itemId: string; scores: Record<string, number>; failed: boolean; error?: string | null }
 export type Evaluation = {
   runId: string; dataset: string; prompt: string; version: number
   /** running | completed | failed */
   status: string
   passed?: boolean | null; createdAt: string; metrics: EvaluationMetric[]
+  /** 문항별 결과(실패 먼저). 상세에만 있고 목록에는 없습니다. */
+  items?: EvaluationItem[] | null
 }
 export type EvaluationInput = { dataset: string; prompt: string; version: number }
+
+/** 자동 개선(GEPA, #823) 요청: 기준 버전과 평가 호출 상한(1~500)입니다. */
+export type OptimizationInput = { version: number; maxMetricCalls: number }
+/** 자동 개선을 켤 수 있는 프롬프트와 그 게이트 세트의 문항 수(예상 호출 수 어림용, 서버가 쓰는 세트와 같은 값입니다). */
+const OPTIMIZATION_GATE_ITEMS = new Map([['character_simulation.act', 24], ['character_simulation.narrate', 46]])
+export const OPTIMIZATION_DEFAULT_CALLS = 150
+export const OPTIMIZATION_MAX_CALLS = 500
+export const isOptimizable = (name: string) => OPTIMIZATION_GATE_ITEMS.has(name)
+/**
+ * 예상 OpenAI 호출 수(어림) = 2 × 평가 호출 상한(항목마다 생성 + 채점) + 2 × 게이트 세트 문항 수(마지막 회귀 평가).
+ * 반성 모델 호출은 로컬 게이트웨이라 세지 않고, 기준 Run이 없으면 기준 평가만큼 더 듭니다.
+ */
+export const estimatedCalls = (name: string, maxMetricCalls: number) => 2 * maxMetricCalls + 2 * (OPTIMIZATION_GATE_ITEMS.get(name) ?? 0)
+/** 실패한 문항이 실패한 이유 글: 항목 오류(서버의 고정 문구)·시점 위반·0.5 미만 지표. 통과한 문항은 null입니다. */
+export function itemReason(item: EvaluationItem): string | null {
+  if (item.error) return item.error
+  if (!item.failed) return null
+  const reasons = item.scores.pov_ok === 0 ? ['시점 위반(위반 사실 있음)'] : []
+  const low = Object.entries(item.scores).filter(([name, score]) => name !== 'pov_ok' && score < 0.5).map(([name]) => name)
+  if (low.length) reasons.push(`0.5 미만 지표: ${low.join(', ')}`)
+  return reasons.join(' · ') || '실패'
+}
+/** 점수가 아직 없고 실패도 아닌 문항: 실행 중인 Run에서 아직 생성·채점 중인 문항입니다(끝난 Run에서 점수가 없는 문항은 서버가 실패로 줍니다). */
+export const itemWaiting = (item: EvaluationItem) => !item.failed && Object.keys(item.scores).length === 0
+/** 같은 프롬프트의 자동 개선이 이미 돌 때(409 OPTIMIZATION_RUNNING) 보이는 문구. */
+export const OPTIMIZATION_RUNNING_MESSAGE = '이 프롬프트의 자동 개선이 이미 실행 중이에요. 끝난 뒤에 다시 시도해 주세요.'
+/** 자동 개선을 지원하지 않는 프롬프트(422 OPTIMIZATION_UNSUPPORTED)일 때 보이는 문구. */
+export const OPTIMIZATION_UNSUPPORTED_MESSAGE = '이 프롬프트는 자동 개선을 지원하지 않아요.'
 
 export type LeakCheck = { id: string; traceId: string; workId: string; checkedAt: string; matched: string[]; suspected: boolean; reason?: string | null }
 export type LlmOpsSettings = { leakSampleRate: number }

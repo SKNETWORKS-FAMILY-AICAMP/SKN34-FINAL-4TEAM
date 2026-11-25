@@ -14,7 +14,7 @@ Python `>=3.11,<3.15`와 uv를 사용합니다.
 ```bash
 uv sync --locked --extra dev
 uv run --locked uvicorn app.main:create_app --factory --reload --port 8000
-# 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다
+# 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다(Compose 동시 작업 수는 AI_PREPROCESSING_CONCURRENCY, 기본 3)
 uv run --locked celery -A app.preprocessing.worker worker -Q preprocessing --concurrency=1 --loglevel=INFO
 # 작업 실행(회귀 평가·운영 정기 작업, Celery 큐 jobs)은 AI_CELERY_BROKER_URL·OPERATIONS_SERVICE_BASE_URL·INTERNAL_TOKEN을 설정하고 워커를 따로 띄운다(Compose는 AI_JOBS_CONCURRENCY, 기본 4)
 uv run --locked celery -A app.jobs.worker worker -Q jobs --concurrency=4 --loglevel=INFO
@@ -74,6 +74,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 성적표 실행기는 [`eval/simulation/`](eval/simulation/README.md)에 있다(`prepare`·`estimate`·`run`·`report`, 해리 포터 원문 기반 세계관은 `build-hp`·`show-hp`·`seed-hp`와 `--world hp`). `run`·`build-hp`는 실제 OpenAI를 부르므로 비용 승인 뒤에만 쓴다(OpenAI 상한에 닿으면 `--via ocx`로 이어 받는 안내가 나온다).
 스위치마다 켰을 때·껐을 때의 호출 수를 단위 테스트가 단언한다: `uv run --locked --extra dev python -m pytest -m 'not integration' tests/simulation eval/simulation`.
 소설 원문을 정답으로 하는 평가 세트(①대사 ②연출 ③나레이션·독백 ④검사)는 `eval/simulation/orig_cli.py`이고 설계·결과·후보 비교는 [원문 기반 평가](../../docs/evaluation/simulation-original.md)다. 거기서 채택한 변경은 인물 대사 검사 입력의 금지 목록 상한(`service.FORBIDDEN_LIMIT`=20, `service.check_payload`, #646)과 인물 대사(act)의 기본 모델 `gpt-6.1-terra`(`agent.ACT_MODEL`, 사용자 결정 2026-11-23, [§16](../../docs/evaluation/simulation-original.md#16-인물-대사act-기본-모델을-gpt-61-terra로-2026-11-23-사용자-결정)) 둘이다. v1 → v2 → v3 요약과 그림은 [v3 보고서](../../docs/evaluation/simulation-v3.md)다. act·나레이션 지시문 제안(P1·N3)은 Langfuse 새 버전이라 운영 화면에서 등록·승격해야 쓰이고(절차는 [v3 보고서 6장](../../docs/evaluation/simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)) V4(초안 → 병렬 수정) 시험은 평가 전용이라 서비스는 그대로이며, 결과는 [원문 기반 평가 §13](../../docs/evaluation/simulation-original.md)·[V4 보고서](../../docs/evaluation/simulation-v4-draft-parallel.md)에 있고, 채점 모델을 `gpt-6.2-sol`로 바꿔 다시 쟀을 때 달라진 판단은 [원문 기반 평가 §14](../../docs/evaluation/simulation-original.md#14-채점-모델-교체gpt-62-sol말투-기준ab-선택p1b-확인-2026-11-22)다.
+원문에서 실제 전처리(`extract`·`resolve`·`organize`)로 세계관을 만들고 그 세계관으로 인물 대사·나레이션·독백을 시뮬레이션하는 통합 평가는 `eval/simulation/pipe_cli.py`(`estimate`·`build`·`run`·`report`, 손라벨 세계관과 같은 문항 짝 비교, `--via ocx`는 금액 0)이고 설계·점수·비용 어림·스모크는 [통합 평가](../../docs/evaluation/pipeline-eval.md)다.
 
 ## 회귀 평가·누설 판정 (DEC-55)
 
@@ -81,13 +82,14 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 | 경로 | 내용 |
 |---|---|
+| `POST /internal/v1/optimizations` `{prompt, version, maxMetricCalls}` | 프롬프트 자동 개선(GEPA, #823, [계약](../../docs/design/operations-llmops-contract.md#프롬프트-자동-개선-823-2026-11-24-사용자-결정))을 접수합니다. `character_simulation.act`·`narrate`만 되고(아니면 422) 같은 프롬프트가 실행 중이면 409 `{"detail": …}`, 아니면 Celery 큐(`jobs`) 태스크 `optimization.run`(`acks_late=False`)을 올리고 `202 {accepted: true}`입니다(올리지 못하면 503). `ai-jobs-worker`가 최적화 풀(`app/evaluation/datasets/optimize/*.jsonl`)로 GEPA를 돌려 새 버전(라벨 없음)을 저장하고 게이트 세트 회귀 평가 Run 1회까지 하며 결과는 trace `prompt_optimization`에 남습니다 |
 | `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 Celery 큐(`jobs`)에 올리고 `202 {runName}`을 먼저 돌려줍니다(올리지 못하면 503). `ai-jobs-worker`가 평가하며 서버를 재시작해도 큐에 남아 이어 실행됩니다 |
 | `POST /internal/v1/evaluations/leak-check` `{response, references[], question?}` | 응답이 비공개 참조를 드러내는지 GEval 한 번으로 판정해 `{suspected, reason}`을 돌려줍니다. 사용자 질문 원문 `question`(선택)을 주면 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 응답은 의심하지 않고 비공개 참조의 내용을 새로 알려 줄 때만 의심합니다 |
 
 결과는 Langfuse Experiments API(`GET /api/public/experiments?fromStartTime=…&name=<runName>&fields=core,metadata,scores`)로 읽습니다.
 
 - 실험 이름은 `runName`(`<프롬프트>@v<버전>-<UTC yyyymmddTHHMMSSZ>-<hex6>`)이고 `fields=metadata`로 읽는 `metadata`에는 `prompt`·`version`·`dataset`·`tolerance`·`baselineRun`·`baselineVersion`(모두 문자열)을 실어 보냅니다(서버가 돌려주는 모양은 실서버 확인 전).
-- Run 수준 점수는 `scores`에 있고 실험 id(`Experiment.id`)를 `datasetRunId`로 단 것입니다(Scores v3는 `experimentId`). `passed`(BOOLEAN, metadata `failedItems`·`totalItems`·`tolerance`·`baselineRun`·`baselineVersion`)와 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)이며, `qa.` 평가 세트는 `faithfulness`·`context_precision`, `simulation.act`는 `voice`·`intent`·`pov_ok`, `simulation.narrate`는 `style`·`info`·`pov_ok`, 그 밖은 `geval`입니다. `passed`가 없으면 실행 중입니다.
+- Run 수준 점수는 `scores`에 있고 실험 id(`Experiment.id`)를 `datasetRunId`로 단 것입니다(Scores v3는 `experimentId`). `passed`(BOOLEAN, metadata `failedItems`·`totalItems`·`tolerance`·`baselineRun`·`baselineVersion`)와 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)이며, `qa.` 평가 세트는 `faithfulness`·`context_precision`, `simulation.act`는 `voice`·`intent`·`pov_ok`, `simulation.narrate`는 `style`·`info`·`pov_ok`, `extraction.extract`는 `recall`·`quote_ok`, 그 밖은 `geval`입니다. `passed`가 없으면 실행 중입니다.
 - 항목 점수는 항목 trace에 같은 이름으로 남습니다.
 
 평가 세트는 `app/evaluation/datasets/*.jsonl`(저작권 만료 작품이고, 시뮬레이션 두 세트는 CC BY-SA 3.0 SCP 이야기도 섞여 있어 항목마다 `metadata.license`·`metadata.source`가 있습니다)이고 `python -m app.evaluation.seed`로 Langfuse에 멱등 등록합니다(compose의 1회성 작업 `ai-eval-seed`가 `docker compose up`마다 자동으로 실행합니다). 설정은 `OPENAI_API_KEY`·`OPENAI_MODEL`·`EVALUATION_JUDGE_MODEL`(채점 모델, 비면 `OPENAI_MODEL`)·`LANGFUSE_*`·`INTERNAL_TOKEN`이고 선택 `EVAL_TOLERANCE`(기본 0.1)가 있습니다.
@@ -96,9 +98,11 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 **라우팅 평가 세트**(`decision_guard.routing`, 지시문 `decision_guard.judge`의 버전만 받고 아니면 422, #783)는 실제 Decision Guard 판정(`app/intent/service.judge`에 그 버전 본문)으로 만들고 정답(`expectedOutput {guard, capabilities}`)과 견줘 모델 없이 채점합니다: `guard`(일치 1·불일치 0), `precision`(고른 기능 중 맞은 비율)·`recall`(정답 기능 중 고른 비율), 분모가 비면 1입니다. 항목 `input`은 `{request, history?}`이고 history는 오케스트레이션이 보내는 이전 턴 모양(`{request, reply, features}`)입니다. 세트 구성은 [세트 안내](app/evaluation/datasets/README.md)입니다.
 
+**추출 평가 세트**(`extraction.extract`, 짝이 되는 지시문 `manuscript_extraction.extract`의 버전만 받고 아니면 422, #824)도 업무 Agent 틀이 아니라 실제 서비스 호출(`app/manuscript_extraction/service.extract`에 그 버전 본문·모델을 그대로 주고 결과는 서비스와 같은 원문 인용 검증)로 만들고, **채점 모델 없이 코드**(`app/evaluation/extraction.py`)로 정답표와 대조합니다. 지표는 `recall`(상위 모델이 두 번 모두 뽑은 **설정다운** 정답의 재현율 — 일상 물건·줄거리 사건은 `kind`·`document` 필드로 가려 뺀다, 대상·진술·관계 평균)·`quote_ok`(검증을 통과해 남은 항목의 비율)이고 0~1이며, 정밀도·종류 일치·관계 방향·라벨·설정 밖 재현율(`outside`)은 `recall` 점수의 metadata에만 남깁니다. 항목은 회차 한 편(`input` = 모델 입력 그대로)과 정답표(`expectedOutput`)이고 세트 파일은 저작권 만료 작품뿐입니다: 게이트 세트 30회차와 자동 개선용 최적화 풀 157회차(`app/evaluation/datasets/optimize/`, `metadata.split` train 137·val 20, seed가 올리지 않고 게이트와 겹치지 않음)이며 해리 포터·웹소설은 로컬 오프라인 평가 전용입니다(`eval/extraction/.data`). 만드는 법·정의·한계는 [추출 평가 세트](../../docs/evaluation/extraction-set.md), 정답표 빌더·CLI는 [`eval/extraction/`](eval/extraction/README.md)입니다.
+
 ## 작업 실행 큐 (운영 정기 작업·회귀 평가, 계약 §4)
 
-`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)와 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
+`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)·프롬프트 자동 개선(`optimization.run`, 수십 분 걸려 `acks_late=False`)과 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`)와 작업 큐를 분리합니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
 
 | 경로 | 내용 |
 |---|---|

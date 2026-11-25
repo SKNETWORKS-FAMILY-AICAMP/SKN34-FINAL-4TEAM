@@ -82,6 +82,7 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
   it('수정 제안을 등록하면 시트에서 접수 결과와 내역 링크를 보이고 확인에 초점을 둔다', async () => {
     const { repo, dialog, text } = await openSheet()
     expect(dialog.querySelector('.quote')!.textContent).toBe(text)
+    within(dialog).getByText(/원문이 없거나 여러 곳에 있으면 작가가 직접 확인해요/)
     const box = within(dialog).getByLabelText<HTMLTextAreaElement>('고친 문장')
     expect(box.value).toBe(text)
     expect(document.activeElement).toBe(box)
@@ -313,9 +314,14 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     within(c).getByText('승인됨 · 반영 실패')
     expect(within(c).getByText(/반영 실패: 초안에서 고칠 문장을 찾을 수 없어요/).classList.contains('note')).toBe(true)
     expect(within(c).queryByText(/발행은 집필실에서 할 수 있어요/)).toBeNull()
-    expect(within(c).getByRole('link', { name: '집필실에서 직접 고치기' }).getAttribute('href')).toBe('/studio/w1')
+    within(c).getByText(/초안을 수정했다면 저장 후 다시 시도해 주세요/)
+    const studio = within(c).getByRole('link', { name: '3화 집필실 열기' })
+    const retry = within(c).getByRole('button', { name: '다시 반영 시도' })
+    expect(studio.getAttribute('href')).toBe('/studio/w1?ep=3')
+    expect(studio.classList.contains('pri')).toBe(true)
+    expect(retry.classList.contains('pri')).toBe(false)
     expect(within(c).queryByRole('button', { name: '거절' })).toBeNull()
-    fireEvent.click(within(c).getByRole('button', { name: '다시 반영 시도' }))
+    fireEvent.click(retry)
     await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
     await within(await card()).findByText('발행은 집필실에서 할 수 있어요.')
   })
@@ -330,7 +336,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     within(c).getByText('검토 대기')
     expect(within(c).getByRole('button', { name: '승인하고 초안에 반영' }).hasAttribute('disabled')).toBe(false)
     // 다음 행동: 바뀐 발행본은 집필실에서 확인한다.
-    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1')
+    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1?ep=3')
   })
 
   it('기준 변경이 아닌 처리 실패에는 집필실 링크를 붙이지 않는다', async () => {

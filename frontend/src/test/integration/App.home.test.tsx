@@ -44,7 +44,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect([...document.querySelectorAll('#home .cont, #home .rings, #home .hero, #home .t10')].map((el) => el.className)).toEqual(['cont', 'rings', 'hero', 't10'])
   })
 
-  it('세계관·크레딧 메뉴의 데모 꼬리표만 없애고 정책의 실제 차감 없음 안내는 유지한다', async () => {
+  it('세계관·크레딧 메뉴의 데모 꼬리표를 없애고 정책 안내는 결제 내역 화면을 안내한다', async () => {
     renderAt('/')
     const worlds = within(screen.getByRole('navigation', { name: '주요 메뉴' })).getByRole('link', { name: /세계관/ })
     expect(worlds.getAttribute('href')).toBe('/worlds')
@@ -54,7 +54,8 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(within(document.querySelector<HTMLElement>('.gnb')!).queryByRole('button', { name: /크레딧/ })).toBeNull()
     act(() => { openPolicy() })
     const policy = await screen.findByRole('dialog', { name: '크레딧·이용 정책 안내' })
-    expect(policy.textContent).toContain('실제 결제나 차감은 없습니다.')
+    expect(policy.textContent).toContain('보유 크레딧과 사용 내역은 이 결제 내역 화면에서 볼 수 있어요.')
+    expect(policy.textContent).not.toContain('실제 결제나 차감은 없습니다.')
   })
 
   it('칩을 고르면 필터 결과(U02)를 보여 주고 안내를 닫을 수 있다', async () => {

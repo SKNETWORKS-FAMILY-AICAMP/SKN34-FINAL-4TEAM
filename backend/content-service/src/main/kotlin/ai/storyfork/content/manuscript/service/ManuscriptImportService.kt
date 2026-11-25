@@ -94,8 +94,10 @@ class ManuscriptImportService(
     private fun startBuild(work: String, owner: String, attempt: Boolean): ManuscriptImportWorldBuild? {
         if (!attempt) return null
         return try {
-            val world = worlds.linkedWorldId(work, owner) ?: UUID.randomUUID()
-            ManuscriptImportWorldBuild("started", preprocessing.start(work, owner, ManuscriptBuildRequest(world, "import:${UUID.randomUUID()}", true)).id, null, null)
+            val world = worlds.linkedWorldId(work, owner)
+            if (world != null && preprocessing.completedInitialBuild(work, world))
+                return ManuscriptImportWorldBuild("rejected", null, "WORLD_UPDATE_ON_PUBLISH", "새 회차를 처음 발행하면 세계관 초안에 반영돼요.")
+            ManuscriptImportWorldBuild("started", preprocessing.start(work, owner, ManuscriptBuildRequest(world ?: UUID.randomUUID(), "import:${UUID.randomUUID()}", true)).id, null, null)
         } catch (e: ContentFailure) {
             ManuscriptImportWorldBuild("rejected", null, e.code, e.message)
         } catch (e: RuntimeException) {

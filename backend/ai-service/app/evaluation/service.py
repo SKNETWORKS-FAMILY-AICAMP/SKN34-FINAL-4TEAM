@@ -5,6 +5,7 @@
 DeepEval GEval(항목 metadata.criteria)로 채점한다. 항목 input은 객체이며 프롬프트 본문(지시문)과 함께 업무 Agent와 같은 실행 틀(app/agent_runtime.py)로 모델에 보낸다.
 시뮬레이션 세트만 업무 Agent 틀 대신 실제 서비스 호출(app/simulation/agent의 act·narrate에 그 버전 본문)로 만든다(app/evaluation/simulation.py).
 라우팅 세트(decision_guard.routing, #783)는 실제 Decision Guard 판정에 그 버전 본문을 주고 정답과 견줘 모델 없이 guard·precision·recall로 채점한다(app/evaluation/routing.py).
+추출 세트(extraction.extract)도 실제 서비스 호출(manuscript_extraction.service.extract에 그 버전 본문)로 만들고 채점 모델 없이 정답표와 코드로 대조한다(recall·quote_ok, app/evaluation/extraction.py).
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
 기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이며 없으면 지표를 비교하지 않는다.
 실패한 항목(모델·채점 실패, 입력 형식 오류)은 0점으로 평균에 섞지 않고 점수 없는 실패로 두며 passed는 false다.
@@ -25,7 +26,7 @@ from langfuse import Evaluation
 from langfuse.api import NotFoundError
 
 from app import tracing
-from app.evaluation import agent, routing, scoring, simulation
+from app.evaluation import agent, extraction, routing, scoring, simulation
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import EvaluationRequest, LeakCheckRequest, LeakCheckResponse
 
@@ -66,13 +67,21 @@ class Plan:
     model: str | None = None  # 요청한 버전이 고른 모델(config.model, #705). 없으면 실행 틀이 OPENAI_MODEL을 쓴다
 
 
-def prepare(request: EvaluationRequest) -> Plan:
-    """평가를 시작하기 전에 확인한다: Langfuse·모델 설정, 허용 오차, 평가 세트, 요청한 프롬프트 버전. 어긋나면 Run을 만들지 않고 오류로 돌려준다."""
+def name_run(prompt: str, version: int) -> str:
+    """Run 이름(운영이 이 형식에서 프롬프트·버전을 읽는다). 자동 개선(app/optimization)은 새 버전의 commitMessage에 넣으려고 평가 전에 이름을 먼저 만든다."""
+    return f'{prompt}@v{version}-{datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")}-{secrets.token_hex(3)}'
+
+
+def prepare(request: EvaluationRequest, run_name: str | None = None) -> Plan:
+    """평가를 시작하기 전에 확인한다: Langfuse·모델 설정, 허용 오차, 평가 세트, 요청한 프롬프트 버전. 어긋나면 Run을 만들지 않고 오류로 돌려준다.
+    run_name을 주면 그 이름으로 Run을 만든다(name_run이 만든 이름)."""
     kind = simulation.KINDS.get(request.dataset)
     if kind and request.prompt != f'character_simulation.{kind}':   # 다른 호출의 지시문으로 돌리면 점수가 뜻이 없다
         raise EvaluationFailure(422, '시뮬레이션 평가 세트는 같은 호출의 지시문(character_simulation.act·narrate)만 평가할 수 있어요.')
     if request.dataset == routing.DATASET and request.prompt != routing.PROMPT:
         raise EvaluationFailure(422, '라우팅 평가 세트는 Decision Guard 지시문(decision_guard.judge)만 평가할 수 있어요.')
+    if request.dataset == extraction.DATASET and request.prompt != extraction.PROMPT:   # 추출 세트도 같은 호출의 지시문만 평가한다
+        raise EvaluationFailure(422, '추출 평가 세트는 같은 호출의 지시문(manuscript_extraction.extract)만 평가할 수 있어요.')
     client = _client()
     scoring.require_model()
     tolerance = _tolerance()
@@ -80,8 +89,7 @@ def prepare(request: EvaluationRequest) -> Plan:
     prompt = _fetch(client.get_prompt, request.prompt, version=request.version, missing='프롬프트 버전을 찾을 수 없어요.')
     if not isinstance(prompt.prompt, str):  # 채팅 프롬프트는 메시지 목록이라 지시문으로 쓸 수 없다
         raise EvaluationFailure(422, '텍스트 프롬프트만 평가할 수 있어요.')
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    return Plan(request, f'{request.prompt}@v{request.version}-{stamp}-{secrets.token_hex(3)}', dataset, prompt.prompt, tolerance,
+    return Plan(request, run_name or name_run(request.prompt, request.version), dataset, prompt.prompt, tolerance,
                 _baseline(client, dataset, request), tracing.model_of(prompt.config))
 
 
@@ -135,7 +143,8 @@ def leak_check(data: LeakCheckRequest) -> LeakCheckResponse:
 
 def _run(plan: Plan) -> None:
     request, baseline = plan.request, plan.baseline
-    qa, kind, routed = request.dataset.startswith(QA_PREFIX), simulation.KINDS.get(request.dataset), request.dataset == routing.DATASET
+    qa, kind = request.dataset.startswith(QA_PREFIX), simulation.KINDS.get(request.dataset)
+    routed, code = request.dataset == routing.DATASET, request.dataset == extraction.DATASET
 
     async def execute(*, item, **_):
         # 모델 호출은 블로킹이라 스레드로 보내 항목을 동시에 돌린다(추적 문맥은 to_thread가 복사한다).
@@ -143,12 +152,15 @@ def _run(plan: Plan) -> None:
             return await asyncio.to_thread(routing.generate, plan.instructions, _input(item))
         if kind:  # 시뮬레이션 세트는 업무 Agent 틀이 아니라 실제 서비스 호출로 만든다
             return await asyncio.to_thread(simulation.generate, kind, plan.instructions, _input(item), plan.model)
+        if code:  # 추출 세트도 실제 서비스 호출로 만들고 코드로 채점한다
+            return await asyncio.to_thread(extraction.generate, plan.instructions, _input(item), plan.model)
         return await asyncio.to_thread(agent.generate, plan.instructions, _input(item), plan.model)
 
     result = plan.dataset.run_experiment(
         name=f'{request.prompt} v{request.version} 회귀 평가', run_name=plan.run_name,
         description=f'프롬프트 {request.prompt} 버전 {request.version}을 평가 세트 {request.dataset}로 평가',
-        task=execute, evaluators=[_ragas_evaluator if qa else _routing_evaluator if routed else _simulation_evaluator(kind) if kind else _geval_evaluator],
+        task=execute, evaluators=[_ragas_evaluator if qa else _routing_evaluator if routed else _simulation_evaluator(kind) if kind
+                                  else _extraction_evaluator if code else _geval_evaluator],
         max_concurrency=MAX_CONCURRENCY,
         metadata={'prompt': request.prompt, 'version': str(request.version), 'dataset': request.dataset, 'tolerance': str(plan.tolerance),
                   'baselineRun': baseline.run if baseline else '', 'baselineVersion': str(baseline.version) if baseline else ''})
@@ -206,12 +218,17 @@ async def _routing_evaluator(*, output, expected_output=None, **_):
     return await routing.evaluate(output, expected_output)
 
 
+async def _extraction_evaluator(*, input, output, expected_output=None, **_):
+    return extraction.evaluate(input, output, expected_output)
+
+
 def _metrics(dataset: str) -> tuple[str, ...]:
-    """평가 세트가 Run 수준 점수로 남기는 지표 이름: qa.는 Ragas 둘, 시뮬레이션 세트는 루브릭 셋, 라우팅 세트는 guard·precision·recall, 그 밖은 GEval 하나다."""
+    """평가 세트가 Run 수준 점수로 남기는 지표 이름: qa.는 Ragas 둘, 시뮬레이션 세트는 루브릭 셋, 라우팅 세트는 guard·precision·recall, 추출 세트는 recall·quote_ok, 그 밖은 GEval 하나다."""
     if dataset == routing.DATASET:
         return routing.METRICS
     kind = simulation.KINDS.get(dataset)
-    return QA_METRICS if dataset.startswith(QA_PREFIX) else simulation.METRICS[kind] if kind else GEVAL_METRICS
+    return (QA_METRICS if dataset.startswith(QA_PREFIX) else simulation.METRICS[kind] if kind else extraction.METRICS if dataset == extraction.DATASET
+            else GEVAL_METRICS)
 
 
 async def _geval_evaluator(*, input, output, expected_output=None, metadata=None, **_):

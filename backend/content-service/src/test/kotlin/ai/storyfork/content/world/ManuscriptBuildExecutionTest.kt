@@ -1,6 +1,8 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.service.ManuscriptBuildExecution
+import ai.storyfork.content.world.service.ManuscriptBuildFinished
+import org.springframework.context.ApplicationEventPublisher
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
 import java.time.Instant
@@ -23,7 +25,8 @@ class ManuscriptBuildExecutionTest {
     private val world=UUID.randomUUID()
     private val job=ManuscriptBuildJob(workId="work",worldId=world,ownerSubject=owner,
         requestKey="initial",requestHash="a".repeat(64),manifest=mapOf("episodes" to listOf(1)))
-    private val service=ManuscriptBuildExecution(jobs,worlds,manager)
+    private val events=mock(ApplicationEventPublisher::class.java)
+    private val service=ManuscriptBuildExecution(jobs,worlds,manager,events)
     private val now=Instant.parse("2026-11-17T00:00:00Z")
     init {
         `when`(jobs.worldId(job.id)).thenReturn(world)
@@ -60,11 +63,26 @@ class ManuscriptBuildExecutionTest {
         assertThrows(RuntimeException::class.java) { service.claim(job.id,UUID.randomUUID(),now,now.plusSeconds(60)) }
         assertThrows(IllegalArgumentException::class.java) { service.claim(job.id,owner,now,now) }
     }
+    @Test fun `only a real update failure emits an event for follow-up intake`() {
+        val update=ManuscriptBuildJob(workId="work",worldId=world,ownerSubject=owner,
+            requestKey="update",requestHash="a".repeat(64),manifest=emptyMap(),kind="update")
+        `when`(jobs.worldId(update.id)).thenReturn(world)
+        `when`(jobs.lock(update.id)).thenReturn(update)
+        val token=service.claim(update.id,owner,now,now.plusSeconds(60))
+
+        assertThrows(RuntimeException::class.java) { service.fail(update.id,owner,UUID.randomUUID(),"AI_TIMEOUT") }
+        verifyNoInteractions(events)
+        service.fail(update.id,owner,token,"AI_TIMEOUT")
+        verify(events).publishEvent(ManuscriptBuildFinished(update.id,update.lockVersion,"work",world,owner))
+        assertEquals("failed",update.status)
+    }
+
     @Test fun `an accepted job the AI never received fails without a token and a started one is left alone`() {
         service.failQueued(job.id,owner,"AI_INTAKE_FAILED")
         assertEquals("failed",job.status)
         assertEquals("AI_INTAKE_FAILED",job.failureCode)
         assertNull(job.executionToken)
+        verifyNoInteractions(events)
 
         job.status="queued";job.failureCode=null
         val token=service.claim(job.id,owner,now,now.plusSeconds(60))

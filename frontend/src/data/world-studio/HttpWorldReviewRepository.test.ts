@@ -187,3 +187,71 @@ describe('HttpWorldReviewRepository 마지막 검토 읽기(#555)', () => {
     expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   })
 })
+
+describe('HttpWorldReviewRepository 원고로 채우기 제안(#847)', () => {
+  const card = crypto.randomUUID()
+  const docUrl = `/api/v1/world-studios/${world}/cards/${card}/doc-suggestions`
+  const LINES = [
+    { target: 'body', kind: 'description', episode: 2, quote: '키가 작고 얼굴이 검게 탔다.' },
+    { target: 'soul', kind: 'fact', episode: 4, quote: '치삼은 말수가 적다.' },
+  ]
+  const fillWire = (over: Record<string, unknown> = {}) => ({ lines: LINES, skipped: 1, model: 'gpt-6-luna', ...over })
+
+  it('동의를 싣어 Bearer·CSRF로 카드의 주소에 POST하고 줄과 뺀 줄 수만 읽는다(모델은 화면이 쓰지 않는다)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(fillWire()))
+    const result = await new HttpWorldReviewRepository(fetcher).suggestDocs(world, card)
+    const [path, init] = fetcher.mock.calls[0]
+    expect(path).toBe(docUrl)
+    expect(init).toMatchObject({ method: 'POST', credentials: 'same-origin', body: JSON.stringify({ consent: true }) })
+    expect(init.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer studio-bearer', 'X-CSRF-TOKEN': 'studio-csrf', 'Content-Type': 'application/json' }))
+    expect(result).toEqual({ lines: LINES, skipped: 1 })
+  })
+
+  it('원고에서 근거를 찾지 못해 줄이 없는 응답은 빈 제안으로 받는다(오류가 아니다)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(fillWire({ lines: [], skipped: 0, model: '' })))
+    await expect(new HttpWorldReviewRepository(fetcher).suggestDocs(world, card)).resolves.toEqual({ lines: [], skipped: 0 })
+  })
+
+  it.each([
+    ['GOAL처럼 채우지 않는 문서의 줄', { lines: [{ ...LINES[0], target: 'goal' }] }],
+    ['모르는 표지의 줄', { lines: [{ ...LINES[0], kind: 'rule' }] }],
+    ['0화의 줄', { lines: [{ ...LINES[0], episode: 0 }] }],
+    ['소수 회차의 줄', { lines: [{ ...LINES[0], episode: 1.5 }] }],
+    ['문장이 빈 줄', { lines: [{ ...LINES[0], quote: '' }] }],
+    ['목록이 아닌 줄들', { lines: null }],
+    ['음수로 뺀 줄 수', { skipped: -1 }],
+    ['뺀 줄 수가 없는 응답', { skipped: undefined }],
+  ])('%s이 있는 응답은 일부만 쓰지 않고 형식 오류로 거절한다', async (_, over) => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(fillWire(over)))
+    await expect(new HttpWorldReviewRepository(fetcher).suggestDocs(world, card)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+
+  it.each([
+    [422, 'AI_CONSENT_REQUIRED', 'OpenAI 전송과 API 비용에 동의해 주세요.'],
+    [404, 'CARD_NOT_FOUND', '설정 카드를 찾을 수 없어요.'],
+    [409, 'WORLD_NOT_LINKED', '이 세계관에 연결된 소설이 없어 원고에서 근거를 찾을 수 없어요.'],
+    [409, 'DOCS_NOT_EMPTY', '정체성과 성격·말투가 이미 채워져 있어요.'],
+    [502, 'AI_OUTPUT_INVALID', '원고로 채우기 제안을 완료하지 못했어요. 잠시 뒤 다시 시도해 주세요.'],
+    [504, 'AI_TIMEOUT', '원고로 채우기 제안이 시간 안에 끝나지 않았어요. 잠시 뒤 다시 시도해 주세요.'],
+  ])('오류 %s %s는 서버가 준 문구를 그대로 던지고 다시 보내지 않는다', async (status, code, detail) => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ detail, code }, { status }))
+    await expect(new HttpWorldReviewRepository(fetcher).suggestDocs(world, card)).rejects.toThrow(detail)
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it('오류 본문을 읽을 수 없으면 일반 안내를 던진다(성공·빈 제안으로 바꾸지 않는다)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response('<html>Bad Gateway</html>', { status: 502 }))
+    await expect(new HttpWorldReviewRepository(fetcher).suggestDocs(world, card)).rejects.toThrow('원고로 채우기 제안을 요청하지 못했어요.')
+  })
+
+  it('UUID가 아닌 세계관·카드 주소는 보내지 않고, 호출자의 취소 신호는 요청에 이어진다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(fillWire()))
+    await expect(new HttpWorldReviewRepository(fetcher).suggestDocs('qa', card)).rejects.toThrow('세계관')
+    await expect(new HttpWorldReviewRepository(fetcher).suggestDocs(world, 'card-1')).rejects.toThrow('카드')
+    expect(fetcher).not.toHaveBeenCalled()
+    const controller = new AbortController()
+    await new HttpWorldReviewRepository(fetcher).suggestDocs(world, card, controller.signal)
+    controller.abort()
+    expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
+  })
+})

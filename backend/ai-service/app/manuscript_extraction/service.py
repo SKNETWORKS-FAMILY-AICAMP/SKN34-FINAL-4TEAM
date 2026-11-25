@@ -132,10 +132,10 @@ def _validate(episode, proposed):
                              skipped=dict(skipped))
 
 
-def extract(episode: EpisodeText) -> EpisodeExtraction:
-    """한 회차를 실제 LLM으로 구조화하고 원문·ID·유형·시점을 다시 검증한다."""
+def extract(episode: EpisodeText, instructions: str | None = None, model: str | None = None) -> EpisodeExtraction:
+    """한 회차를 실제 LLM으로 구조화하고 원문·ID·유형·시점을 다시 검증한다. instructions·model은 회귀 평가가 지정한 프롬프트 버전의 본문·모델이다."""
     try:
-        return _validate(episode, agent.extract(episode))
+        return _validate(episode, agent.extract(episode) if instructions is None else agent.extract(episode, instructions, model))
     except (ValidationError, TypeError, ValueError, UnicodeError):
         raise PreprocessingFailure('INVALID_EXTRACTION') from None
 
@@ -153,6 +153,18 @@ def _inputs(extractions):
         _require(checked.model_copy(update={'skipped': row.skipped}) == row, 'EXTRACTION_EVIDENCE_MISMATCH')
         result[number] = row
     return result
+
+
+# 호칭 변형(치삼·치삼이·치삼아·치삼은)을 한 이름으로 보는 접미사·조사(#839). 값은 앞 글자의 받침 조건(True 있음·False 없음·None 상관없음)이다.
+# 받침 규칙에 어긋난 꼴(영희이·치삼야)은 다른 이름일 수 있어 변형으로 보지 않는다. Content ManuscriptStructureVerifier.nameKey와 글자까지 같아야 한다.
+_SUFFIXES = {'이': True, '아': True, '야': False, '은': True, '을': True, '는': False, '를': False, '가': False, '의': None}
+
+
+def _base(name):
+    """호칭 변형의 기본형. 끝의 접미사·조사를 떼되(치삼이가 → 치삼이 → 치삼) 두 글자 이상이 남을 때만 뗀다(순이는 그대로)."""
+    while len(name) > 2 and name[-1] in _SUFFIXES and '가' <= name[-2] <= '힣' and _SUFFIXES[name[-1]] in (None, (ord(name[-2]) - 0xAC00) % 28 > 0):
+        name = name[:-1]
+    return name
 
 
 def _key(ref):
@@ -189,7 +201,7 @@ def _resolution(rows, proposed):
         if link.basis == 'distinct':
             status = 'distinct'
         elif link.basis in ('explicit_alias', 'explicit_coreference', 'same_name'):
-            if left.name != right.name:
+            if _base(left.name) != _base(right.name):
                 reason = 'AUTHOR_REVIEW_REQUIRED' if left.kind == 'character' else 'DIFFERENT_NAMES'
             else:
                 a, b = sorted((root(link.left), root(link.right)))
@@ -200,25 +212,30 @@ def _resolution(rows, proposed):
         pairs.add(pair)
         decisions.append(IdentityDecision(link=link, status=status, reason=reason))
     # 같은 종류·같은 이름은 기본으로 같은 대상이다. 모델이 이미 판단한 쌍, 앞선 후보가 둘 이상인 경우, 같은 회차에 같은 이름이 둘인 경우
-    # (모델이 일부러 가른 것)는 묶지 않는다. 근거는 뒤 회차 대상의 검증된 인용이고, 결정 목록에 같은 링크로 남아 organize가 같은 결과를 다시 만든다.
+    # (모델이 일부러 가른 것)는 묶지 않는다. 같은 이름이 앞 회차에 없을 때만 호칭 변형(치삼·치삼이)을 같은 이름으로 보아 같은 규칙으로 묶는다(#839).
+    # 근거는 뒤 회차 대상의 검증된 인용이고, 결정 목록에 같은 링크로 남아 organize가 같은 결과를 다시 만든다.
     order = sorted(mentions, key=lambda ref: (episode(ref), ref))
-    same = lambda a, b: (mentions[a].kind, mentions[a].name) == (mentions[b].kind, mentions[b].name)  # noqa: E731
+    exact = lambda a, b: (mentions[a].kind, mentions[a].name) == (mentions[b].kind, mentions[b].name)  # noqa: E731
+    alike = lambda a, b: (mentions[a].kind, _base(mentions[a].name)) == (mentions[b].kind, _base(mentions[b].name))  # noqa: E731
     for i, ref in enumerate(order):
         n = episode(ref)
-        if any(episode(x) == n and x != ref and same(x, ref) for x in order):
-            continue
-        earlier = {root(x): x for x in reversed(order[:i]) if episode(x) < n and same(x, ref)}  # 묶음마다 가장 앞 회차의 ref
-        if len(earlier) != 1:
-            continue
-        (top, left), = earlier.items()
-        pair = frozenset((left, ref))
-        if top == root(ref) or pair in pairs or any({root(r) for r in p} <= {top, root(ref)} for p in distinct):
-            continue
-        pairs.add(pair)
-        a, b = sorted((top, root(ref)))
-        parent[b] = a
-        decisions.append(IdentityDecision(link=IdentityLink(left=left, right=ref, basis='same_name', confirmedAt=n, evidenceEpisode=n,
-                                                            quote=mentions[ref].quote), status='merged', reason='same_name'))
+        for same in (exact, alike):
+            if any(episode(x) == n and x != ref and same(x, ref) for x in order):
+                break
+            earlier = {root(x): x for x in reversed(order[:i]) if episode(x) < n and same(x, ref)}  # 묶음마다 가장 앞 회차의 ref
+            if len(earlier) > 1:
+                break
+            if not earlier:
+                continue  # 같은 이름이 없으니 호칭 변형으로 다시 본다
+            (top, left), = earlier.items()
+            pair = frozenset((left, ref))
+            if not (top == root(ref) or pair in pairs or any({root(r) for r in p} <= {top, root(ref)} for p in distinct)):
+                pairs.add(pair)
+                a, b = sorted((top, root(ref)))
+                parent[b] = a
+                decisions.append(IdentityDecision(link=IdentityLink(left=left, right=ref, basis='same_name', confirmedAt=n, evidenceEpisode=n,
+                                                                    quote=mentions[ref].quote), status='merged', reason='same_name'))
+            break
     decisions.sort(key=lambda d: (d.link.confirmedAt, min(d.link.left, d.link.right), max(d.link.left, d.link.right)))
     return IdentityResolution(inputHashes={n: _hash(json.dumps(row.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':'))) for n, row in rows.items()},
                               mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions)
@@ -245,6 +262,17 @@ def organize(identities: object, extractions: dict[int, object]) -> LoadPayload:
         raise PreprocessingFailure('INVALID_LOAD_PAYLOAD') from None
 
 
+def _fit(lines):
+    """같은 줄은 한 번만, 문서 한도(3,000자) 안에서 앞 회차부터 쌓는다. 줄은 자르지 않고 넘치는 줄부터 뺀다."""
+    kept, size = [], -1
+    for line in dict.fromkeys(lines):
+        size += len(line) + 1
+        if size > DOC_LIMIT:
+            break
+        kept.append(line)
+    return kept
+
+
 def _organize(identity, rows):
     cards, first, docs, bodies = {}, {}, {}, {}
     for n, row in rows.items():
@@ -267,9 +295,11 @@ def _organize(identity, rows):
                 names = ', '.join(cards[k].title for k in subjects)
                 cards[key] = Card(key=key, cardType='event', title=f'{n}화 · {statement.quote[:24]}', aliases=[],
                                   body=f'발생: {statement.occurredEpisode}화 / 참여: {names}\n{text}', firstEpisode=n)
-            # 카드 본문·SOUL·GOAL은 첫 등장 회차의 진술만 싣는다(회차 차원이 없어 뒤 회차 내용이 앞으로 새면 안 된다). 뒤 회차의 재서술은 싣지 않는다.
+            # 카드 본문(IDENTITY)·GOAL은 첫 등장 회차의 진술만 싣는다(회차 차원이 없어 뒤 회차 내용이 앞으로 새면 안 된다). 뒤 회차의 재서술은 싣지 않는다.
+            # 인물의 SOUL만 뒤 회차의 soul 진술도 쌓는다(#839: 성격이 뒤 회차에 드러나는 조연이 SOUL 없이 남지 않게).
+            # ponytail: 쌓인 SOUL은 회차 차원이 없어 시뮬레이션 기준 회차보다 뒤에 드러난 성격·말투가 섞인다. 회차별 SOUL은 episodes처럼 회차 키로 두는 별도 설계다.
             for key in subjects:
-                if first[key] == n and statement.document in ('identity', 'soul', 'goal'):
+                if statement.document in ('identity', 'soul', 'goal') and (first[key] == n or (statement.document == 'soul' and key in docs)):
                     target = bodies[key] if statement.document == 'identity' or key not in docs else docs[key][statement.document]
                     target.append(text)
             # 인물의 명시적 인지 대상에만 기억을 넣는다. 시작 전 기억은 첫 등장 회차에서만 00이고, 뒤 회차에서 밝혀진 것은 그 회차 기억이다.
@@ -283,9 +313,11 @@ def _organize(identity, rows):
             _require(source != target, 'MERGED_SELF_RELATION')
             relations.append(Relation(fromKey=source, toKey=target, label=relation.label, fromEpisode=relation.fromEpisode, ended=relation.ended))
     for key, lines in bodies.items():
-        cards[key].body = '\n'.join(dict.fromkeys(lines)) or cards[key].title
+        # 인물의 IDENTITY는 정체 진술이 없으면 비워 둔다(#839): 이름으로 채우면 시뮬레이션·화면의 필수 문서 검사가 빈 문서를 통과시킨다.
+        # 다른 카드는 확정 버전에 본문이 필수라(Content) 이름을 그대로 둔다.
+        cards[key].body = '\n'.join(dict.fromkeys(lines)) or ('' if key in docs else cards[key].title)
     for key, documents in docs.items():
-        cards[key].characterDocs = CharacterDocs(soul='\n'.join(dict.fromkeys(documents['soul'])),
+        cards[key].characterDocs = CharacterDocs(soul='\n'.join(_fit(documents['soul'])),
             goal='\n'.join(dict.fromkeys(documents['goal'])), episodes={n: '\n'.join(lines) for n, lines in sorted(documents['episodes'].items())})
     # 문서 길이 한도는 추출 때(_validate) 대상별로 막았다. 그래도 넘치면 잘라내지 않고 재검증으로 실패시킨다.
     candidates = {}

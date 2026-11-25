@@ -1,5 +1,6 @@
 package ai.storyfork.content.world.client
 
+import ai.storyfork.content.world.client.dto.WorldDocFillAiRequest
 import ai.storyfork.content.world.client.dto.WorldReviewAiRequest
 import ai.storyfork.content.world.service.InitialWorldInput
 import org.springframework.web.client.RestClient
@@ -16,6 +17,9 @@ class InitialWorldExtractionClient(private val client:RestClient,private val tok
 
     /** 설정집 AI 검토(docs/design/world-review-contract.md)도 같은 AI 서비스·토큰·시간 제한과 오류 변환을 쓴다. */
     fun review(input:WorldReviewAiRequest):String=post("/internal/v1/world-reviews",input)
+
+    /** 인물 문서 채우기(같은 계약)도 같은 AI 서비스·토큰·시간 제한과 오류 변환을 쓴다. */
+    fun fill(input:WorldDocFillAiRequest):String=post("/internal/v1/world-reviews/fill",input)
 
     private fun post(uri:String,body:Any):String {
         if(token.isBlank()) throw InitialWorldCallFailure("AI_NOT_CONFIGURED",false)

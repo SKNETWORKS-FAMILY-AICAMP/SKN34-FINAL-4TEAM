@@ -1,0 +1,266 @@
+{
+  "extractions": [
+    {
+      "mentions": [
+        {
+          "id": "m1",
+          "name": "치삼이",
+          "kind": "character",
+          "quote": "치삼이는 선술집 앞에 서 있었다."
+        },
+        {
+          "id": "m2",
+          "name": "선술집",
+          "kind": "location",
+          "quote": "선술집은 낡고 어두웠다."
+        },
+        {
+          "id": "m3",
+          "name": "장터",
+          "kind": "location",
+          "quote": "장터는 멀지 않았다."
+        }
+      ],
+      "statements": [
+        {
+          "id": "s1",
+          "kind": "description",
+          "certainty": "asserted",
+          "subjects": [
+            "m2"
+          ],
+          "knowers": [],
+          "document": "identity",
+          "occurredEpisode": null,
+          "knownFromEpisode": 1,
+          "quote": "선술집은 낡고 어두웠다."
+        }
+      ],
+      "relationships": [],
+      "schemaVersion": "manuscript-extraction.v1",
+      "number": 1,
+      "title": "1화",
+      "source": "치삼이는 선술집 앞에 서 있었다.\n선술집은 낡고 어두웠다.\n장터는 멀지 않았다.",
+      "sourceHash": "a4549bcbbd0cd0d93d6e8258efd7988681f238db51c18bf51bc352953e4d934b",
+      "evidence": [
+        {
+          "quote": "선술집은 낡고 어두웠다.",
+          "start": 19,
+          "end": 32,
+          "quoteHash": "a2e6de041e6ab47dadec41024c12d4e5c8eb3b0c927d50f12334c34efa49b2be"
+        },
+        {
+          "quote": "장터는 멀지 않았다.",
+          "start": 33,
+          "end": 44,
+          "quoteHash": "d62ac187dbc81dc03bf21a4bd8dc0b847230f3456f7da44d1fb0b8e5087d5ed8"
+        },
+        {
+          "quote": "치삼이는 선술집 앞에 서 있었다.",
+          "start": 0,
+          "end": 18,
+          "quoteHash": "477d54d5fdda9c592b5dc99c9de94d41c2113061125d5a767eeb755bc3551b7f"
+        }
+      ],
+      "skipped": {}
+    },
+    {
+      "mentions": [
+        {
+          "id": "m1",
+          "name": "치삼",
+          "kind": "character",
+          "quote": "치삼은 말끝마다 농을 던지는 사람이었다."
+        }
+      ],
+      "statements": [
+        {
+          "id": "s1",
+          "kind": "description",
+          "certainty": "asserted",
+          "subjects": [
+            "m1"
+          ],
+          "knowers": [],
+          "document": "soul",
+          "occurredEpisode": null,
+          "knownFromEpisode": 2,
+          "quote": "치삼은 말끝마다 농을 던지는 사람이었다."
+        },
+        {
+          "id": "s2",
+          "kind": "description",
+          "certainty": "asserted",
+          "subjects": [
+            "m1"
+          ],
+          "knowers": [],
+          "document": "soul",
+          "occurredEpisode": null,
+          "knownFromEpisode": 2,
+          "quote": "\"허, 이 사람아.\" 치삼이 껄껄 웃었다."
+        }
+      ],
+      "relationships": [],
+      "schemaVersion": "manuscript-extraction.v1",
+      "number": 2,
+      "title": "2화",
+      "source": "치삼은 말끝마다 농을 던지는 사람이었다.\n\"허, 이 사람아.\" 치삼이 껄껄 웃었다.",
+      "sourceHash": "9693cd497ba36c38b1d8170bd3a1998cb9128e7d864d5bf510e87e3353ae38c6",
+      "evidence": [
+        {
+          "quote": "\"허, 이 사람아.\" 치삼이 껄껄 웃었다.",
+          "start": 23,
+          "end": 46,
+          "quoteHash": "75f64567ff4d27839f049fade57acc5bd3ecffedadd36233f643ade09a70b4eb"
+        },
+        {
+          "quote": "치삼은 말끝마다 농을 던지는 사람이었다.",
+          "start": 0,
+          "end": 22,
+          "quoteHash": "c1c07340368153858a08d880c7b91aed9ecabc533812f3f153c8cd558eb0ae86"
+        }
+      ],
+      "skipped": {}
+    },
+    {
+      "mentions": [
+        {
+          "id": "m1",
+          "name": "치삼",
+          "kind": "character",
+          "quote": "치삼은 약속만은 꼭 지키는 사람이었다."
+        }
+      ],
+      "statements": [
+        {
+          "id": "s1",
+          "kind": "description",
+          "certainty": "asserted",
+          "subjects": [
+            "m1"
+          ],
+          "knowers": [],
+          "document": "soul",
+          "occurredEpisode": null,
+          "knownFromEpisode": 3,
+          "quote": "치삼은 말끝마다 농을 던지는 사람이었다."
+        },
+        {
+          "id": "s2",
+          "kind": "description",
+          "certainty": "asserted",
+          "subjects": [
+            "m1"
+          ],
+          "knowers": [],
+          "document": "soul",
+          "occurredEpisode": null,
+          "knownFromEpisode": 3,
+          "quote": "치삼은 약속만은 꼭 지키는 사람이었다."
+        }
+      ],
+      "relationships": [],
+      "schemaVersion": "manuscript-extraction.v1",
+      "number": 3,
+      "title": "3화",
+      "source": "치삼은 말끝마다 농을 던지는 사람이었다.\n치삼은 약속만은 꼭 지키는 사람이었다.",
+      "sourceHash": "ca3e92a25039ea28c431414bf061686314d6f645f015f17d69adafdbc27d7eef",
+      "evidence": [
+        {
+          "quote": "치삼은 말끝마다 농을 던지는 사람이었다.",
+          "start": 0,
+          "end": 22,
+          "quoteHash": "c1c07340368153858a08d880c7b91aed9ecabc533812f3f153c8cd558eb0ae86"
+        },
+        {
+          "quote": "치삼은 약속만은 꼭 지키는 사람이었다.",
+          "start": 23,
+          "end": 44,
+          "quoteHash": "e4168452b70ba3405d6308f3eeeeba02d4d0917e55e260ba21b0b5397a015e08"
+        }
+      ],
+      "skipped": {}
+    }
+  ],
+  "identity": {
+    "schemaVersion": "manuscript-identity.v1",
+    "inputHashes": {
+      "1": "33ffdb92f59f29279306f04c8c38aa8f8824127f5b054c605adf5853da2d6209",
+      "2": "fa50ec7a4085f7ad5943ef26a167a9bfdec25bd2cff192bd3bda3e07ffa89e1d",
+      "3": "5e89fcff8b99bb77056bafcfca3735499ff1698117402d7e1387aefab03d3c89"
+    },
+    "mapping": {
+      "1:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+      "1:m2": "entity-e1b377e3-4634-5293-88b8-2edbb6ae61db",
+      "1:m3": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
+      "2:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+      "3:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480"
+    },
+    "decisions": [
+      {
+        "link": {
+          "left": "1:m1",
+          "right": "2:m1",
+          "basis": "same_name",
+          "confirmedAt": 2,
+          "evidenceEpisode": 2,
+          "quote": "치삼은 말끝마다 농을 던지는 사람이었다."
+        },
+        "status": "merged",
+        "reason": "same_name"
+      },
+      {
+        "link": {
+          "left": "2:m1",
+          "right": "3:m1",
+          "basis": "same_name",
+          "confirmedAt": 3,
+          "evidenceEpisode": 3,
+          "quote": "치삼은 약속만은 꼭 지키는 사람이었다."
+        },
+        "status": "merged",
+        "reason": "same_name"
+      }
+    ]
+  },
+  "payload": {
+    "cards": [
+      {
+        "key": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+        "cardType": "character",
+        "title": "치삼이",
+        "aliases": [
+          "치삼"
+        ],
+        "body": "",
+        "firstEpisode": 1,
+        "characterDocs": {
+          "soul": "[묘사] 치삼은 말끝마다 농을 던지는 사람이었다.\n[묘사] \"허, 이 사람아.\" 치삼이 껄껄 웃었다.\n[묘사] 치삼은 약속만은 꼭 지키는 사람이었다.",
+          "goal": "",
+          "episodes": {}
+        }
+      },
+      {
+        "key": "entity-e1b377e3-4634-5293-88b8-2edbb6ae61db",
+        "cardType": "location",
+        "title": "선술집",
+        "aliases": [],
+        "body": "[묘사] 선술집은 낡고 어두웠다.",
+        "firstEpisode": 1,
+        "characterDocs": null
+      },
+      {
+        "key": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
+        "cardType": "location",
+        "title": "장터",
+        "aliases": [],
+        "body": "장터",
+        "firstEpisode": 1,
+        "characterDocs": null
+      }
+    ],
+    "relations": [],
+    "identityCandidates": []
+  }
+}

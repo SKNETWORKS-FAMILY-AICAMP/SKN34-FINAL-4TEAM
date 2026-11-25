@@ -465,6 +465,16 @@ def test_a_model_that_is_not_a_name_in_the_version_config_is_the_env_default(mon
     assert service.prepare(QA_REQUEST).model is None
 
 
+def test_a_caller_can_name_the_run_before_it_exists_with_the_same_format(monkeypatch):
+    """자동 개선(app/optimization)은 저장할 새 버전의 commitMessage에 평가 Run 이름을 넣어야 해서 이름을 먼저 만든다."""
+    name = service.name_run('qa.answer', 4)
+    assert re.fullmatch(r'qa\.answer@v4-\d{8}T\d{6}Z-[0-9a-f]{6}', name)
+
+    install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3)})
+    assert service.prepare(QA_REQUEST, run_name=name).run_name == name
+    assert service.prepare(QA_REQUEST).run_name != name   # 안 주면 지금처럼 새로 만든다
+
+
 # --- 라우팅 세트(decision_guard.routing, #783): 실제 판정으로 만들고 정답과 견줘 모델 없이 채점한다 ---
 
 ROUTING_REQUEST = EvaluationRequest(dataset='decision_guard.routing', prompt='decision_guard.judge', version=2)

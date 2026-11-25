@@ -3,12 +3,14 @@ from collections import Counter
 
 import pytest
 
-from app.evaluation import seed
+from app.evaluation import extraction, seed
+from app.optimization import service
 
 PUBLIC = {'qa.grounding', 'world.conflict', 'writing.fix', 'leak.spoiler'}
 SIMULATION = {'simulation.act', 'simulation.narrate'}
 ROUTING = 'decision_guard.routing'
-NAMES = PUBLIC | SIMULATION | {ROUTING}
+EXTRACTION = {'extraction.extract'}
+NAMES = PUBLIC | SIMULATION | EXTRACTION | {ROUTING}
 
 
 class Langfuse:
@@ -74,6 +76,65 @@ def test_the_routing_set_covers_every_guard_feature_and_case_with_valid_answers(
     assert {g for it in items for g in [it['expectedOutput']['guard']]} == set(GUARDS)
     assert {f for it in items for f in it['expectedOutput']['capabilities']} == set(FEATURES)
     assert {it['metadata']['case'] for it in items} == {'single', 'compound', 'confusable', 'followup', 'chat', 'injection', 'sensitive'}
+
+
+POOL = seed.DATASETS / 'optimize' / 'extraction.extract.jsonl'   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
+HARRY_POTTER = ('해리 포터', '호그와트', '덤블도어', '헤르미온느', '볼드모트')   # 번역본은 저작권이 있어 로컬 오프라인 평가 전용이다
+
+
+def pool():
+    return [json.loads(line) for line in POOL.read_text(encoding='utf-8').splitlines()]
+
+
+def check_extraction_items(items, prefix):
+    """게이트 세트·최적화 풀 공통: 저작권 만료 회차 + 채점 코드가 읽는 모양의 정답표. id는 prefix로 시작한다."""
+    assert len({it['input']['body'] for it in items}) == len(items) and len({it['id'] for it in items}) == len(items)   # 같은 회차를 두 번 싣지 않는다(평균에 두 배 가중치가 붙는다)
+    for it in items:
+        source, gold, body = it['metadata']['source'], it['metadata']['gold'], it['input']['body']
+        assert it['id'].startswith(prefix) and set(it['input']) == {'number', 'title', 'body'} and body.strip()   # 운영이 모델에 보내는 값 그대로
+        assert {'work', 'author', 'origin', 'license', 'episode'} <= set(source) and source['license'].startswith('저작권 만료') and it['metadata']['license'] == source['license']
+        assert gold['model'] == 'gpt-6.2-sol' and gold['runs'] == ['A', 'B'] and set(gold['agreement']) == {'mentions', 'statements', 'relationships'}
+        table = extraction.Gold.model_validate(it['expectedOutput'])
+        assert any(m.core for m in table.mentions) and all(body.count(s.quote) == 1 for s in table.statements)   # 정답 인용은 원문에 정확히 한 번 있다
+        assert [m.name for m in table.mentions] and all(m.name.strip() for m in table.mentions)
+
+
+def test_the_extraction_gate_set_is_about_thirty_episodes_stratified_over_works_and_authors():
+    items = seed.load()['extraction.extract']
+    check_extraction_items(items, 'extraction.extract-')
+
+    works = Counter((it['metadata']['source']['author'], it['metadata']['source']['work']) for it in items)
+    authors = Counter(it['metadata']['source']['author'] for it in items)
+    assert [it['id'] for it in items] == [f'extraction.extract-{n:02d}' for n in range(1, 31)]   # 평가 1회 = 운영 모델 호출 30회
+    assert len(works) >= 15 and max(works.values()) <= 3 and len(authors) >= 8 and max(authors.values()) / len(items) <= 0.25   # 한 작품·한 작가가 점수를 좌우하지 않는다
+
+
+def test_the_extraction_optimization_pool_is_the_rest_of_the_public_episodes_in_the_shape_the_optimizer_reads():
+    items = pool()
+    check_extraction_items(items, 'extraction.extract.opt-')
+
+    assert len(items) >= 30 and len(items) + len(seed.load()['extraction.extract']) >= 60   # 게이트와 합쳐 60회차 이상
+    train, val = service.load_pool('extraction.extract')   # 자동 개선이 풀 파일 이름(게이트 세트 이름)으로 읽는다: metadata.split이 train·val
+    assert len(val) == 20 and len(train) == len(items) - 20 and {it['metadata']['split'] for it in items} == {'train', 'val'}   # val 상한 20(시뮬레이션 풀과 같은 규칙)
+
+
+def test_the_extraction_gate_set_and_the_pool_share_no_episode_and_no_text():
+    gate, rest = seed.load()['extraction.extract'], pool()
+    episode = lambda it: (it['metadata']['source']['work'], it['metadata']['source']['episode'])  # noqa: E731
+
+    def shingles(items, size=40):   # 회차 본문의 size글자 조각(공백 제외): 한 조각이라도 겹치면 원문이 겹친 것이다
+        texts = [''.join(it['input']['body'].split()) for it in items]
+        return {text[k:k + size] for text in texts for k in range(len(text) - size + 1)}
+
+    assert not ({it['id'] for it in gate} & {it['id'] for it in rest}) and not ({episode(it) for it in gate} & {episode(it) for it in rest})
+    assert not (shingles(gate) & shingles(rest))   # 게이트가 손대지 않은 검증 세트로 남는다
+
+
+def test_the_extraction_sets_have_nothing_of_the_local_only_harry_potter_text():
+    for path in (seed.DATASETS / 'extraction.extract.jsonl', POOL):
+        text = path.read_text(encoding='utf-8')
+
+        assert not any(word in text for word in HARRY_POTTER)
 
 
 def test_register_is_idempotent():

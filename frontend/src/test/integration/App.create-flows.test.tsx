@@ -4,13 +4,21 @@ import '../fixtureApp'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from 'react-router'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 
+// 지연 로딩 화면(새 소설·집필실·본문 편집기)의 첫 import는 변환·평가가 CPU 속도에 따라 수백 ms~수 초라 findBy 기본 1초 안에서 치르면 느린 CI에서 시간 초과한다(U28 집필실 진입이 간헐 실패). 시간을 늘리지 않고 테스트 전에 불러 둔다.
+beforeAll(async () => {
+  await Promise.all([
+    import('../../presentation/features/library/view/NewWorkPage'),
+    import('../../presentation/features/studio/view/StudioPage'),
+    import('../../presentation/features/studio/view/ManuscriptEditor'),
+  ])
+}, 30_000)
 beforeEach(() => { vi.spyOn(window, 'confirm').mockReturnValue(true) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
@@ -79,7 +87,7 @@ describe('목업 새 소설 만들기 (U28)', () => {
     }
     fireEvent.change(screen.getByLabelText('인물 1 이름'), { target: { value: '등대지기' } })
     fireEvent.click(screen.getByRole('button', { name: '소설 만들고 1화 쓰기 →' }))
-    // 집필실은 lazy 경로라 첫 진입에 모듈 변환이 1초를 넘길 수 있다(그동안 Suspense가 이전 화면을 숨긴다). App.studio-redesign과 같은 5초를 기다린다.
+    // 모듈은 위 beforeAll에서 미리 불러 두지만 렌더·편집기 초기화가 느린 CI에서 기본 1초에 빠듯할 수 있어, App.studio-redesign과 같은 5초를 기다린다.
     await screen.findByRole('heading', { name: '남는 제목' }, { timeout: 5000 })
     expect(where()).toMatch(/^\/studio\//)
     expect(screen.getByRole('combobox', { name: '원고 본문' }).getAttribute('contenteditable')).toBe('true')

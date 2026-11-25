@@ -129,3 +129,32 @@ describe('AI 파이프라인(DEC-58) 조회', () => {
     await expect(make({ pipelineRecords: async () => { throw new OperationsError('연결 실패') } }).pipelineRecords(recordQuery)).rejects.toThrow('연결 실패')
   })
 })
+
+describe('프롬프트 자동 개선 요청(#823)', () => {
+  it('기준 버전과 평가 호출 상한을 그대로 보낸다(상한 1과 500도 된다)', async () => {
+    const optimize = vi.fn(async () => {})
+    const uc = make({ optimize })
+    await uc.optimize('character_simulation.act', 2, 150)
+    await uc.optimize('character_simulation.narrate', 1, 1)
+    await uc.optimize('character_simulation.act', 3, 500)
+    expect(optimize.mock.calls).toEqual([
+      ['character_simulation.act', { version: 2, maxMetricCalls: 150 }],
+      ['character_simulation.narrate', { version: 1, maxMetricCalls: 1 }],
+      ['character_simulation.act', { version: 3, maxMetricCalls: 500 }],
+    ])
+  })
+
+  it('대상이 아닌 프롬프트·고르지 않은 버전·범위 밖이거나 정수가 아닌 상한은 보내지 않는다', async () => {
+    const optimize = vi.fn(async () => {})
+    const uc = make({ optimize })
+    await rejects(uc.optimize('story_context.answer', 1, 150), '이 프롬프트는 자동 개선을 지원하지 않아요.')
+    for (const version of [0, -1, 1.5, Number.NaN]) await rejects(uc.optimize('character_simulation.act', version, 150), '기준 버전은 1 이상의 정수로 골라 주세요.')
+    for (const calls of [0, -5, 501, 12.5, Number.NaN]) await rejects(uc.optimize('character_simulation.act', 1, calls), '평가 호출 상한은 1~500의 정수로 입력해 주세요.')
+    expect(optimize).not.toHaveBeenCalled()
+  })
+
+  it('서버가 거절한 오류(이미 실행 중 등)는 그대로 던진다', async () => {
+    const running = new OperationsError('이 프롬프트의 자동 개선이 이미 실행 중이에요.')
+    await expect(make({ optimize: async () => { throw running } }).optimize('character_simulation.act', 1, 150)).rejects.toBe(running)
+  })
+})

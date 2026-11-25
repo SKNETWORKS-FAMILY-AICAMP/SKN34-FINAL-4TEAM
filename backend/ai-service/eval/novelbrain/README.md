@@ -7,7 +7,7 @@
 
 | 파일 | 역할 |
 |---|---|
-| `metrics.py` | Recall@k·P@k·EM/F1·채점 응답 파싱·TimeChara 시공간 점수 결합·Wilson 구간(순수 함수) |
+| `metrics.py` | Recall@k·P@k·MRR@k·EM/F1·채점 응답 파싱·TimeChara 시공간 점수 결합·Wilson 구간(순수 함수) |
 | `llm.py` | OpenAI 호출 장부(첫 평가는 상한 3,000회, 호출 직전에 한 줄)·디스크 캐시·일시 오류 재시도(시도마다 장부에 남김). `usd_llm`은 호출 수 대신 비용 장부의 금액 상한으로 막는다 |
 | `cost.py` | 비용 장부: 호출마다 토큰과 추정 금액(USD, 공식 단가·캐시 입력·Batch 절반·긴 입력 할증)을 `.data/cost.jsonl`에 남기고 합계·글자/토큰 비 실측 |
 | `batch.py` | 라운드 실행기(`run_rounds`: 생성 → 채점 → 둘째 채점처럼 단계가 의존하는 평가를 `work(task, llm)` 하나로 푼다)와 동기·Batch API 실행기(제출 상태를 남겨 이어 받기, 실패 요청 재제출·부분 실패 표시), 예상 금액 출력 |
@@ -16,7 +16,7 @@
 | `embed.py` | 운영 E5-small 인코더로 벡터 계산·kNN·`Excerpt.quote`(256자) 창 |
 | `run.py` | MuSiQue·NarrativeQA의 단독·누적 검색 지표, MuSiQue 답 정확도 |
 | `timechara.py`·`run_timechara.py` | TimeChara 시점 규칙·역할 프롬프트·세계관 구성, 생성·공개 기준 채점·짝 비교 |
-| `ko.py`·`datasets/ko_sample.jsonl` | 저장소 샘플로 만든 한국어 인물 시점 질문 62개와 그 평가 |
+| `ko.py`·`datasets/ko_sample.jsonl` | 저장소 샘플로 만든 한국어 인물 시점 질문 62개와 그 평가(Recall·P·MRR·누설). `ko.py snapshot`은 `recall` 입력(E5 상위 발췌 포함)을 `tests/retrieval_eval/fixtures`에 고정해 CI 단위 테스트가 모델 없이 임계값을 지키게 한다([검색 품질 평가](../../../../docs/evaluation/retrieval.md)) |
 | `ko_timechara/` | KoTimeChara: 한국어 장편 시점 평가 세트. 작품 고르기·회차 나누기(`kt_select`·`kt_text`), 정답표와 세계관을 서로 다른 호출로 추출(`kt_label`·`kt_world`·`kt_extract`), 질문 생성(`kt_questions`), 구성별 문맥·누설 지표(`kt_context`), 응답 생성·채점(`kt_run`), 데이터 구성 집계(`kt_report`). 원문·라벨·질문·응답은 `.data/ko_timechara`에만 둔다 |
 | `report.py` | `results/*.json`을 문서용 표로 출력 |
 | `results/*.json` | 집계 수치만(커밋). 질문별 순위·응답 원본은 `.data/runs`에 둔다 |
@@ -26,7 +26,7 @@
 ## 재현
 
 명령 전체는 [결과 문서 §8](../../../../docs/evaluation/novelbrain.md#8-재현)에 있다. TimeChara는 HuggingFace 로그인·약관 동의가 필요하다(비상업 연구 한정, 토큰은 `~/.cache/huggingface/token`).
-단위 테스트: `cd backend/ai-service && uv run --locked --extra dev python -m pytest eval/novelbrain -q` (numpy가 없는 환경에서는 numpy가 필요한 3건(kNN·벡터 캐시·KoTimeChara 문맥)만 건너뛴다).
+단위 테스트: `cd backend/ai-service && uv run --locked --extra dev python -m pytest eval/novelbrain -q` (numpy가 없는 환경에서는 numpy가 필요한 3건(kNN·벡터 캐시·KoTimeChara 문맥)만 건너뛴다). 이 디렉터리의 테스트는 CI가 돌지 않는다. CI가 지키는 검색 임계값 테스트는 `tests/retrieval_eval`(`python -m pytest -m 'not integration' tests/retrieval_eval`)다.
 
 ## 규칙
 

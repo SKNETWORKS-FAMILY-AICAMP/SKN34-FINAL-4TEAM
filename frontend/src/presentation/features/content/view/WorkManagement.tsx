@@ -155,7 +155,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               coverRevision={vm.coverRevision}
               onMediaBusy={setMediaBusy}
               onSaveInfo={vm.updateWork}
-              onSuggestTags={vm.suggestTags}
               editing={editing}
               onEditingChange={setEditing}
               serialOn={serialLocked}
@@ -311,10 +310,14 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                   <button type="button" className="btn sm" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
                 </div>
               )}
-              {bulkImportOpen && <EpisodeBulkImportSheet workId={w.id} onClose={(refresh) => {
-                setBulkImportOpen(false)
-                if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }
-              }} />}
+              {bulkImportOpen && <EpisodeBulkImportSheet
+                workId={w.id}
+                firstEpisodeUnsaved={vm.writing?.rows?.some(e => e.number === 1 && !e.inherited && e.versions.length === 0) ?? false}
+                onClose={(refresh) => {
+                  setBulkImportOpen(false)
+                  if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }
+                }}
+              />}
             </>
           )}
           {tab === 'fork' && (

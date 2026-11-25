@@ -1,10 +1,14 @@
 """한국어 적용성 세트 단위 테스트: 샘플 로더(저장소 CSV)·후보 선정·규칙 검증·누설/적중 판정."""
 
+import json
+
 import pytest
 
 from app.story_qa.models import Excerpt
+from app.novelbrain.models import world_snapshot
 from app.novelbrain.service import _documents, bm25_rank, recall
-from ko import QUOTA, WORKS, candidates, evidence_ids, ko_world, load_works, question_score, valid_question, write_dataset
+from ko import (DATASET, QUOTA, WORKS, candidates, evidence_ids, frozen_inputs, ko_world, load_works, lookups, mcp_read, paragraph_id,
+                question_score, valid_question, write_dataset)
 from run import filtered, fuse
 
 PARAGRAPH = '문을 지키던 기사 카엘은 서한을 흘끗 보더니 고개를 저었다. “해가 진 뒤에는 문이 열리지 않소.”'
@@ -62,6 +66,14 @@ def test_future_leak_counts_paragraphs_and_cards_that_come_after_the_cutoff():
     assert leak(['0:K.O 길드']) == 1.0 and leak(['0:공개 회차를 모르는 카드']) == 0.0       # 이름에 '.'이 든 카드가 문단 id로 읽히지 않는다
 
 
+def test_known_and_setting_questions_score_recall_precision_and_reciprocal_rank():
+    known = {'kind': 'known', 'work': WORKS[1], 'gold': {'episode': 3, 'index': 3}}
+    assert question_score(known, ['1.1.0', '1.3.3', '1.2.1'], {}, {}) == {'recall': 1.0, 'p': 0.2, 'rr': 0.5}   # 2위에서 찾음
+    assert question_score(known, ['1.1.0', '1.2.1'], {}, {}) == {'recall': 0.0, 'p': 0.0, 'rr': 0.0}
+    setting = {'kind': 'setting', 'work': WORKS[1], 'gold': {'name': '별빛 탑'}}
+    assert question_score(setting, ['k9', 'k1'], {WORKS[1]: {'별빛 탑': 'k1'}}, {})['rr'] == 0.5
+
+
 def test_write_dataset_refuses_a_set_without_every_kind_and_keeps_the_existing_file(tmp_path):
     path = tmp_path / 'ko_sample.jsonl'
     path.write_text('old\n')
@@ -106,3 +118,29 @@ def test_filtered_fusion_reproduces_recall_stage_3(works):
     bm25 = [ref for ref, _ in bm25_rank(question, [(ref, f'{t} {x}') for ref, (t, x) in docs.items()])]
     texts = {f'manuscript:{e.id}': e.quote for e in manuscript}
     assert filtered(fuse([graph, vector, bm25]), texts, world, character_id, episode) == expected
+
+
+def test_mcp_read_round_trips_through_the_production_converter(works):
+    # 스냅샷의 세계관은 Content MCP `world_studio_read` 응답 모양이라 운영 변환(world_snapshot)을 그대로 거친다.
+    for title in WORKS:
+        world = ko_world(works, title, 2)
+        assert world_snapshot(mcp_read(world), 2) == world
+
+
+def test_frozen_inputs_hold_gold_or_banned_ids_that_agree_with_question_score(works):
+    rows = [json.loads(line) for line in DATASET.read_text().splitlines()]
+    manuscripts = [[Excerpt(id=paragraph_id(r['work'], 1, 0), episode=1, quote='고정 발췌')] for r in rows]
+    worlds, questions = frozen_inputs(works, rows, manuscripts)
+    assert set(worlds) == set(WORKS) and [q['id'] for q in questions] == [r['id'] for r in rows]
+    assert questions[0]['manuscript'] == [[paragraph_id(rows[0]['work'], 1, 0), 1, '고정 발췌']]
+    cards_of, reveal_of = lookups(works)
+    for r, q in zip(rows, questions):
+        title = r['work']
+        assert q['character'] == cards_of[title][r['character']] and (q['episode'], q['question']) == (r['episode'], r['question'])
+        universe = [paragraph_id(title, e, i) for e, ps in works[title]['episodes'].items() for i in range(len(ps))] + list(cards_of[title].values())
+        if r['kind'] in ('known', 'setting'):
+            assert 'banned' not in q and q['gold']
+            assert {i for i in universe if question_score(r, [i], cards_of, reveal_of)['recall']} == set(q['gold'])
+        else:
+            assert 'gold' not in q and q['banned']
+            assert {i for i in universe if question_score(r, [i], cards_of, reveal_of)['leak']} == set(q['banned'])

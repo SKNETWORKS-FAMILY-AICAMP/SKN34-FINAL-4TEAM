@@ -27,7 +27,7 @@ private val CANDIDATE = Regex("""candidate-\d+""")
 private const val NAME_MAX = 100
 
 /**
- * The evaluation set each prompt is evaluated on (#787, 2026-11-24 user decision): only the sets built from that very call. A version of these prompts
+ * The evaluation set each prompt is evaluated on (#787, 2026-11-24 user decision; the manuscript extraction pair is #824): only the sets built from that very call. A version of these prompts
  * becomes a candidate once its newest run on the set passed; every other prompt has no fitting set and becomes a candidate without an evaluation.
  */
 private val EVALUATION_SETS = mapOf(
@@ -35,6 +35,7 @@ private val EVALUATION_SETS = mapOf(
     "character_simulation.act" to "simulation.act",
     "character_simulation.narrate" to "simulation.narrate",
     "decision_guard.judge" to "decision_guard.routing",  // #783: the real guard judgment on its routing set
+    "manuscript_extraction.extract" to "extraction.extract",
 )
 
 /** Prompt versions live in Langfuse; this service reads them with their latest evaluation, registers candidates (behind the evaluation gate for a prompt with a set) and moves the production label to a candidate. */
