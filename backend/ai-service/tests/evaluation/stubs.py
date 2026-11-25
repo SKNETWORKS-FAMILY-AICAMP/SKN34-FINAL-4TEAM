@@ -31,10 +31,10 @@ JUDGE = {'character': '길동', 'scene': [{'by': '길동', 'text': '"가자."'}]
 CRITERIA = {'criteria': '충돌 지점을 짚으면 높은 점수'}
 
 
-def item(number, input, expected=None, metadata=None, dataset='qa.grounding', created=None) -> DatasetItem:
-    """실서버가 돌려준 데이터셋 항목 JSON에 값만 바꿔 SDK 모델로 읽는다. created는 항목이 만들어진 시각(ISO)이다."""
+def item(number, input, expected=None, metadata=None, dataset='qa.grounding', created=None, updated=None) -> DatasetItem:
+    """실서버가 돌려준 데이터셋 항목 JSON에 값만 바꿔 SDK 모델로 읽는다. created는 항목이 만들어진 시각, updated는 마지막으로 바뀐 시각(ISO)이다."""
     return parse_obj_as(DatasetItem, {**REAL_ITEM, 'id': f'{dataset}-{number}', 'datasetName': dataset, 'input': input, 'expectedOutput': expected,
-                                      'metadata': metadata, 'createdAt': created or REAL_ITEM['createdAt']})
+                                      'metadata': metadata, 'createdAt': created or REAL_ITEM['createdAt'], 'updatedAt': updated or REAL_ITEM['updatedAt']})
 
 
 def prompt(text, version, model=None):

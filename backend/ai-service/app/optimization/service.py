@@ -191,7 +191,7 @@ def _optimize(request: OptimizationRequest) -> None:
 
 
 def _ensure_baseline(client, dataset: str, prompt_name: str) -> None:
-    """게이트 세트에 production 버전의 유효한 기준 Run(끝났고, 세트의 마지막 문항이 만들어진 뒤에 시작한 Run)이 없으면 먼저 평가한다: 기준 Run이 없으면 새 버전이
+    """게이트 세트에 production 버전의 유효한 기준 Run(끝났고, 세트의 마지막 문항이 만들어지거나 바뀐 뒤에 시작한 Run)이 없으면 먼저 평가한다: 기준 Run이 없으면 새 버전이
     실패 항목만 없어도 통과해 무엇이든 후보가 된다. production 버전 자신의 평가는 기준과 비교하지 않으니(그 Run이 곧 기준) prepare의 baseline이 아니라 규칙 함수로 묻는다."""
     production = _read(client, prompt_name, label='production', missing=None)
     if production is None:

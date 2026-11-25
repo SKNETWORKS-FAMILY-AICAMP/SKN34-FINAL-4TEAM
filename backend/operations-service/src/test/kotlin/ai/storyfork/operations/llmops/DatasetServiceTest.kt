@@ -80,8 +80,9 @@ class DatasetServiceTest {
     /** A line the simulation act scorer accepts (an input.data object, an expected text, the judge inputs). */
     private fun act(n: Int, metadata: String = judged()) = """{"input":{"set":"dialogue","data":{"n":$n}},"expectedOutput":"대사 $n","metadata":$metadata}"""
 
-    /** An item as Langfuse lists it with its creation time ([createdAt] null: the payload carries none). */
-    private fun createdAt(createdAt: String?) = json("""{"id":"i","createdAt":${createdAt?.let { "\"$it\"" }},"input":{},"expectedOutput":"답","metadata":null}""")
+    /** An item as Langfuse lists it with the time it was created and the time it was last changed (null: the payload carries none). */
+    private fun createdAt(createdAt: String?, updatedAt: String? = null) =
+        json("""{"id":"i","createdAt":${createdAt?.let { "\"$it\"" }},"updatedAt":${updatedAt?.let { "\"$it\"" }},"input":{},"expectedOutput":"답","metadata":null}""")
 
     /** An item as Langfuse lists it. */
     private fun stored(input: String, metadata: String = "null") = json("""{"id":"i","input":$input,"expectedOutput":"답","metadata":$metadata}""")
@@ -133,7 +134,7 @@ class DatasetServiceTest {
         sets["simulation.narrate"] = List(150) { createdAt("2026-11-01T00:00:00Z") } + listOf(createdAt("2026-11-25T00:00:00Z"))   // the newest is on the second page
         sets["extraction.extract"] = listOf(createdAt(null))   // an item without a time says nothing about the set
         sets["optimize.simulation.act"] = List(3) { createdAt("2026-11-10T00:00:00Z") }
-        sets["leak.spoiler"] = listOf(createdAt("2026-11-12T00:00:00Z"))
+        sets["leak.spoiler"] = listOf(createdAt("2026-11-12T00:00:00Z", "2026-11-13T12:00:00Z"))   // changed after it was created (Langfuse may keep the creation time on an update)
         sets["optimize.foo"] = List(7) { createdAt("2026-11-02T00:00:00Z") }
 
         val result = service.list(operators.llm)
@@ -143,9 +144,9 @@ class DatasetServiceTest {
         // The pair is the prompt that names the set as its evaluation set (the candidate gate); a pool or a set no prompt names has none.
         assertEquals(listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "manuscript_extraction.extract", null, null, null), result.map { it.prompt })
         assertEquals(listOf(0L, 3L, 151L, 1L, 3L, 1L, 7L), result.map { it.itemCount })
-        // The newest creation time of the items, the same maximum the evaluation service takes to decide whether a baseline Run has seen the whole set.
+        // The latest time any item was created or changed, the same maximum the evaluation service takes to decide whether a baseline Run has seen the whole set.
         assertEquals(
-            listOf(null, "2026-11-24T09:30:15.123Z", "2026-11-25T00:00:00Z", null, "2026-11-10T00:00:00Z", "2026-11-12T00:00:00Z", "2026-11-02T00:00:00Z").map { it?.let(Instant::parse) },
+            listOf(null, "2026-11-24T09:30:15.123Z", "2026-11-25T00:00:00Z", null, "2026-11-10T00:00:00Z", "2026-11-13T12:00:00Z", "2026-11-02T00:00:00Z").map { it?.let(Instant::parse) },
             result.map { it.lastItemAt },
         )
         assertEquals(listOf(null, "인물 대사 평가", null, null, "최적화 풀", null, null), result.map { it.description })

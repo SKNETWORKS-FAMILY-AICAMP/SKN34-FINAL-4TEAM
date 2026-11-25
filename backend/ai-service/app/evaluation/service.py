@@ -6,7 +6,7 @@ DeepEval GEval(항목 metadata.criteria)로 채점한다. 항목 input은 객체
 시뮬레이션 세트만 업무 Agent 틀 대신 실제 서비스 호출(app/simulation/agent의 act·narrate에 그 버전 본문)로 만든다(app/evaluation/simulation.py).
 추출 세트(extraction.extract)도 실제 서비스 호출(manuscript_extraction.service.extract에 그 버전 본문)로 만들고 채점 모델 없이 정답표와 코드로 대조한다(recall·quote_ok, app/evaluation/extraction.py).
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
-기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이고, 그 평가 세트의 **마지막 문항이 만들어진 뒤에 시작한** Run만
+기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이고, 그 평가 세트의 **마지막 문항이 만들어지거나 바뀐 뒤에 시작한** Run만
 유효하다(문항이 더해지면 옛 Run의 점수는 새 문항을 보지 못한 점수라 기준이 아니다, #868). 유효한 기준이 없으면 지표 비교를 건너뛰지 않고 **같은 작업 안에서 production 버전을 먼저 평가해**
 기준을 만든 뒤 후보와 비교한다(그 평가 한 번의 모델 호출·채점 비용이 더 든다). production 버전 자신을 평가하는 요청은 기준과 비교하지 않는다: 그 Run이 곧 기준이다.
 실패한 항목(모델·채점 실패, 입력 형식 오류)은 0점으로 평균에 섞지 않고 점수 없는 실패로 두며 passed는 false다.
@@ -304,12 +304,13 @@ def _compare_with(client, dataset, request: EvaluationRequest, production) -> tu
 
 
 def baseline_run(client, dataset, prompt: str, dataset_name: str, production) -> Baseline | None:
-    """기준 Run: production 버전의 가장 최근에 끝나고 지표 평균이 남은(passed 점수와 지표 점수가 모두 있는) Run 가운데 **평가 세트의 마지막 문항이 만들어진 뒤에 시작한** 것.
+    """기준 Run: production 버전의 가장 최근에 끝나고 지표 평균이 남은(passed 점수와 지표 점수가 모두 있는) Run 가운데 **평가 세트의 마지막 문항이 만들어지거나 바뀐 뒤에 시작한** 것.
+    문항이 만들어진 시각만이 아니라 마지막으로 바뀐 시각(updatedAt)도 본다: Langfuse가 올린 문항을 upsert로 고칠 때 만든 시각을 그대로 둘 수 있어서다.
     마지막 문항을 보지 못한 Run의 점수는 기준이 아니다(같은 시각도 뒤가 아니다). 그런 Run이 없으면 None이다. 자동 개선(app/optimization)도 같은 규칙으로 기준 유무를 본다.
 
     ponytail: 최근 100개 실험만 본다. 같은 세트의 Run이 그보다 많으면 기준을 못 찾아 production 버전을 다시 평가하니 그때 cursor 페이지를 더한다.
     """
-    newest = max((item.created_at for item in dataset.items), default=None)
+    newest = max((max(item.created_at, item.updated_at) for item in dataset.items), default=None)
     metrics = _metrics(dataset_name)
     prefix = f'{prompt}@v{production.version}-'  # Run 이름(prepare가 정한 형식)으로 찾는다
     for found in _experiments(client, dataset_id=dataset.id, fields='core,scores', limit=100):  # 최근 활동 순

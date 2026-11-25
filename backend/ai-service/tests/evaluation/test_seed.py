@@ -1,5 +1,6 @@
 import json
 from collections import Counter
+from types import SimpleNamespace
 
 import pytest
 
@@ -21,15 +22,22 @@ def offline(monkeypatch):
 
 
 class Langfuse:
-    """Langfuse upsert 대역: dataset은 이름, 항목은 id가 같으면 덮어쓴다."""
+    """Langfuse upsert 대역: dataset은 이름, 항목은 id가 같으면 덮어쓴다. get_dataset은 SDK처럼 그 세트의 항목을 한 번에 돌려주고(id·input·expected_output·metadata),
+    읽은 세트 이름(reads)과 올린 항목 id(writes)를 순서대로 남긴다. 지우는 메서드는 없다(지우려 하면 AttributeError)."""
 
     def __init__(self):
-        self.datasets, self.items = {}, {}
+        self.datasets, self.items, self.reads, self.writes = {}, {}, [], []
 
     def create_dataset(self, *, name):
         self.datasets[name] = name
 
+    def get_dataset(self, name):
+        self.reads.append(name)
+        return SimpleNamespace(items=[SimpleNamespace(id=id, input=input, expected_output=expected, metadata=metadata)
+                                      for id, (dataset, input, expected, metadata) in self.items.items() if dataset == name])
+
     def create_dataset_item(self, *, dataset_name, id, input, expected_output, metadata):
+        self.writes.append(id)
         self.items[id] = (dataset_name, input, expected_output, metadata)
 
 
@@ -146,6 +154,10 @@ def test_the_extraction_sets_have_nothing_of_the_local_only_harry_potter_text():
         assert not any(word in text for word in HARRY_POTTER)
 
 
+def totals(stats):
+    return {name: total for name, (total, _) in stats.items()}
+
+
 def test_register_is_idempotent():
     langfuse = Langfuse()
 
@@ -153,8 +165,85 @@ def test_register_is_idempotent():
     state = (dict(langfuse.datasets), dict(langfuse.items))
     second = seed.register(langfuse)
 
-    assert first == second and set(first) == NAMES
-    assert (langfuse.datasets, langfuse.items) == state and len(langfuse.items) == sum(first.values())
+    assert set(first) == NAMES and totals(first) == totals(second)
+    assert (langfuse.datasets, langfuse.items) == state and len(langfuse.items) == sum(totals(first).values())
+
+
+def test_the_first_register_writes_every_item_and_a_second_one_writes_none():
+    langfuse = Langfuse()
+
+    first = seed.register(langfuse)
+    written = list(langfuse.writes)
+    second = seed.register(langfuse)
+
+    assert all(total == done for total, done in first.values()) and len(written) == sum(totals(first).values())
+    # 같은 id·input·expectedOutput·metadata는 다시 올리지 않는다: 올릴 때 Langfuse가 문항 시각을 바꾸면 배포마다 기준 Run이 무효가 되어 production을 다시 평가하게 된다.
+    assert langfuse.writes == written and all(done == 0 for _, done in second.values())
+
+
+def test_each_dataset_is_read_once_not_once_per_item():
+    langfuse = Langfuse()
+
+    seed.register(langfuse)
+
+    assert Counter(langfuse.reads) == {name: 1 for name in NAMES}
+
+
+@pytest.mark.parametrize('field', ['input', 'expected_output', 'metadata'])
+def test_an_item_whose_content_differs_is_written_again_and_the_others_are_left(field):
+    langfuse = Langfuse()
+    seed.register(langfuse)
+    target = 'simulation.act-01'
+    dataset, input, expected, metadata = langfuse.items[target]
+    fresh = {'input': input, 'expected_output': expected, 'metadata': metadata}
+    stale = {**fresh, field: {'input': {**input, 'stale': True}, 'expected_output': 'stale', 'metadata': {**metadata, 'stale': True}}[field]}
+    langfuse.items[target] = (dataset, stale['input'], stale['expected_output'], stale['metadata'])
+    langfuse.writes.clear()
+
+    stats = seed.register(langfuse)
+
+    assert langfuse.writes == [target] and stats['simulation.act'][1] == 1   # 바뀐 문항만 올린다(내용이 바뀐 게이트 문항은 올려야 하고 그러면 기준 Run이 무효가 되는 것이 맞다)
+    assert langfuse.items[target] == (dataset, input, expected, metadata)
+
+
+def test_a_missing_item_is_written_and_items_that_only_langfuse_has_are_left_alone():
+    langfuse = Langfuse()
+    seed.register(langfuse)
+    del langfuse.items['simulation.act-01']   # 아직 없거나 지워진 문항
+    langfuse.items['simulation.act-uploaded'] = ('simulation.act', {'set': 'dialogue', 'data': {}}, '정답', {'uploaded': True})   # 운영 화면 업로드로 생긴 문항: 파일에 없다
+    langfuse.writes.clear()
+
+    seed.register(langfuse)
+
+    assert langfuse.writes == ['simulation.act-01']
+    assert 'simulation.act-uploaded' in langfuse.items   # 파일에 없는 문항은 지우지도 고치지도 않는다
+
+
+def test_the_order_of_keys_is_not_a_difference():
+    langfuse = Langfuse()
+    seed.register(langfuse)
+    target = 'simulation.act-01'
+    dataset, input, expected, metadata = langfuse.items[target]
+    reversed_keys = lambda value: json.loads(json.dumps(value), object_pairs_hook=lambda pairs: dict(reversed(pairs)))  # noqa: E731
+    langfuse.items[target] = (dataset, reversed_keys(input), expected, reversed_keys(metadata))
+    langfuse.writes.clear()
+
+    seed.register(langfuse)
+
+    assert langfuse.writes == []
+
+
+def test_a_failure_reading_the_existing_items_is_not_hidden_and_nothing_is_written():
+    class Down(Langfuse):
+        def get_dataset(self, name):
+            raise ConnectionError('Langfuse down')
+
+    langfuse = Down()
+
+    with pytest.raises(ConnectionError):
+        seed.register(langfuse)
+
+    assert langfuse.writes == []   # 같은지 알 수 없으면 올리지도 않는다
 
 
 def test_register_puts_each_pool_item_in_its_own_optimize_dataset():
@@ -178,6 +267,22 @@ def test_register_sends_the_fixed_item_id_input_expected_output_and_metadata():
     assert input['question'] and metadata['source']['work'] == '홍길동전'
     name, input, expected, metadata = langfuse.items['simulation.act-01']
     assert (name, input['set'], expected) == ('simulation.act', 'dialogue', seed.load()['simulation.act'][0]['expectedOutput']) and metadata['judge']['facts'] is not None
+
+
+def test_main_prints_how_many_items_each_dataset_has_and_how_many_were_written(monkeypatch, capsys):
+    langfuse = Langfuse()
+    monkeypatch.setenv('LANGFUSE_PUBLIC_KEY', 'pk')
+    monkeypatch.setenv('LANGFUSE_SECRET_KEY', 'sk')
+    monkeypatch.setattr(seed.tracing, 'client', lambda: langfuse)
+
+    seed.main()
+    first = capsys.readouterr().out
+    seed.main()
+    second = capsys.readouterr().out
+
+    total = len(seed.load()['simulation.act'])
+    assert f'simulation.act: 항목 {total}개 중 {total}개 올림' in first
+    assert f'simulation.act: 항목 {total}개 중 0개 올림' in second   # 두 번째 실행은 올린 것이 없다
 
 
 def test_main_needs_langfuse_keys(monkeypatch):

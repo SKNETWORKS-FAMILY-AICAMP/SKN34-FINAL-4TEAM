@@ -60,12 +60,13 @@ class DatasetService(
 
     fun list(member: OperationsMember): List<EvalDataset> {
         permissions.requirePermission(member, LLM)
-        // A Langfuse dataset carries neither a count nor the time of its newest item, so every item of every set is read, in parallel like the prompt reads: the listing's order is
+        // A Langfuse dataset carries neither a count nor the time it last changed, so every item of every set is read, in parallel like the prompt reads: the listing's order is
         // not relied on (the newest item can be anywhere), so the maximum is taken over all of them, the same way the evaluation service decides whether a baseline Run is valid.
         return langfuse.datasets().parallelStream().map { node ->
             val name = node.path("name").asString()
             val read = allItems(name)
-            val newest = read.items.mapNotNull { it.path("createdAt").instantOrNull() }.maxOrNull()
+            // The later of when an item was created and when it was last changed: an update may keep the creation time, and the set is different after either.
+            val newest = read.items.flatMap { listOf(it.path("createdAt"), it.path("updatedAt")) }.mapNotNull { it.instantOrNull() }.maxOrNull()
             EvalDataset(name, EVALUATION_SETS.entries.firstOrNull { it.value == name }?.key, datasetKind(name), read.total, newest, node.path("description").textOrNull())
         }.toList()
     }
