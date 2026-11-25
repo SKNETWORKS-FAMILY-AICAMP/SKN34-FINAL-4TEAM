@@ -59,7 +59,7 @@ const BODY_MAX = 3000
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다), 그리고 초안을 서버 값으로 다시 읽을 때마다(`vm.relationKey`: 다른 곳(MCP)에서 바뀐 알림의 `refresh`·확정 버전 되돌리기) 다시 만든다.
  *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · '목표 · 선택' GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
- *   개요 화면의 공개 범위(DEC-53): 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본)이다. 연결된 소설에 없는 회차는 정할 수 없다(결정 5): 소설의 마지막 회차(`vm.episodeLimit`)를 넘는 새 값은 `이 소설은 N화까지 있어요.`로 알리고(`role="alert"`·`aria-invalid`) 저장을 막으며(저장된 값은 오류도 저장 잠금도 없이 배지 `작가 전용 · N화는 아직 없어요`로만 보인다), 소설에 회차가 없으면 입력 없이 `회차를 쓰면 공개 회차를 정할 수 있어요.`만 보인다.
+ *   개요 화면의 공개 범위(DEC-53): 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본)이다. 연결된 소설에 없는 회차는 정할 수 없다(결정 5): 소설의 마지막 회차(`vm.episodeLimit`)를 넘는 새 값은 `이 소설은 N화까지 있어요.`로 알리고(`role="alert"`·`aria-invalid`) 저장을 막으며(저장된 값은 오류도 저장 잠금도 없이 배지 `작가 전용 · N화는 아직 없어요`로만 보인다), 소설에 회차가 없으면 입력 없이 `회차를 쓰면 공개 회차를 정할 수 있어요.`만 보인다(회차 수를 읽기 전에 정한 새 값이 남아 있으면 그 이유(`role="alert"`)와 `작가 전용으로 바꾸기`가 함께 보여 지울 수 있다).
  *   소설이 연결되지 않은 세계관은 지우지 않은 카드가 모두 공개라 공개 설정을 할 수 없다(저장된 값은 지우지 않고 무시한다, DEC-53 보완): 배지 `공개`와 읽기 전용 안내만 보인다.
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
  *   바꾸면 `revealFromEpisode`만 정하고 `visibility`는 회차가 있으면 public, 없으면 지워 맞춘다(`setCardReveal`). 건드리지 않은 카드는 다시 쓰지 않는다(옛 공개 카드는 1화로 보인다).
@@ -220,7 +220,16 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                             {linked ? (
                               <>
                                 {limit === 0 ? (
-                                  <p className="small muted">회차를 쓰면 공개 회차를 정할 수 있어요.</p>
+                                  <>
+                                    <p className="small muted">회차를 쓰면 공개 회차를 정할 수 있어요.</p>
+                                    {/* 회차 수를 읽기 전에 정한 새 값이 남아 있으면 입력칸이 없어도 그 이유를 알리고 지울 수 있게 한다(아니면 저장이 잠긴 채 고칠 방법이 없다). */}
+                                    {revealError && (
+                                      <>
+                                        <p role="alert" className="small world-field-error">{revealError}</p>
+                                        <button type="button" className="btn sm" onClick={() => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), undefined) })}>작가 전용으로 바꾸기</button>
+                                      </>
+                                    )}
+                                  </>
                                 ) : (
                                   <>
                                     <label className="world-reveal">

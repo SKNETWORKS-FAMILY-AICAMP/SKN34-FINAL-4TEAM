@@ -2480,6 +2480,28 @@ it('저장된 공개 회차가 소설의 마지막 회차보다 크면(소설 0�
   expect(saveStudio.mock.calls[0][0].settings[0].revealFromEpisode).toBe(193) // 자동으로 고치지 않는다
 })
 
+it('회차 수를 읽기 전에 정한 공개 회차는 소설에 회차가 없다고 나온 뒤에도 입력칸 없이 이유를 알리고, 작가 전용으로 바꿔 지울 수 있으며 저장 잠금이 풀린다', async () => {
+  const pending: Array<(rows: WritingEpisode[]) => void> = [] // 화면의 여러 곳이 같은 회차 목록을 읽으므로 모두 푼다
+  vi.spyOn(episodeApi(), 'writingList').mockImplementation(() => new Promise<WritingEpisode[]>((resolve) => { pending.push(resolve) }))
+  await show([person('가람', '기록관')], '/worldstudio/qa', linkedWork)
+  openCard('가람 인물')
+  typeReveal('5') // 회차 수를 읽는 중이라 아직 상한이 없다
+  await waitFor(() => expect(pending.length).toBeGreaterThan(0))
+  await act(async () => { pending.forEach((resolve) => resolve([])) }) // 소설에 회차가 없다
+  const reach = () => within(overview().getByRole('region', { name: '공개 범위' }))
+  await waitFor(() => expect(reach().queryByRole('textbox')).toBeNull()) // 입력칸은 사라진다
+  expect(reach().getByRole('alert').textContent).toBe('이 소설에는 아직 회차가 없어요.') // 막힌 이유는 이 카드에서도 알린다
+  expect(saveBar().getByText('‘가람’: 이 소설에는 아직 회차가 없어요.')).toBeTruthy()
+  expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
+  fireEvent.click(reach().getByRole('button', { name: '작가 전용으로 바꾸기' }))
+  expect(reach().queryByRole('alert')).toBeNull()
+  expect(reach().queryByRole('button', { name: '작가 전용으로 바꾸기' })).toBeNull()
+  expect(reach().getByText('작가 전용', { selector: '.world-reach-badge' })).toBeTruthy()
+  fireEvent.change(editor().getByRole('textbox', { name: '설정 이름' }), { target: { value: '가람2' } })
+  expect(saveBar().queryByText(/이 소설에는 아직 회차가 없어요/)).toBeNull()
+  expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(false) // 막던 이유가 사라졌다
+})
+
 it('일괄 공개 회차도 소설의 마지막 회차까지만 받는다: 넘으면 이유를 알리고 공개 버튼만 잠그고, 소설에 회차가 없으면 입력 없이 안내한다', async () => {
   stubEpisodes(1, 2)
   await show([person('가람'), person('나래')], '/worldstudio/qa', linkedWork)
@@ -3477,10 +3499,17 @@ it('빈 분류를 선택하면 목록만 바뀌고 추가를 누르면 해당 �
 it('카드가 하나도 없을 때도 전체의 시작 안내와 분류별 추가를 제공한다', async () => {
   await show([])
   expect(cats().getAllByRole('button', { name: /비어 있음/ })).toHaveLength(6)
-  expect(boardTable().getByText('설정을 추가해 시작해 보세요.').closest('td')!.colSpan).toBe(8) // 빈 안내 줄도 표의 열 수와 같다
+  expect(boardTable().getAllByRole('columnheader')).toHaveLength(7) // 소설이 연결되지 않은 세계관의 표에는 선택 칸이 없다
+  expect(boardTable().getByText('설정을 추가해 시작해 보세요.').closest('td')!.colSpan).toBe(7) // 빈 안내 줄도 표의 열 수와 같다
   fireEvent.click(cats().getByRole('button', { name: '기타 비어 있음' }))
   fireEvent.click(screen.getByRole('button', { name: '+ 기타 설정 추가' }))
   expect(overview().getByRole('combobox', { name: '유형' })).toHaveProperty('value', 'other')
+})
+
+it('소설이 연결된 세계관은 선택 칸이 있어 카드가 하나도 없을 때의 안내 줄도 8열이다', async () => {
+  await show([], '/worldstudio/qa', linkedWork)
+  expect(boardTable().getAllByRole('columnheader')).toHaveLength(8)
+  expect(boardTable().getByText('설정을 추가해 시작해 보세요.').closest('td')!.colSpan).toBe(8)
 })
 
 // 빈 분류의 첫 설정 추가는 그 분류의 기본 유형을 쓰지만 새 설정 메뉴와 같은 규칙이다: 운영자가 숨긴 유형이거나 카테고리 목록을 못 읽었으면 기본 8종으로 되살리지 않는다.
@@ -4202,7 +4231,7 @@ it('보기 메뉴는 개요·설정집·관계도·시간선·소설 연결 다�
 })
 
 it('개요 탭에 다녀와도 설정집 게시판의 선택 상태는 남는다(게시판은 숨길 뿐 지우지 않는다)', async () => {
-  await show([person('가람'), person('나래')])
+  await show([person('가람'), person('나래')], '/worldstudio/qa', linkedWork) // 선택 칸은 소설이 연결된 세계관의 표에만 있다
   fireEvent.click(screen.getByLabelText('나래 선택'))
   fireEvent.click(manageTabs().getByRole('button', { name: '개요' }))
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
@@ -4388,7 +4417,7 @@ it('게시판 제목을 누르면 편집 화면이 아니라 그 행 바로 아�
 
 it('행의 빈 곳을 눌러도 미리보기가 열리지만 선택 체크박스·보완 배지 버튼은 열지 않고, 미리보기는 한 번에 하나뿐이다', async () => {
   const [garam, narae] = [person('가람', '첫째'), person('나래', '둘째')]
-  await show([garam, narae])
+  await show([garam, narae], '/worldstudio/qa', linkedWork) // 선택 칸은 소설이 연결된 세계관의 표에만 있다
   const rowOf = (name: string) => screen.getByRole('button', { name }).closest('tr')!
   fireEvent.click(screen.getByLabelText('가람 선택')) // 선택 칸
   expect(screen.queryByRole('region', { name: /미리보기/ })).toBeNull()
@@ -4498,6 +4527,17 @@ it('미리보기의 공개 화면 보기는 공개된 설정이고 세계관이 
   await show([pub, priv], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' }) // 소설이 연결되지 않은 공개 세계관은 모든 카드가 공개라 작가 전용으로 저장된 카드도 공개 화면이 있다
   fireEvent.click(screen.getByRole('button', { name: '나래 인물' }))
   expect(previewOf('나래').getByRole('link', { name: '공개 화면 보기' }).getAttribute('href')).toBe('/worlds/qa/cards/' + priv.item.id)
+})
+
+it('미리보기의 공개 화면 보기는 연결된 소설에 없는 회차로 정해진 카드에는 없고(배지도 작가 전용 · N화는 아직 없어요) 소설의 마지막 회차 안인 카드에는 있다', async () => {
+  stubEpisodes(1, 2, 3)
+  const [inside, beyond] = [{ ...person('가람', '본문'), revealFromEpisode: 3 }, { ...person('나래', '본문'), revealFromEpisode: 9 }]
+  await show([inside, beyond], '/worldstudio/qa', { ...linkedWork, visibility: 'public', currentRevisionId: 'rev-1' })
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  expect(previewOf('가람').getByRole('link', { name: '공개 화면 보기' }).getAttribute('href')).toBe('/worlds/qa/cards/' + inside.item.id)
+  fireEvent.click(screen.getByRole('button', { name: '나래 인물' }))
+  await waitFor(() => expect(infoValue(previewOf('나래'), '공개 범위')).toBe('작가 전용 · 9화는 아직 없어요')) // 소설의 회차 수를 읽은 뒤
+  expect(previewOf('나래').queryByRole('link', { name: '공개 화면 보기' })).toBeNull() // 없는 회차는 공개 화면이 없다
 })
 
 it('미리보기 본문의 설정 링크와 관계도의 이웃은 그 카드의 편집 화면을 열고(수정하기와 같이 편집기는 미리보기 탭으로 시작) 모르는 카드의 링크는 글자만 남는다', async () => {

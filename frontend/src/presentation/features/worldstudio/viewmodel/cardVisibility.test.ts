@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { beyondNovel, missingEpisodeNote, newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
-import { publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, visibleSelection } from './cardVisibility'
+import { publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, shownPublicly, visibleSelection } from './cardVisibility'
 
 /** 카드 하나. `reveal`은 저장된 공개 회차, `visibility`는 옛 공개 값이다(둘 다 없으면 작가 전용). */
 const card = (title: string, reveal?: number, visibility?: StudioSetting['visibility']): StudioSetting => {
@@ -114,4 +114,12 @@ it('공개 배지: 연결되지 않은 세계관은 공개, 연결된 세계관�
   expect([revealBadge(193, true, 0), revealBadge(1, true, 0)]).toEqual(['작가 전용 · 193화는 아직 없어요', '작가 전용 · 1화는 아직 없어요'])
   expect(revealBadge(undefined, true, 0)).toBe('작가 전용') // 값이 없으면 없는 회차 이야기를 하지 않는다
   expect(revealBadge(193, true, undefined)).toBe('193화부터 공개') // 회차 수를 모르면 기존 글 그대로
+})
+
+it('공개 화면에 나올 수 있는 카드: 연결되지 않은 세계관은 모두, 연결된 세계관은 공개 회차가 있고 소설의 마지막 회차 안인 카드만이다(소설에 없는 회차·작가 전용은 아니다)', () => {
+  for (const episode of [undefined, 1, 193]) expect([shownPublicly(episode, false), shownPublicly(episode, false, 0)]).toEqual([true, true]) // 저장값·소설의 회차 수와 상관없다
+  expect([shownPublicly(undefined, true), shownPublicly(undefined, true, 5)]).toEqual([false, false]) // 작가 전용
+  expect([shownPublicly(3, true, 3), shownPublicly(1, true, 5)]).toEqual([true, true]) // 마지막 회차 안
+  expect([shownPublicly(4, true, 3), shownPublicly(193, true, 0), shownPublicly(1, true, 0)]).toEqual([false, false, false]) // 소설에 없는 회차(배지는 작가 전용 · N화는 아직 없어요)
+  expect(shownPublicly(193, true)).toBe(true) // 소설의 회차 수를 모르면(읽는 중·실패) 판단하지 않고 기존처럼 둔다
 })

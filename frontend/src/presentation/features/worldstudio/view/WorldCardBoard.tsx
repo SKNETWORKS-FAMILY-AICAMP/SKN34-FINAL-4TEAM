@@ -10,7 +10,7 @@ import { KindChip } from '../../../shared/KindChip'
 import { type BoardRow } from '../../../shared/worldBoard'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
-import { publishAllCards, revealLabel, setCardReveal, visibleSelection } from '../viewmodel/cardVisibility'
+import { publishAllCards, revealLabel, setCardReveal, shownPublicly, visibleSelection } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { labelOf } from '../viewmodel/settingBoard'
 import type { CardPane } from '../viewmodel/cardPanels'
@@ -76,7 +76,7 @@ function Row({ row, setting, status, images, picked, linked, limit, previewing, 
       </td>
       <td className="col-status">{chips.length > 0 ? <StatusChips chips={chips} onOpen={open} /> : <><span aria-hidden="true">—</span><span className="sr-only">없음</span></>}</td>
       <td className="col-sum">{row.text}</td>
-      <td className="col-vis" data-public={!linked || (reveal !== undefined && !late)} title={late ? missingEpisodeNote(reveal) : undefined}>{revealLabel(reveal, linked, limit)}</td>
+      <td className="col-vis" data-public={shownPublicly(reveal, linked, limit)} title={late ? missingEpisodeNote(reveal) : undefined}>{revealLabel(reveal, linked, limit)}</td>
       <td className="col-num">{row.connections}</td>
     </tr>
   )
@@ -296,7 +296,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                     return (
                       <Fragment key={row.cardId}>
                         <Row row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} linked={linked} limit={limit} previewing={preview === row.cardId} previewId={previewId} onPick={pick} onOpen={vm.editCard} onToggle={toggle} />
-                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} settings={world.settings} linked={linked} limit={limit} publicPath={vm.publicHref && (!linked || reveal(row.cardId) !== undefined) ? cardPath(world.id, row.cardId) : null} images={vm.cardImages} onOpen={openFromPreview} onClose={() => closePreview(row.cardId)} />}
+                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} settings={world.settings} linked={linked} limit={limit} publicPath={vm.publicHref && shownPublicly(reveal(row.cardId), linked, limit) ? cardPath(world.id, row.cardId) : null} images={vm.cardImages} onOpen={openFromPreview} onClose={() => closePreview(row.cardId)} />}
                       </Fragment>
                     )
                   })}

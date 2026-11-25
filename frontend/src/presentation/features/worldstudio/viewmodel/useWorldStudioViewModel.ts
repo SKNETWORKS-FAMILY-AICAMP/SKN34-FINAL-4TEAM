@@ -275,7 +275,7 @@ export function useWorldStudioViewModel(
     }
   }
   // 연결된 소설의 마지막 회차(없는 회차를 공개 회차로 정하지 못하게 한다, 결정 5): 연결이 없거나 읽는 중·실패면 undefined다.
-  const episodeLimit = useLinkedEpisodeLimit(saved?.linkedWorkId ?? null)
+  const episodeLimit = useLinkedEpisodeLimit(saved?.linkedWorkId ?? null, relationKey) // relationKey는 세계관을 서버에서 다시 읽을 때마다 오르므로 그때 소설의 회차 수도 다시 읽는다
   const writingIssues = editing ? worldWritingIssues(editing, saved ?? undefined, episodeLimit) : []
   // 이름·설명 인라인 저장은 초안 전체를 저장하므로, 저장하지 않은 수정이나 저장 전 확인 항목이 있으면 그 변경이 검사 없이 함께 저장된다 → 먼저 저장하게 막는다.
   const infoLocked = dirty || writingIssues.length > 0

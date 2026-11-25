@@ -442,12 +442,14 @@ class PublicWorldServiceTest {
         assertCardsWithoutRelations(s)
     }
     @Test fun `new confirmed revision during graph read makes the old snapshot unavailable`() {
-        val s=Seed()
-        `when`(graph.read(s.id,null)).thenAnswer {
+        // 독자 설정 위키는 다시 읽지 않으므로 관계 읽기 도중 확정 버전이 바뀌면 카드는 두고 관계만 unavailable이다(공개 상세는 처음부터 다시 읽는다, 아래 안정 읽기 시험).
+        val s=Seed(visibility="private")
+        `when`(graph.read(s.id,2)).thenAnswer {
             s.world.currentRevisionId=UUID.randomUUID()
             RelationshipStateResult(s.id,3,"key","hash",s.relations)
         }
-        assertCardsWithoutRelations(s)
+        val result=service.readerCards("work",s.id,2)
+        assertEquals("unavailable",result.relationshipStatus);assertTrue(result.relationships.isEmpty());assertEquals(3,result.cards.size)
     }
     @Test fun `changed graph token during read makes the old snapshot unavailable`() {
         val s=Seed()
@@ -533,7 +535,7 @@ class PublicWorldServiceTest {
         assertEquals(10, page.size)
         assertEquals(11L, page.total)
         verify(worlds).listedByGenre("genre-14", PageRequest.of(1, 10))
-        verify(worlds).findById(s.id)
+        verify(worlds, times(2)).findById(s.id) // 관계를 읽은 뒤의 검증 한 번 + 응답 직전 확정 버전 확인 한 번
         verifyNoMoreInteractions(worlds)
 
         val all = Seed()
@@ -671,7 +673,7 @@ class PublicWorldServiceTest {
 
     // --- 공개 세계관의 기준 회차(DEC-53): 연결된 공개 소설의 발행된 마지막 회차, 연결이 없으면 기준 회차 없음(그 세계관은 카드가 모두 공개·관계는 최신) ---
 
-    @Test fun `the public list reads the page's linked works and their last published episodes in two queries and counts each world at its own basis episode`() {
+    @Test fun `the public list reads the page's linked works and their last published episodes in two queries, rechecks the link once, and counts each world at its own basis episode`() {
         val seeds = listOf(Seed(name = "미연결"), Seed(name = "공개 소설 3화"), Seed(name = "비공개 소설"), Seed(name = "공개 소설 발행 전"), Seed(name = "미연결 둘째"))
         val (unlinked, published, private, nothingYet, unlinkedToo) = seeds
         // 연결된 소설 셋: 3화까지 발행한 공개 작품·공개 작품이 아닌 것·발행한 회차가 없는 공개 작품. 공개 작품만 마지막 발행 회차 쿼리에 행이 있다(발행이 없으면 0).
@@ -687,10 +689,83 @@ class PublicWorldServiceTest {
         verify(graph).read(published.id, 3)
         verify(graph).read(private.id, 0)
         verify(graph).read(unlinkedToo.id, null)
-        // 세계관이 몇 개든 연결 작품 조회 한 번과 공개 작품의 발행 회차 조회 한 번뿐이다. 작품 접근·발행 회차(본문 포함)를 세계관마다 읽지 않는다.
-        verify(works, times(1)).findAllByWorldStudioIdIn(anyCollection())
+        // 세계관이 몇 개든 연결 작품 조회 한 번(+ 응답 직전 연결 확인 한 번)과 공개 작품의 발행 회차 조회 한 번뿐이다. 작품 접근·발행 회차(본문 포함)를 세계관마다 읽지 않는다.
+        verify(works, times(2)).findAllByWorldStudioIdIn(anyCollection())
         verify(works, times(1)).lastPublishedOfPublicWorks(anyCollection())
         verifyNoInteractions(access, publication, workImages)
+    }
+
+    // --- 카드의 확정 버전과 연결 여부를 다른 시점에 읽어도 한 시점의 조합만 쓴다(CodeRabbit major): 응답 직전에 다시 읽어 바뀌었으면 처음부터 다시 읽는다 ---
+
+    /** [seed]의 첫 연결 확인은 '연결 없음', 그 뒤(응답 직전 확인과 다시 읽기)는 [published]화까지 발행한 소설에 연결됨으로 답하게 한다: 읽는 도중 세계관이 연결된 경우다. */
+    private fun linkedWhileReading(seed: Seed, published: List<Int> = listOf(1)) {
+        linkWork(seed, seed.owner.toString(), published = published)
+        val linkedRows = works.findAllByWorldStudioIdIn(listOf(seed.id))
+        `when`(works.findAllByWorldStudioIdIn(listOf(seed.id))).thenReturn(emptyList(), linkedRows)
+    }
+
+    /** [seed]가 첫 연결 확인 때 [next]의 확정 버전으로 바뀐 것처럼 만든다: 카드를 읽은 뒤 작가가 새 버전을 확정하고 연결을 푼 경우다. 새 버전은 다른 세계관 [next]의 카드 집합을 빌린다. */
+    private fun revisedWhileReading(seed: Seed, next: Seed) {
+        `when`(revisions.findByIdAndWorldId(next.revisionId, seed.id)).thenReturn(WorldRevision(id = next.revisionId, worldId = seed.id, revisionNo = 4, name = "새 버전", description = "새 버전 설명", sealed = true))
+        `when`(works.findAllByWorldStudioIdIn(listOf(seed.id))).thenAnswer { seed.world.currentRevisionId = next.revisionId; emptyList<WorkEntity>() }
+    }
+
+    @Test fun `a world that got linked while it was being read is read again and filtered by the link, not shown as unlinked`() {
+        val s = Seed()
+        linkedWhileReading(s)
+        // 처음 읽을 때는 연결이 없어 카드 모두가 보였지만 응답 직전에 연결이 확인돼 다시 읽는다: 1화까지 발행한 소설 기준이라 첫·둘째 인물만 나온다.
+        assertEquals(listOf(s.first, s.second).map { it.cardId }.toSet(), service.detail(s.id).cards.map { it.id }.toSet())
+    }
+
+    @Test fun `a world whose confirmed revision changed while its cards were being read is read again from the new revision`() {
+        val s = Seed()
+        val next = Seed()
+        revisedWhileReading(s, next)
+        val detail = service.detail(s.id)
+        // 옛 버전(s)의 카드는 하나도 남지 않고 새 버전의 카드(미연결이라 지우지 않은 카드 모두)만 나온다.
+        assertEquals("새 버전", detail.name)
+        assertEquals(listOf(next.first, next.second, next.hidden, next.authorOnly).map { it.cardId }.toSet(), detail.cards.map { it.id }.toSet())
+    }
+
+    @Test fun `a world that keeps changing while it is read is a 409 instead of a mixed answer`() {
+        val s = Seed()
+        linkWork(s, s.owner.toString())
+        val linkedRows = works.findAllByWorldStudioIdIn(listOf(s.id))
+        var reads = 0
+        `when`(works.findAllByWorldStudioIdIn(listOf(s.id))).thenAnswer { if (reads++ % 2 == 0) emptyList<WorkEntity>() else linkedRows }
+        assertEquals(409, assertThrows(ContentFailure::class.java) { service.detail(s.id) }.status)
+    }
+
+    @Test fun `a card image is decided by a stable read too, so the image of a card the link hides is not served`() {
+        val s = Seed(pictures = true)
+        linkedWhileReading(s)
+        // 2화부터 공개 카드의 이미지다: 처음 읽을 때는 연결이 없어 열려 있었지만 다시 읽은 연결(1화) 기준으로는 아직 닫혀 있다.
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.cardImage(s.id, s.hiddenImage) }.status)
+        assertArrayEquals(s.imageBytes, service.cardImage(s.id, s.firstImage).bytes)
+    }
+
+    @Test fun `the public list, the card search and the index feed read again when a world got linked during the read`() {
+        val s = Seed()
+        stubPage(listOf(s), PageRequest.of(0, 24), 1)
+        stubAll(listOf(s))
+        stubNames(mapOf(s.owner to "작가"))
+        // 연결 기준(1화)의 카드는 둘이고 연결 없음으로 읽었다면 넷이다. 세 출구가 같은 다시 읽기를 쓴다.
+        linkedWhileReading(s)
+        assertEquals(2, service.list(null, null, null, null).items.single().cardCount)
+        linkedWhileReading(s)
+        assertEquals(2L, service.cards("인물", null, null).total)
+        linkedWhileReading(s)
+        assertEquals(2, service.searchEntries().single().cards.size)
+    }
+
+    @Test fun `the card search reads the listing again from the new confirmed revision when it changed during the read`() {
+        val s = Seed()
+        val next = Seed()
+        stubAll(listOf(s))
+        stubLookups(listOf(s, next))
+        revisedWhileReading(s, next)
+        // 목록부터 다시 읽는다: 옛 버전(s)의 카드는 하나도 남지 않고 새 버전의 카드만 찾는다.
+        assertEquals(listOf(next.first, next.second, next.hidden, next.authorOnly).map { it.cardId }.toSet(), service.cards("인물", null, null).items.map { it.cardId }.toSet())
     }
 
     // --- 설정 카드 대표 이미지(#401) ---

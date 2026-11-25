@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
@@ -38,21 +38,27 @@ type Props = {
  * 세계관·설정집 탭의 세계관 연결(DEC-46): 소설과 내 세계관(WorldStudio)은 1:1로 연결한다.
  * 연결된 세계관이 공개 상태이면 `연결 해제`가 경고 대화 상자(`role="alertdialog"`)를 연다(결정 4): 해제하면 작가 전용이던 카드까지 모든 설정이 독자에게 공개되므로 `세계관을 비공개로 바꾸고 해제`(처음 초점)·`공개 그대로 해제`·`취소`를 고르게 한다.
  * 비공개를 고르면 세계관 공개 설정(장르는 현재 값 그대로)을 먼저 보내고 성공했을 때만 해제한다. 실패하면 해제하지 않고 서버 문구를 이 카드 안에 알린다. 세계관이 비공개면 경고 없이 지금처럼 해제한다(기존 확인).
- * 공개 여부는 내 세계관 목록에서 아는 값이라, 목록을 읽는 동안에는 `연결 해제`가 잠기고(`isLoading`) 읽지 못했거나 목록에 이 세계관이 없어 모르면 공개일 수 있다는 경고가 비공개 선택지 없이 `공개 그대로 해제`·`취소`만 보인다(장르를 몰라 비공개로 바꿀 수 없다, 처음 초점은 `취소`).
+ * 공개 여부는 `연결 해제`를 누른 그때 내 세계관 목록을 한 번 다시 읽어 최신 값으로 정한다(탭을 연 뒤 다른 곳에서 바뀌었을 수 있다, 읽는 동안 버튼이 잠기고 화면을 떠나면 다시 읽기를 취소한다). 다시 읽지 못했거나 목록에 이 세계관이 없어 모르면
+ * 공개일 수 있다는 경고가 비공개 선택지 없이 `공개 그대로 해제`·`취소`만 보인다(장르를 몰라 비공개로 바꿀 수 없다, 처음 초점은 `취소`). 처음 목록을 읽는 동안에도 버튼은 잠긴다(`isLoading`).
+ * 해제가 성공하면 초점이 있던 버튼이 사라지므로 연결 구역의 제목(`세계관 연결`)으로 초점을 옮긴다. 실패하면 버튼이 남아 경고 상자를 닫을 때 그리로 돌아온다.
  * 연결돼 있으면 그 세계관 관리 화면으로 가는 이름과 `연결 해제`를, 아니면 다른 소설에 연결되지 않은 내 세계관을 골라 `세계관 연결`을 보인다. 1:1·독자 위키 공개 범위 설명은 고를 때 필요한 정보라 연결 전에만 보인다.
  * 세계관은 검색 화면(`/search`)과 같은 둥근 `세계관 검색` 입력이 이름(대소문자·앞뒤 공백 무시, 비면 전체)으로 거른 표지 카드 목록에서 고르고(카드 한 장이 라디오 하나), 결과가 없으면 `검색 결과가 없어요`를 알린다. 검색창은 연결 양식 밖이라 Enter로 연결하지 않는다. 아무것도 고르지 않은 채 시작해 고르기 전에는 버튼이 잠기고 이유를 알린다(UC-24 E1: 세계관을 고르지 않으면 연결하지 않는다).
  * 고른 세계관이 검색으로 목록에서 빠지면 선택을 비운다(보이지 않는 세계관으로 연결하지 않는다). 해제하면 고른 값과 검색어도 비워, 다시 나타난 양식이 직전에 연결했던 세계관·검색어로 시작하지 않는다.
  * 내 세계관 목록은 탭을 열 때 공용 `useAsyncData`로 읽고 불러오는 중·실패(다시 불러오기)·고를 세계관 없음을 따로 알린다. 다시 읽기가 실패해도 앞서 읽은 목록은 남기고 실패를 함께 알린다.
  * 자기 세계관이 없는 Fork는 이 카드 위에 `이어받는 원작 세계관` 카드를 따로 둔다(#583, DEC-37): 원작 세계관을 읽기 전용으로 보이고 `내 세계관으로 만들어 수정하기`로 독립한다. 성공하면 새 세계관 관리 화면으로 간다.
  * ponytail: 후보를 모두 카드로 그리고 올린 표지를 카드마다 한 번씩 읽으며 CSS 최대 높이로 스크롤한다. 수백 개가 되면 서버 검색·쪽 나누기가 필요하다.
- * ponytail: 연결·해제 뒤 목록을 다시 읽지 않는다(세계관을 비공개로 바꾸고 해제한 때만 공개 여부가 바뀌므로 다시 읽는다). 그 사이 다른 곳에서 연결이 바뀌었으면 서버가 409로 거절하고 그 사유가 이 카드 안에 보인다.
+ * ponytail: 연결·해제 뒤 목록을 다시 읽지 않는다(공개 여부는 해제 직전에 따로 다시 읽는다). 그 사이 다른 곳에서 연결이 바뀌었으면 서버가 409로 거절하고 그 사유가 이 카드 안에 보인다.
  */
 export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, detachError, useCase, worlds = appContainer.resolve('worldStudioUseCase') }: Props) {
   const navigate = useNavigate()
   const { data: mine, isLoading, isError, retry } = useAsyncData((signal) => worlds.list(signal), [worlds])
   const [picked, setPicked] = useState('')
   const [query, setQuery] = useState('')
-  const [warning, setWarning] = useState(false) // 공개 세계관의 연결 해제 경고 대화 상자
+  const [warning, setWarning] = useState<{ world?: StudioWorld } | null>(null) // 연결 해제 경고 대화 상자: 해제 직전에 다시 읽은 세계관을 들고 있다(읽지 못했거나 목록에 없으면 비어 있다)
+  const [checking, setChecking] = useState(false) // 해제 직전에 공개 여부를 다시 읽는 중
+  const check = useRef<AbortController | null>(null)
+  const title = useRef<HTMLHeadingElement>(null)
+  useEffect(() => () => check.current?.abort(), []) // 화면을 떠나면 다시 읽기를 취소한다
   const hint = useId()
   const group = useId()
   const linked = work.worldStudioId
@@ -68,9 +74,21 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
   }
   // 경고 없이 해제할 때는 옵션 없이 보낸다(호출 쪽이 기존 확인을 묻는다). 대화 상자를 거쳤으면 옵션을 함께 보내 다시 묻지 않게 한다.
   const release = (options?: WorldRelease) => {
-    setPicked(''); setQuery(''); setWarning(false)
-    // 세계관을 비공개로 바꿨으면 목록이 들고 있는 공개 여부가 낡으므로 성공한 뒤 다시 읽는다(다시 연결했다 해제할 때 거짓 경고가 뜨지 않게).
-    void (options ? onLink(null, options) : onLink(null)).then((ok) => { if (ok && options?.makePrivate) retry() })
+    setPicked(''); setQuery(''); setWarning(null)
+    // 해제하면 초점이 있던 버튼이 사라지므로 성공했을 때 연결 구역의 제목으로 옮긴다(아니면 초점이 문서 처음으로 떨어진다).
+    void (options ? onLink(null, options) : onLink(null)).then((ok) => { if (ok) title.current?.focus() })
+  }
+  // 해제를 누르면 그때 세계관 목록을 한 번 다시 읽어 최신 공개 여부로 정한다: 비공개면 바로 해제(기존 확인), 공개면 비공개 선택지가 있는 경고, 읽지 못했거나 목록에 없으면 공개 여부를 모르는 경고.
+  // 읽는 동안 버튼은 disabled가 아니라 aria-disabled로 잠근다: disabled가 되면 초점을 잃어 경고 상자를 닫은 뒤 돌아갈 곳이 없다.
+  const askRelease = async () => {
+    check.current?.abort()
+    const request = (check.current = new AbortController())
+    setChecking(true)
+    const fresh = await worlds.list(request.signal).then((rows) => rows.find((w) => w.id === linked), () => undefined)
+    if (request.signal.aborted) return
+    setChecking(false)
+    if (fresh && fresh.visibility !== 'public') release()
+    else setWarning({ world: fresh })
   }
   const detach = async () => {
     const id = await onDetach()
@@ -80,14 +98,14 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
     <>
       {work.source && !linked && <InheritedWorldCard workId={work.id} sourceTitle={work.source.title} busy={busy} error={detachError} onDetach={detach} useCase={useCase} />}
       <section className='tcard ep-card' aria-label='세계관 연결'>
-        <h3>세계관 연결</h3>
+        <h3 ref={title} tabIndex={-1}>세계관 연결</h3>
         {!linked && <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드를 보여 줘요.</p>}
         {linked
           ? (
             <>
               <p>연결된 세계관: <Go to={`/worldstudio/${linked}`}>{linkedWorld?.name ?? '세계관 열기'}</Go></p>
               <div className='ep-card-actions'>
-                <button type='button' className='btn sm' disabled={busy || isLoading} onClick={() => (linkedWorld && linkedWorld.visibility !== 'public' ? release() : setWarning(true))}>연결 해제</button>
+                <button type='button' className='btn sm' disabled={busy || isLoading} aria-disabled={checking || undefined} onClick={() => { if (!checking) void askRelease() }}>연결 해제</button>
               </div>
             </>
           )
@@ -124,7 +142,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
                 <div className='ep-card-actions'><Go to='/worldstudio' className='btn sm'>세계관 만들기</Go></div>
               </>
             ))}
-        {warning && <PublicUnlinkWarning known={!!linkedWorld} onPrivate={() => release({ makePrivate: { genre: linkedWorld?.genre ?? null } })} onKeep={() => release({})} onCancel={() => setWarning(false)} />}
+        {warning && <PublicUnlinkWarning known={!!warning.world} onPrivate={() => release({ makePrivate: { genre: warning.world?.genre ?? null } })} onKeep={() => release({})} onCancel={() => setWarning(null)} />}
         {error && <p className='ep-alert' role='alert'>{error}</p>}
         {notice && <p role='status'>{notice}</p>}
         {isError
