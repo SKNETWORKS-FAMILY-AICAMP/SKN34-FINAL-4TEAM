@@ -7,7 +7,7 @@ from app.simulation.errors import SimulationFailure
 from app.simulation.models import Note, SceneAction, SimulationPlan
 from app.simulation.prompt import FEEDBACK, NARRATION_FEEDBACK
 
-from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, Run, action, card, fake_content, monologue, narration, narrating, run_auto, speech,
+from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, SHADOW, Run, action, card, fake_content, monologue, narration, narrating, run_auto, speech,
                     staged as setup, text, verdict)
 
 IF_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'premise']
@@ -703,11 +703,38 @@ def test_the_server_rules_still_hold_back_an_omniscient_narration_when_the_narra
 
 
 
-def test_a_dialogue_check_gets_only_the_forbidden_docs_most_like_the_paragraph_and_other_turns_are_not_limited(monkeypatch):
-    # #646: 인물 대사 검사 입력의 금지 목록은 문단·직전 장면과 겹침이 큰 FORBIDDEN_LIMIT개만이다(전지적 나레이션 검사·독백은 줄이지 않는다).
+def test_every_check_gets_only_the_forbidden_docs_most_like_the_paragraph(monkeypatch):
+    # #646: 대사·독백·전지적 나레이션 검사 모두 입력의 금지 목록은 문단·직전 장면과 겹침이 큰 FORBIDDEN_LIMIT개만이다.
     monkeypatch.setattr(service, 'FORBIDDEN_LIMIT', 1)
     h = setup(monkeypatch, monologue(f'limited:{KAEL}'), speech(LINA), verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 1))
     run_auto()
     mono, dialogue = h.calls.check[0], h.calls.check[1]
-    assert mono['checks'] == ['knowledge_leak', 'voice_mix'] and 'LINA-EP0-SECRET' in text(mono['forbidden'])   # 독백은 그대로
-    assert dialogue['checks'] == IF_KINDS and len(dialogue['forbidden']) == 1 and h.calls.review[0]['forbidden']      # 대사는 한 개, 전지적 나레이션 검사는 그대로
+    assert mono['checks'] == ['knowledge_leak', 'voice_mix'] and len(mono['forbidden']) == 1   # 독백(카엘의 입력: 카엘의 미래와 리나의 비밀 넷)
+    assert dialogue['checks'] == IF_KINDS and len(dialogue['forbidden']) == 1                  # 대사(리나의 입력: 카엘의 비밀 셋)
+    assert [len(review['forbidden']) for review in h.calls.review] == [1, 1]                   # 시작·마무리 전지적 나레이션(카엘의 미래와 미공개 카드)
+
+
+def test_a_check_verdict_cannot_cite_a_forbidden_doc_that_was_cut_from_its_input(monkeypatch):
+    # 줄인 범위 밖 항목은 검사 모델에게 보이지 않으니 그것을 근거로 든 판정은 형식 오류(502)로 장면을 멈춘다(service.verify는 줄인 입력의 ref만 인정한다).
+    monkeypatch.setattr(service, 'FORBIDDEN_LIMIT', 1)
+    both = {f'card:{KAEL}#ep05', f'card:{SHADOW}'}   # 전지적 나레이션 검사의 금지 목록 둘(카엘의 미래 기억·미공개 카드) 중 하나만 남는다
+
+    def cites_the_cut_one(payload):
+        return verdict(payload, fail=('knowledge_leak',), refs=[(both - {d['ref'] for d in payload['forbidden']}).pop()])
+
+    setup(monkeypatch, speech(KAEL), reviews=cites_the_cut_one)
+    scene = run_auto()
+    assert (scene.result.status, scene.error, scene.result.turns) == ('failed', service.BAD_VERDICT, [])
+
+
+def test_the_server_rules_do_not_judge_leaks_so_a_leak_of_a_cut_forbidden_doc_goes_unseen(monkeypatch):
+    # 알려진 한계(#646): 서버 규칙(_problem)은 인칭·문체와 되풀이만 본다. 누설 판정은 검사 모델 몫이라 줄인 범위 밖 항목을 다른 말로 새게 하면
+    # 검사 입력에도 없고 서버 규칙에도 걸리지 않는다. 누설을 서버가 막는 규칙을 더하면 이 시험을 바꾼다.
+    monkeypatch.setattr(service, 'FORBIDDEN_LIMIT', 2)
+    secret = {'ref': f'card:{LINA}#ep00', 'label': '00회차 기억', 'text': 'LINA-EP0-SECRET 사실은 왕국의 첩자다', 'owner': '리나'}
+    noise = [{'ref': f'card:{KAEL}#ep{i:02d}', 'label': f'{i}회차 기억', 'text': f'카엘이 북문 앞에서 열쇠를 찾았다 {i}번 일', 'owner': '카엘'} for i in range(5)]
+    prose = '"리나는 나라에서 보낸 밀정이야." 카엘이 낮게 말했다.'   # 첩자를 다른 말로 새게 했다
+    body = service.check_payload({'forbidden': [secret, *noise], 'scene': [{'ref': 'scene:0', 'text': '카엘이 북문 앞에서 열쇠를 찾았다.'}]}, ['knowledge_leak'], prose)
+    assert len(body['forbidden']) == 2 and secret not in body['forbidden']
+    made = {'prose': prose, 'kind': 'character', 'characterId': KAEL, 'check': {'payload': {'actionStyle': {'person': 'third', 'subject': '카엘'}}}}
+    assert REAL_PROBLEM(made, service.new_scene(PLAN_IF)) is None

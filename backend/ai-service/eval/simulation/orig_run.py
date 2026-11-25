@@ -202,7 +202,7 @@ def evaluate_check(item: dict, corpus, llm, cost, variant=None, variant_name=Non
     """④ 한 문항: check 한 번. 거절 = 어느 검사든 실패. 주입 문항은 사실이 검사 입력의 금지 목록에 있었는지(covered)도 남긴다."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
     view = act_view(item, corpus, variant)
-    body = service.check_payload({**view['asked'], **view['extra'], 'actionStyle': view['style']}, view['kinds'], item['gold'], 'character')   # 운영과 같은 검사 입력
+    body = service.check_payload({**view['asked'], **view['extra'], 'actionStyle': view['style']}, view['kinds'], item['gold'])   # 운영과 같은 검사 입력
     record |= {'label': item['label'], 'inChars': size_of(body),
                'covered': covered(item['inject']['text'], body['forbidden']) if item['label'] == 'reject' else None}
 

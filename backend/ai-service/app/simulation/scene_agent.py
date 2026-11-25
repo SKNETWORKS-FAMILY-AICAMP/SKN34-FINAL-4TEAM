@@ -178,7 +178,7 @@ class SceneCheckMiddleware(AgentMiddleware):
                 elif made['kind'] == 'narration' and decision.pov == 'omniscient' and os.environ.get(SKIP_NARRATION_CHECK) == '1':
                     return await self._added(call, context, scene, decision, made, PASSED, attempt)  # 서버 규칙(_problem)은 위에서 이미 봤다
                 else:
-                    payload = service.check_payload(spec['payload'], spec['kinds'], made['prose'], made['kind'])
+                    payload = service.check_payload(spec['payload'], spec['kinds'], made['prose'])
                     verdict = await asyncio.to_thread(agent.check, payload)
                     service.verify(verdict, spec['kinds'], payload)
                     failed = [c for c in verdict.checks if not c.passed]
