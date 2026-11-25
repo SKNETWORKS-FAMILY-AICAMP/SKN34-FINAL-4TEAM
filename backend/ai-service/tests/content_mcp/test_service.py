@@ -68,6 +68,26 @@ def test_tool_errors_keep_content_status_and_detail_or_close_as_502(monkeypatch,
     assert (error.value.status, str(error.value)) == (status, message)
 
 
+def test_unpassed_tool_error_keeps_502_but_leaves_original_status_and_code_in_log_and_trace(monkeypatch, caplog):
+    updates = []
+    monkeypatch.setattr(service.tracing, 'client', lambda: type('C', (), {'update_current_span': lambda self, **kw: updates.append(kw)})())
+    content(monkeypatch, {'episode_read': (True, 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE\n관계 저장이 미완료입니다. ' + '가' * 300)})
+    with caplog.at_level('WARNING', logger=service.logger.name):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.call('episode_read', {'id': 'work', 'number': 3})
+    assert (error.value.status, str(error.value)) == (502, 'Content 작업에 실패했습니다.')
+    assert 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE' in caplog.text and '가' * 300 not in caplog.text
+    assert updates[0]['level'] == 'WARNING' and updates[0]['status_message'].startswith('HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE')
+
+
+def test_passed_4xx_tool_error_is_not_logged_as_a_warning(monkeypatch, caplog):
+    content(monkeypatch, {'episode_read': (True, 'HTTP 409 CONFLICT\n초안이 최신이 아니에요.')})
+    with caplog.at_level('WARNING', logger=service.logger.name):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.call('episode_read', {'id': 'work', 'number': 3})
+    assert (error.value.status, str(error.value)) == (409, '초안이 최신이 아니에요.') and caplog.records == []
+
+
 def test_missing_user_token_or_base_url_never_calls_content(monkeypatch):
     calls = content(monkeypatch, {}, authorization='')
     with pytest.raises(ContentMcpFailure) as error:
