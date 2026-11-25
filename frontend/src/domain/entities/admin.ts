@@ -58,16 +58,18 @@ export const PIPELINE_FLOWS = [
 ] as const
 export type PipelineFlowKey = (typeof PIPELINE_FLOWS)[number][0]
 export const pipelineFlowKey = (v: string | null): PipelineFlowKey => PIPELINE_FLOWS.find(([key]) => key === v)?.[0] ?? 'all'
-/** 전체만 flow 없는 주소입니다(전체는 프롬프트·평가 쪽의 기본 보기라 sub도 없습니다). */
-export const pipelineFlowHref = (flow: PipelineFlowKey) => flow === 'all' ? promptSubHref('all') : `${promptSubHref('all')}&flow=${flow}`
+/** 프롬프트·평가의 보기(sub)와 흐름 범위(flow)를 한 주소에 담습니다(#857). 전체(flow 없음)와 기본 보기(sub 없음)는 붙이지 않습니다. */
+export const promptViewHref = (sub: PromptSub, flow: PipelineFlowKey) => flow === 'all' ? promptSubHref(sub) : `${promptSubHref(sub)}&flow=${flow}`
+/** 파이프라인 보기의 흐름 주소(사이드바 하위 탭의 기본 링크, '내부 흐름 보기'). */
+export const pipelineFlowHref = (flow: PipelineFlowKey) => promptViewHref('all', flow)
 
 /**
  * 사이드바 '프롬프트·평가' 아래 하위 탭(워크플로우, #857 3차 정정)의 상태입니다(주소만으로 정해집니다). 하위 탭은 그 쪽에 있을 때만 펼쳐지고(open),
- * 켜진 하위 탭(current)은 AI 파이프라인(전체) 보기의 flow 하나입니다. 같은 쪽의 다른 보기(에이전트별 평가·프롬프트·모델)는 하위 탭이 아니라 펼쳐지기만 하고 켜진 하위 탭이 없습니다.
+ * 켜진 하위 탭(current)은 흐름 범위(flow) 하나이고 전체 파이프라인·에이전트별 평가·프롬프트 보기에 적용됩니다. 모델 단가는 흐름과 무관해 펼쳐지기만 하고 켜진 하위 탭이 없습니다.
  */
 export function promptNavState(tab: AdminTab, page: LlmPage, sub: string | null, flow: string | null): { open: boolean; current: PipelineFlowKey | null } {
   const open = tab === 'llm' && page === 'prompts'
-  return { open, current: open && promptSub(sub) === 'all' ? pipelineFlowKey(flow) : null }
+  return { open, current: open && promptSub(sub) !== 'models' ? pipelineFlowKey(flow) : null }
 }
 
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
@@ -80,7 +82,7 @@ export function adminReturnPath(search: string): string {
   const page = llmPage(query.get('view'))
   if (page === 'prompts') {
     const sub = promptSub(query.get('sub'))
-    return sub === 'all' ? pipelineFlowHref(pipelineFlowKey(query.get('flow'))) : promptSubHref(sub)   // 워크플로우는 전체(AI 파이프라인) 보기에서만 남긴다
+    return sub === 'models' ? promptSubHref(sub) : promptViewHref(sub, pipelineFlowKey(query.get('flow')))   // 흐름 범위는 모델 보기를 뺀 모든 보기에 남긴다
   }
   return page === 'metrics' ? metricsSubHref(metricsSub(query.get('sub'))) : llmPageHref(page)
 }

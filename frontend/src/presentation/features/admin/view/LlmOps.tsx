@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
-import { METRICS_SUBS, PROMPT_SUBS, type LlmPage, type MetricsSub, type PipelineFlowKey, type PromptSub, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptSub, promptSubHref } from '../../../../domain/entities/admin'
+import { METRICS_SUBS, PROMPT_SUBS, type LlmPage, type MetricsSub, type PipelineFlowKey, type PromptSub, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptSub, promptViewHref } from '../../../../domain/entities/admin'
 import { LLM_FORBIDDEN, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, traceStatusLabel, usd, type TraceItem } from '../../../../domain/entities/llmOps'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -23,9 +23,9 @@ export type LlmVM = ReturnType<typeof useLlmOpsViewModel>
 
 const statusChip = (status: string) => <span className={`chip ${status === 'success' ? 'ok' : 'bad'}`}>{traceStatusLabel(status)}</span>
 
-/** VM이 옮겨 갈 자리(쪽과 보기)의 주소. 보기를 모르면 그 쪽의 첫 보기입니다. */
-const placeHref = (page: LlmPage, sub?: string) =>
-  page === 'prompts' ? promptSubHref(promptSub(sub ?? null)) : page === 'metrics' ? metricsSubHref(metricsSub(sub ?? null)) : llmPageHref(page)
+/** VM이 옮겨 갈 자리(쪽과 보기)의 주소. 보기를 모르면 그 쪽의 첫 보기이고, 프롬프트·평가로 가면 지금의 흐름 범위를 그대로 가져갑니다(#857). */
+const placeHref = (page: LlmPage, sub: string | undefined, flow: PipelineFlowKey) =>
+  page === 'prompts' ? promptViewHref(promptSub(sub ?? null), flow) : page === 'metrics' ? metricsSubHref(metricsSub(sub ?? null)) : llmPageHref(page)
 
 /**
  * 40-A~E LLM Ops: Langfuse 기준 추적·지표와 프롬프트·평가·누설 검사·경고 기준을 운영 서비스 API로 보고 관리합니다(#857로 세 메뉴).
@@ -38,7 +38,7 @@ export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
   const params = useSearchParams()[0]
   const rawSub = params.get('sub')
   const metrics = metricsSub(rawSub), prompts = promptSub(rawSub), workflow = pipelineFlowKey(params.get('flow'))
-  const l = useLlmOpsViewModel(vm.live.mutate, page, (next, nextSub) => navigate(placeHref(next, nextSub)), page === 'metrics' ? metrics : prompts, workflow)
+  const l = useLlmOpsViewModel(vm.live.mutate, page, (next, nextSub) => navigate(placeHref(next, nextSub, workflow)), page === 'metrics' ? metrics : prompts, workflow)
   // 워크플로우(주소 flow, AI 파이프라인 보기)는 사이드바 하위 탭이 고르고, 기록 패널의 '내부 흐름 보기'는 같은 주소로 옮겨 갑니다(VM이 주소가 바뀌면 고른 노드를 닫습니다).
   const onWorkflow = (next: PipelineFlowKey) => navigate(pipelineFlowHref(next))
   // 목록에서 상세를 열면 상세 제목으로, 닫으면 눌렀던 목록 버튼으로 초점을 옮깁니다(프롬프트 상세 안의 평가 Run은 평가 단계가 따로 맡습니다).
@@ -73,12 +73,12 @@ function PromptsView({ vm, l, sub, workflow, onWorkflow }: { vm: VM; l: LlmVM; s
     <>
       {!l.promptName && (
         <nav className="pipe-views" aria-label="프롬프트·평가 보기">
-          {PROMPT_SUBS.map(([key, label]) => <Link key={key} to={promptSubHref(key)} aria-current={key === sub ? 'page' : undefined}>{label}</Link>)}
+          {PROMPT_SUBS.map(([key, label]) => <Link key={key} to={promptViewHref(key, workflow)} aria-current={key === sub ? 'page' : undefined}>{label}</Link>)}
         </nav>
       )}
-      {sub === 'evals' && <AgentEvaluations vm={vm} l={l} />}
+      {sub === 'evals' && <AgentEvaluations vm={vm} l={l} workflow={workflow} />}
       {sub === 'all' && <AdminPipeline vm={vm} l={l} workflow={workflow} onWorkflow={onWorkflow} />}
-      {sub === 'prompts' && (l.promptName ? <PromptDetail vm={vm} l={l} /> : <Prompts vm={vm} l={l} />)}
+      {sub === 'prompts' && (l.promptName ? <PromptDetail vm={vm} l={l} /> : <Prompts vm={vm} l={l} workflow={workflow} />)}
       {sub === 'models' && <Models vm={vm} l={l} />}
     </>
   )

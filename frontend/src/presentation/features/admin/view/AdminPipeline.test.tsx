@@ -468,3 +468,53 @@ it('서버 목록에 NovelBrain 노드가 없으면 그 단계도 구조용이�
   expect(screen.queryByRole('region', { name: 'NovelBrain 기억 회상 기록' })).toBeNull()
   expect(records).not.toHaveBeenCalled()
 })
+
+/** 흐름 범위(#857): 표 위의 범위 안내 줄(현재 범위와 전체 보기 해제 링크). */
+const scopeLine = (text: RegExp) => screen.getByText(text)
+const promptCodes = (table: HTMLElement) => within(table).getAllByRole('button').map((button) => button.textContent?.match(/[a-z_]+\.[a-z_]+/)?.[0])
+
+it('흐름 범위는 프롬프트 목록을 그 흐름의 프롬프트로 거르고, 표 위에 현재 범위와 전체 보기 해제 링크를 보이며, 전체에서는 거르지 않는다(#857)', async () => {
+  renderPipeline('&sub=prompts&flow=simulation')
+  const table = await screen.findByRole('region', { name: '프롬프트 표' })
+  expect(promptCodes(table)).toEqual(['character_simulation.act', 'character_simulation.check', 'character_simulation.direct', 'character_simulation.narrate', 'character_simulation.plan'])
+  expect(within(scopeLine(/인물 시뮬레이션의 프롬프트 5개/)).getByRole('link', { name: '전체 보기' }).getAttribute('href')).toBe('/admin?tab=llm&view=prompts&sub=prompts')
+  cleanup()
+  renderPipeline('&sub=prompts')
+  const all = await screen.findByRole('region', { name: '프롬프트 표' })
+  expect(promptCodes(all)).toContain('orchestration.main')
+  expect(promptCodes(all).length).toBeGreaterThan(20)
+  expect(screen.queryByText(/의 프롬프트 \d+개/)).toBeNull()
+})
+
+it('흐름 범위는 에이전트별 평가 표를 그 프롬프트들의 짝 세트 행으로 거르고, 짝 세트가 없는 흐름은 빈 표 대신 안내하며, 전체는 범용 세트까지 모두 보인다(#857)', async () => {
+  const rowsIn = async () => (await screen.findByRole('region', { name: '에이전트별 평가 표' })).querySelectorAll('tbody tr').length
+  renderPipeline('&sub=evals&flow=simulation')
+  expect(await rowsIn()).toBe(2)   // 인물 대사(act)·나레이션·독백(narrate)
+  expect(within(scopeLine(/인물 시뮬레이션의 프롬프트 5개/)).getByRole('link', { name: '전체 보기' }).getAttribute('href')).toBe('/admin?tab=llm&view=prompts&sub=evals')
+  cleanup()
+  renderPipeline('&sub=evals&flow=preprocessing')
+  expect(await rowsIn()).toBe(1)   // 회차 설정 추출(extract)과 추출 세트
+  cleanup()
+  renderPipeline('&sub=evals&flow=review')
+  await screen.findByText('이 흐름은 평가 세트가 없어요.')
+  expect(screen.queryByRole('region', { name: '에이전트별 평가 표' })).toBeNull()
+  scopeLine(/원고 검수의 프롬프트 2개/)
+  cleanup()
+  renderPipeline('&sub=evals')
+  expect(await rowsIn()).toBeGreaterThan(10)   // 전체: 범용 세트·검색 행까지
+  expect(screen.queryByText(/의 프롬프트 \d+개/)).toBeNull()
+})
+
+it('보기 전환 링크는 흐름 범위를 가지고 다니고, 에이전트별 평가 행에서 프롬프트 상세를 열어도 범위가 남는다(#857)', async () => {
+  renderPipeline('&sub=evals&flow=simulation')
+  const views = within(await screen.findByRole('navigation', { name: '프롬프트·평가 보기' }))
+  expect(views.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
+    '/admin?tab=llm&view=prompts&flow=simulation', '/admin?tab=llm&view=prompts&sub=evals&flow=simulation', '/admin?tab=llm&view=prompts&sub=prompts&flow=simulation', '/admin?tab=llm&view=prompts&sub=models&flow=simulation',
+  ])
+  fireEvent.click(await screen.findByRole('button', { name: /인물 대사\(act\) 프롬프트 열기/ }))
+  await screen.findByRole('region', { name: '프롬프트 상세' })
+  expect(await currentSub()).toEqual(['인물 시뮬레이션'])   // 프롬프트 상세로 옮겨 가도 흐름 범위가 같다
+  fireEvent.click(screen.getByRole('button', { name: '프롬프트 목록으로' }))
+  const table = await screen.findByRole('region', { name: '프롬프트 표' })
+  expect(promptCodes(table)).toHaveLength(5)   // 목록으로 돌아와도 그 흐름의 프롬프트만
+})

@@ -40,6 +40,8 @@
 @media (max-width: 900px) {
   .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
 }
+/* 흐름 범위 안내 줄(#857): 프롬프트 목록·에이전트별 평가 표 위에 현재 범위와 전체 보기 링크를 둔다. */
+.adm .admin-operations .pipe-scope { margin: 0 0 10px; }
 /* 운영 대시보드·LLMOps·작업 감시(DEC-55): 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
 .adm .admin-filter .field { min-width: 120px; }

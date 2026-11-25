@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { LLM_PAGES, METRICS_SUBS, PIPELINE_FLOWS, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptNavState, promptSub, promptSubHref } from '../entities/admin'
+import { LLM_PAGES, METRICS_SUBS, PIPELINE_FLOWS, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptNavState, promptSub, promptSubHref, promptViewHref } from '../entities/admin'
 
 it('관리자 로그인 복귀는 허용 탭만 보존하고 외부 경로·임의 쿼리를 버린다', () => {
   expect(adminReturnPath('?tab=notices')).toBe('/admin?tab=notices')
@@ -72,27 +72,39 @@ it('AI 파이프라인(전체) 보기의 워크플로우는 flow로 정하고 �
   ])
 })
 
-it('로그인 복귀는 전체(AI 파이프라인) 보기의 알려진 flow만 보존하고, 다른 보기나 모르는 flow는 버린다(#857 3차)', () => {
+it('로그인 복귀는 프롬프트·평가의 흐름 범위(flow)를 알려진 값만 보존하고(모델 보기·다른 쪽은 버린다), 모르는 flow는 버린다(#857 3차, 범위는 모든 보기에 적용)', () => {
   expect(adminReturnPath('?tab=llm&view=prompts&flow=simulation')).toBe('/admin?tab=llm&view=prompts&flow=simulation')
   expect(adminReturnPath('?tab=llm&view=prompts&sub=all&flow=review')).toBe('/admin?tab=llm&view=prompts&flow=review')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=evals&flow=simulation')).toBe('/admin?tab=llm&view=prompts&sub=evals&flow=simulation')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=prompts&flow=writing')).toBe('/admin?tab=llm&view=prompts&sub=prompts&flow=writing')
   expect(adminReturnPath('?tab=llm&view=prompts&flow=nope')).toBe('/admin?tab=llm&view=prompts')
   expect(adminReturnPath('?tab=llm&view=prompts&flow=all')).toBe('/admin?tab=llm&view=prompts')
-  expect(adminReturnPath('?tab=llm&view=prompts&sub=evals&flow=simulation')).toBe('/admin?tab=llm&view=prompts&sub=evals')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=models&flow=simulation')).toBe('/admin?tab=llm&view=prompts&sub=models')
   expect(adminReturnPath('?tab=llm&view=alerts&flow=simulation')).toBe('/admin?tab=llm&view=alerts')
   expect(adminReturnPath('?tab=llm&flow=simulation')).toBe('/admin?tab=llm')
 })
 
-it('사이드바 프롬프트·평가의 하위 탭은 그 쪽에서만 펼쳐지고, 켜진 하위 탭은 AI 파이프라인(전체) 보기의 flow 하나다(#857 3차 정정)', () => {
+it('사이드바 프롬프트·평가의 하위 탭은 그 쪽에서만 펼쳐지고, 켜진 하위 탭은 흐름 범위(flow) 하나다: 전체 파이프라인·에이전트별 평가·프롬프트 보기에 적용되고 모델 보기는 범위가 없다(#857)', () => {
   const state = promptNavState
-  // 프롬프트·평가의 AI 파이프라인(전체) 보기: 펼쳐지고 flow가 켜진 하위 탭이다(없거나 모르는 flow는 전체).
+  // 프롬프트·평가의 보기: 펼쳐지고 flow가 켜진 하위 탭이다(없거나 모르는 flow는 전체).
   expect(state('llm', 'prompts', null, null)).toEqual({ open: true, current: 'all' })
   expect(state('llm', 'prompts', 'all', 'simulation')).toEqual({ open: true, current: 'simulation' })
   expect(state('llm', 'prompts', null, 'writing')).toEqual({ open: true, current: 'writing' })
   expect(state('llm', 'prompts', null, 'nope')).toEqual({ open: true, current: 'all' })
-  // 같은 쪽의 다른 보기(에이전트별 평가·프롬프트·모델)는 하위 탭이 아니라 펼쳐지기만 하고 켜진 하위 탭이 없다(flow가 붙어 있어도 무시한다).
-  for (const sub of ['evals', 'prompts', 'models']) expect(state('llm', 'prompts', sub, 'simulation'), sub).toEqual({ open: true, current: null })
+  for (const sub of ['evals', 'prompts']) expect(state('llm', 'prompts', sub, 'simulation'), sub).toEqual({ open: true, current: 'simulation' })
+  // 모델 단가는 흐름과 무관해 펼쳐지기만 하고 켜진 하위 탭이 없다(flow가 붙어 있어도 무시한다).
+  expect(state('llm', 'prompts', 'models', 'simulation')).toEqual({ open: true, current: null })
   // 다른 쪽·다른 탭에서는 접힌다(탭이 llm이 아니면 view가 prompts여도 접힌다).
   expect(state('llm', 'metrics', null, 'simulation')).toEqual({ open: false, current: null })
   expect(state('llm', 'alerts', null, null)).toEqual({ open: false, current: null })
   expect(state('jobs', 'prompts', null, 'simulation')).toEqual({ open: false, current: null })
+})
+
+it('promptViewHref는 보기(sub)와 흐름 범위(flow)를 한 주소에 담고, 전체(flow 없음)·기본 보기(sub 없음)는 붙이지 않으며 pipelineFlowHref는 파이프라인 보기의 같은 주소다(#857)', () => {
+  expect(promptViewHref('all', 'all')).toBe('/admin?tab=llm&view=prompts')
+  expect(promptViewHref('all', 'simulation')).toBe('/admin?tab=llm&view=prompts&flow=simulation')
+  expect(promptViewHref('evals', 'all')).toBe('/admin?tab=llm&view=prompts&sub=evals')
+  expect(promptViewHref('evals', 'preprocessing')).toBe('/admin?tab=llm&view=prompts&sub=evals&flow=preprocessing')
+  expect(promptViewHref('models', 'review')).toBe('/admin?tab=llm&view=prompts&sub=models&flow=review')
+  expect(PIPELINE_FLOWS.map(([key]) => pipelineFlowHref(key))).toEqual(PIPELINE_FLOWS.map(([key]) => promptViewHref('all', key)))
 })

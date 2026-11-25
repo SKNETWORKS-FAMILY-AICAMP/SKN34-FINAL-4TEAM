@@ -5,30 +5,36 @@ import {
   productionOf, recentDefaultModel, type Evaluation, type EvaluationItem, type Prompt,
 } from '../../../../domain/entities/llmOps'
 import { AGENT_EVALUATIONS, evaluationName, latestRun, pairSets, promptRuns } from '../../../../domain/entities/llmOpsEvalTable'
+import { scopeEvaluations, scopePrompts } from '../../../../domain/entities/llmOpsScope'
 import { promptLabel } from '../../../../domain/entities/promptNames'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
+import type { PipelineFlowKey } from '../../../../domain/entities/admin'
 import { EvaluationChart } from './AdminCharts'
 import type { LlmVM, VM } from './LlmOps'
 import { formNumber, formText } from './formValue'
 import { ModelLabel } from './ModelLabel'
 import { ActionLines, LiveState, Table } from './OperationsPanels'
+import { FlowScope } from './FlowScope'
 import { PromptName } from './PromptName'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type Props = { vm: VM; l: LlmVM }
+/** 흐름 범위(#857): 사이드바 하위 탭에서 고른 흐름이 보기를 거릅니다(전체는 거르지 않음). */
+type ScopedProps = Props & { workflow: PipelineFlowKey }
 
 /**
  * 프롬프트 목록(#705): 모든 LLM 호출의 프롬프트를 표로 보이고, 이름(한국어 표시 이름 + 작은 코드, #857)을 누르면 그 프롬프트의 개선 루프(PromptLoop의 프롬프트 상세)가 열립니다.
  * 모델 칸은 고른 모델이 없으면 파이프라인 기록에서 찾은 '기본 모델 · 최근 사용 …'(근거가 없으면 '기본 모델(환경 설정)')입니다.
  * 회귀 평가·지표는 평가 세트가 있는 프롬프트(#787)만 후보 등록에 통과가 필요하고 나머지는 선택입니다. 변경 조치는 모두 활동 로그에 남습니다.
  */
-export function Prompts({ vm, l }: Props) {
-  const rows = l.prompts.data, pool = l.recent.data
+export function Prompts({ vm, l, workflow }: ScopedProps) {
+  const rows = l.prompts.data && scopePrompts(l.prompts.data, workflow), pool = l.recent.data
   return (
     <section className="panel admin-operations" aria-label="프롬프트">
+      <FlowScope sub="prompts" workflow={workflow} />
       <LiveState vm={vm} label="프롬프트 목록" state={l.prompts} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
@@ -59,7 +65,7 @@ export function Prompts({ vm, l }: Props) {
             </tbody>
           </Table>
         )
-        : <p className="admin-empty">등록된 프롬프트가 없어요. AI 서비스가 시작될 때 모든 LLM 호출의 프롬프트를 버전 1로 등록해요.</p>)}
+        : <p className="admin-empty">{workflow === 'all' ? '등록된 프롬프트가 없어요. AI 서비스가 시작될 때 모든 LLM 호출의 프롬프트를 버전 1로 등록해요.' : '이 흐름의 프롬프트가 아직 없어요.'}</p>)}
       <p className="admin-note">
         프롬프트의 정본은 Langfuse예요. 이름을 누르면 프롬프트 → 평가 세트 → 평가 → 자동 개선 → 게이트 → 서비스 반영 순서로 개선 루프를 볼 수 있어요. 모델과 본문을 묶은 조합을 저장하고,
         회귀 평가로 지표를 본 뒤 후보로 등록하면 서비스에 반영할 수 있어요(평가 세트가 있는 프롬프트는 평가를 통과해야 후보가 돼요).
@@ -202,13 +208,14 @@ function EvaluationItems({ items }: { items: EvaluationItem[] }) {
  * 최근 Run은 평가 목록(최근 50건)에서 세트 이름으로 찾습니다. 프롬프트가 정해진 행은 이름 버튼이 그 프롬프트의 개선 루프(프롬프트 상세)를 열고, 'Run 상세'는 그 Run의 프롬프트 평가 단계에서 Run을 엽니다.
  * 세트가 없는 에이전트도 숨기지 않으며 원문 검색은 모델 없이 CI에서 확인하는 평가라 실행 버튼이 없습니다.
  */
-export function AgentEvaluations({ vm, l }: Props) {
-  const rows = l.evaluations.data
+export function AgentEvaluations({ vm, l, workflow }: ScopedProps) {
+  const rows = l.evaluations.data, scoped = scopeEvaluations(AGENT_EVALUATIONS, workflow)
   return (
     <section className="panel admin-operations" aria-label="에이전트별 평가">
       <h2>에이전트별 평가</h2>
+      <FlowScope sub="evals" workflow={workflow} />
       <LiveState vm={vm} label="평가 목록" state={l.evaluations} forbidden={LLM_FORBIDDEN} />
-      <Table label="에이전트별 평가 표">
+      {scoped.length ? <Table label="에이전트별 평가 표">
         <thead>
           <tr>
             <th scope="col">에이전트 · 평가하는 호출</th>
@@ -219,7 +226,7 @@ export function AgentEvaluations({ vm, l }: Props) {
           </tr>
         </thead>
         <tbody>
-          {AGENT_EVALUATIONS.map((row) => {
+          {scoped.map((row) => {
             const { prompt } = row
             const latest = row.dataset && rows ? latestRun(row.dataset, rows) : undefined
             return (
@@ -244,7 +251,7 @@ export function AgentEvaluations({ vm, l }: Props) {
             )
           })}
         </tbody>
-      </Table>
+      </Table> : <p className="admin-empty">이 흐름은 평가 세트가 없어요.</p>}
       <p className="admin-note">
         행 이름(한국어 이름과 작은 코드)을 누르면 그 프롬프트의 개선 루프(프롬프트 → 평가 세트 → 평가 → 자동 개선 → 게이트 → 서비스 반영)가 열려요. 새 답변 생성은 프롬프트 상세의 평가 단계에서 실행하고
         (범용 세트 leak.spoiler·world.conflict·writing.fix도 어느 프롬프트에서든 데이터셋 이름을 골라 돌려요), 원문 검색은 고정 원문의 검색 순위만 채점하는 CI 평가라 실행 버튼이 없어요(수치는 docs/evaluation/retrieval.md).

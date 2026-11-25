@@ -871,7 +871,7 @@ it('LLM Ops 프롬프트·평가 쪽은 보기 전환(sub)에 따라 전체(AI �
 })
 
 it('사이드바는 서비스 운영 묶음 위에 LLM Ops 묶음(에이전트 지표·프롬프트·평가·경고·누설 감시)을 두고, 현재 표시는 탭과 view가 모두 같은 메뉴에만 있다', async () => {
-  renderAdmin('llm', 'prompts&sub=evals')   // 하위 탭(워크플로우)이 켜지지 않는 보기라 쪽 링크가 현재 표시를 가진다
+  renderAdmin('llm', 'prompts&sub=models')   // 하위 탭(흐름 범위)이 켜지지 않는 보기(모델 단가)라 쪽 링크가 현재 표시를 가진다
   const group = await llmMenu()
   const items = pageLinks(group)
   expect(items.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
@@ -913,7 +913,7 @@ it('프롬프트·평가는 사이드바에서 그 아래 하위 탭(전체·인
   expect(screen.queryByLabelText('워크플로우')).toBeNull()
 })
 
-it('켜진 하위 탭은 주소의 flow를 따르고(없거나 모르는 값은 전체), 에이전트별 평가·프롬프트·모델 보기에서는 하위 탭이 켜지지 않고 쪽 링크가 현재 표시를 가진다(#857 3차 정정)', async () => {
+it('켜진 하위 탭은 주소의 flow(흐름 범위)를 따르고(없거나 모르는 값은 전체) 파이프라인·에이전트별 평가·프롬프트 보기에 같이 적용되며, 모델 단가는 범위가 없어 하위 탭이 켜지지 않고 쪽 링크가 현재 표시를 가진다(#857)', async () => {
   const current = async () => links(await subnav()).filter(([, , aria]) => aria).map(([text]) => text)
   renderAdmin('llm', 'prompts&flow=simulation')
   expect(await current()).toEqual(['인물 시뮬레이션'])
@@ -921,13 +921,30 @@ it('켜진 하위 탭은 주소의 flow를 따르고(없거나 모르는 값은 
   renderAdmin('llm', 'prompts&flow=nope')
   expect(await current()).toEqual(['전체'])
   cleanup()
-  for (const view of ['evals', 'prompts', 'models']) {
-    renderAdmin('llm', `prompts&sub=${view}&flow=simulation`)
-    expect(await current(), view).toEqual([])
-    const parent = within(await llmMenu()).getByRole('link', { name: '프롬프트·평가' })
-    expect([parent.getAttribute('aria-current'), parent.classList.contains('on'), parent.getAttribute('aria-expanded')], view).toEqual(['page', true, 'true'])
+  for (const view of ['evals', 'prompts']) {
+    renderAdmin('llm', `prompts&sub=${view}&flow=review`)
+    expect(await current(), view).toEqual(['원고 검수'])
     cleanup()
   }
+  renderAdmin('llm', 'prompts&sub=models&flow=simulation')
+  expect(await current()).toEqual([])
+  const parent = within(await llmMenu()).getByRole('link', { name: '프롬프트·평가' })
+  expect([parent.getAttribute('aria-current'), parent.classList.contains('on'), parent.getAttribute('aria-expanded')]).toEqual(['page', true, 'true'])
+})
+
+it('하위 탭 링크는 보고 있는 보기(에이전트별 평가·프롬프트)를 유지한 채 흐름 범위만 바꾸고, 모델 단가에서는 범위가 적용되는 파이프라인 보기로 간다(#857)', async () => {
+  renderAdmin('llm', 'prompts&sub=evals&flow=review')
+  expect(links(await subnav()).map(([text, href]) => [text, href])).toEqual([
+    ['전체', '/admin?tab=llm&view=prompts&sub=evals'],
+    ['인물 시뮬레이션', '/admin?tab=llm&view=prompts&sub=evals&flow=simulation'],
+    ['원고 전처리', '/admin?tab=llm&view=prompts&sub=evals&flow=preprocessing'],
+    ['원고 검수', '/admin?tab=llm&view=prompts&sub=evals&flow=review'],
+    ['고증 조사', '/admin?tab=llm&view=prompts&sub=evals&flow=research'],
+    ['기획·집필·수정', '/admin?tab=llm&view=prompts&sub=evals&flow=writing'],
+  ])
+  cleanup()
+  renderAdmin('llm', 'prompts&sub=models&flow=review')
+  expect(links(await subnav()).map(([, href]) => href).slice(0, 2)).toEqual(['/admin?tab=llm&view=prompts', '/admin?tab=llm&view=prompts&flow=simulation'])
 })
 
 it('프롬프트·평가가 아닌 쪽에서는 하위 탭이 접히고(▸·aria-expanded=false·읽히지 않음), 쪽 링크를 누르면 그 쪽으로 가며 펼쳐진다(#857 3차 정정)', async () => {

@@ -2,7 +2,7 @@ import { Fragment, type FormEvent, type ReactNode, useEffect, useRef, useState }
 import { Link, useSearchParams } from 'react-router'
 
 import { LINK_PATH_MAX } from '../../../../domain/entities/event'
-import { ADMIN_PERMISSIONS, LLM_PAGES, PIPELINE_FLOWS, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref, pipelineFlowHref, promptNavState } from '../../../../domain/entities/admin'
+import { ADMIN_PERMISSIONS, LLM_PAGES, PIPELINE_FLOWS, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref, promptNavState, promptSub, promptViewHref } from '../../../../domain/entities/admin'
 import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel, reportTargetTitle, reportTargetTypeLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
@@ -126,6 +126,8 @@ export function AdminPage() {
   const page = llmPage(q.get('view'))
   // 사이드바 프롬프트·평가 아래 하위 탭: 그 쪽에 있을 때만 펼쳐지고, 켜진 하위 탭은 AI 파이프라인(전체) 보기의 flow입니다.
   const { open, current: subTab } = promptNavState(tab, page, q.get('sub'), q.get('flow'))
+  // 하위 탭 링크는 보고 있는 보기(에이전트별 평가·프롬프트)를 유지한 채 흐름 범위만 바꾸고, 범위가 없는 모델 단가에서는 범위가 적용되는 파이프라인 보기로 갑니다.
+  const subView = promptSub(q.get('sub')) === 'models' ? 'all' : promptSub(q.get('sub'))
   const vm = useAdminViewModel(tab)
   const { sel, filters, setSel } = vm
   const f = filters[tab] ??
@@ -190,7 +192,7 @@ export function AdminPage() {
         <ul id='admin-prompts-subnav' className='admin-subnav' aria-label={`${l} 하위 메뉴`} hidden={!open}>
           {PIPELINE_FLOWS.map(([flow, label]) => (
             <li key={flow}>
-              <Go to={pipelineFlowHref(flow)} className={flow === subTab ? 'on' : ''} aria-current={flow === subTab ? 'page' : undefined}>{label}</Go>
+              <Go to={promptViewHref(subView, flow)} className={flow === subTab ? 'on' : ''} aria-current={flow === subTab ? 'page' : undefined}>{label}</Go>
             </li>
           ))}
         </ul>
