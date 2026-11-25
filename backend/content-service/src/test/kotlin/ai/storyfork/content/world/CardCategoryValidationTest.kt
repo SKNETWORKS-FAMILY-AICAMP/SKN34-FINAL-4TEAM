@@ -34,7 +34,7 @@ class CardCategoryValidationTest {
         mock(WorldRevisionRepository::class.java), mock(WorldRevisionCardRepository::class.java), mock(WorldSaveRequestRepository::class.java), states,
         mock(TemplatePublicationOnceRepository::class.java), mock(ExpandedSeedProgressRepository::class.java), mock(InitialWorldApplicationRepository::class.java),
         mock(SettingCardImageRepository::class.java), mock(Neo4jRelationshipRepository::class.java), manager, mapper, mock(GenreRepository::class.java),
-        mock(ManuscriptBuildJobRepository::class.java), mock(ManuscriptBuildLoadStepRepository::class.java), cardCategories)
+        mock(ManuscriptBuildJobRepository::class.java), mock(ManuscriptBuildLoadStepRepository::class.java), cardCategories, mock(org.springframework.context.ApplicationEventPublisher::class.java))
     private val world = UUID.randomUUID()
     private val actor = UUID.randomUUID()
 

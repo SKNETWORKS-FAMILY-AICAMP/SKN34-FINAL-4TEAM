@@ -37,7 +37,7 @@ export default function WorldGraphCanvas({ data, mode, summary, highlightId, onO
   const [height, setHeight] = useState(460)
   const compact = width < 480
   const large = data.nodes.length > LARGE_GRAPH
-  const { replay, onEngineStop } = useRelayout(canvas, data.nodes, 48)
+  const { replay, onEngineTick, onEngineStop } = useRelayout(canvas, data.nodes, 48)
 
   // 높이는 CSS(데스크톱 460px·모바일 340px)가 정하고 캔버스가 같은 값을 읽는다. 그리기 전에 맞춰 크기가 튀지 않는다.
   useLayoutEffect(() => setHeight(host.current?.clientHeight || 460), [host, width])
@@ -149,7 +149,7 @@ export default function WorldGraphCanvas({ data, mode, summary, highlightId, onO
             onZoom={({ k }) => { scale.current = k }}
             enableZoomInteraction={(e) => e.ctrlKey || e.metaKey} {...pointer.graphProps}
             onNodeDragEnd={(n) => { n.fx = n.x; n.fy = n.y }}
-            onEngineStop={onEngineStop}
+            onEngineTick={onEngineTick} onEngineStop={onEngineStop}
           />
         </div>
         {/* role="img"의 자식은 보조기기에서 그림의 일부가 되므로 상태 안내는 캔버스 바깥 형제로, 레이아웃에 영향이 없게 겹쳐 둔다. 터치에서 첫 탭으로 이름을 보인 노드는 여기서도 알린다(이름이 길어 잘려도 안내는 남게 안내를 앞에 둔다). */}

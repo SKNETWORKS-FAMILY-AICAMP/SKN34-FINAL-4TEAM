@@ -257,11 +257,11 @@ it('previews the chosen cover image in the cover slot of the creation screen', a
   expect(screen.getByText('선택한 파일: cover.png')).toBeTruthy()
 })
 
-it('hides the 내 댓글·제보 link on the creation screen', async () => {
+it('hides the 내 제보·수정 제안 link on the creation screen', async () => {
   stubCover()
   openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
   await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull()
 })
 
 it('keeps 작품 만들기 disabled when my works could not be loaded', async () => {
@@ -391,7 +391,7 @@ it('puts the back link to the library in the sidebar just below the logo and dra
   expect(document.querySelector('.ep-top')).toBeNull() // 두 곳에 동시에 두지 않는다
 })
 
-it('puts the work menu, then the account row in the sidebar — no tool group; 내 댓글·제보 is a menu tab (button) and the studio is reached from the episode list only', async () => {
+it('puts the work menu, then the account row in the sidebar — no tool group; 내 제보·수정 제안 is a menu tab (button) and the studio is reached from the episode list only', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const side = within(document.querySelector<HTMLElement>('.ep-menu')!)
@@ -401,14 +401,14 @@ it('puts the work menu, then the account row in the sidebar — no tool group; �
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
-  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 댓글·제보 링크)은 없고, 알림·테마·계정은 본문 밖의 맨 아래 줄이다.
+  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 제보·수정 제안 링크)은 없고, 알림·테마·계정은 본문 밖의 맨 아래 줄이다.
   expect(document.querySelector('.ep-menu-tools')).toBeNull()
   expect(order[0].closest('.ep-menu-body')?.lastElementChild).toBe(order[0])
   expect(order[1].closest('.ep-menu-account')?.contains(order[2])).toBe(true)
   expect(order[1].closest('.ep-menu-body')).toBeNull()
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull() // 사이드바 링크가 아니라 작품 메뉴의 탭(버튼)이다
-  expect(within(order[0]).getByRole('button', { name: '내 댓글·제보' })).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull() // 사이드바 링크가 아니라 작품 메뉴의 탭(버튼)이다
+  expect(within(order[0]).getByRole('button', { name: '내 제보·수정 제안' })).toBeTruthy()
 })
 
 it('folds the sidebar: the back link moves to the top row so it is never in two places (no action buttons there), and unfolding brings it back', async () => {
@@ -422,11 +422,11 @@ it('folds the sidebar: the back link moves to the top row so it is never in two 
   expect(toggle.getAttribute('aria-expanded')).toBe('false')
   const top = within(document.querySelector<HTMLElement>('.ep-top')!)
   expect(top.getByRole('link', { name: '내가 쓰는 소설' }).getAttribute('href')).toBe('/lib?tab=write')
-  // 상단 줄에는 돌아가기 링크뿐이다: 회차 작성하기·내 댓글·제보 같은 행동 버튼은 사이드바에도 상단 줄에도 없다.
+  // 상단 줄에는 돌아가기 링크뿐이다: 회차 작성하기·내 제보·수정 제안 같은 행동 버튼은 사이드바에도 상단 줄에도 없다.
   expect(document.querySelector('.ep-top')?.children).toHaveLength(1)
   expect(document.querySelector('.ep-top-actions')).toBeNull()
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
-  expect(screen.queryByRole('link', { name: '내 댓글·제보' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '내 제보·수정 제안' })).toBeNull()
   expect(screen.getAllByRole('link', { name: '내가 쓰는 소설' })).toHaveLength(1)
   // 900px 이하에서는 접힌 본문도 CSS로 보이므로 hidden에 기대지 않고 DOM에서도 한 곳뿐이다.
   expect(document.querySelector('.ep-menu-back')).toBeNull()
@@ -916,7 +916,7 @@ it('lists the management tabs including the overview and operating settings, and
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const nav = screen.getByRole('navigation', { name: '작품 메뉴' })
-  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['개요', '공개 회차 · 0', '세계관·설정집', '이야기 분기', 'AI 집필', '받은 피드백', '내 댓글·제보', '운영 설정', '저장·AI·발행 이력'])
+  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['개요', '공개 회차 · 0', '세계관·설정집', '이야기 분기', 'AI 집필', '받은 피드백', '내 제보·수정 제안', '운영 설정', '저장·AI·발행 이력'])
   expect(within(nav).getByRole('button', { name: '개요' }).getAttribute('aria-current')).toBe('page')
   expect(screen.getByRole('heading', { level: 1, name: '옛 제목' })).toBeTruthy() // 히어로(표지·제목·소개)는 개요 탭의 내용이다.
   expect(screen.queryByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeNull()
@@ -1018,7 +1018,7 @@ it('shows the world link panel above the settings book summary in the world tab'
   myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: WORLD_ID }]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }))
   fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
-  const card = await screen.findByRole('region', { name: '세계관 설정집' })
+  const card = await screen.findByRole('region', { name: '설정집' })
   expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 7 · 설정 0개')).toBeTruthy()
   const link = screen.getByRole('region', { name: '세계관 연결' })
   expect(link.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -1034,7 +1034,7 @@ it('opens the world tab first when the address has tab=world', async () => {
   myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: WORLD_ID }]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }), '옛 제목', '/content?work=w&tab=world')
   expect(within(screen.getByRole('navigation', { name: '작품 메뉴' })).getByRole('button', { name: '세계관·설정집' }).getAttribute('aria-current')).toBe('page')
-  expect(await screen.findByRole('region', { name: '세계관 설정집' })).toBeTruthy()
+  expect(await screen.findByRole('region', { name: '설정집' })).toBeTruthy()
 })
 
 it('links and unlinks my world from the world tab and shows the server reason when the world is already linked', async () => {
@@ -1081,7 +1081,7 @@ it('links and unlinks my world from the world tab and shows the server reason wh
   expect(sent()).toEqual([{ worldId: WORLD_ID }, { worldId: null }, { worldId: WORLD_ID }])
 })
 
-it('titles every tab body (one h2, first in the tab) with exactly the words of its menu tab, and sets the groups inside it as h3', async () => {
+it('titles every tab body (one h2) with exactly the words of its menu tab — first in the tab, or right after the hero that holds the work title on the overview (h1 → h2 → h3) — and sets the groups inside it as h3', async () => {
   stubCover()
   myWorlds([])
   vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
@@ -1089,7 +1089,7 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
   // AI 집필 탭은 컨테이너의 서버 UseCase로 읽는다(응답 모양은 data 단위 테스트가 본다).
   vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockResolvedValue({ enabled: false, days: [], time: '21:00', direction: '' })
   vi.spyOn(appContainer.resolve('serialUseCase'), 'boards').mockResolvedValue([])
-  // 내 댓글·제보 탭은 계정 메뉴의 같은 화면과 같은 UseCase로 읽는다(서버 제보·수정 제안은 비어 있고 데모 피드백은 메모리 목록이다).
+  // 내 제보·수정 제안 탭은 계정 메뉴의 같은 화면과 같은 UseCase로 읽는다(서버 제보·수정 제안은 비어 있고 데모 피드백은 메모리 목록이다).
   vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listMine').mockResolvedValue([])
   vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'mine').mockResolvedValue([])
   await openWork(contentApi({
@@ -1099,13 +1099,13 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
     'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1)]),
   }))
   const ready: Record<string, () => Promise<unknown>> = {
-    '개요': () => screen.findByRole('heading', { level: 1, name: '옛 제목' }), // 히어로의 제목(h1)은 개요 탭 제목(h2) 아래에 있다
+    '개요': () => screen.findByRole('heading', { level: 1, name: '옛 제목' }), // 히어로의 제목(h1)은 개요 탭 제목(h2) 위에 있다
     '공개 회차 · 0': () => screen.findByText(/아직 공개한 회차가 없어요/), // 공개 회차가 없는 안내(초안 묶음은 없다)
-    '세계관·설정집': () => screen.findByRole('region', { name: '세계관 설정집' }),
+    '세계관·설정집': () => screen.findByRole('region', { name: '설정집' }),
     '이야기 분기': async () => screen.getByRole('heading', { level: 3, name: '그 순간, 다른 선택을 했다면' }),
     'AI 집필': () => screen.findByRole('button', { name: '설정 저장' }),
     '받은 피드백': () => screen.findByRole('heading', { level: 3, name: '독자 제보 0' }),
-    '내 댓글·제보': () => screen.findByRole('heading', { level: 3, name: '내 제보 0' }), // 구획 제목은 탭 제목(h2) 아래 h3다(쪽 제목 h1은 없다)
+    '내 제보·수정 제안': () => screen.findByRole('heading', { level: 3, name: '내 제보 0' }), // 구획 제목은 탭 제목(h2) 아래 h3다(쪽 제목 h1은 없다)
     '운영 설정': () => screen.findByRole('button', { name: '집필 방식 저장' }),
     '저장·AI·발행 이력': () => screen.findByText('발행 이력이 없어요.'),
   }
@@ -1115,9 +1115,11 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
     fireEvent.click(button)
     await ready[button.textContent!]()
     const tab = document.querySelector<HTMLElement>('.ep-tab')!
-    expect(tab.firstElementChild?.tagName, button.textContent!).toBe('H2')
-    expect(tab.firstElementChild?.textContent, button.textContent!).toBe(button.textContent) // 메뉴 이름과 똑같다
-    expect(within(tab).getAllByRole('heading', { level: 2 }), button.textContent!).toHaveLength(1) // 탭 제목은 하나뿐, 안의 묶음 제목은 h3다
+    const title = within(tab).getByRole('heading', { level: 2 }) // 탭 제목은 하나뿐, 안의 묶음 제목은 h3다
+    expect(title.textContent, button.textContent!).toBe(button.textContent) // 메뉴 이름과 똑같다
+    // 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 묶음 제목(h3)이다: 개요는 작품 제목(h1)을 그리는 히어로 다음에, 다른 탭은 위의 요약 머리(h1)가 있어 탭 내용 맨 앞에 둔다.
+    if (button.textContent === '개요') expect(title.previousElementSibling?.classList.contains('ep-hero'), '개요').toBe(true)
+    else expect(tab.firstElementChild, button.textContent!).toBe(title)
   }
 })
 
@@ -1171,6 +1173,58 @@ it.each([
   expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
   expect(screen.queryByText(LOCK_NOTICE)).toBeNull()
+})
+
+// ── AI 자율 연재 칩(개요 히어로): 켜짐은 EpisodePage가 이미 읽는 useSerialLock 값이라 새 요청이 없다 ──
+const heroChips = () => Array.from(document.querySelectorAll('.ep-hero .ep-chips > *'), (chip) => chip.textContent)
+
+it('shows an AI 자율 연재 chip right after the 분기 작품 chip of the overview hero while AI 자율 집필 is on, from the one read that already locks the studio', async () => {
+  stubCover()
+  const read = serialRead(() => Promise.resolve(serialSettings({ enabled: true })))
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
+  await waitFor(() => expect(heroChips()).toEqual(['판타지 · SF', '분기 작품', 'AI 자율 연재', '공개 회차 없음']))
+  // 대기·주의(chip wait) 색이 아니라 유형 칩과 같은 회색 기본 칩이다.
+  expect(Array.from(document.querySelectorAll('.ep-hero .ep-chips > .chip'), (chip) => [chip.textContent, chip.className])).toContainEqual(['AI 자율 연재', 'chip'])
+  expect(read).toHaveBeenCalledTimes(1)
+})
+
+it.each([
+  ['AI 자율 집필이 꺼져 있으면', () => Promise.resolve(serialSettings({ enabled: false }))],
+  ['켜짐 여부를 읽지 못하면 (모르는 값을 켜짐으로 꾸미지 않는다)', () => Promise.reject(new Error('설정 서버 오류'))],
+])('%s 개요 히어로에 AI 자율 연재 칩이 없다', async (_name, answer) => {
+  stubCover()
+  const read = serialRead(answer)
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
+  await waitFor(() => expect(read).toHaveBeenCalled())
+  await act(async () => {})
+  expect(heroChips()).toEqual(['판타지 · SF', '분기 작품', '공개 회차 없음'])
+})
+
+// ── AI 자율 연재 칩(개요 밖 탭 머리): 개요 히어로와 같은 useSerialLock 값이 요약 머리(WorkBrief)의 칩 줄에도 이어진다 ──
+const briefChips = () => Array.from(document.querySelectorAll('.ep-brief .ep-chips > *'), (chip) => chip.textContent)
+
+it('shows the AI 자율 연재 chip in the short head of the other tabs too, right after the 분기 작품 chip, from the one read the overview hero already uses', async () => {
+  stubCover()
+  const read = serialRead(() => Promise.resolve(serialSettings({ enabled: true })))
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
+  await waitFor(() => expect(heroChips()).toContain('AI 자율 연재'))
+  toReadTab()
+  expect(briefChips()).toEqual(['판타지 · SF', '분기 작품', 'AI 자율 연재', '공개 회차 없음'])
+  expect(Array.from(document.querySelectorAll('.ep-brief .ep-chips > .chip'), (chip) => [chip.textContent, chip.className])).toContainEqual(['AI 자율 연재', 'chip'])
+  expect(read).toHaveBeenCalledTimes(1) // 탭을 옮겨도 새 요청은 없다
+})
+
+it.each([
+  ['AI 자율 집필이 꺼져 있으면', () => Promise.resolve(serialSettings({ enabled: false }))],
+  ['켜짐 여부를 읽지 못하면 (모르는 값을 켜짐으로 꾸미지 않는다)', () => Promise.reject(new Error('설정 서버 오류'))],
+])('%s 다른 탭의 요약 머리에도 AI 자율 연재 칩이 없다', async (_name, answer) => {
+  stubCover()
+  const read = serialRead(answer)
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
+  await waitFor(() => expect(read).toHaveBeenCalled())
+  await act(async () => {})
+  toReadTab()
+  expect(briefChips()).toEqual(['판타지 · SF', '분기 작품', '공개 회차 없음'])
 })
 
 // ── Fork 세계관 독립(#583): 자기 세계관이 없는 Fork의 세계관 탭 ──
@@ -1231,7 +1285,8 @@ it('원작에 세계관이 없는 옛 설정집 방식 Fork는 설정집 카드�
     'POST /api/v1/works/w/inherited-world/detach': detach,
   }), '내 포크')
   fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
-  const card = within(await screen.findByRole('region', { name: '세계관 설정집' }))
+  // 설정집 카드의 구역 이름은 보이는 제목(설정집 이름, h3)이다.
+  const card = within(await screen.findByRole('region', { name: '설정집' }))
   // 원작에 세계관이 없으면 이어받는 세계관 카드는 사라지고, 설정집 카드가 같은 버튼을 가진다.
   await waitFor(() => expect(screen.queryByRole('region', { name: '이어받는 원작 세계관' })).toBeNull())
   fireEvent.click(await card.findByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
@@ -1548,12 +1603,28 @@ it('개요 탭 히어로 아래에 대시보드가 있고, 공개 작품의 독�
   expect(readerStats).toHaveBeenCalledWith('w', expect.any(AbortSignal))
   expect(dashMetric('좋아요')).toBe('3')
   expect(dashMetric('공개 회차')).toBe('1화')
-  expect(dashMetric('총 글자 수 · 공백 포함')).toBe('5자') // 내가 쓴 공개 회차의 글자만('1화 본문')
+  expect(dashMetric('총 글자 수')).toBe('5자') // 내가 쓴 공개 회차의 글자만('1화 본문')
+  expect(within(screen.getByText('총 글자 수', { selector: '.ep-dash dt' }).parentElement!).getByText('공백 포함')).toBeTruthy() // 기준은 이름이 아니라 값 아래 보조 줄
   await waitFor(() => expect(dashMetric('받은 피드백')).toBe('0건'))
   const recent = within(await screen.findByRole('region', { name: '최근 발행 이력' }))
-  expect((await recent.findByRole('listitem')).textContent).toContain('1화 · 발행 ·')
+  expect((await recent.findByRole('listitem')).textContent).toContain('1화 · 발행')
   expect(screen.getByRole('link', { name: '소설 상세 보기' }).getAttribute('href')).toBe('/work/w')
   expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w') // 사이드바 메뉴에 없는 목적지로 가는 바로가기(탭 전환 버튼이 없음은 WorkDashboard.test가 본다)
+})
+
+it('keeps the heading order h1 → h2 → h3: the overview draws its tab title after the hero that holds the work title and before the dashboard sections, and the other tabs after the short head', async () => {
+  stubCover()
+  vi.spyOn(appContainer.resolve('readingUseCase'), 'readerStats').mockResolvedValue({ likes: 0, views: 0 })
+  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
+  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/history': () => Response.json({ versions: [], proposals: [], publicationHistory: [] }),
+  }))
+  const outline = () => Array.from(document.querySelectorAll('.ep-content :is(h1,h2,h3)'), (heading) => `${heading.tagName.toLowerCase()} ${heading.textContent}`)
+  expect(outline()).toEqual(['h1 옛 제목', 'h2 개요', 'h3 작품 지표', 'h3 최근 발행 이력', 'h3 바로가기'])
+  toReadTab()
+  expect(outline().slice(0, 2)).toEqual(['h1 옛 제목', 'h2 공개 회차 · 0'])
 })
 
 it('대시보드의 한 구획이 실패해도 그 구획 안에서만 알리고(화면 알림 role=alert는 가로채지 않는다) 다른 지표는 그대로 보인다', async () => {

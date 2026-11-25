@@ -83,6 +83,14 @@ describe('canonical WorkRepository', () => {
     world.workId='another-work'
     await expect(repository.readWorld(work,2)).rejects.toThrow('작품')
   })
+  it.each([true, false])('preserves the public Fork publication policy (%s) in the creation form', async (allowForkPublication) => {
+    const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).endsWith('/world-cards?upto=2')
+      ? { workId: 'work-uuid', worldId: 'world-uuid', upto: 2, cards: [], relationships: [], relationshipStatus: 'current' }
+      : [record({ allowForkPublication })]))
+    const repository = new HttpWorkRepository(new HttpEpisodeRepository(fetcher), () => false)
+    const form = await new ForkUseCase(repository).getForm('work-uuid', 2)
+    expect(form?.work.allowForkPublication).toBe(allowForkPublication)
+  })
   it('keeps the source title and deleted flag from the transport so a deleted original is shown as deleted', async () => {
     const forked = record({ source: { workId: 'parent-uuid', title: '부모', episode: 1, version: 1, direction: '분기', deleted: true },
       episodes: record().episodes.map((e, i) => ({ ...e, inherited: i === 0, body: i === 0 ? '' : e.body })) })

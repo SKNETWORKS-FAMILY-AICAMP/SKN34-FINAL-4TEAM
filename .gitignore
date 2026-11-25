@@ -33,3 +33,4 @@ coverage/
 backend/ai-service/eval/novelbrain/.data/
 backend/ai-service/eval/simulation/.data/
 backend/ai-service/eval/writing/.data/
+backend/ai-service/eval/extraction/.data/

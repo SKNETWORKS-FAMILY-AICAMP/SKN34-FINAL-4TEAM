@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { LLM_FORBIDDEN, bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
+import {
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type EvaluationItem, type PromptVersion,
+} from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
@@ -32,14 +34,16 @@ describe('LLMOps 표시 값', () => {
     expect(bodyText(null)).toBe('')
   })
 
-  it('production보다 새 버전은 승격, 오래된 버전은 복원, production 자신은 버튼이 없다', () => {
-    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels, createdAt: '2026-11-19T00:00:00Z' })
-    const versions = [v(3), v(2, ['production']), v(1)]
-    expect(promoteLabel(versions, versions[0])).toBe('승격')
-    expect(promoteLabel(versions, versions[2])).toBe('복원')
-    expect(promoteLabel(versions, versions[1])).toBeNull()
-    // production 라벨이 아직 없으면 어느 버전이든 승격이다.
-    expect(promoteLabel([v(1)], v(1))).toBe('승격')
+  it('버전의 조치: 서비스에 반영 중이면 없음, 자기 후보 라벨이 있으면 반영, 아니면 후보 등록이다(#705)', () => {
+    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
+    expect(versionAction(v(3, ['production', 'candidate-3']))).toBe('live')
+    expect(versionAction(v(3, ['candidate-3', 'latest']))).toBe('promote')
+    // 다른 버전의 후보 라벨이나 번호 없는 라벨은 이 버전의 후보가 아니다.
+    expect([versionAction(v(3, ['candidate-2'])), versionAction(v(3, ['candidate'])), versionAction(v(3))]).toEqual(['candidate', 'candidate', 'candidate'])
+  })
+
+  it('라벨은 화면 이름으로 보이고 Langfuse가 관리하는 latest는 숨긴다', () => {
+    expect(['production', 'candidate-3', 'seed', 'latest', 'staging'].map(labelText)).toEqual(['서비스 반영 중', '후보', '코드 시드', null, 'staging'])
   })
 })
 
@@ -97,5 +101,56 @@ describe('권한 안내 문구', () => {
   it('조회가 403이면 다시 불러오기 대신 필요한 권한을 안내한다', () => {
     expect(LLM_FORBIDDEN).toBe('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
     expect(JOBS_FORBIDDEN).toBe("실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요.")
+  })
+
+  it('production 버전과, production과 다른 코드 시드(seed 라벨) 버전을 찾는다(#705)', () => {
+    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
+    expect(productionOf({ name: 'p', candidates: 0, versions: [v(3, ['seed']), v(2, ['production'])] })?.version).toBe(2)
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(3, ['seed', 'latest']), v(2, ['production'])] })?.version).toBe(3)
+    // 시드가 production과 같은 버전이거나 아직 seed 라벨이 없으면 대기 중인 시드가 없다.
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(2, ['production', 'seed'])] })).toBeNull()
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(2, ['production'])] })).toBeNull()
+    expect(productionOf({ name: 'p', candidates: 0, versions: [v(1)] })).toBeNull()
+  })
+
+  it('버전에 고른 모델이 없으면 기본 모델(환경 설정)로 보이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
+    // 고르지 않은 버전의 실제 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808).
+    expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델(환경 설정)', '기본 모델(환경 설정)'])
+    expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
+  })
+})
+
+describe('프롬프트 자동 개선 표시 값(#823)', () => {
+  it('자동 개선은 인물 시뮬레이션 대사·나레이션 프롬프트만 켠다', () => {
+    expect([isOptimizable('character_simulation.act'), isOptimizable('character_simulation.narrate')]).toEqual([true, true])
+    // 같은 접두어의 다른 호출·다른 기능·객체 기본 속성 이름은 켜지지 않는다.
+    expect(['character_simulation.direct', 'character_simulation.check', 'story_context.answer', 'toString', ''].map(isOptimizable)).toEqual([false, false, false, false, false])
+  })
+
+  it('예상 OpenAI 호출 수 어림은 2 × 평가 호출 상한 + 2 × 게이트 세트 문항 수다', () => {
+    expect(estimatedCalls('character_simulation.act', 150)).toBe(2 * 150 + 2 * 24)
+    expect(estimatedCalls('character_simulation.narrate', 150)).toBe(2 * 150 + 2 * 46)
+    expect(estimatedCalls('character_simulation.act', 500)).toBe(1048)
+    expect(estimatedCalls('character_simulation.act', 1)).toBe(50)
+  })
+
+  it('실패한 문항의 이유: 항목 오류는 서버 문구, 시점 위반과 0.5 미만 지표는 이름으로, 통과한 문항은 이유가 없다', () => {
+    const item = (over: Partial<EvaluationItem>): EvaluationItem => ({ itemId: 'simulation.act-01', scores: { voice: 0.75, intent: 1, pov_ok: 1 }, failed: false, ...over })
+    expect(itemReason(item({}))).toBeNull()
+    expect(itemReason(item({ failed: true, scores: {}, error: '생성 또는 채점에 실패했어요.' }))).toBe('생성 또는 채점에 실패했어요.')
+    expect(itemReason(item({ failed: true, scores: { voice: 1, intent: 1, pov_ok: 0 } }))).toBe('시점 위반(위반 사실 있음)')
+    expect(itemReason(item({ failed: true, scores: { voice: 0.25, intent: 0.4, pov_ok: 1 } }))).toBe('0.5 미만 지표: voice, intent')
+    expect(itemReason(item({ failed: true, scores: { voice: 0.25, intent: 1, pov_ok: 0 } }))).toBe('시점 위반(위반 사실 있음) · 0.5 미만 지표: voice')
+    // 서버가 실패로 센 이유를 이 규칙으로 찾지 못해도 이유 칸이 비지 않는다.
+    expect(itemReason(item({ failed: true }))).toBe('실패')
+  })
+})
+
+describe('문항별 결과의 진행 중 표시(#823)', () => {
+  it('점수가 아직 없고 실패도 아닌 문항은 진행 중이다', () => {
+    const item = (over: Partial<EvaluationItem>): EvaluationItem => ({ itemId: 'simulation.act-01', scores: {}, failed: false, ...over })
+    expect(itemWaiting(item({}))).toBe(true)
+    // 점수가 있으면 끝난 문항이고, 실패(항목 오류)한 문항은 진행 중이 아니다.
+    expect([itemWaiting(item({ scores: { voice: 0.5 } })), itemWaiting(item({ failed: true, error: '생성 또는 채점에 실패했어요.' }))]).toEqual([false, false])
   })
 })

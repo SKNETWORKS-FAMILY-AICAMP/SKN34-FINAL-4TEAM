@@ -30,23 +30,70 @@ export type MetricsGroup = 'day' | 'feature' | 'model'
 export type MetricsQuery = { from: string; to: string; groupBy: MetricsGroup }
 export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['feature', '기능'], ['model', '모델']]
 
-export type PromptVersion = { version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null }
-export type Prompt = { name: string; versions: PromptVersion[] }
-/** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. */
-export type PromptVersionInput = { prompt: string; commitMessage: string }
+/**
+ * model은 그 버전에 고른 모델(#705, Langfuse 버전 config.model)이고 비면 AI 서비스의 환경 변수 기본 모델입니다.
+ * prompt는 텍스트 본문으로 상세에서만 옵니다(목록·채팅 프롬프트는 비어 있습니다).
+ */
+export type PromptVersion = {
+  version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
+  model?: string | null; prompt?: string | null; commitMessage?: string | null
+}
+/**
+ * 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다.
+ * evaluationDataset은 후보로 등록하려면 통과해야 하는 평가 세트이고(#787) 비면 평가 없이 후보로 등록합니다.
+ * models는 새 조합에 고를 수 있는 모델(AI 서비스가 부르는 OpenAI 모델, 운영 설정 LLMOPS_MODELS, #806)이고 상세에만 옵니다.
+ */
+export type Prompt = { name: string; versions: PromptVersion[]; candidates: number; evaluationDataset?: string | null; models?: string[] | null }
+/** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. model이 비면 기본 모델 버전입니다. */
+export type PromptVersionInput = { prompt: string; commitMessage: string; model: string }
 
 /** 가격은 토큰당 USD입니다. */
 export type Model = { id: string; modelName: string; matchPattern: string; inputPrice?: number | null; outputPrice?: number | null }
 export type ModelInput = { modelName: string; matchPattern: string; inputPrice: number; outputPrice: number }
 
 export type EvaluationMetric = { name: string; score: number; baseline?: number | null; delta?: number | null }
+/**
+ * 평가 세트 문항 하나의 결과(#823, 상세에만 옵니다). 실패 = 항목 오류(점수 없음)·pov_ok 0(위반 사실 있음)·지표 하나라도 0.5 미만이며 서버가 정합니다.
+ * error는 항목 오류일 때만 오는 고정 문구이고 문항 본문은 오지 않습니다.
+ */
+export type EvaluationItem = { itemId: string; scores: Record<string, number>; failed: boolean; error?: string | null }
 export type Evaluation = {
   runId: string; dataset: string; prompt: string; version: number
   /** running | completed | failed */
   status: string
   passed?: boolean | null; createdAt: string; metrics: EvaluationMetric[]
+  /** 문항별 결과(실패 먼저). 상세에만 있고 목록에는 없습니다. */
+  items?: EvaluationItem[] | null
 }
 export type EvaluationInput = { dataset: string; prompt: string; version: number }
+
+/** 자동 개선(GEPA, #823) 요청: 기준 버전과 평가 호출 상한(1~500)입니다. */
+export type OptimizationInput = { version: number; maxMetricCalls: number }
+/** 자동 개선을 켤 수 있는 프롬프트와 그 게이트 세트의 문항 수(예상 호출 수 어림용, 서버가 쓰는 세트와 같은 값입니다). */
+const OPTIMIZATION_GATE_ITEMS = new Map([['character_simulation.act', 24], ['character_simulation.narrate', 46]])
+export const OPTIMIZATION_DEFAULT_CALLS = 150
+export const OPTIMIZATION_MAX_CALLS = 500
+export const isOptimizable = (name: string) => OPTIMIZATION_GATE_ITEMS.has(name)
+/**
+ * 예상 OpenAI 호출 수(어림) = 2 × 평가 호출 상한(항목마다 생성 + 채점) + 2 × 게이트 세트 문항 수(마지막 회귀 평가).
+ * 반성 모델 호출은 로컬 게이트웨이라 세지 않고, 기준 Run이 없으면 기준 평가만큼 더 듭니다.
+ */
+export const estimatedCalls = (name: string, maxMetricCalls: number) => 2 * maxMetricCalls + 2 * (OPTIMIZATION_GATE_ITEMS.get(name) ?? 0)
+/** 실패한 문항이 실패한 이유 글: 항목 오류(서버의 고정 문구)·시점 위반·0.5 미만 지표. 통과한 문항은 null입니다. */
+export function itemReason(item: EvaluationItem): string | null {
+  if (item.error) return item.error
+  if (!item.failed) return null
+  const reasons = item.scores.pov_ok === 0 ? ['시점 위반(위반 사실 있음)'] : []
+  const low = Object.entries(item.scores).filter(([name, score]) => name !== 'pov_ok' && score < 0.5).map(([name]) => name)
+  if (low.length) reasons.push(`0.5 미만 지표: ${low.join(', ')}`)
+  return reasons.join(' · ') || '실패'
+}
+/** 점수가 아직 없고 실패도 아닌 문항: 실행 중인 Run에서 아직 생성·채점 중인 문항입니다(끝난 Run에서 점수가 없는 문항은 서버가 실패로 줍니다). */
+export const itemWaiting = (item: EvaluationItem) => !item.failed && Object.keys(item.scores).length === 0
+/** 같은 프롬프트의 자동 개선이 이미 돌 때(409 OPTIMIZATION_RUNNING) 보이는 문구. */
+export const OPTIMIZATION_RUNNING_MESSAGE = '이 프롬프트의 자동 개선이 이미 실행 중이에요. 끝난 뒤에 다시 시도해 주세요.'
+/** 자동 개선을 지원하지 않는 프롬프트(422 OPTIMIZATION_UNSUPPORTED)일 때 보이는 문구. */
+export const OPTIMIZATION_UNSUPPORTED_MESSAGE = '이 프롬프트는 자동 개선을 지원하지 않아요.'
 
 export type LeakCheck = { id: string; traceId: string; workId: string; checkedAt: string; matched: string[]; suspected: boolean; reason?: string | null }
 export type LlmOpsSettings = { leakSampleRate: number }
@@ -54,8 +101,10 @@ export type LlmOpsSettings = { leakSampleRate: number }
 /** LLM Ops 조회 API는 `llm` 권한이 필요합니다. 403이면 다시 불러오기 대신 이 안내만 보입니다. */
 export const LLM_FORBIDDEN = 'LLM Ops 조회 권한이 있어야 볼 수 있어요.'
 
-/** 승격이 그 버전의 최신 회귀 평가 미통과로 막힐 때(409 EVALUATION_REQUIRED) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
-export const EVALUATION_REQUIRED_MESSAGE = '회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'
+/** 후보가 아닌 버전을 서비스에 반영하려다 막힐 때(409 CANDIDATE_REQUIRED, #705) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
+export const CANDIDATE_REQUIRED_MESSAGE = '후보로 등록한 조합만 서비스에 반영할 수 있어요.'
+/** 평가 세트가 있는 프롬프트를 평가 통과 전에 후보로 등록하려다 막힐 때(409 EVALUATION_REQUIRED, #787) 보이는 문구. */
+export const EVALUATION_REQUIRED_MESSAGE = '이 프롬프트는 평가 세트의 회귀 평가를 통과한 버전만 후보로 등록할 수 있어요.'
 
 const TRACE_STATUSES = new Map([['success', '성공'], ['failed', '실패'], ['timeout', '시간 초과']])
 export const TRACE_STATUS_OPTIONS = [...TRACE_STATUSES]
@@ -80,9 +129,25 @@ export const perMillion = (price: number | null | undefined) => price == null ? 
 /** 추적 입력·출력 본문: 문자열은 그대로, 그 밖은 들여쓴 JSON입니다. */
 export const bodyText = (value: unknown) => value == null ? '' : typeof value === 'string' ? value : JSON.stringify(value, null, 2)
 
-/** 승격 버튼 이름: production보다 새 버전은 승격, 오래된 버전은 이전 버전 복원, production 자신은 null입니다. */
-export function promoteLabel(versions: PromptVersion[], version: PromptVersion): '승격' | '복원' | null {
-  if (version.labels.includes('production')) return null
-  const live = versions.find((v) => v.labels.includes('production'))
-  return live && version.version < live.version ? '복원' : '승격'
+export const productionOf = (p: Prompt) => p.versions.find((v) => v.labels.includes('production')) ?? null
+/** 코드 시드(AI 서비스가 seed 라벨로 등록한 버전, #705)가 production과 다르면 그 버전. 회귀 평가를 통과하면 승격할 수 있습니다. */
+export function pendingSeed(p: Prompt) {
+  const seed = p.versions.find((v) => v.labels.includes('seed'))
+  return seed && !seed.labels.includes('production') ? seed : null
 }
+/** 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 이름을 단정하지 않습니다(#808). */
+export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델(환경 설정)'
+/** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
+const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
+export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)
+
+/** 버전에 붙는 후보 라벨. Langfuse는 라벨을 한 버전에만 두므로 버전 번호를 넣어 후보 여럿이 함께 있을 수 있다(#705). */
+const candidateOf = (version: number) => `candidate-${version}`
+/** 버전 표의 조치: 서비스에 반영 중(live), 후보라 반영할 수 있음(promote), 아직 후보가 아님(candidate). */
+export function versionAction(version: PromptVersion): 'live' | 'promote' | 'candidate' {
+  if (version.labels.includes('production')) return 'live'
+  return version.labels.includes(candidateOf(version.version)) ? 'promote' : 'candidate'
+}
+const LABELS = new Map<string, string | null>([['production', '서비스 반영 중'], ['seed', '코드 시드'], ['latest', null]])
+/** 라벨의 화면 이름. Langfuse가 스스로 관리하는 latest는 숨기고(null) 후보 라벨은 번호 없이 '후보'로 보인다. */
+export const labelText = (label: string): string | null => (/^candidate-\d+$/.test(label) ? '후보' : LABELS.has(label) ? LABELS.get(label) ?? null : label)

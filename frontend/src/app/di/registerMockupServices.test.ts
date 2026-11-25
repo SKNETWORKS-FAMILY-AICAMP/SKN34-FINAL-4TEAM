@@ -129,3 +129,11 @@ it('카드 카테고리·운영 세계관 저장소는 실제 모드에서 Conte
   expect((await mockup.resolve('cardCategoryUseCase').list()).find((category) => category.code === 'ability')).toMatchObject({ name: '능력', active: false })
   expect(mockup.resolve('operationsWorldRepository').constructor.name).toBe('HttpOperationsWorldRepository')
 })
+
+it('운영 독자 제보 열람(#750)은 실제 모드에서 운영 API 저장소·UseCase를 쓰고 mockup 컨테이너는 UseCase가 없어 기존 메모리 데모 제보 표를 쓴다', () => {
+  const real = createAppContainer()
+  expect(real.resolve('operationsFeedbackReportRepository').constructor.name).toBe('HttpOperationsFeedbackReportRepository')
+  expect(real.resolve('operationsFeedbackReportUseCase')).not.toBeNull()
+  vi.stubEnv('MODE', 'mockup')
+  expect(createAppContainer().resolve('operationsFeedbackReportUseCase')).toBeNull()
+})

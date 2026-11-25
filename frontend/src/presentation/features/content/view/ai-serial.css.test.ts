@@ -21,3 +21,7 @@ it('[polish] 650px 이하 연재 요일은 7칸 한 줄 격자다(넓은 화면�
   expect(css).toMatch(/@media\(max-width:650px\)\{\.ep-serial fieldset\{display:grid;grid-template-columns:repeat\(7,minmax\(0,1fr\)\);column-gap:0\}\}/)
   expect(rule('.ep-serial fieldset')).toMatch(/display:flex;flex-wrap:wrap;gap:0 18px/)
 })
+
+it('[polish] 연재 요일 칸(.ep-check)은 한 글자 한 줄이라 가운데 맞춤이다 — 공용 .ep-check는 접힌 문장의 첫 줄에 맞추지만(align-items:flex-start) 이 칸은 입력 여백이 0이라 첫 줄 맞춤이면 체크 상자가 글자보다 3px 위로 올라간다', () => {
+  expect(rule('.episode-app .ep-serial .ep-check')).toMatch(/align-items:center/)
+})

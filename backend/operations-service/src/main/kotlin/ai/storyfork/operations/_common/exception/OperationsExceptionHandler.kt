@@ -34,9 +34,21 @@ class OperationsExceptionHandler {
     fun conflict(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("CONFLICT", "Resource conflicts with its current state."))
 
+    @ExceptionHandler(CandidateRequiredException::class)
+    fun candidateRequired(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(409).body(OperationsErrorResponse("CANDIDATE_REQUIRED", "Only a candidate prompt version can be promoted."))
+
+    @ExceptionHandler(OptimizationRunningException::class)
+    fun optimizationRunning(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(409).body(OperationsErrorResponse("OPTIMIZATION_RUNNING", "An optimization of this prompt is already running."))
+
+    @ExceptionHandler(OptimizationUnsupportedException::class)
+    fun optimizationUnsupported(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(422).body(OperationsErrorResponse("OPTIMIZATION_UNSUPPORTED", "This prompt cannot be optimized automatically."))
+
     @ExceptionHandler(EvaluationRequiredException::class)
     fun evaluationRequired(): ResponseEntity<OperationsErrorResponse> =
-        ResponseEntity.status(409).body(OperationsErrorResponse("EVALUATION_REQUIRED", "A passing regression evaluation is required for this prompt version."))
+        ResponseEntity.status(409).body(OperationsErrorResponse("EVALUATION_REQUIRED", "A passing regression evaluation on the prompt's evaluation set is required."))
 
     // Every Spring ErrorResponse (ResponseStatusException, validation and missing-parameter errors, framework 404/405) reaches
     // unexpected() and is answered here by its status, so none of them needs a handler of its own.

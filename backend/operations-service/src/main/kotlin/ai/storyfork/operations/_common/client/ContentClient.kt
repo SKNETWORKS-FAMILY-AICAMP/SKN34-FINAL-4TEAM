@@ -83,6 +83,19 @@ class ContentClient(private val http: RestClient) {
         http.delete().uri("/internal/v1/works/{id}/restriction", workId).retrieve().body<ContentWork>()
     }
 
+    /**
+     * One page of the reader feedback reports for the operator to read (view only: the author handles them in Content), newest first. [status], [page] and [size] are
+     * sent only when given, so Content keeps its defaults and does the checking (its 422 text is kept for the admin). Content computes every field, so its JSON is returned as it is.
+     */
+    fun feedbackReports(status: String?, page: Int?, size: Int?): JsonNode = managed {
+        val query = listOfNotNull(status?.let { "status" to it }, page?.let { "page" to it.toString() }, size?.let { "size" to it.toString() }).toMap()
+        http.get().uri { builder ->
+            builder.path("/internal/v1/feedback-reports")
+            query.keys.forEach { name -> builder.queryParam(name, "{$name}") }
+            builder.build(query)
+        }.retrieve().body<JsonNode>()
+    }
+
     // ponytail: one unpaged call under the fixed 5s read timeout; add server-side workId/q/sort/page (comment contract) when the list grows.
     fun listComments(): OperationsCommentList = upstream {
         http.get().uri("/internal/v1/comments").retrieve().body<OperationsCommentList>()

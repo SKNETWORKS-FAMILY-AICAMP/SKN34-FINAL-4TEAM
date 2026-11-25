@@ -96,9 +96,9 @@
 .writing-foot-actions { display: flex; flex: none; gap: 8px; margin-left: auto; }
 
 /* ── 오른쪽 AI 채팅(.studio-chat은 전역 스타일, 안쪽은 shared/chat) ──
-   편집기와 구분되는 옅은 브랜드 틴트 면이고, 입력 카드는 한 단계 밝은 면 + 그림자로 떠 보인다(라이트=흰색, 다크=--ink 8%를 섞은 면). 글자 대비는 본문 13:1 이상, 보조·placeholder 5.2:1 이상.
+   면은 집필실 배경(--tbg)과 같고(브랜드 틴트 면은 두지 않는다, 사용자 요청), 입력 카드는 한 단계 밝은 면 + 그림자로 떠 보인다(라이트=흰색, 다크=--ink 8%를 섞은 면). 글자 대비는 본문 13:1 이상, 보조·placeholder 5.2:1 이상.
    머리글 / 메시지 영역(스크롤) / 입력 카드의 세로 flex라 입력 카드는 패널 바닥에 붙는다. */
-.writing-studio .writing-chat { display: flex; flex-direction: column; min-height: 0; overflow: hidden; --chat-bg: color-mix(in srgb, var(--pri-soft) 40%, var(--tbg)); --chat-card: var(--l, var(--surface)) var(--d, color-mix(in srgb, var(--ink) 8%, var(--surface))); background: var(--chat-bg); }
+.writing-studio .writing-chat { display: flex; flex-direction: column; min-height: 0; overflow: hidden; --chat-bg: var(--tbg); --chat-card: var(--l, var(--surface)) var(--d, color-mix(in srgb, var(--ink) 8%, var(--surface))); background: var(--chat-bg); }
 /* 머리 아래 선은 두지 않는다: 바로 아래 대화 고르기 줄(.chat-sessions)이 자기 아래에 선을 갖고 있어, 둘 다 두면 선 두 줄 사이에 띠가 생긴다. */
 .writing-chat .studio-chat-head { flex: none; padding: 12px 12px 12px 16px; border-bottom: 0; }
 .writing-chat .studio-chat-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; }

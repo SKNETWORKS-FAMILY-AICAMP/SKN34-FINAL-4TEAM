@@ -1,7 +1,10 @@
 """SDK 경로를 대역으로 검증한다. 유료 API·네트워크 호출 없음."""
 import json
+from functools import partial
 from types import SimpleNamespace
+import httpx2
 import pytest
+from langchain_openai import ChatOpenAI
 from openai import APITimeoutError, APIConnectionError
 from app import tracing
 from app.manuscript_extraction import agent, prompt, service
@@ -13,7 +16,7 @@ from traced import attrs
 
 @pytest.fixture
 def provider(monkeypatch):
-    calls = SimpleNamespace(settings=None, schema=None, messages=None,
+    calls = SimpleNamespace(settings=None, schema=None, messages=None, invocation_count=0,
         result={'raw':SimpleNamespace(response_metadata={'status':'completed'}),
                 'parsed':{'mentions':[],'statements':[],'relationships':[]},'parsing_error':None},error=None)
     class Fake:
@@ -22,6 +25,7 @@ def provider(monkeypatch):
             calls.schema=(schema,kwargs);return self
         def invoke(self,messages):
             calls.messages=messages
+            calls.invocation_count += 1
             if calls.error: raise calls.error
             return calls.result
     monkeypatch.setenv('OPENAI_API_KEY','synthetic-only')
@@ -35,7 +39,7 @@ def test_strict_responses_path_no_retries_and_original_is_data(provider):
     result=agent.extract(EpisodeText(number=1,title='원문',body=body))
     assert result.mentions==[]
     assert provider.settings['max_retries']==0 and provider.settings['use_responses_api'] is True
-    assert provider.settings['timeout'].read == 70
+    assert provider.settings['timeout'].read == 120
     assert provider.settings['timeout'].connect == 60
     assert provider.settings['store'] is False
     assert provider.schema[1]=={'method':'json_schema','strict':True,'include_raw':True}
@@ -49,6 +53,59 @@ def test_strict_responses_path_no_retries_and_original_is_data(provider):
 def test_the_resolve_prompt_leaves_same_names_to_the_program():
     assert '프로그램이 종류와 이름이 같은 대상을 같은 대상으로 묶는다' in prompt.RESOLVE
     assert 'name_only' not in prompt.RESOLVE and 'explicit_coreference' not in prompt.RESOLVE
+    assert '호칭 변형' in prompt.RESOLVE and '치삼이' in prompt.RESOLVE  # -이·-아·-야나 조사가 붙은 꼴도 프로그램이 묶으니 다른 사람이면 distinct로 알리게 한다(#839)
+
+
+def test_the_extract_prompt_takes_soul_from_dialogue_and_action_without_a_narrator_description():
+    rule = next(line for line in prompt.EXTRACT.splitlines() if '대사' in line and 'soul' in line)
+    assert '서술자가 성격을 설명하지 않아도' in rule and '문장 하나' in rule  # 인용은 원문 한 문장 규칙 그대로(#839)
+
+
+@pytest.mark.parametrize('completed,stream_error,expected', [
+    (True, None, None),
+    (False, None, 'MODEL_OUTPUT_INCOMPLETE'),
+    (False, httpx2.ReadTimeout, 'MODEL_TIMEOUT'),
+    (False, httpx2.RemoteProtocolError, 'MODEL_UNAVAILABLE'),
+])
+def test_extraction_requires_a_completed_responses_stream(monkeypatch, completed, stream_error, expected):
+    output = json.dumps({'mentions': [], 'statements': [], 'relationships': []})
+    response = {'id': 'resp_test', 'object': 'response', 'created_at': 0,
+                'model': 'test-model', 'status': 'in_progress', 'output': []}
+    events = [
+        {'type': 'response.created', 'sequence_number': 0, 'response': response},
+        {'type': 'response.output_text.delta', 'sequence_number': 1, 'item_id': 'msg_test',
+         'output_index': 0, 'content_index': 0, 'delta': output},
+    ]
+
+    class EventStream(httpx2.SyncByteStream):
+        def __iter__(self):
+            for event in events:
+                yield f'data: {json.dumps(event)}\n\n'.encode()
+            if stream_error:
+                raise stream_error('Interrupted while reading the body')
+
+    def serve(request):
+        payload = json.loads(request.content)
+        if not payload.get('stream'):
+            raise httpx2.RemoteProtocolError('Server disconnected without sending a response.')
+        if completed:
+            message = {'id': 'msg_test', 'type': 'message', 'role': 'assistant', 'status': 'completed',
+                       'content': [{'type': 'output_text', 'text': output, 'annotations': []}]}
+            events.append({'type': 'response.completed', 'sequence_number': 2,
+                           'response': {**response, 'status': 'completed', 'text': payload['text'],
+                                        'output': [message]}})
+        return httpx2.Response(200, headers={'Content-Type': 'text/event-stream'}, stream=EventStream())
+
+    monkeypatch.setenv('OPENAI_API_KEY', 'synthetic-only')
+    monkeypatch.setenv('OPENAI_MODEL', 'test-model')
+    with httpx2.Client(transport=httpx2.MockTransport(serve)) as client:
+        monkeypatch.setattr(agent, 'ChatOpenAI', partial(ChatOpenAI, http_client=client))
+        episode = EpisodeText(number=1, title='원문', body='본문')
+        if expected is None:
+            assert agent.extract(episode).mentions == []
+        else:
+            with pytest.raises(PreprocessingFailure, match=expected):
+                agent.extract(episode)
 
 
 @pytest.mark.parametrize('mode,code', [('incomplete','MODEL_OUTPUT_INCOMPLETE'),('bad_json','INVALID_MODEL_OUTPUT'),('bad_shape','INVALID_MODEL_OUTPUT'),('refused','INVALID_MODEL_OUTPUT'),('timeout','MODEL_TIMEOUT'),('api','MODEL_UNAVAILABLE'),('missing_env','MODEL_NOT_CONFIGURED')])
@@ -79,6 +136,7 @@ def test_the_model_call_is_a_generation_of_the_managed_prompt(provider, monkeypa
     asked, version = [], SimpleNamespace(name=name, version=3, is_fallback=False)
     monkeypatch.setattr(tracing, 'prompt', lambda asked_name, text: asked.append((asked_name, text)) or tracing.Prompt('관리된 지시', version))
     call()
+    assert provider.settings['timeout'].read == (70 if name.endswith('.resolve') else 120)
     assert asked == [(name, default)] and provider.messages[0].content == '관리된 지시'
     [span] = spans()
     found = attrs(span)
@@ -96,6 +154,7 @@ def test_a_failed_model_call_is_an_error_generation_and_still_the_same_failure(p
         agent.extract(EpisodeText(number=1,title='x',body='private manuscript'))
     [span] = spans()
     assert str(failure.value) == ('MODEL_TIMEOUT' if timeout else 'MODEL_UNAVAILABLE')
+    assert provider.invocation_count == 1 and provider.settings['max_retries'] == 0
     assert span.attributes['langfuse.observation.level'] == 'ERROR' and 'private' not in str(span.attributes.values())
 
 
@@ -118,7 +177,7 @@ def test_resolve_input_is_compact(monkeypatch):
     extractions = [service.extract(EpisodeText(number=n, title='t', body='\n'.join(rows))) for n, rows in lines.items()]
     assert sum(len(e.source) for e in extractions) > 45000 and all(not e.skipped for e in extractions)
     sent = []
-    monkeypatch.setattr(agent, '_call', lambda name, instructions, data, schema: sent.append((name, data)) or ProposedResolution(links=[]))
+    monkeypatch.setattr(agent, '_call', lambda name, instructions, data, schema, *, read_timeout: sent.append((name, data)) or ProposedResolution(links=[]))
     agent.resolve(extractions)
     (name, data), = sent
     dumped = json.dumps(data, ensure_ascii=False, sort_keys=True)
@@ -126,3 +185,36 @@ def test_resolve_input_is_compact(monkeypatch):
     assert 'source' not in dumped and 'evidence' not in dumped and lines[1][60] not in dumped  # 인용되지 않은 원문 줄은 가지 않는다
     assert data[0]['mentions'] == [{'ref': '1:m1', 'name': '서하', 'kind': 'character', 'quote': lines[1][0]}]
     assert data[0]['quotes'] == sorted(lines[1][1:31])
+
+
+def test_the_model_chosen_in_the_prompt_version_is_called(provider, monkeypatch):
+    monkeypatch.setattr(tracing, 'prompt', lambda name, text: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    agent.extract(EpisodeText(number=1, title='x', body='본문'))
+    assert provider.settings['model'] == 'gpt-chosen'
+
+
+def test_instructions_and_model_given_by_a_regression_evaluation_are_used_as_they_are(provider, monkeypatch):
+    """회귀 평가(#824)는 평가하는 버전의 본문·모델을 그대로 준다: production 버전을 읽지 않고, 그 본문이 system 메시지이고 그 모델이 호출 모델이다."""
+    def read(name, text):
+        raise AssertionError('production 버전을 읽으면 안 된다')
+    monkeypatch.setattr(tracing, 'prompt', read)
+
+    agent.extract(EpisodeText(number=1, title='x', body='본문'), '평가할 버전 본문', 'gpt-evaluated')
+
+    assert provider.messages[0].content == '평가할 버전 본문' and provider.settings['model'] == 'gpt-evaluated'
+    assert provider.messages[1].type == 'human' and '본문' in provider.messages[1].content
+
+
+def test_an_evaluated_version_without_a_model_runs_on_the_env_default_model(provider):
+    agent.extract(EpisodeText(number=1, title='x', body='본문'), '평가할 버전 본문')
+
+    assert provider.settings['model'] == 'test-model'
+
+
+def test_a_regression_evaluation_call_is_a_generation_without_a_prompt_link(provider, spans):
+    agent.extract(EpisodeText(number=1, title='x', body='본문'), '평가할 버전 본문')
+
+    [span] = spans()
+    found = attrs(span)
+    assert span.name == 'manuscript_extraction.generation' and found['langfuse.observation.type'] == 'generation'
+    assert 'langfuse.observation.prompt.name' not in found  # 평가 호출이 production 프롬프트 버전의 사용 기록에 섞이지 않는다

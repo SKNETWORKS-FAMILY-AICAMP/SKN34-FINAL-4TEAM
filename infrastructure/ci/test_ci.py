@@ -37,6 +37,27 @@ def nginx_upstream(text, route):
     return re.search(r'proxy_pass (\S+);', body)[1]
 
 
+def workflow_jobs(text):
+    """워크플로 문자열의 jobs 아래를 {job id: 본문}으로 자른다(2칸 들여쓴 키만 job이다)."""
+    parts = re.split(r'(?m)^  ([a-z][\w-]*):\n', text.split('\njobs:\n', 1)[1])
+    return dict(zip(parts[1::2], parts[2::2]))
+
+
+def workflow_steps(job):
+    """job 본문의 steps를 순서대로 돌려준다(항목은 '- ' 뒤의 텍스트, 단계 사이 주석은 앞 단계에 붙는다)."""
+    return ('\n' + job.split('\n    steps:\n', 1)[1]).split('\n      - ')[1:]
+
+
+# 서비스 job의 서비스별 (빌드, 단위, 통합) 단계 명령. 한 러너에서 이 순서로 실행한다.
+SERVICE_PHASES = {
+    'web': ('lint && pnpm --dir frontend build', 'vitest run src/domain src/data', "vitest run --exclude 'src/domain/**'"),
+    'core': ('./gradlew bootJar', './gradlew unitTest', './gradlew integrationTest'),
+    'content': ('./gradlew bootJar', './gradlew unitTest', './gradlew integrationTest'),
+    'operations': ('./gradlew bootJar', './gradlew unitTest', './gradlew integrationTest'),
+    'ai': ('uv lock --check', "pytest -m 'not integration'", 'pytest -m integration'),
+}
+
+
 class SelectionTest(unittest.TestCase):
     def test_expanded_data_paths_select_configuration_without_unrelated_services(self):
         paths = [
@@ -76,7 +97,7 @@ class SelectionTest(unittest.TestCase):
 
     def test_configuration_runs_expanded_data_and_relation_unit_tests(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
-        block = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        block = workflow_jobs(workflow)['configuration']
         self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p expanded_test.py -v', block)
         self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates/expanded-relations -p test_merge.py -v', block)
         # 하이픈 디렉터리는 상위 discover가 찾지 못하므로 시연 세계관 검사를 따로 실행한다.
@@ -156,20 +177,19 @@ class SelectionTest(unittest.TestCase):
                 self.assertFalse(plan["infra"])
 
     def test_operations_ci_runs_native_gradle_and_isolated_postgres(self):
-        workflow = (ci.ROOT / ".github/workflows/ci.yml").read_text()
-        unit = workflow.split("\n  unit:\n", 1)[1].split("\n  integration:\n", 1)[0]
-        integration = workflow.split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        job = workflow_jobs((ci.ROOT / ".github/workflows/ci.yml").read_text())["service"]
         java_condition = "matrix.service == 'core' || matrix.service == 'content' || matrix.service == 'operations'"
-        for block, task in ((unit, "unitTest"), (integration, "integrationTest")):
-            self.assertIn(java_condition, block)
-            operation_step = block.split("if: ${{ matrix.service == 'operations' }}", 1)[1].split("      - ", 1)[0]
-            self.assertIn("working-directory: backend/operations-service", operation_step)
-            self.assertIn(f"run: ./gradlew {task} --no-daemon", operation_step)
-        self.assertIn(f"({java_condition}) && 'postgres:17-alpine'", integration)
-        self.assertIn("TEST_OPERATIONS_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test", integration)
-        self.assertIn("TEST_OPERATIONS_DATABASE_USER: content_test", integration)
-        self.assertIn('TEST_OPERATIONS_DATABASE_PASSWORD: ""', integration)
-        self.assertIn("backend/operations-service/build/test-results", integration)
+        self.assertIn(java_condition, job)
+        operations = [step for step in workflow_steps(job) if "if: ${{ matrix.service == 'operations' }}" in step]
+        for task in ("bootJar", "unitTest", "integrationTest"):
+            with self.subTest(task=task):
+                step = next(step for step in operations if f"run: ./gradlew {task} --no-daemon" in step)
+                self.assertIn("working-directory: backend/operations-service", step)
+        self.assertIn(f"({java_condition}) && 'postgres:17-alpine'", job)
+        self.assertIn("TEST_OPERATIONS_DATABASE_URL: jdbc:postgresql://127.0.0.1:5432/storyfork_test", job)
+        self.assertIn("TEST_OPERATIONS_DATABASE_USER: content_test", job)
+        self.assertIn('TEST_OPERATIONS_DATABASE_PASSWORD: ""', job)
+        self.assertIn("backend/operations-service/build/test-results", job)
         for tier in ("unit", "integration"):
             self.assertEqual(set(ci.SERVICES), {row["service"] for row in ci.select([], full=True)[tier]})
 
@@ -250,29 +270,72 @@ class SelectionTest(unittest.TestCase):
         self.assertNotIn('--passWithNoTests', workflow)
         self.assertFalse(hasattr(ci, 'command'))
         self.assertIn('CONFIGURATION_NEEDED:', workflow)
-        configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        configuration = workflow_jobs(workflow)['configuration']
         self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
         self.assertIn("python3 -I -m unittest discover -s infrastructure/sample-data -p 'test_*.py' -v", configuration)
         self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v', configuration)
 
-    def test_unit_and_integration_run_in_parallel_before_system(self):
-        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
-        unit = workflow.split('\n  unit:\n', 1)[1].split('\n  integration:\n', 1)[0]
-        integration = workflow.split('\n  integration:\n', 1)[1].split('\n  system:\n', 1)[0]
-        for job, needed in [(unit, 'unit'), (integration, 'integration')]:
-            with self.subTest(tier=needed):
-                self.assertIn('\n    needs: changes\n', job)
-                self.assertIn(f"if: ${{{{ needs.changes.outputs.{needed}_needed == 'true' }}}}", job)
-                self.assertIn('fail-fast: false', job)
-        system = workflow.split('\n  system:\n', 1)[1].split('\n  required:\n', 1)[0]
-        self.assertIn('needs: [changes, unit, integration, configuration]', system)
-        for prerequisite in ['changes', 'unit', 'integration']:
+    def test_service_job_builds_then_runs_unit_then_integration_on_one_runner(self):
+        jobs = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())
+        self.assertFalse({'unit', 'integration'} & set(jobs))  # 두 matrix job은 서비스별 한 job으로 합쳤다
+        job = jobs['service']
+        self.assertIn('\n    needs: changes\n', job)  # 서비스끼리는 서로 기다리지 않고 병렬이다
+        self.assertIn("if: ${{ needs.changes.outputs.service_needed == 'true' }}", job)
+        self.assertIn('matrix: ${{ fromJSON(needs.changes.outputs.service) }}', job)
+        self.assertIn('fail-fast: false', job)
+        steps = workflow_steps(job)
+        for service, commands in SERVICE_PHASES.items():
+            mine = [step for step in steps if f"matrix.service == '{service}'" in step]
+            with self.subTest(service=service):
+                for command in commands:
+                    self.assertTrue(any(command in step for step in mine), command)
+                positions = [next(index for index, step in enumerate(mine) if command in step) for command in commands]
+                self.assertEqual(sorted(set(positions)), positions)  # 빌드 → 단위 → 통합, 서로 다른 단계
+
+    def test_integration_steps_do_not_run_after_a_failed_unit_step(self):
+        job = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())['service']
+        self.assertNotIn('continue-on-error', job)
+        for service, phases in SERVICE_PHASES.items():
+            for step in workflow_steps(job):
+                if phases[2] in step and f"matrix.service == '{service}'" in step:
+                    with self.subTest(service=service, step=step.split('\n', 1)[0]):
+                        condition = re.search(r'(?m)^\s*if: (.*)$', step)[1]
+                        self.assertNotRegex(condition, r'always\(\)|failure\(\)|cancelled\(\)')
+
+    def test_system_waits_for_service_jobs_and_required_aggregates_every_job(self):
+        jobs = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())
+        system = jobs['system']
+        self.assertIn('needs: [changes, service, configuration]', system)
+        for prerequisite in ['changes', 'service']:
             self.assertIn(f"needs.{prerequisite}.result == 'success'", system)
-        required = workflow.split('\n  required:\n', 1)[1]
+        required = jobs['required']
         self.assertIn('if: ${{ always() }}', required)
-        self.assertIn('needs: [changes, configuration, unit, integration, system]', required)
-        self.assertIn('pnpm exec vitest run src/domain src/data src/index-html.test.js', unit)
-        self.assertIn("--exclude 'src/domain/**' --exclude 'src/data/**' --exclude src/index-html.test.js", integration)
+        # 모든 job을 집계한다(새 job을 더하고 빠뜨리면 이 시험이 실패한다).
+        self.assertEqual(set(jobs) - {'required'}, set(re.search(r'needs: \[(.*)\]', required)[1].split(', ')))
+        for tier, output in (('SERVICE', 'service_needed'), ('SYSTEM', 'system_needed'), ('CONFIGURATION', 'infra')):
+            self.assertIn(f'{tier}_NEEDED: ${{{{ needs.changes.outputs.{output} }}}}', required)
+
+    def test_ci_has_no_publish_or_deploy_and_cancels_superseded_runs(self):
+        # 게시·배포는 별도 CD 워크플로(publish-images.yml)가 CI 성공 뒤에 맡는다. CI에는 게시·배포 권한이 없다.
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        self.assertTrue({'publish', 'deploy'}.isdisjoint(workflow_jobs(workflow)))
+        for permission in ('packages: write', 'id-token: write'):
+            self.assertNotIn(permission, workflow)
+        # 같은 ref의 새 push는 진행 중인 CI를 취소한다. 취소된 run은 성공이 아니므로 CD를 시작하지 않는다.
+        self.assertIn('\nconcurrency:\n  group: ${{ github.workflow }}-${{ github.ref }}\n  cancel-in-progress: true\n', workflow)
+
+    def test_cd_starts_only_after_a_successful_ci_run_and_owns_the_publish_permissions(self):
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        triggers = source.split('\non:\n', 1)[1].split('\npermissions:\n', 1)[0]
+        self.assertIn('  workflow_run:\n    workflows: [CI]\n    branches: [develop]\n    types: [completed]\n  workflow_dispatch:\n', triggers)
+        self.assertNotIn('pull_request', triggers)
+        self.assertRegex((ci.ROOT / '.github/workflows/ci.yml').read_text(), r'(?m)^name: CI$')  # workflow_run이 이 이름으로 CI를 찾는다
+        jobs = workflow_jobs(source)
+        condition = re.search(r'(?m)^    if: (.*)$', jobs['publish'])[1]
+        self.assertIn("github.event.workflow_run.conclusion == 'success'", condition)
+        self.assertIn("github.event.workflow_run.head_branch == 'develop'", condition)
+        self.assertEqual({'publish'}, {name for name, body in jobs.items() if 'packages: write' in body})
+        self.assertEqual({'deploy'}, {name for name, body in jobs.items() if 'id-token: write' in body})
 
     def test_gradle_cache_is_keyed_per_service(self):
         # setup-java 기본 키는 전 서비스의 *.gradle*을 한데 해시해 core·content·operations가 한 캐시를 나눠 쓴다.
@@ -291,14 +354,25 @@ class SelectionTest(unittest.TestCase):
                     self.assertEqual({('backend', directory)}, owners)
 
     def test_required_rejects_cancelled_and_unexpected_skips(self):
-        ci.check_results({"unit": "skipped", "integration": "skipped", "system": "skipped"}, set())
-        for job in ["changes", "configuration", "unit", "integration", "system"]:
+        ci.check_results({"service": "skipped", "system": "skipped"}, set())
+        for job in ["changes", "configuration", "service", "system"]:
             ci.check_results({job: "success"}, {job})
             for result in ["failure", "cancelled", "skipped", "unknown"]:
                 with self.subTest(job=job, result=result), self.assertRaises(SystemExit):
                     ci.check_results({job: result}, {job})
             with self.subTest(job=job), self.assertRaises(SystemExit):
                 ci.check_results({}, {job})
+
+    def test_required_action_expects_the_service_job_the_plan_selected(self):
+        def required(service_result, **needed):
+            needs = {"changes": {"result": "success"}, "service": {"result": service_result}}
+            env = {**os.environ, "NEEDS": json.dumps(needs), "SERVICE_NEEDED": "false", "SYSTEM_NEEDED": "false",
+                   "CONFIGURATION_NEEDED": "false", **needed}
+            return subprocess.run([sys.executable, "-I", ci.__file__, "required"], env=env, capture_output=True).returncode
+        self.assertEqual(0, required("success", SERVICE_NEEDED="true"))
+        self.assertNotEqual(0, required("skipped", SERVICE_NEEDED="true"))  # 선택된 서비스가 안 돌았으면 거부
+        self.assertNotEqual(0, required("failure", SERVICE_NEEDED="true"))
+        self.assertEqual(0, required("skipped"))  # 선택 안 된 서비스의 의도적 skip은 허용
 
 
 class PlanGitTest(unittest.TestCase):
@@ -371,6 +445,23 @@ class PlanGitTest(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertIn('initial.txt:1: trailing whitespace.', result.stdout)
 
+    def test_plan_outputs_one_service_matrix_for_the_service_job(self):
+        def outputs():
+            return dict(line.split('=', 1) for line in (self.repo / 'output').read_text().splitlines())
+        base = self.commit('clean.txt', 'clean\n')
+        self.commit('README.md', 'docs only\n')
+        result = self.plan('push', {'before': base})
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual(('false', {'include': []}), (outputs()['service_needed'], json.loads(outputs()['service'])))
+        (self.repo / 'output').unlink()
+        result = self.plan('workflow_dispatch', {})
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual({'include': json.loads(result.stdout)['unit']}, json.loads(outputs()['service']))
+        self.assertEqual('true', outputs()['service_needed'])
+        self.assertEqual(','.join(ci.SCENARIOS), outputs()['system'])
+        # 단위·통합 행렬은 서비스 job 하나로 합쳤으므로 따로 내보내지 않는다.
+        self.assertTrue(set(outputs()).isdisjoint({'unit', 'unit_needed', 'integration', 'integration_needed'}))
+
 
 class ComposeSplitTest(unittest.TestCase):
     def test_root_compose_includes_isolated_local_source_build(self):
@@ -434,8 +525,19 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertNotIn('external:', dev)
         workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
-        self.assertIn('docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE"', workflow)
         self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
+
+    def test_dev_and_langfuse_services_cap_container_logs(self):
+        # 기본 json-file 로그에는 크기 제한이 없어 ClickHouse 로그가 디스크를 71GB까지 채운 적이 있다. 모든 서비스가 같은 제한을 쓴다.
+        for name, anchor in (('docker-compose.dev.yaml', 'logging'), ('docker-compose.langfuse.yaml', 'langfuse-logging')):
+            text = read('infrastructure/' + name)
+            self.assertIn(f'x-{anchor}: &{anchor}\n  driver: json-file\n  options:\n    max-size: "10m"\n    max-file: "3"\n', text)
+            services = '\n' + text.split('\nservices:\n', 1)[1].split('\nvolumes:\n', 1)[0] + '\n'
+            names = re.findall(r'(?m)^  ([a-z][\w-]*):$', services)
+            self.assertGreater(len(names), 3)
+            for service in names:
+                with self.subTest(file=name, service=service):
+                    self.assertIn(f'\n    logging: *{anchor}\n', '\n' + service_block(services, service) + '\n')
 
     def test_ci_and_attachment_callers_keep_source_builds(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -512,6 +614,14 @@ class ComposeSplitTest(unittest.TestCase):
                      'OPERATIONS_RABBITMQ_USERNAME: ${CORE_RABBITMQ_USER:-storyfork}',
                      'OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}'):
             self.assertIn(line, operations)
+
+    def test_the_workers_that_call_the_prompt_optimizer_gateway_resolve_the_host_gateway_name(self):
+        # 2026-11-24 #823: 자동 개선의 반성 모델은 호스트의 로컬 게이트웨이(PROMPT_OPTIMIZER_BASE_URL의 host.docker.internal)로 부른다.
+        # Docker Desktop이 아닌 Linux에서는 이 이름이 자동으로 풀리지 않아, 반성을 부르는 ai-jobs-worker에도 ai-service처럼 host-gateway가 필요하다.
+        base = read('infrastructure/docker-compose.yaml')
+        for name in ('ai-service', 'ai-jobs-worker'):
+            self.assertIn('extra_hosts:\n      - "host.docker.internal:host-gateway"', service_block(base, name), name)
+        self.assertNotIn('host.docker.internal', service_block(base, 'ai-worker'))   # 반성을 부르지 않는 전처리 워커는 그대로다
 
     def test_operations_waits_for_the_broker_it_publishes_alerts_to(self):
         for name in ('local', 'dev'):
@@ -660,12 +770,12 @@ class ConfigurationTest(unittest.TestCase):
         with patch.dict(os.environ, {'NEO4J_PASSWORD': 'short-graph-secret', 'TEST_WORLDSTUDIO_DATABASE_PASSWORD': 'short-db-secret'}):
             self.assertEqual('[redacted] [redacted]', ci.redact('short-graph-secret short-db-secret'))
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
-        integration = workflow.split('\n  integration:\n', 1)[1].split('\n  system:\n', 1)[0]
+        integration = workflow_jobs(workflow)['service']
         self.assertIn("matrix.service == 'content' && 'neo4j:5.26.0-community'", integration)
         self.assertIn('NEO4J_URI: bolt://127.0.0.1:7687', integration)
         self.assertIn('NEO4J_PASSWORD:', integration)
         self.assertIn('"$RUNNER_TEMP/neo4j.log"', integration)
-        configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        configuration = workflow_jobs(workflow)['configuration']
         self.assertIn('NEO4J_PASSWORD: synthetic-config-only', configuration)
         self.assertNotIn('--profile', configuration)
 
@@ -734,7 +844,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories|feedback-reports)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -846,6 +956,22 @@ class ConfigurationTest(unittest.TestCase):
             with self.subTest(vite=route):
                 self.assertNotRegex(route, pattern)
 
+    def test_operations_feedback_reports_route_goes_to_operations(self):
+        # #750: 운영자가 독자 제보를 읽는(읽기 전용) API는 접두와 하위 경로를 Operations로 보낸다(일반 /api(Core)보다 구체적).
+        routes = ['/api/v1/operations/feedback-reports', '/api/v1/operations/feedback-reports?status=unchecked&page=1&size=20',
+                  '/api/v1/operations/feedback-reports/r1']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/feedback-reports-extra', '/api/v1/operations/feedback-report']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
+
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)
         for secret in ['abc.def.ghi', 'test@example.invalid', 'opaque-token', 'a' * 64]:
@@ -863,6 +989,13 @@ class ConfigurationTest(unittest.TestCase):
                 checkout = source.split(f'\n  {job}:\n', 1)[1].split('uses: actions/checkout@', 1)[1].split('\n      - ', 1)[0]
                 self.assertIn('ref: ${{ github.event.workflow_run.head_sha || github.sha }}', checkout)
                 self.assertIn('persist-credentials: false', checkout)
+
+    def test_cd_deploy_gets_the_build_trees_publish_computed(self):
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        publish, deploy = source.split('\n  deploy:\n', 1)
+        self.assertIn('trees: ${{ steps.images.outputs.trees }}', publish)
+        self.assertIn('CD_TREES: ${{ needs.publish.outputs.trees }}', deploy)
+        self.assertIn('CD_TREES "$CD_TREES"', deploy)
 
     def test_cd_ssh_directory_uses_step_runner_temp(self):
         source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()

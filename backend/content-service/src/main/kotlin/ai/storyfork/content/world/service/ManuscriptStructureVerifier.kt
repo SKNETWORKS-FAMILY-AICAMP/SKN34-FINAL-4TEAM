@@ -16,6 +16,23 @@ object ManuscriptStructureVerifier {
         val head=quote.codePoints().limit(24).toArray()
         return "${number}화 · ${String(head,0,head.size)}"
     }
+    /** 호칭 변형(치삼·치삼이·치삼아·치삼은)을 한 이름으로 보는 접미사·조사. 값은 앞 글자의 받침 조건(true 있음·false 없음·null 상관없음)이며 파이썬 `_SUFFIXES`와 같다. */
+    private val SUFFIXES=mapOf('이' to true,'아' to true,'야' to false,'은' to true,'을' to true,'는' to false,'를' to false,'가' to false,'의' to null)
+
+    /** 호칭 변형의 기본형: 끝의 접미사·조사를 떼되 두 글자 이상이 남을 때만 뗀다(순이는 그대로). 파이썬 `_base`와 글자까지 같아야 한다. */
+    internal fun nameKey(name:String):String {
+        var base=name
+        while(base.length>2 && base.last() in SUFFIXES && base[base.length-2] in '가'..'힣' &&
+            SUFFIXES[base.last()].let { it==null || it==((base[base.length-2]-'가')%28>0) }) base=base.dropLast(1)
+        return base
+    }
+
+    /** 같은 줄은 한 번만, 문서 한도(3,000자) 안에서 앞 회차부터 쌓고 줄은 자르지 않는다. 파이썬 `_fit`과 같다. */
+    internal fun fit(lines:List<String>):String {
+        var size=-1
+        return lines.distinct().takeWhile { size+=it.codePointCount(0,it.length)+1;size<=3000 }.joinToString("\n")
+    }
+
     fun verify(all:List<ManuscriptEpisodeResult>,identity:JsonNode,payload:ManuscriptLoadPayload,mapper:JsonMapper) {
         fun array(node:JsonNode)= (0 until node.size()).map { node.get(it) }
         fun ordered(value:Any?):Any?=when(value) {
@@ -45,12 +62,14 @@ object ManuscriptStructureVerifier {
             require(n in rows && n==link.path("confirmedAt").asInt() && n>=maxOf(left.substringBefore(':').toInt(),right.substringBefore(':').toInt()))
             val source=rows.getValue(n).path("source").asString();val start=source.indexOf(quote)
             require(quote.isNotEmpty() && start>=0 && source.indexOf(quote,start+1)<0)
-            require(quote.contains(mentions.getValue(left).path("name").asString()) && quote.contains(mentions.getValue(right).path("name").asString()))
+            // 같은 이름 링크(same_name)는 호칭 변형이면 기본형이 인용에 있으면 된다. 그 밖의 링크는 두 이름이 인용에 글자 그대로 있어야 한다.
+            fun shown(ref:String)=mentions.getValue(ref).path("name").asString().let { if(link.path("basis").asString()=="same_name") nameKey(it) else it }
+            require(quote.contains(shown(left)) && quote.contains(shown(right)))
             require(mentions.getValue(left).path("kind")==mentions.getValue(right).path("kind"))
             when(decision.path("status").asString()) {
                 "merged" -> {
                     require(link.path("basis").asString() in setOf("explicit_alias","explicit_coreference","same_name"))
-                    require(mentions.getValue(left).path("name")==mentions.getValue(right).path("name"))
+                    require(nameKey(mentions.getValue(left).path("name").asString())==nameKey(mentions.getValue(right).path("name").asString()))
                     parent[root(right)]=root(left)
                 }
                 "distinct" -> { require(link.path("basis").asString()=="distinct");distinct+=left to right }
@@ -81,7 +100,8 @@ object ManuscriptStructureVerifier {
                 val line=marked(statement.path("kind").asString(),statement.path("quote").asString())
                 val subject=array(statement.path("subjects")).any { mapping["$n:${it.asString()}"]==key }
                 val document=statement.path("document").asString()
-                if(n==first && subject && document in setOf("identity","soul","goal")) {
+                // IDENTITY(본문)·GOAL은 첫 등장 회차의 진술만, 인물의 SOUL은 뒤 회차의 soul 진술도 쌓는다(#839).
+                if(subject && document in setOf("identity","soul","goal") && (n==first || (document=="soul" && card.cardType=="character"))) {
                     (if(document=="identity" || card.cardType!="character") body else if(document=="soul") soul else goal).add(line)
                 }
                 if(array(statement.path("knowers")).any { mapping["$n:${it.asString()}"]==key }) {
@@ -90,8 +110,9 @@ object ManuscriptStructureVerifier {
                     memory.getOrPut(known.toString().padStart(2,'0')) { mutableListOf() }.apply { if(line !in this) add(line) }
                 }
             }
-            require(card.body==(body.distinct().joinToString("\n").ifEmpty { card.title }))
-            if(card.cardType=="character") require(card.characterDocs==ManuscriptCharacterDocs(soul.distinct().joinToString("\n"),goal.distinct().joinToString("\n"),memory.mapValues { it.value.joinToString("\n") }))
+            // 인물의 IDENTITY는 정체 진술이 없으면 비워 둔다(이름으로 채우면 필수 문서 검사가 빈 문서를 통과시킨다). 다른 카드는 확정 때 본문이 필수라 이름을 둔다.
+            require(card.body==(body.distinct().joinToString("\n").ifEmpty { if(card.cardType=="character") "" else card.title }))
+            if(card.cardType=="character") require(card.characterDocs==ManuscriptCharacterDocs(fit(soul),goal.distinct().joinToString("\n"),memory.mapValues { it.value.joinToString("\n") }))
             else require(card.characterDocs==null)
         }
         val events=rows.flatMap { (n,row)->array(row.path("statements")).filter { it.path("kind").asString()=="event" }.map { n to it } }

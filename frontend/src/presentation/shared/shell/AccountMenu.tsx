@@ -88,7 +88,7 @@ export function AccountMenu({ anchor, onClose, creditLedger }: { anchor: HTMLEle
           </Item>
           <CreditRow creditLedger={creditLedger} onSelect={go('/me/pay')} /><hr />
           {role === 'admin' && <Item onSelect={go('/admin')}>운영자 대시보드</Item>}
-          <Item onSelect={go('/lib')}>내 서재</Item><Item onSelect={go('/content?view=reports')}>내 댓글·제보</Item><Item onSelect={go('/me/pay')}>결제 내역</Item><hr />
+          <Item onSelect={go('/lib')}>내 서재</Item><Item onSelect={go('/content?view=reports')}>내 제보·수정 제안</Item><Item onSelect={go('/me/pay')}>결제 내역</Item><hr />
           <Item onSelect={go('/me/inquiry')}>문의하기</Item><Item onSelect={go('/reports')}>내 신고</Item><Item onSelect={go('/me/notice')}>공지사항</Item><Item onSelect={go('/me/event')}>이벤트</Item><hr />
           <button type="button" role="menuitem" onClick={() => { void logout().then((ok) => { if (ok) onClose() }) }}>로그아웃</button>
         </>

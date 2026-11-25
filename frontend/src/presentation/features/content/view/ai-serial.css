@@ -13,6 +13,8 @@
 .ep-serial .ep-check{margin:0}
 /* 공용 .ep-check input은 위 여백만 덮어 UA 왼쪽 4px·아래 3px가 남는다 → 첫 체크박스가 legend·라벨보다 안쪽에 놓이고 글자보다 낮다. 여백을 모두 없앤다(간격은 gap 9·18만 남는다). */
 .ep-serial .ep-check input{margin:0}
+/* 요일 칸은 한 글자 한 줄이라 가운데 맞춤이다: 공용 .ep-check의 첫 줄 맞춤은 입력 위 여백 4px를 전제하는데 위 규칙이 입력 여백을 0으로 만들어, 그대로면 체크 상자가 글자보다 3px 위다. .episode-app을 붙여 공용 규칙(0,2,0)과 순서 다툼 없이 이긴다(0,3,0). */
+.episode-app .ep-serial .ep-check{align-items:center}
 .ep-serial input[type=time]{max-width:180px}
 /* 저장 버튼은 안내문 아래 왼쪽이다(운영 설정 탭과 같다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 이 패널에서만 되돌린다. */
 .ep-serial .ep-form-footer{flex-direction:column;align-items:flex-start}

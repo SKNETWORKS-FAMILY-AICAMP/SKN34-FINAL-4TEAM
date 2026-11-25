@@ -288,7 +288,7 @@ it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전�
   await showWorld()
   const header = within(screen.getByRole('heading', { name: '검증 세계', level: 1 }).closest('section')!)
   expect(header.getByText('설정 1개')).toBeTruthy()
-  expect(header.getByText('저장 버전 1')).toBeTruthy()
+  expect(header.getByText('저장 버전 1개')).toBeTruthy()
   expect(header.getByText('비공개', { selector: '.chip' })).toBeTruthy() // 서버 연결 예정 칩은 실제 공개 범위 칩이 됐다
   expect(header.getByText('설명')).toBeTruthy()
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 관리 모드의 저장 상태는 헤더 칩이 아니라 사이드바의 저장 영역이 보인다
@@ -1061,7 +1061,7 @@ it('저장 버전이 0이어도 주소에 ?new=1이 없으면(서재 관리하�
   fireEvent.click(save) // 같은 저장을 두 번 보내지 않는다
   await waitFor(() => expect(saveBar().getByText('저장됨')).toBeTruthy())
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(headerOf().getByText('저장 버전 1')).toBeTruthy()
+  expect(headerOf().getByText('저장 버전 1개')).toBeTruthy()
   expect(saveBar().queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장했으니 저장할 것이 없다
 })
 
@@ -1086,7 +1086,7 @@ it('한 번도 저장하지 않은 새 세계관은 바꾼 것이 없어도 검�
   fireEvent.click(save) // 같은 저장을 두 번 보내지 않는다
   await screen.findByRole('navigation', { name: '세계관 메뉴' })
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(headerOf().getByText('저장 버전 1')).toBeTruthy()
+  expect(headerOf().getByText('저장 버전 1개')).toBeTruthy()
 })
 
 it('마법사의 관리 화면으로 링크는 저장하지 않고 관리 모드로 나가며 입력은 그대로 남는다', async () => {
@@ -1178,10 +1178,11 @@ it('저장이 실패하면 오류와 입력을 그대로 두고 저장 영역이
   const saveStudio = vi.fn<WorldStudioRepository['saveStudio']>().mockRejectedValueOnce(new Error('저장 충돌')).mockImplementation(async (next) => next)
   await show(undefined, '/worldstudio/qa', { saveStudio })
   dirtyCard()
+  expect(saveBar().getByText('저장하지 않은 변경 있음').classList.contains('bad')).toBe(false) // 아직 누르지 않았을 뿐이라 위험색이 아니다(.wait)
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   expect((await screen.findByRole('alert')).textContent).toBe('저장 충돌')
   expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull() // 세계관을 다시 읽으면 입력이 사라지므로 편집 중 실패에는 다시 시도를 두지 않는다
-  expect(saveBar().getByText('저장 실패 · 입력은 유지돼요')).toBeTruthy()
+  expect(saveBar().getByText('저장 실패 · 입력은 유지돼요').classList.contains('bad')).toBe(true) // 실패만 위험색(.bad)이라 사이드바만 봐도 아직 안 눌렀음(.wait)과 갈린다
   openCard('고친 이름 인물')
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('고친 이름')
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(false)
@@ -1341,7 +1342,7 @@ it('개요 탭에서 이름을 고친 채 초안이 바뀌면(전체 공개) 저
   openInfoEdit()
   fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(false)
-  fireEvent.click(warningIn(infoForm()).getByRole('button', { name: '전체 공개' })) // 초안(설정 공개)이 바뀐다
+  fireEvent.click(warningIn(headerOf()).getByRole('button', { name: '전체 공개' })) // 초안(설정 공개)이 바뀐다. 저장된 공개 세계관의 경고는 헤더 하나다(개요 카드는 저장값과 다르게 고른 때만)
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(true)
   expect(infoForm().getByText(/작성 중인 변경을 먼저 저장하세요/)).toBeTruthy()
   fireEvent.submit(screen.getByRole('form', { name: '세계관 정보 편집' })) // Enter 제출도 막힌다
@@ -2167,6 +2168,19 @@ it('이미 공개인 세계관도 공개로 둔 설정이 없으면 헤더가 �
   cleanup()
   await show([{ ...person('가람'), visibility: 'public' }], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' })
   expect(screen.queryByText(noPublicCards)).toBeNull()
+})
+
+it('개요의 공개 설정 카드는 저장된 공개 세계관의 경고를 헤더 하나에 맡기고, 입력이 저장값과 다를 때(공개로 막 고른 때)만 스스로 경고한다', async () => {
+  await show([person('가람')], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' })
+  openInfoEdit()
+  expect(infoForm().queryByText(noPublicCards)).toBeNull()
+  expect(screen.getAllByText(noPublicCards)).toHaveLength(1) // 같은 경고와 전체 공개 버튼이 헤더·카드에 두 번 나오지 않는다
+  warningIn(headerOf()).getByRole('button', { name: '전체 공개' })
+  fireEvent.click(publishGroup().getByRole('button', { name: '비공개', pressed: false }))
+  expect(infoForm().queryByText(noPublicCards)).toBeNull() // 비공개로 고르면 카드 경고는 없다(저장된 공개 상태의 경고는 헤더가 그대로 알린다)
+  fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
+  expect(infoForm().queryByText(noPublicCards)).toBeNull() // 저장값(공개)으로 돌아오면 다시 헤더 하나다
+  expect(screen.getAllByText(noPublicCards)).toHaveLength(1)
 })
 
 it('작성 모드에서도 공개로 바꾸면 기본 정보 단계의 공개 설정 아래에 같은 경고와 전체 공개를 보인다', async () => {
@@ -3784,7 +3798,7 @@ it('빼기는 서버를 부르지 않고 초안에서 이미지 연결만 지워
   expect(preview()).toBeNull()
   expect(imageGroup().queryByRole('button', { name: '빼기' })).toBeNull()
   expect(imageInput().disabled).toBe(false)
-  expect(document.activeElement).toBe(imageInput()) // 눌렀던 빼기 버튼이 사라지므로 같은 자리의 추가 칸으로 초점을 옮긴다
+  await waitFor(() => expect(document.activeElement).toBe(imageInput())) // 눌렀던 빼기 버튼이 사라지므로 같은 자리의 추가 칸으로 초점을 옮긴다(렌더 뒤 이동이라 기다린다)
   expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
   expect(uploadCardImage).not.toHaveBeenCalled()
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
@@ -4931,4 +4945,108 @@ it('확인 필요 카드를 고쳐도 확인 필요 칩은 그대로 남는다',
   fireEvent.change(editor().getByRole('textbox', { name: '설정 이름' }), { target: { value: '큰 항구' } })
   backToBoard()
   expect(todos('큰 항구')).toEqual(['확인 필요'])
+})
+
+// ── 개요 탭: 작품 관리 개요(WorkDashboard)처럼 위에 세계관 지표 띠, 아래에 구획 카드(impeccable audit R2) ─────────────────────
+/** 지표 구획(`세계관 지표`)의 한 칸 값. 칸이 없으면 null이다. */
+const metricValue = (label: string) => within(screen.getByRole('region', { name: '세계관 지표' })).queryByText(label)?.closest('div')?.querySelector('dd')?.textContent ?? null
+const openOverview = (fixture: Fixture = {}, settings?: StudioSetting[]) => show(settings, '/worldstudio/qa?view=overview', fixture)
+
+it('개요 탭 맨 위에 세계관 지표 띠가 있고 설정 카드·관계·저장 버전·확정 버전·연결 소설·공개 상태를 화면이 이미 가진 값으로 채운다', async () => {
+  const garam = person('가람', '기록관')
+  const narae = person('나래', '항해사')
+  revisions = { ...noRevisions(), rows: [revision(1, '첫 확정'), revision(2, '둘째 확정')] }
+  vi.spyOn(episodeApi(), 'list').mockResolvedValue([myWork('work-1', '달빛 기록')])
+  await openOverview({ visibility: 'public', currentRevisionId: 'r2', linkedWorkId: 'work-1' }, friends([garam, narae], garam, narae))
+  expect(metricValue('설정 카드')).toBe('2개')
+  expect(metricValue('관계')).toBe('1개')
+  expect(metricValue('저장 버전')).toBe('1개') // 다른 칸과 같은 'N개' 형식이다
+  expect(metricValue('확정 버전')).toBe('2개')
+  expect(metricValue('공개 상태')).toBe('공개 중')
+  await waitFor(() => expect(metricValue('연결 소설')).toBe('달빛 기록'))
+  const band = screen.getByRole('region', { name: '세계관 지표' })
+  const form = screen.getByRole('form', { name: '세계관 정보 편집' })
+  expect(band.parentElement).toBe(form.parentElement) // 작품 관리 개요(.ep-dash)처럼 지표 구획과 폼이 한 묶음이다
+  expect(band.parentElement!.classList.contains('ep-dash')).toBe(true)
+  expect(band.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 지표가 폼보다 위다
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(screen.queryByRole('region', { name: '세계관 지표' })).toBeNull() // 다른 보기에서는 폼과 같이 숨는다
+})
+
+it('개요 탭 본문은 화면에 안 보이는 h2 `개요`로 시작해 제목 단계가 h1 → h2 → h3로 이어진다(작품 관리 탭 본문의 h2와 같다)', async () => {
+  await openOverview()
+  const dash = document.querySelector('.ep-dash') as HTMLElement
+  const title = within(dash).getByRole('heading', { level: 2, name: '개요' })
+  expect(title.classList.contains('sr-only')).toBe(true) // 메뉴 탭 이름과 같은 글이라 화면에는 다시 그리지 않는다
+  expect(dash.firstElementChild).toBe(title)
+})
+
+it('지표 띠는 모르는 값을 0으로 채우지 않는다: 확정 버전은 읽는 동안 …, 읽지 못하면 불러오지 못했어요, 확정 버전이 없으면 0개이고 서버가 목록을 주지 않는 데모에는 칸이 없다', async () => {
+  revisions = { ...noRevisions(), busy: true }
+  await openOverview({ currentRevisionId: 'r1' })
+  expect(metricValue('확정 버전')).toContain('불러오는 중')
+  expect(metricValue('확정 버전')).not.toMatch(/\d개/)
+  cleanup()
+  revisions = { ...noRevisions(), error: '확정 버전을 조회하지 못했어요.' }
+  await openOverview({ currentRevisionId: 'r1' })
+  expect(metricValue('확정 버전')).toBe('불러오지 못했어요')
+  cleanup()
+  revisions = noRevisions()
+  await openOverview()
+  expect(metricValue('확정 버전')).toBe('0개') // 현재 확정 버전이 없으니 읽을 것 없이 0개다
+  cleanup()
+  revisions = { ...noRevisions(), supported: false }
+  await openOverview()
+  expect(metricValue('확정 버전')).toBeNull()
+})
+
+it('지표 띠의 연결 소설 칸은 없으면 없음, 읽는 동안 …, 읽지 못하면 제목을 불러오지 못했어요이고 연결이 없는 데모에는 칸이 없다', async () => {
+  await openOverview()
+  expect(metricValue('연결 소설')).toBe('없음')
+  cleanup()
+  vi.spyOn(episodeApi(), 'list').mockReturnValue(new Promise<Work[]>(() => undefined))
+  await openOverview({ linkedWorkId: 'work-1' })
+  expect(metricValue('연결 소설')).toContain('불러오는 중')
+  cleanup()
+  vi.spyOn(episodeApi(), 'list').mockRejectedValue(new Error('서버 인증이 필요합니다.'))
+  await openOverview({ linkedWorkId: 'work-1' })
+  await waitFor(() => expect(metricValue('연결 소설')).toBe('제목을 불러오지 못했어요'))
+  cleanup()
+  vi.stubEnv('MODE', 'mockup')
+  await openOverview({ linkedWorkId: 'work-1' })
+  expect(metricValue('연결 소설')).toBeNull() // 서버가 없는 데모는 소설 연결이 없어 칸도 소설 목록 조회도 없다
+})
+
+it('지표 띠의 공개 상태 칸은 비공개·공개 중(공개 목록에 나옴)·공개 · 목록 미노출(확정 버전이 없음)을 가른다', async () => {
+  await openOverview()
+  expect(metricValue('공개 상태')).toBe('비공개')
+  cleanup()
+  await openOverview({ visibility: 'public', currentRevisionId: 'r1' })
+  expect(metricValue('공개 상태')).toBe('공개 중')
+  cleanup()
+  await openOverview({ visibility: 'public' })
+  expect(metricValue('공개 상태')).toBe('공개 · 목록 미노출')
+})
+
+it('개요 폼은 기본 정보·공개 설정·표지·세계관 삭제 구획 카드 네 개로 나뉘고, 폼·바깥 fieldset·저장 버튼은 하나라 저장 계약은 그대로다', async () => {
+  await openOverview()
+  const form = screen.getByRole('form', { name: '세계관 정보 편집' })
+  const basic = within(form).getByRole('group', { name: '기본 정보' })
+  expect(within(basic).getByRole('heading', { name: '기본 정보', level: 3 })).toBeTruthy()
+  expect(within(basic).getByRole('textbox', { name: '세계관 이름' })).toBeTruthy()
+  expect(within(basic).getByRole('textbox', { name: '세계관 설명' })).toBeTruthy()
+  const publish = within(form).getByRole('group', { name: '공개 설정' })
+  expect(publish.querySelector('legend')!.classList.contains('sr-only')).toBe(false) // 카드의 보이는 제목이다(접근 이름은 그대로)
+  const cover = within(form).getByRole('group', { name: '표지' })
+  const zone = within(form).getByRole('group', { name: '세계관 삭제' })
+  const outer = form.querySelector('fieldset')!
+  const cards = Array.from(outer.children).filter((child) => child.classList.contains('world-info-card'))
+  expect(cards).toHaveLength(4)
+  expect(cards[0]).toBe(basic)
+  expect(cards[1].contains(publish)).toBe(true)
+  expect(cards[2]).toBe(cover)
+  expect(cards[3]).toBe(zone)
+  expect(form.querySelectorAll('fieldset.world-publish')).toHaveLength(1)
+  expect(within(form).getAllByRole('button', { name: '저장' })).toHaveLength(1) // 저장 버튼은 카드마다가 아니라 하나다
+  expect(outer.lastElementChild).toBe(zone) // 삭제 구획은 여전히 폼의 맨 끝이다
 })

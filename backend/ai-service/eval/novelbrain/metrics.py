@@ -1,4 +1,4 @@
-"""NovelBrain 평가 지표: 순위 지표·답 일치·TimeChara 공개 채점 규칙 결합·신뢰구간. 모두 표준 라이브러리 순수 함수다."""
+"""NovelBrain 평가 지표: 순위 지표(Recall·P·MRR)·답 일치·TimeChara 공개 채점 규칙 결합·신뢰구간. 모두 표준 라이브러리 순수 함수다."""
 
 import math
 import re
@@ -25,6 +25,13 @@ def recall_at_k(ranked: list[str], gold: set[str], k: int) -> float:
 def precision_at_k(ranked: list[str], gold: set[str], k: int) -> float:
     """상위 k칸 중 정답 근거의 비율. 결과가 k개보다 적어도 분모는 k다."""
     return _hits(ranked, gold, k) / k
+
+
+def reciprocal_rank(ranked: list[str], gold: set[str], k: int) -> float:
+    """상위 k칸에서 처음 나온 정답 근거 순위의 역수(없으면 0). 질문마다 구해 평균하면 MRR@k다. 뒤에 나온 정답은 점수를 바꾸지 않는다."""
+    if not gold:
+        raise ValueError('정답 근거가 없는 질문은 지표에서 제외해야 한다.')
+    return next((1 / rank for rank, id_ in enumerate(dedupe(ranked)[:k], 1) if id_ in gold), 0.0)
 
 
 def normalize_answer(text: str) -> str:

@@ -22,7 +22,7 @@ const show=(api:object,w:object=work)=>render(<MemoryRouter><ManuscriptBuildPane
 it('화면 진입만으로 시작하지 않으며 동의 후 명시적으로 접수한다',async()=>{
  const api={read:vi.fn().mockResolvedValue(null),start:vi.fn().mockResolvedValue(job),resume:vi.fn()}
  render(<MemoryRouter><ManuscriptBuildPanel work={work} useCase={api as never}/></MemoryRouter>)
- await screen.findByText('저장된 원고로 비공개 세계관 초안을 만들어요.')
+ await screen.findByText('저장된 원고(비공개 포함)로 비공개 세계관 초안을 만들어요.')
  expect(api.start).not.toHaveBeenCalled()
  expect((screen.getByRole('button',{name:'세계관 만들기'}) as HTMLButtonElement).disabled).toBe(true)
  fireEvent.click(screen.getByRole('checkbox'))
@@ -30,12 +30,22 @@ it('화면 진입만으로 시작하지 않으며 동의 후 명시적으로 접
  await screen.findByText('원고를 분석하고 있어요')
  expect(api.start).toHaveBeenCalledTimes(1)
 })
+it('안내는 첫 문장(비공개 원고 포함)과 보조색 세부 문단뿐이고, 버튼 아래 반복 안내는 없다',async()=>{
+ show({read:vi.fn().mockResolvedValue(null),start:vi.fn(),resume:vi.fn()})
+ await screen.findByText('저장된 원고(비공개 포함)로 비공개 세계관 초안을 만들어요.')
+ expect(screen.queryByText(/서버에서 저장된 원고가 있는지/)).toBeNull()
+ expect(screen.queryByText(/저장된 비공개 원고도 대상이에요/)).toBeNull()
+ expect(screen.getByText(/기존 카드가 있는 세계관은 자동으로 합치지 않아요/).className).toBe('ep-muted')
+})
 it('실패 이유와 동일 작업 재개를 표시하고 완료 후 기존 작업실을 연다',async()=>{
  const done={...job,status:'completed',completedEpisodes:4,receipts:[{}]}
  const api={read:vi.fn().mockResolvedValue({...job,status:'failed',failureCode:'AI_TIMEOUT'}),start:vi.fn(),resume:vi.fn().mockResolvedValue(done)}
  render(<MemoryRouter><ManuscriptBuildPanel work={work} useCase={api as never}/></MemoryRouter>)
- await screen.findByText(/시간 안에 분석 응답/)
+ await screen.findByText(/분석 응답 대기 시간이 초과됐어요/)
+ expect(screen.getByText(/저장된 추출 결과를 이어서 사용/)).toBeTruthy()
+ expect(api.resume).not.toHaveBeenCalled()
  fireEvent.click(screen.getByRole('button',{name:'같은 작업 재개'}))
+ expect(api.resume).toHaveBeenCalledTimes(1)
  await waitFor(()=>expect(screen.getByRole('link',{name:'세계관 초안 열기'}).getAttribute('href')).toBe('/worldstudio/'+job.worldId))
  expect(api.start).not.toHaveBeenCalled()
  expect(screen.getByText(/초안 생성만으로 확정하거나 공개하지/)).toBeTruthy()

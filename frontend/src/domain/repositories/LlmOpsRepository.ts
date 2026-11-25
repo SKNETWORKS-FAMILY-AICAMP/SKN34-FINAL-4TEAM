@@ -1,5 +1,5 @@
 import type {
-  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
+  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../entities/llmOps'
 import type { PipelineNode, PipelineQuery, PipelineRecord, PipelineRecordQuery } from '../entities/llmOpsPipeline'
 import type { OperationsPage } from '../entities/operations'
@@ -13,8 +13,11 @@ export interface LlmOpsRepository {
   prompts(): Promise<Prompt[]>
   prompt(name: string): Promise<Prompt>
   createPromptVersion(name: string, input: PromptVersionInput): Promise<void>
-  /** 그 버전의 최신 회귀 평가가 통과가 아니면 서버가 409로 거절하고 문구를 줍니다(OperationsRejected). */
+  /** 조합(본문+모델) 버전을 서비스 반영 후보로 등록합니다(#705). 반영(promote)은 후보만 됩니다. 평가 세트가 있는 프롬프트는 그 세트의 최신 평가가 통과가 아니면 409입니다(#787). */
+  candidate(name: string, version: number): Promise<void>
   promote(name: string, version: number): Promise<void>
+  /** 프롬프트 자동 개선(GEPA, #823)을 요청합니다(202). AI가 새 버전(라벨 없음)을 저장하고 게이트 세트 회귀 평가까지 돌리며, 같은 프롬프트가 실행 중이면 409입니다. */
+  optimize(name: string, input: OptimizationInput): Promise<void>
   models(): Promise<Model[]>
   createModel(input: ModelInput): Promise<void>
   evaluations(): Promise<Evaluation[]>

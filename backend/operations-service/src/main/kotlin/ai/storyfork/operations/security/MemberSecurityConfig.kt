@@ -17,7 +17,7 @@ class MemberSecurityConfig {
     @Bean
     @Order(1)
     fun memberSecurityFilterChain(http: HttpSecurity, core: CoreClient, mapper: JsonMapper): SecurityFilterChain {
-        val paths = listOf("reports", "members", "admins", "support", "admin/notices", "admin/events", "admin/activities", "works", "comments", "dashboard", "llmops", "alerts", "jobs", "genres", "credits", "world-studios", "card-categories").flatMap { listOf("/api/v1/operations/$it", "/api/v1/operations/$it/**") }
+        val paths = listOf("reports", "members", "admins", "support", "admin/notices", "admin/events", "admin/activities", "works", "comments", "dashboard", "llmops", "alerts", "jobs", "genres", "credits", "world-studios", "card-categories", "feedback-reports").flatMap { listOf("/api/v1/operations/$it", "/api/v1/operations/$it/**") }
         // Bearer header only (no cookie/session), so CSRF protection is not applicable.
         http.securityMatcher(*paths.toTypedArray())
             .csrf { it.disable() }.cors { it.disable() }

@@ -1,4 +1,4 @@
-import { periodRange, type EvaluationInput, type MetricsQuery, type TraceQuery } from '../entities/llmOps'
+import { OPTIMIZATION_MAX_CALLS, OPTIMIZATION_UNSUPPORTED_MESSAGE, isOptimizable, periodRange, type EvaluationInput, type MetricsQuery, type TraceQuery } from '../entities/llmOps'
 import type { PipelineQuery, PipelineRecordQuery } from '../entities/llmOpsPipeline'
 import { OperationsError, orNullIfForbidden } from '../entities/operations'
 import type { AlertRuleInput } from '../entities/operationsAlert'
@@ -30,12 +30,13 @@ export class LlmOpsUseCase {
 
   /** 대시보드 차트: 지금부터 7일 전까지의 날짜별 지표('지표' 보기의 최근 7일과 같은 구간). */
   weeklyMetrics(now = new Date()) { return this.metrics({ ...periodRange(24 * 7, now), groupBy: 'day' }) }
+  candidate(name: string, version: number) { return this.repository.candidate(name, version) }
   promote(name: string, version: number) { return this.repository.promote(name, version) }
 
   /** 본문은 그대로 보냅니다(앞뒤 공백·줄바꿈도 프롬프트의 일부). 비어 있을 때만 막습니다. */
-  async createPromptVersion(name: string, prompt: string, commitMessage: string) {
+  async createPromptVersion(name: string, prompt: string, commitMessage: string, model: string) {
     if (!prompt.trim()) invalid('프롬프트 본문을 입력해 주세요.')
-    return this.repository.createPromptVersion(name, { prompt, commitMessage: commitMessage.trim() })
+    return this.repository.createPromptVersion(name, { prompt, commitMessage: commitMessage.trim(), model: model.trim() })
   }
 
   async createModel(input: { modelName: string; matchPattern: string; inputPerMillion: number; outputPerMillion: number }) {
@@ -49,6 +50,14 @@ export class LlmOpsUseCase {
     if (!input.dataset || !input.prompt) invalid('데이터셋과 프롬프트 이름을 입력해 주세요.')
     if (!Number.isInteger(version) || version < 1) invalid('버전은 1 이상의 정수로 입력해 주세요.')
     return this.repository.runEvaluation(input)
+  }
+
+  /** 자동 개선 요청. 서버가 다시 검사하므로 사람이 곧바로 고칠 수 있는 입력 오류만 먼저 알립니다(대상 프롬프트·기준 버전·평가 호출 상한 1~500). */
+  async optimize(name: string, version: number, maxMetricCalls: number) {
+    if (!isOptimizable(name)) invalid(OPTIMIZATION_UNSUPPORTED_MESSAGE)
+    if (!Number.isInteger(version) || version < 1) invalid('기준 버전은 1 이상의 정수로 골라 주세요.')
+    if (!Number.isInteger(maxMetricCalls) || maxMetricCalls < 1 || maxMetricCalls > OPTIMIZATION_MAX_CALLS) invalid(`평가 호출 상한은 1~${OPTIMIZATION_MAX_CALLS}의 정수로 입력해 주세요.`)
+    return this.repository.optimize(name, { version, maxMetricCalls })
   }
 
   async updateAlertRule(key: string, input: AlertRuleInput) {

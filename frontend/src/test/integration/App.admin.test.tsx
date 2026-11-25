@@ -2,6 +2,7 @@
 import '../fixtureApp'
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { asValue } from 'awilix/browser'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -10,7 +11,11 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import '../../presentation/features/account/view/AccountPage'
+import '../../presentation/features/admin/view/AdminPage'
+import '../../presentation/features/reading/view/ReaderPage'
 import type { Metrics } from '../../domain/entities/llmOps'
+import type { OperationsFeedbackReport } from '../../domain/entities/operationsFeedbackReport'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
@@ -40,7 +45,7 @@ describe('관리자 (A01~A18)', () => {
         : new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetch)
     const { store } = renderAt('/admin')
-    fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }, { timeout: 4000 }))
     fireEvent.click(screen.getByRole('menuitem', { name: '로그아웃' }))
     await toastIs('로그아웃했어요')
     await waitFor(() => expect(where()).toBe('/'))
@@ -119,13 +124,66 @@ describe('관리자 (A01~A18)', () => {
     within(q).getByText('확인했어요')
   })
 
-  it('제보·문의 탭은 기존 단일 답변 데모와 운영 문의 기록 데모 없이 실제 회원 문의와 작가 제보만 보인다', async () => {
+  it('제보·문의 탭은 기존 단일 답변 데모와 운영 문의 기록 데모 없이 실제 회원 문의와 운영 API의 작가 검토 제보만 보인다', async () => {
     renderAt('/admin?tab=feedback')
     await screen.findByRole('heading', { name: '회원 문의' })
     expect(screen.queryByText('기존 회원 문의 데모')).toBeNull()
     expect(screen.queryByRole('button', { name: '문의 기록 추가' })).toBeNull()
-    screen.getByText('작가 검토 제보')
+    const panel = await screen.findByRole('region', { name: '작가 검토 제보' })
+    within(panel).getByRole('heading', { name: '작가 검토 제보' })
+    within(panel).getByText(/열람 전용 · 처리는 작가가 합니다/)
+    // 실제 모드에는 시연용 문구도 브라우저에만 반영되는 조치도 없다(운영자는 읽기만 한다).
+    expect(screen.queryByText(/시연용|현재 브라우저에만 반영/)).toBeNull()
+    expect(within(panel).queryByRole('button', { name: /답변|상태 변경/ })).toBeNull()
+    await within(panel).findByText('접수된 제보가 없어요.')
     expect(document.querySelector('.admin-head .chip')).toBeNull()
+  })
+
+  it('작가 검토 제보는 운영 API의 독자 제보를 표로 읽고 쪽 이동·상태 조건은 서버에서 다시 읽는다', async () => {
+    const row: OperationsFeedbackReport = {
+      id: 'r1', workId: 'w1', workTitle: '별빛 서약의 탑', episodeNumber: 3, kind: 'typo', body: '3화 둘째 줄에 오탈자가 있어요', quote: '별빛이 쏟아지는 밤',
+      visibility: 'private', status: 'unchecked', reporterName: '연화', withdrawn: false, createdAt: '2026-11-20T01:02:03Z',
+    }
+    const list = vi.spyOn(appContainer.resolve('operationsFeedbackReportUseCase')!, 'list').mockImplementation(async ({ page, status }) => ({
+      items: page === 0 && !status
+        ? [row, { ...row, id: 'r2', kind: 'story', body: '결말이 앞 회차 설정과 맞지 않아요', status: 'answered', visibility: 'public', quote: null, withdrawn: true, reporterName: '탈퇴한 회원' }]
+        : [{ ...row, id: 'r3', body: '다른 쪽 제보', status: status ?? 'unchecked' }],
+      page, size: 20, total: 41,
+    }))
+    renderAt('/admin?tab=feedback')
+    const panel = await screen.findByRole('region', { name: '작가 검토 제보' })
+    const table = await within(panel).findByRole('region', { name: '작가 검토 제보 표' })
+    const first = within(table).getByText('3화 둘째 줄에 오탈자가 있어요').closest('tr') as HTMLElement
+    within(first).getByText('단순 오류')
+    within(first).getByText('비공개 제보')
+    within(first).getByText('“별빛이 쏟아지는 밤”')
+    within(first).getByText('별빛 서약의 탑 · 3화')
+    within(first).getByText('연화')
+    within(first).getByText('작가 확인 전')
+    const second = within(table).getByText('탈퇴한 회원').closest('tr') as HTMLElement
+    within(second).getByText('스토리 오류')
+    within(second).getByText('답변함')
+    within(second).getByText('철회됨')
+    within(panel).getByText('전체 41건 · 1/3쪽')
+    expect(list).toHaveBeenLastCalledWith({ page: 0, status: null })
+    // 다음 쪽과 상태 조건은 서버에서 다시 읽는다(조건을 바꾸면 첫 쪽부터).
+    fireEvent.click(within(panel).getByRole('button', { name: '다음' }))
+    await within(panel).findByText('다른 쪽 제보')
+    expect(list).toHaveBeenLastCalledWith({ page: 1, status: null })
+    fireEvent.change(within(panel).getByLabelText('제보 상태'), { target: { value: 'checked' } })
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 0, status: 'checked' }))
+    await within(panel).findByText('확인함', { selector: '.chip' })
+  })
+
+  it('작가 검토 제보를 읽지 못하면 빈 표 대신 실패와 다시 불러오기를 보인다', async () => {
+    const list = vi.spyOn(appContainer.resolve('operationsFeedbackReportUseCase')!, 'list').mockRejectedValueOnce(new Error('연결 실패'))
+    renderAt('/admin?tab=feedback')
+    const panel = await screen.findByRole('region', { name: '작가 검토 제보' })
+    await within(panel).findByText(/작가 검토 제보 목록을 불러오지 못했어요/)
+    expect(within(panel).queryByText('접수된 제보가 없어요.')).toBeNull()
+    list.mockResolvedValue({ items: [], page: 0, size: 20, total: 0 })
+    fireEvent.click(within(panel).getByRole('button', { name: '다시 불러오기' }))
+    await within(panel).findByText('접수된 제보가 없어요.')
   })
 
   it('개요는 운영 대시보드 카드를 서버 값으로 보이고, 출처를 읽지 못한 칸은 0이 아니라 불러오지 못함으로 보인다', async () => {
@@ -294,7 +352,7 @@ describe('관리자 (A01~A18)', () => {
     const detail = await screen.findByLabelText('프롬프트 상세')
     await within(detail).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
     expect(within(detail).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
-    expect(within(detail).queryByRole('button', { name: '새 버전 등록' })).toBeNull()
+    expect(within(detail).queryByRole('button', { name: '조합 저장' })).toBeNull()
   })
 
   it('공지를 게시하면 회원 공지사항에 보인다', async () => {
@@ -435,21 +493,23 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByRole('img', { name: /p95 지연/ })).toBeNull()
   })
 
-  it('프롬프트 승격은 최신 평가가 통과가 아니면 서버 문구로 거절되고, 새 버전은 라벨 없이 등록된다', async () => {
+  it('조합은 후보로 등록해야 서비스에 반영되고, 새 조합은 라벨 없이 저장된다(#705)', async () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderAt('/admin?tab=llm&view=prompts&sub=prompts')
-    fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'qa-answer' }))
     await screen.findByRole('heading', { name: 'qa-answer' })
-    fireEvent.click(screen.getByRole('button', { name: '「qa-answer 3번 버전」 조치' }))
-    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'production 승격' }))
+    // 후보가 아닌 버전에는 반영 버튼이 없고, 서비스에 반영 중인 버전에는 조치 버튼이 없다.
+    expect(screen.queryByRole('button', { name: 'qa-answer 3번 버전 서비스에 반영' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /qa-answer 2번 버전 (후보 등록|서비스에 반영)/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'qa-answer 3번 버전 후보 등록' }))
+    await toastIs('qa-answer 3번 버전을 후보로 등록했어요.')
+    fireEvent.click(await screen.findByRole('button', { name: 'qa-answer 3번 버전 서비스에 반영' }))
     expect(confirm).toHaveBeenCalledTimes(1)
-    await within(screen.getByLabelText('프롬프트 상세')).findByText('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.')
-    // 현재 production 버전에는 조치 메뉴가 없다.
-    expect(screen.queryByRole('button', { name: '「qa-answer 2번 버전」 조치' })).toBeNull()
-    fireEvent.change(screen.getByLabelText('새 버전 본문'), { target: { value: '새 프롬프트' } })
-    fireEvent.click(screen.getByRole('button', { name: '새 버전 등록' }))
-    await toastIs('새 버전을 등록했어요.')
-    await screen.findByRole('button', { name: '「qa-answer 4번 버전」 조치' })
+    await toastIs('qa-answer의 서비스 반영이 3번 버전으로 바뀌었어요.')
+    fireEvent.change(screen.getByLabelText('프롬프트 본문'), { target: { value: '새 프롬프트' } })
+    fireEvent.click(screen.getByRole('button', { name: '조합 저장' }))
+    await toastIs('조합을 저장했어요.')
+    await screen.findByRole('button', { name: 'qa-answer 4번 버전 후보 등록' })
   })
 
   it('LLM Ops 평가는 지표 표를 보이고 모델·누설 검사 기록도 읽는다', async () => {
@@ -537,5 +597,22 @@ describe('관리자 (A01~A18)', () => {
     fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '일정 취소' }))
     await toastIs('정기 작업 일정을 취소했어요.')
     await within(table).findByText('꺼짐')
+  })
+
+  // 컨테이너의 UseCase를 null로 바꾸는 시험이라 파일 맨 끝에 두고 끝나면 되돌립니다(파일 안 시험이 같은 컨테이너를 씁니다).
+  it('서버 없는 시연(--mode mockup)은 운영 독자 제보 UseCase가 없어 기존 메모리 데모 작가 검토 제보 표를 그대로 보인다', async () => {
+    const real = appContainer.resolve('operationsFeedbackReportUseCase')
+    appContainer.register({ operationsFeedbackReportUseCase: asValue(null) })
+    try {
+      renderAt('/admin?tab=feedback')
+      await screen.findByRole('heading', { name: '회원 문의' })
+      await screen.findByRole('heading', { name: '작가 검토 제보' })
+      screen.getByText(/별도의 시연용 제보예요/)
+      screen.getByText(/답변과 상태는 현재 브라우저에만 반영되며 실제 전송되지 않습니다/)
+      expect(screen.queryByText(/열람 전용 · 처리는 작가가 합니다/)).toBeNull()
+    } finally {
+      cleanup()
+      appContainer.register({ operationsFeedbackReportUseCase: asValue(real) })
+    }
   })
 })

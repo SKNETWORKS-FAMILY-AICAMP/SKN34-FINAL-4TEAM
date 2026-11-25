@@ -9,6 +9,7 @@ import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.imagegeneration.client.CoverModerationClient
+import ai.storyfork.content.world.service.ManuscriptBuildMapper
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
@@ -50,7 +51,8 @@ class WorldStudioServiceTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps,cardCategories)
+    private val events=mock(org.springframework.context.ApplicationEventPublisher::class.java)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps,cardCategories,events)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -62,6 +64,14 @@ class WorldStudioServiceTest {
         val reordered=request.copy(cards=listOf(card.copy(semanticMetadata=linkedMapOf(
             "characterDocs" to mapOf("episodes" to mapOf("01" to "기억"),"goal" to "목표","soul" to "성격"),"z" to mapOf("first" to 1,"second" to 2)))))
         assertEquals(service.manuscriptRequestHash(world,request),service.manuscriptRequestHash(world,reordered))
+    }
+    @Test fun `a manuscript character card with an empty body passes the draft edit validation`() {
+        // 정체 진술이 없는 인물은 본문이 빈 문자열로 적재된다(#839). 초안은 빈 본문을 받고(확정 버전만 본문을 요구한다) 이 검사가 거절하면 최초 구축 전체가 CONTENT_REJECTED로 끝난다.
+        val payload=ManuscriptLoadPayload(listOf(ManuscriptCard("hero","character","치삼",emptyList(),"",1,ManuscriptCharacterDocs("[묘사] 치삼은 웃었다.","",emptyMap()))),emptyList())
+        val built=ManuscriptBuildMapper.build(UUID.randomUUID(),WorldDraftResponse(world,0,null,null,"원고 세계관","",emptyList(),emptyList()),payload,
+            mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "치삼은 웃었다."))))
+        assertEquals("",built.single().cards.single().body)
+        built.forEach { service.validateEditRequest(it) }
     }
     private fun owned(marker:Boolean=true) {
         `when`(worlds.lockOwned(world,actor)).thenReturn(StudioWorld(world,actor))
@@ -1156,6 +1166,8 @@ class WorldStudioServiceTest {
         assertEquals(memory("1" to "산채","11" to "새 기억"),existing.fields.semanticMetadata)
         assertEquals("public",existing.fields.visibility)
         assertEquals("applied",step.status);assertEquals("completed",job.status)
+        assertEquals(receipt,service.editManuscriptAddition(world,actor,step.id))
+        verify(events).publishEvent(ai.storyfork.content.world.service.ManuscriptBuildFinished(job.id,job.lockVersion,"work",world,actor))
         assertEquals(listOf(id.toString()),receipt["cardIds"],"영수증의 카드 ID에 맞춘 기존 카드도 든다")
         verify(cards,never()).saveAndFlush(any())
     }

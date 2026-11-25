@@ -32,10 +32,11 @@ manuscript = [
     "onnxruntime>=1.29,<2",
     "tokenizers>=0.22,<1",
 ]
-# 회귀 평가(app/evaluation, DEC-55). 같은 프로세스에서 돌므로 AI 이미지에도 설치한다.
+# 회귀 평가(app/evaluation, DEC-55)와 프롬프트 자동 개선(app/optimization, #823, gepa MIT·사용자 승인). 같은 프로세스에서 돌므로 AI 이미지에도 설치한다.
 eval = [
     "ragas>=0.4.4,<0.5",
     "deepeval>=4.3.4,<5",
+    "gepa>=0.1.4,<0.2",
 ]
 dev = [
     "httpx2>=2.0.0,<3.0.0",

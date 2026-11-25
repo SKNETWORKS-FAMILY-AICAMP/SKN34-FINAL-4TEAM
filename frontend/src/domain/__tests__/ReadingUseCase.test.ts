@@ -417,6 +417,19 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(items.find((x) => x.k === '회차' && x.label === '구운몽 2화 돌다리 위의 팔선녀')).toMatchObject({ go: '/read/guunmong/2' })
     expect(items.filter((x) => x.k === '소설').some((x) => x.go === '/work/gate')).toBe(true)
   })
+
+  it.each([
+    ['', '개발 작가'],
+    ['고전 · 모험', '개발 작가 · 고전 · 모험'],
+  ])('빠른 이동 소설 보조 문구는 장르 %j에 대해 %j를 표시한다', async (genre, sub) => {
+    const { works, useCase } = fakes()
+    const work = works.find((work) => work.id === 'guunmong')!
+    Object.assign(work, { author: '개발 작가', genre })
+
+    const items = await useCase.getQuickItems(null)
+
+    expect(items.find((item) => item.k === '소설' && item.w?.id === work.id)).toMatchObject({ sub })
+  })
 })
 
 describe('ReadingUseCase 운영자 열람 (2026-11-23 사용자 결정)', () => {

@@ -2,7 +2,7 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
-import ai.storyfork.operations._common.exception.EvaluationRequiredException
+import ai.storyfork.operations._common.exception.CandidateRequiredException
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.comment.controller.CommentController
@@ -35,12 +35,15 @@ import ai.storyfork.operations.llmops.service.LeakCheckService
 import ai.storyfork.operations.llmops.service.LlmopsSettingService
 import ai.storyfork.operations.llmops.service.MetricsService
 import ai.storyfork.operations.llmops.service.ModelService
+import ai.storyfork.operations.llmops.service.OptimizationService
 import ai.storyfork.operations.llmops.service.PipelineService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.TraceService
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
 import ai.storyfork.operations.llmops.service.dto.TracePage
 import ai.storyfork.operations.event.controller.AdminEventController
+import ai.storyfork.operations.feedbackreport.controller.FeedbackReportController
+import ai.storyfork.operations.feedbackreport.service.FeedbackReportService
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
@@ -83,7 +86,7 @@ import tools.jackson.databind.json.JsonMapper
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
 @WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class,
     DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class, CreditController::class,
-    CardCategoryController::class, WorldStudioController::class], properties = [
+    CardCategoryController::class, WorldStudioController::class, FeedbackReportController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -104,6 +107,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var credits: CreditService
     @MockitoBean lateinit var cardCategories: CardCategoryService
     @MockitoBean lateinit var worldStudios: WorldStudioService
+    @MockitoBean lateinit var feedbackReports: FeedbackReportService
     @MockitoBean lateinit var comments: CommentService
     @MockitoBean lateinit var adminActivities: AdminActivityService
     @MockitoBean lateinit var dashboard: DashboardService
@@ -113,6 +117,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var models: ModelService
     @MockitoBean lateinit var pipelines: PipelineService
     @MockitoBean lateinit var evaluations: EvaluationService
+    @MockitoBean lateinit var optimizations: OptimizationService
     @MockitoBean lateinit var leakChecks: LeakCheckService
     @MockitoBean lateinit var llmopsSettings: LlmopsSettingService
     @MockitoBean lateinit var alerts: AlertService
@@ -316,6 +321,35 @@ class MemberSecurityIntegrationTest {
     }
 
     @Test
+    fun `feedback report routes require a Core verified Bearer and ignore the service token`() {
+        val response = mvc.perform(get("/api/v1/operations/feedback-reports").header("X-Operations-Service-Token", serviceToken))
+            .andExpect(status().isUnauthorized()).andReturn().response
+        assertEquals("UNAUTHORIZED", code(response.contentAsString))
+        assertNull(response.getHeader("Set-Cookie"))
+        verifyNoInteractions(core, feedbackReports)
+    }
+
+    @Test
+    fun `verified member reaches the feedback report controller as principal with the filter and gets Content's JSON as is`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val page = mapper.readTree("""{"items":[{"id":"r1","workTitle":"작품","status":"checked"}],"page":1,"size":5,"totalElements":6,"totalPages":2}""")
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(feedbackReports.list(member, "checked", 1, 5)).thenReturn(page)
+        `when`(feedbackReports.list(member, null, null, null)).thenReturn(page)
+
+        mvc.perform(get("/api/v1/operations/feedback-reports?status=checked&page=1&size=5").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].workTitle").value("작품")).andExpect(jsonPath("$.totalPages").value(2))
+        mvc.perform(get("/api/v1/operations/feedback-reports").header("Authorization", bearer)).andExpect(status().isOk())
+        // The author handles a reader report, so the operator has no write route.
+        mvc.perform(post("/api/v1/operations/feedback-reports").header("Authorization", bearer)).andExpect(status().isMethodNotAllowed())
+        // A page that is not a number is the common 400 and never reaches the service.
+        mvc.perform(get("/api/v1/operations/feedback-reports?page=x").header("Authorization", bearer)).andExpect(status().isBadRequest())
+        verify(feedbackReports).list(member, "checked", 1, 5)
+        verify(feedbackReports).list(member, null, null, null)
+        verifyNoMoreInteractions(feedbackReports)
+    }
+
+    @Test
     fun `credits routes require a Core verified Bearer and ignore the service token`() {
         val id = UUID.randomUUID()
         for (builder in listOf(
@@ -457,7 +491,7 @@ class MemberSecurityIntegrationTest {
         for (builder in listOf(
             get("/api/v1/operations/dashboard"), get("/api/v1/operations/llmops/traces"), get("/api/v1/operations/llmops/traces/t-1"),
             get("/api/v1/operations/llmops/metrics"), get("/api/v1/operations/llmops/prompts"), put("/api/v1/operations/llmops/prompts/qa-answer/production"),
-            get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
+            post("/api/v1/operations/llmops/prompts/qa-answer/optimizations"), get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
             get("/api/v1/operations/llmops/settings"), get("/api/v1/operations/alerts"), put("/api/v1/operations/alerts/$id"),
             get("/api/v1/operations/alerts/rules"), put("/api/v1/operations/alerts/rules/ai_failure_rate"),
         )) {
@@ -494,15 +528,15 @@ class MemberSecurityIntegrationTest {
     }
 
     @Test
-    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
+    fun `promoting a prompt version that is not a candidate is a 409 with its own code`() {
         val member = OperationsMember(UUID.randomUUID(), true)
         `when`(core.verify(bearer)).thenReturn(member)
-        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(EvaluationRequiredException())
+        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(CandidateRequiredException())
 
         val response = mvc.perform(put("/api/v1/operations/llmops/prompts/qa-answer/production").header("Authorization", bearer)
             .contentType("application/json").content("""{"version":3}""")).andExpect(status().isConflict()).andReturn().response
 
-        assertEquals("EVALUATION_REQUIRED", code(response.contentAsString))
+        assertEquals("CANDIDATE_REQUIRED", code(response.contentAsString))
     }
 
     @Test

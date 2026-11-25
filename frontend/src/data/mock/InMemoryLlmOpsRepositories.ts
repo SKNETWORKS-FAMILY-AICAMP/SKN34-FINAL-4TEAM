@@ -1,7 +1,7 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
-import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import type {
-  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
+  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import { OperationsError, OperationsRejected, type OperationsPage } from '../../domain/entities/operations'
@@ -17,6 +17,7 @@ import type { OperationsDashboardRepository } from '../../domain/repositories/Op
  */
 const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
 const NOT_FOUND = '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'
+const candidatesOf = (versions: Prompt['versions']) => versions.filter((v) => versionAction(v) === 'promote').length
 const found = <T>(row: T | undefined): T => { if (!row) throw new OperationsError(NOT_FOUND); return row }
 const paged = <T>(rows: T[], page: number, size = 20): OperationsPage<T> => ({ items: rows.slice(page * size, (page + 1) * size), page, size, total: rows.length, unavailable: [] })
 const summary = (requests: number, failed: number, timeouts: number) => ({ requests, failed, timeouts, failureRate: requests ? failed / requests : null, costUser: 0, costPlatform: requests * 0.0021 })
@@ -115,15 +116,15 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     trace('trace-1', 'qa', 'success', 5, 1840, 0.0042), trace('trace-2', 'writing', 'failed', 40, 920, 0.0011),
     trace('trace-3', 'manuscript_review', 'timeout', 95, 30000, 0.0087), trace('trace-4', 'qa', 'success', 180, 1620, 0.0039),
   ]
-  private readonly prompts_: Prompt[] = [
+  private readonly prompts_: Omit<Prompt, 'candidates'>[] = [
     { name: 'qa-answer', versions: [
-      { version: 3, labels: [], createdAt: ago(300), evaluation: { runId: 'run-2', passed: false, createdAt: ago(240) } },
-      { version: 2, labels: ['production'], createdAt: ago(4000), evaluation: { runId: 'run-1', passed: true, createdAt: ago(3900) } },
-      { version: 1, labels: [], createdAt: ago(9000) },
+      { version: 3, labels: ['seed'], createdAt: ago(300), evaluation: { runId: 'run-2', passed: false, createdAt: ago(240) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하고 근거를 함께 보여 주세요.' },
+      { version: 2, labels: ['production'], createdAt: ago(4000), evaluation: { runId: 'run-1', passed: true, createdAt: ago(3900) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하세요.' },
+      { version: 1, labels: [], createdAt: ago(9000), prompt: '질문에 답하세요.' },
     ] },
-    { name: 'writing-assist', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
-    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
-    { name: 'main-agent', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
+    { name: 'writing-assist', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가의 요청대로 원고를 고치세요.' }] },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '요청이 범위 안인지 판정하세요.' }] },
+    { name: 'main-agent', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가를 돕는 집필 AI입니다.' }] },
   ]
   private readonly modelRows: Model[] = [
     { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001 },
@@ -170,16 +171,33 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
       adoptionRate: 0.42, approvalRate: 0.67, filterRestoreRate: null,
     }
   }
-  async prompts() { return structuredClone(this.prompts_.map(({ name }) => ({ name, versions: [] }))) }
-  async prompt(name: string) { return structuredClone(found(this.prompts_.find((p) => p.name === name))) }
-  async createPromptVersion(name: string, _input: PromptVersionInput) {
+  // 서버처럼 목록은 production·seed 버전의 라벨·모델과 후보 수만, 상세는 모든 버전과 본문까지 준다(#786).
+  async prompts() {
+    return structuredClone(this.prompts_.map(({ name, versions }) => ({
+      name, candidates: candidatesOf(versions),
+      versions: versions.filter((v) => v.labels.includes('production') || v.labels.includes('seed')).map(({ prompt: _body, ...v }) => v),
+    })))
+  }
+  async prompt(name: string) {
     const p = found(this.prompts_.find((item) => item.name === name))
-    p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString() })
+    return structuredClone({ ...p, candidates: candidatesOf(p.versions), models: ['gpt-demo', 'gpt-demo-mini'] })
+  }
+  async createPromptVersion(name: string, input: PromptVersionInput) {
+    const p = found(this.prompts_.find((item) => item.name === name))
+    p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString(), model: input.model || null, prompt: input.prompt, commitMessage: input.commitMessage || null })
+  }
+  async candidate(name: string, version: number) {
+    const target = found(found(this.prompts_.find((item) => item.name === name)).versions.find((v) => v.version === version))
+    if (!target.labels.includes(`candidate-${version}`)) target.labels = [...target.labels, `candidate-${version}`]
   }
   async promote(name: string, version: number) {
     const p = found(this.prompts_.find((item) => item.name === name)), target = found(p.versions.find((v) => v.version === version))
-    if (target.evaluation?.passed !== true) throw new OperationsRejected(EVALUATION_REQUIRED_MESSAGE)
-    for (const v of p.versions) v.labels = v === target ? ['production'] : v.labels.filter((label) => label !== 'production')
+    if (!target.labels.includes(`candidate-${version}`)) throw new OperationsRejected(CANDIDATE_REQUIRED_MESSAGE)
+    for (const v of p.versions) v.labels = [...v.labels.filter((label) => label !== 'production'), ...(v === target ? ['production'] : [])]
+  }
+  /** 데모에는 개선을 돌리는 쪽이 없어 요청이 받아들여질 뿐이고(대상 버전만 확인), 데모 프롬프트에는 자동 개선 대상이 없어 화면에서는 이 요청이 나가지 않습니다. */
+  async optimize(name: string, { version }: OptimizationInput) {
+    found(this.prompts_.find((p) => p.name === name)?.versions.find((v) => v.version === version))
   }
   async models() { return structuredClone(this.modelRows) }
   async createModel(input: ModelInput) { this.modelRows.push({ id: `model-${this.modelRows.length + 1}`, ...input }) }

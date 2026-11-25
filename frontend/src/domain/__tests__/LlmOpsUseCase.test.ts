@@ -10,9 +10,9 @@ const rejects = (promise: Promise<unknown>, message: string) => expect(promise).
 describe('프롬프트 새 버전', () => {
   it('본문은 그대로, 변경 메모는 다듬어 보내고 본문이 비면 보내지 않는다', async () => {
     const createPromptVersion = vi.fn(async () => {})
-    await make({ createPromptVersion }).createPromptVersion('qa-answer', '  첫 줄\n둘째 줄 ', '  말투 조정 ')
-    expect(createPromptVersion).toHaveBeenCalledWith('qa-answer', { prompt: '  첫 줄\n둘째 줄 ', commitMessage: '말투 조정' })
-    await rejects(make({ createPromptVersion }).createPromptVersion('qa-answer', '  \n ', ''), '프롬프트 본문을 입력해 주세요.')
+    await make({ createPromptVersion }).createPromptVersion('qa-answer', '  첫 줄\n둘째 줄 ', '  말투 조정 ', ' gpt-x ')
+    expect(createPromptVersion).toHaveBeenCalledWith('qa-answer', { prompt: '  첫 줄\n둘째 줄 ', commitMessage: '말투 조정', model: 'gpt-x' })
+    await rejects(make({ createPromptVersion }).createPromptVersion('qa-answer', '  \n ', '', ''), '프롬프트 본문을 입력해 주세요.')
     expect(createPromptVersion).toHaveBeenCalledTimes(1)
   })
 })
@@ -93,7 +93,7 @@ describe('LLM Ops 조회 권한', () => {
     const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
     const uc = make({
       traces: forbidden, trace: forbidden, metrics: forbidden, prompts: forbidden, prompt: forbidden, models: forbidden, evaluations: forbidden,
-      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden,
+      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden, candidate: forbidden,
     })
     const traceQuery = { from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 }
     const reads = await Promise.all([
@@ -102,6 +102,7 @@ describe('LLM Ops 조회 권한', () => {
     ])
     expect(reads).toEqual(Array(11).fill(null))
     await expect(uc.promote('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
+    await expect(uc.candidate('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
   })
 })
 
@@ -126,5 +127,34 @@ describe('AI 파이프라인(DEC-58) 조회', () => {
     expect([await uc.pipeline(range), await uc.pipelineRecords(recordQuery)]).toEqual([null, null])
     await expect(make({ pipeline: async () => { throw new OperationsError('연결 실패') } }).pipeline(range)).rejects.toThrow('연결 실패')
     await expect(make({ pipelineRecords: async () => { throw new OperationsError('연결 실패') } }).pipelineRecords(recordQuery)).rejects.toThrow('연결 실패')
+  })
+})
+
+describe('프롬프트 자동 개선 요청(#823)', () => {
+  it('기준 버전과 평가 호출 상한을 그대로 보낸다(상한 1과 500도 된다)', async () => {
+    const optimize = vi.fn(async () => {})
+    const uc = make({ optimize })
+    await uc.optimize('character_simulation.act', 2, 150)
+    await uc.optimize('character_simulation.narrate', 1, 1)
+    await uc.optimize('character_simulation.act', 3, 500)
+    expect(optimize.mock.calls).toEqual([
+      ['character_simulation.act', { version: 2, maxMetricCalls: 150 }],
+      ['character_simulation.narrate', { version: 1, maxMetricCalls: 1 }],
+      ['character_simulation.act', { version: 3, maxMetricCalls: 500 }],
+    ])
+  })
+
+  it('대상이 아닌 프롬프트·고르지 않은 버전·범위 밖이거나 정수가 아닌 상한은 보내지 않는다', async () => {
+    const optimize = vi.fn(async () => {})
+    const uc = make({ optimize })
+    await rejects(uc.optimize('story_context.answer', 1, 150), '이 프롬프트는 자동 개선을 지원하지 않아요.')
+    for (const version of [0, -1, 1.5, Number.NaN]) await rejects(uc.optimize('character_simulation.act', version, 150), '기준 버전은 1 이상의 정수로 골라 주세요.')
+    for (const calls of [0, -5, 501, 12.5, Number.NaN]) await rejects(uc.optimize('character_simulation.act', 1, calls), '평가 호출 상한은 1~500의 정수로 입력해 주세요.')
+    expect(optimize).not.toHaveBeenCalled()
+  })
+
+  it('서버가 거절한 오류(이미 실행 중 등)는 그대로 던진다', async () => {
+    const running = new OperationsError('이 프롬프트의 자동 개선이 이미 실행 중이에요.')
+    await expect(make({ optimize: async () => { throw running } }).optimize('character_simulation.act', 1, 150)).rejects.toBe(running)
   })
 })
