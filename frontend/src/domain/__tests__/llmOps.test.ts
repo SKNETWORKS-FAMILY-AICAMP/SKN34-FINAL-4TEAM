@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, defaultModelOf, modelLabel, pendingSeed, percent, periodRange, productionOf, recentDefaultModel, usd, versionAction, type EvaluationItem, type Prompt, type PromptVersion,
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, defaultModelOf, modelLabel, pendingSeed, percent, periodRange, productionOf, recentDefaultModel, staleBaseline, usd, versionAction, type EvaluationItem, type Prompt, type PromptVersion,
 } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import type { PipelineRecord } from '../entities/llmOpsPipeline'
@@ -199,5 +199,46 @@ describe('기본 모델의 근거: 모델을 고르지 않은 버전이 기록�
     expect(recentDefaultModel(prompt, [])).toBeNull()
     expect(recentDefaultModel(prompt, [record({ promptVersion: 2, model: 'gpt-pinned' })])).toBeNull()
     expect(recentDefaultModel(prompt, [record({ startTime: null })])).toEqual({ model: 'gpt-default', version: 3, at: null })
+  })
+})
+
+describe('세트가 바뀌어 기준 Run이 무효인가(#868 서버 규칙: 평가 서비스가 기준 Run을 가리는 방법과 같다)', () => {
+  const version = (n: number, labels: string[], runAt?: string): PromptVersion => ({ version: n, labels, ...(runAt ? { evaluation: { runId: 'run-' + n, passed: true, createdAt: runAt } } : {}) })
+  const prompt = (...versions: PromptVersion[]): Prompt => ({ name: 'character_simulation.act', versions, candidates: 0, evaluationDataset: 'simulation.act' })
+  const BASE = '2026-11-24T05:00:00Z'
+
+  it('production 버전의 가장 최근 Run이 세트의 마지막 문항 시각보다 먼저 시작했으면 마지막 문항을 보지 못한 점수라 무효이고, 두 시각을 돌려준다', () => {
+    const p = prompt(version(2, []), version(1, ['production', 'seed'], BASE))
+    expect(staleBaseline(p, '2026-11-24T05:00:01Z')).toEqual({ baselineAt: BASE, lastItemAt: '2026-11-24T05:00:01Z' })
+    expect(staleBaseline(p, '2026-11-25T00:00:00Z')).toEqual({ baselineAt: BASE, lastItemAt: '2026-11-25T00:00:00Z' })
+  })
+
+  it('같은 시각도 무효이고(서버: 마지막 문항을 본 Run만 기준이라 같은 시각은 뒤가 아니다), 한순간이라도 뒤에 시작했으면 유효하다', () => {
+    const p = prompt(version(1, ['production'], BASE))
+    expect(staleBaseline(p, BASE)).toEqual({ baselineAt: BASE, lastItemAt: BASE })
+    expect(staleBaseline(p, '2026-11-24T04:59:59.999Z')).toBeNull()
+    expect(staleBaseline(p, '2026-11-24T04:00:00Z')).toBeNull()
+  })
+
+  it('시각은 글이 아니라 순간으로 비교한다: 오프셋·소수 초 표기가 달라도 같은 순간이면 같은 시각이다', () => {
+    const p = prompt(version(1, ['production'], '2026-11-24T14:00:00.000+09:00'))
+    expect(staleBaseline(p, BASE)).not.toBeNull()   // 같은 순간(05:00:00Z)
+    expect(staleBaseline(p, '2026-11-24T04:59:59.5Z')).toBeNull()
+    expect(staleBaseline(p, '2026-11-24T05:00:00.500Z')).not.toBeNull()
+  })
+
+  it('기준 Run을 알 수 없거나(production 없음·그 버전의 평가 Run 없음) 세트에 문항 시각이 없으면 무효라고 단정하지 않는다(null)', () => {
+    expect(staleBaseline(prompt(version(1, ['seed'], BASE)), '2026-11-25T00:00:00Z')).toBeNull()   // production 라벨이 없다
+    expect(staleBaseline(prompt(version(1, ['production'])), '2026-11-25T00:00:00Z')).toBeNull()   // 평가 Run이 없다
+    expect(staleBaseline(prompt(), '2026-11-25T00:00:00Z')).toBeNull()
+    expect(staleBaseline(prompt(version(1, ['production'], BASE)), null)).toBeNull()   // 문항이 없거나 시각이 없는 세트
+    expect(staleBaseline(prompt(version(1, ['production'], BASE)), undefined)).toBeNull()   // 목록에 그 세트가 없다
+    expect(staleBaseline(prompt(version(1, ['production'], '시각이 아님')), '2026-11-25T00:00:00Z')).toBeNull()
+  })
+
+  it('production이 아닌 버전의 Run은 기준이 아니다: 후보·시드 버전의 Run이 세트보다 먼저여도 무효가 아니고, production의 Run만 본다', () => {
+    const fresh = '2026-11-26T00:00:00Z'
+    expect(staleBaseline(prompt(version(3, [], BASE), version(2, ['candidate-2'], BASE), version(1, ['production'], fresh)), '2026-11-25T00:00:00Z')).toBeNull()
+    expect(staleBaseline(prompt(version(2, ['candidate-2'], fresh), version(1, ['production'], BASE)), '2026-11-25T00:00:00Z')).not.toBeNull()
   })
 })

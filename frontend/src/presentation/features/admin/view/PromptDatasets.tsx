@@ -151,8 +151,9 @@ function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
         </label>
         <p className="small muted wide">
           올린 문항은 서버를 거쳐 Langfuse Dataset에 저장되므로 저작권이 있는 원문은 올리지 말고 로컬 평가에서만 써요(시연 화면에서는 메모리에만 쌓여 새로 고치면 사라져요).
-          UTF-8로 저장한 .jsonl이고 줄마다 {'{"input", "expectedOutput", "metadata"}'} 모양의 JSON 객체예요. input(객체)과 expectedOutput은 필수(null·빈 값 불가)이고 metadata는 선택이며, 문항 id(서버가 붙여요)를 비롯한 다른 칸은 오류예요.
-          세트마다 채점 코드가 읽는 칸이 더 필요하고(시뮬레이션은 input.data·metadata.judge, 추출은 정답표, Q&A는 question·contexts, 범용은 metadata.criteria) 같은 input이 파일 안에 두 번 있어도 오류예요.
+          UTF-8로 저장한 .jsonl이고 줄마다 {'{"input", "expectedOutput", "metadata"}'} 모양의 JSON 객체예요. input(객체)과 expectedOutput은 필수(null·빈 값 불가, 추출 세트 말고는 글)이고 metadata는 선택이며, 문항 id(서버가 붙여요)를 비롯한 다른 칸은 오류예요.
+          세트마다 채점 코드가 읽는 칸이 더 필요하고(시뮬레이션은 input.data·metadata.judge, 추출은 회차 input과 설정에 드는 core 정답이 하나 이상 있는 정답표, Q&A는 question·contexts, 범용은 metadata.criteria)
+          같은 input이 파일 안에 두 번 있거나 이 세트·짝 세트에 이미 있어도 오류예요(이미 있는 것은 올릴 때 서버가 알려 줘요).
           500줄(빈 줄 제외)·2MB까지, 한 줄이라도 틀리면 아무것도 올리지 않아요. 새 세트는 만들 수 없고 위 목록의 세트에만 올려요.
         </p>
         <div className="rowend wide"><button type="submit" className="btn pri" disabled={!form.canSubmit}>{busy ? '올리는 중…' : '업로드'}</button></div>

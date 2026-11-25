@@ -416,9 +416,10 @@ describe('HttpLlmOpsRepository AI 파이프라인(DEC-58)', () => {
 describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () => {
   const TEXT = '{"input":"질문","expectedOutput":"정답"}\n{"input":"질문 2","expectedOutput":"정답 2","metadata":{"a":1}}'
 
-  it('목록은 서버가 주는 맨 배열(래퍼 없음)로 읽고(세트 종류 kind 포함), 문항은 쪽을 1부터로 바꿔 size 20과 함께 보내며 합계를 쪽 모양으로 돌려준다', async () => {
-    const row = { name: 'simulation.act', kind: 'gate', prompt: 'character_simulation.act', itemCount: 24, description: '저장소 시드' }
-    const rows = [row, { name: 'leak.spoiler', kind: 'general', prompt: null, itemCount: 5, description: null }, { name: 'optimize.simulation.act', kind: 'pool', prompt: null, itemCount: 126, description: null }]
+  const LAST = '2026-11-24T05:06:07.123Z'
+  it('목록은 서버가 주는 맨 배열(래퍼 없음)로 읽고(세트 종류 kind·마지막 문항 시각 lastItemAt 포함), 문항은 쪽을 1부터로 바꿔 size 20과 함께 보내며 합계를 쪽 모양으로 돌려준다', async () => {
+    const row = { name: 'simulation.act', kind: 'gate', prompt: 'character_simulation.act', itemCount: 24, lastItemAt: LAST, description: '저장소 시드' }
+    const rows = [row, { name: 'leak.spoiler', kind: 'general', prompt: null, itemCount: 5, lastItemAt: null, description: null }, { name: 'optimize.simulation.act', kind: 'pool', prompt: null, itemCount: 126, lastItemAt: '2026-11-24T14:06:07+09:00', description: null }]
     const listed = ok(rows)
     expect(await new HttpLlmDatasetRepository(listed).datasets()).toEqual(rows)
     expect(callsOf(listed)[0][0]).toBe('/api/v1/operations/llmops/datasets')
@@ -430,12 +431,21 @@ describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () =>
     await new HttpLlmDatasetRepository(ok({ items: [], total: 0 })).items('a b/c', 0)
   })
 
-  it('서버가 세트 종류를 주지 않았거나(#868 첫 응답) 모르는 값을 주면 계약 1의 정의로 가른다: 짝 프롬프트가 있으면 평가 게이트, optimize.로 시작하면 최적화 풀, 그 밖은 범용', async () => {
-    const old = ok([
-      { name: 'simulation.act', prompt: 'character_simulation.act', itemCount: 24, description: null }, { name: 'optimize.simulation.act', prompt: null, itemCount: 126 },
-      { name: 'leak.spoiler', kind: 'surprise', prompt: null, itemCount: 5 }, { name: 'x', kind: null, prompt: null, itemCount: 0 }, { name: 'y', kind: 'pool', prompt: null, itemCount: 0 },
-    ])
-    expect((await new HttpLlmDatasetRepository(old).datasets()).map((r) => [r.name, r.kind])).toEqual([['simulation.act', 'gate'], ['optimize.simulation.act', 'pool'], ['leak.spoiler', 'general'], ['x', 'general'], ['y', 'pool']])   // 서버가 준 값이 정본
+  it('세트 종류(kind)는 서버가 늘 주는 값이라 없거나 모르는 값이면 응답을 믿지 않고 오류로 알린다(이름으로 짐작하지 않는다)', async () => {
+    const base = { name: 'x', prompt: null, itemCount: 1, lastItemAt: null, description: null }
+    for (const kind of [undefined, null, 'surprise', 'GATE', 1]) {
+      await expect(new HttpLlmDatasetRepository(ok([{ ...base, kind }])).datasets(), String(kind)).rejects.toThrow(new OperationsError(FORMAT))
+    }
+    for (const kind of ['gate', 'pool', 'general']) expect((await new HttpLlmDatasetRepository(ok([{ ...base, kind }])).datasets())[0].kind).toBe(kind)
+  })
+
+  it('마지막 문항 시각(lastItemAt)은 시각 글이거나 없음(null, 응답에 없으면 null)이고, 시각이 아닌 글이면 응답을 믿지 않는다', async () => {
+    const base = { name: 'x', kind: 'general', prompt: null, itemCount: 1, description: null }
+    const read = async (extra: Record<string, unknown>) => (await new HttpLlmDatasetRepository(ok([{ ...base, ...extra }])).datasets())[0].lastItemAt
+    expect([await read({ lastItemAt: LAST }), await read({ lastItemAt: null }), await read({})]).toEqual([LAST, null, null])
+    for (const lastItemAt of ['어제', '2026-11-24', 1700000000]) {
+      await expect(new HttpLlmDatasetRepository(ok([{ ...base, lastItemAt }])).datasets(), String(lastItemAt)).rejects.toThrow(new OperationsError(FORMAT))
+    }
   })
 
   it('문항의 세 값은 Langfuse에 저장된 JSON 그대로 받는다: 다른 도구가 만든 문항의 metadata가 객체가 아니거나 input이 null이어도 쪽 전체를 거부하지 않는다', async () => {
@@ -447,15 +457,26 @@ describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () =>
     expect((await new HttpLlmDatasetRepository(ok({ items: stored, total: 3 })).items('s', 0)).items).toEqual(stored)
   })
 
-  it('업로드는 multipart(file·copyrightConfirmed)로 보내고 Content-Type은 브라우저가 경계와 함께 붙이게 두며 서버가 만든 문항 수를 돌려준다', async () => {
-    const fetcher = ok({ created: 2 }, 201)
-    expect(await new HttpLlmDatasetRepository(fetcher).upload('my set', 'items.jsonl', TEXT, true)).toBe(2)
+  const NOTICE = 'gate 세트에 올리면 다음 평가에서 기준 버전을 다시 평가해요(비용 발생)'
+  it('업로드는 multipart(file·copyrightConfirmed)로 보내고 Content-Type은 브라우저가 경계와 함께 붙이게 두며 서버의 응답(만든 문항 수·세트 종류·안내)을 돌려준다', async () => {
+    const fetcher = ok({ created: 2, kind: 'gate', notice: NOTICE }, 201)
+    expect(await new HttpLlmDatasetRepository(fetcher).upload('my set', 'items.jsonl', TEXT, true)).toEqual({ created: 2, kind: 'gate', notice: NOTICE })
     const [[url, init]] = callsOf(fetcher)
     const body = init.body as unknown as FormData
     expect([url, init.method, Object.keys(init.headers)]).toEqual(['/api/v1/operations/llmops/datasets/my%20set/items', 'POST', ['Authorization']])
     expect(body).toBeInstanceOf(FormData)
     const file = body.get('file') as File
     expect([file.name, await file.text(), body.get('copyrightConfirmed')]).toEqual(['items.jsonl', TEXT, 'true'])
+  })
+
+  it('안내(notice)는 gate에 올렸을 때만 오고 그 밖은 null이며(응답에 없어도 null), 종류가 없거나 모르는 값이면 올라갔는지 모른다고 알린다', async () => {
+    const upload = (body: unknown) => new HttpLlmDatasetRepository(ok(body, 201)).upload('s', 'a.jsonl', TEXT, true)
+    expect(await upload({ created: 1, kind: 'pool', notice: null })).toEqual({ created: 1, kind: 'pool', notice: null })
+    expect(await upload({ created: 3, kind: 'general' })).toEqual({ created: 3, kind: 'general', notice: null })
+    const unknown = new OperationsError('업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.')
+    for (const body of [{ created: 2 }, { created: 2, kind: 'surprise', notice: null }, { created: 2, kind: 'gate', notice: 5 }, { kind: 'gate', notice: null }]) {
+      await expect(upload(body), JSON.stringify(body)).rejects.toThrow(unknown)
+    }
   })
 
   it('400 DATASET_INVALID는 거절된 줄 목록을 든 DatasetInvalid로, 그 밖의 거절은 한국어 안내로 바꾼다(권한 없음은 OperationsForbidden)', async () => {
@@ -477,21 +498,21 @@ describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () =>
   })
 
   it('프록시가 끊은 응답(504, 앱의 JSON code 없이 온 502·503)은 서버가 계속 문항을 만들었을 수 있어 올라갔는지 모른다고 알리고(다시 올리라고 하지 않는다), 앱이 보낸 실패(JSON code가 있는 502·500·400·404)는 그대로 실패로 알린다', async () => {
-  const upload = (f: ReturnType<typeof fail>) => new HttpLlmDatasetRepository(f).upload('s', 'a.jsonl', TEXT, true)
-  const unknown = new OperationsError('업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.')
-  const html = (status: number) => vi.fn(async () => new Response(`<html>${status}</html>`, { status }))
-  await expect(upload(html(504))).rejects.toThrow(unknown)   // nginx 읽기 제한(90초)을 넘기면 nginx가 504를 주지만 서버는 계속 만든다
-  await expect(upload(html(502))).rejects.toThrow(unknown)
-  await expect(upload(html(503))).rejects.toThrow(unknown)
-  await expect(upload(fail(504, { code: 'REQUEST_FAILED', message: 'Request could not be completed.' }))).rejects.toThrow(unknown)
-  // 앱이 처리하고 실패를 알린 응답은 되돌렸으니(최선) 그대로 실패 안내다.
-  await expect(upload(fail(502, { code: 'UPSTREAM_FAILED', message: 'Upstream service request failed.' }))).rejects.toThrow(new OperationsError('연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
-  await expect(upload(fail(500, { code: 'INTERNAL_ERROR', message: 'Request could not be completed.' }))).rejects.toThrow(new OperationsError('요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
-})
+    const upload = (f: ReturnType<typeof fail>) => new HttpLlmDatasetRepository(f).upload('s', 'a.jsonl', TEXT, true)
+    const unknown = new OperationsError('업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.')
+    const html = (status: number) => vi.fn(async () => new Response(`<html>${status}</html>`, { status }))
+    await expect(upload(html(504))).rejects.toThrow(unknown)   // nginx 읽기 제한(90초)을 넘기면 nginx가 504를 주지만 서버는 계속 만든다
+    await expect(upload(html(502))).rejects.toThrow(unknown)
+    await expect(upload(html(503))).rejects.toThrow(unknown)
+    await expect(upload(fail(504, { code: 'REQUEST_FAILED', message: 'Request could not be completed.' }))).rejects.toThrow(unknown)
+    // 앱이 처리하고 실패를 알린 응답은 되돌렸으니(최선) 그대로 실패 안내다.
+    await expect(upload(fail(502, { code: 'UPSTREAM_FAILED', message: 'Upstream service request failed.' }))).rejects.toThrow(new OperationsError('연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
+    await expect(upload(fail(500, { code: 'INTERNAL_ERROR', message: 'Request could not be completed.' }))).rejects.toThrow(new OperationsError('요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
+  })
 
   it('업로드는 서버가 문항을 Langfuse에 한 건씩 만드느라 오래 걸릴 수 있어 일반 요청(15초)보다 긴 90초를 기다리고(앞단 nginx 읽기 제한과 같다), 응답을 못 받으면 올라갔는지 모른다고 알린다', async () => {
     const timeout = vi.spyOn(AbortSignal, 'timeout')
-    await new HttpLlmDatasetRepository(ok({ created: 2 }, 201)).upload('s', 'a.jsonl', TEXT, true)
+    await new HttpLlmDatasetRepository(ok({ created: 2, kind: 'general', notice: null }, 201)).upload('s', 'a.jsonl', TEXT, true)
     await new HttpLlmDatasetRepository(ok([])).datasets()
     expect(timeout.mock.calls.map(([ms]) => ms)).toEqual([90000, 15000])
     // 연결이 끊기거나 시간이 지나 응답을 못 받으면 서버가 계속 만들었을 수 있어 실패로 단정하지도 다시 올리라고 하지도 않는다(같은 파일을 다시 올리면 문항이 또 생긴다).

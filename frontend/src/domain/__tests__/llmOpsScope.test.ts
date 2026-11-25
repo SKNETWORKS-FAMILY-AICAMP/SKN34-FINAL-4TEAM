@@ -34,7 +34,7 @@ describe('흐름 범위(#857 사이드바 하위 탭이 프롬프트·평가의 
   })
 
   it('scopeDatasets(#868 정확 구현): 전체는 목록 그대로이고, 흐름은 그 프롬프트들의 평가 게이트와 그 게이트의 최적화 풀(optimize.<게이트>)만 남기며 범용 세트는 전체에서만 보인다', () => {
-    const row = (name: string, prompt: string | null = null): EvalDataset => ({ name, prompt, kind: datasetKindOf({ name, prompt }), itemCount: 1, description: null })
+    const row = (name: string, prompt: string | null = null): EvalDataset => ({ name, prompt, kind: datasetKindOf(name), itemCount: 1, lastItemAt: null, description: null })
     const rows = [
       row('extraction.extract', 'manuscript_extraction.extract'), row('leak.spoiler'), row('optimize.simulation.narrate'), row('qa.grounding', 'story_context.answer'),
       row('simulation.act', 'character_simulation.act'), row('optimize.extraction.extract'), row('optimize.simulation.act'), row('simulation.narrate', 'character_simulation.narrate'), row('world.conflict'),

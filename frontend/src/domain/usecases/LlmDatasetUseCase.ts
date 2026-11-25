@@ -15,7 +15,7 @@ export class LlmDatasetUseCase {
 
   /**
    * 검사를 통과한 파일만 올립니다. 서버와 같은 순서로 값싼 것부터 봅니다: 저작권 확인 → 크기 제한(500줄·2MB) → 문항 없음 → 형식이 틀린 줄(전부 아니면 무: 하나라도 틀리면 그 줄 목록과 함께 막음).
-   * 저작권 있는 원문이 아니라는 확인은 데이터가 Langfuse에 저장되기 때문에 필수입니다. 서버가 만든 문항 수를 돌려줍니다.
+   * 저작권 있는 원문이 아니라는 확인은 데이터가 Langfuse에 저장되기 때문에 필수입니다. 서버의 응답(만든 문항 수·세트 종류·안내)을 그대로 돌려줍니다.
    */
   async upload(name: string, fileName: string, text: string, copyrightConfirmed: boolean) {
     const setName = name.trim()

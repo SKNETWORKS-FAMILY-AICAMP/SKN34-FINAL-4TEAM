@@ -1,4 +1,4 @@
-import type { DatasetItem, EvalDataset } from '../entities/llmDatasets'
+import type { DatasetItem, DatasetUploadResult, EvalDataset } from '../entities/llmDatasets'
 import type { OperationsPage } from '../entities/operations'
 
 /**
@@ -11,7 +11,7 @@ export interface LlmDatasetRepository {
   items(name: string, page: number): Promise<OperationsPage<DatasetItem>>
   /**
    * .jsonl 본문을 있는 세트에 올립니다(새 세트 만들기는 범위 밖이라 없는 세트는 404). 전부 아니면 무: 틀린 줄이 하나라도 있으면 DatasetInvalid이고 아무것도 만들지 않습니다.
-   * 서버가 만든 문항 수를 돌려줍니다.
+   * 서버의 응답(만든 문항 수·세트 종류·gate에 올렸을 때의 안내)을 돌려줍니다.
    */
-  upload(name: string, fileName: string, text: string, copyrightConfirmed: boolean): Promise<number>
+  upload(name: string, fileName: string, text: string, copyrightConfirmed: boolean): Promise<DatasetUploadResult>
 }

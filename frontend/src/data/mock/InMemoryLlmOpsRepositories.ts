@@ -1,5 +1,5 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
-import { DATASET_PAGE_SIZE, DatasetInvalid, datasetKindOf, datasetLimitError, parseDatasetJsonl, poolOf, type DatasetItem, type EvalDataset } from '../../domain/entities/llmDatasets'
+import { DATASET_PAGE_SIZE, DatasetInvalid, GATE_UPLOAD_NOTICE, datasetKindOf, datasetLimitError, parseDatasetJsonl, poolOf, type DatasetItem, type DatasetUploadResult, type EvalDataset } from '../../domain/entities/llmDatasets'
 import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import { AGENT_EVALUATIONS, pairedPrompt, setItems } from '../../domain/entities/llmOpsEvalTable'
 import type {
@@ -356,7 +356,8 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
 
 /**
  * 평가 데이터셋 예시(#868 계약의 메모리 구현): 저장소의 7개 세트를 에이전트별 평가 표의 문항 수에 맞춘 예시 문항으로, 최적화 풀 3개(optimize.<게이트>)를 풀 파일의 문항 수에 맞춰 보이고,
- * 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다.
+ * 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다. 세트마다 마지막 문항이 만들어진 시각(lastItemAt)이 있어 시드 세트는 시연 평가 Run보다 먼저이고, 올리면 지금으로 바뀝니다
+ * (서버와 달리 이미 있는 input·짝 세트와의 중복 거절과 풀 split 자동 배정은 하지 않습니다).
  */
 const demoItems = (name: string, count: number): DatasetItem[] => Array.from({ length: count }, (_, i) => {
   const n = String(i + 1).padStart(2, '0')
@@ -373,22 +374,28 @@ export class InMemoryLlmDatasetRepository implements LlmDatasetRepository {
     ...Object.entries(POOL_ITEMS).map(([gate, count]) => [poolOf(gate), demoItems(poolOf(gate), count)] as const),
   ])
 
+  /** 세트마다 마지막 문항이 만들어진 시각: 시드는 시연 평가 Run(가장 오래된 것이 약 6일 전)보다 먼저다. */
+  private readonly changedAt = new Map([...this.sets.keys()].map((name) => [name, ago(10_000)]))
+
   async datasets(): Promise<EvalDataset[]> {
-    return [...this.sets].map(([name, items]) => {
-      const prompt = pairedPrompt(name)
-      return { name, kind: datasetKindOf({ name, prompt }), prompt, itemCount: items.length, description: SEED_SOURCE }
-    }).sort((a, b) => a.name.localeCompare(b.name))
+    return [...this.sets].map(([name, items]) => ({
+      name, kind: datasetKindOf(name), prompt: pairedPrompt(name), itemCount: items.length, lastItemAt: this.changedAt.get(name) ?? null, description: SEED_SOURCE,
+    })).sort((a, b) => a.name.localeCompare(b.name))
   }
   async items(name: string, page: number) { return structuredClone(paged(found(this.sets.get(name)), page, DATASET_PAGE_SIZE)) }
-  /** 서버처럼 있는 세트에만 올리고(없으면 404), 저작권 확인·크기·줄 검사를 같은 순서로 다시 하며, 전부 아니면 무입니다. 문항 id는 서버처럼 붙이고 값이 없는 칸은 서버가 주듯 null로 보입니다. */
-  async upload(name: string, _fileName: string, text: string, copyrightConfirmed: boolean) {
-    const set = found(this.sets.get(name))
+  /**
+   * 서버와 같은 순서로 저작권 확인·크기·줄 검사를 하고 그다음에야 세트를 찾아(없으면 404, 새 세트 만들기는 범위 밖) 전부 아니면 무로 올립니다. 문항 id는 서버처럼 붙이고 값이 없는 칸은 서버가 주듯 null로 보이며,
+   * 응답은 서버처럼 만든 문항 수·세트 종류·안내(평가 게이트에 올렸을 때만)이고 세트의 마지막 문항 시각이 지금으로 바뀝니다.
+   */
+  async upload(name: string, _fileName: string, text: string, copyrightConfirmed: boolean): Promise<DatasetUploadResult> {
     if (!copyrightConfirmed) throw new OperationsRejected('저작권 있는 원문(웹소설·해리 포터 등)이 아님을 확인해 주세요.')
     const { total, lines, errors } = parseDatasetJsonl(text, name)
     if (datasetLimitError(total, new TextEncoder().encode(text).length)) throw new OperationsRejected(UPLOAD_LIMIT_MESSAGE)
     if (errors.length) throw new DatasetInvalid(errors)
+    const set = found(this.sets.get(name)), kind = datasetKindOf(name)
     lines.forEach((line) => set.push({ id: `${name}-${String(set.length + 1).padStart(2, '0')}`, input: line.input, expectedOutput: line.expectedOutput, metadata: line.metadata ?? null }))
-    return lines.length
+    this.changedAt.set(name, ago(0))
+    return { created: lines.length, kind, notice: kind === 'gate' ? GATE_UPLOAD_NOTICE : null }
   }
 }
 

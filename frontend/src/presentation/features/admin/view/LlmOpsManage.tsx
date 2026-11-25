@@ -13,6 +13,7 @@ import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
 import type { PipelineFlowKey } from '../../../../domain/entities/admin'
 import { EvaluationChart } from './AdminCharts'
+import { BaselineNotice } from './BaselineNotice'
 import type { LlmVM, VM } from './LlmOps'
 import { formNumber, formText } from './formValue'
 import { ModelLabel } from './ModelLabel'
@@ -314,6 +315,7 @@ export function Evaluations({ vm, l, p }: Props & { p: Prompt }) {
   const datasets = [...new Set([...AGENT_EVALUATIONS.flatMap((row) => row.dataset ?? []), ...(all?.map((r) => r.dataset) ?? [])])]
   return (
     <section ref={root} aria-label="회귀 평가">
+      <BaselineNotice l={l} p={p} />
       <LiveState vm={vm} label="평가 목록" state={l.evaluations} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (

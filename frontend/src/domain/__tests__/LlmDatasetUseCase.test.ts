@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { DATASET_MAX_BYTES, DATASET_MAX_LINES, DatasetInvalid } from '../entities/llmDatasets'
+import { DATASET_MAX_BYTES, DATASET_MAX_LINES, DatasetInvalid, GATE_UPLOAD_NOTICE, type DatasetUploadResult } from '../entities/llmDatasets'
 import { OperationsError, OperationsForbidden } from '../entities/operations'
 import type { LlmDatasetRepository } from '../repositories/LlmDatasetRepository'
 import { LlmDatasetUseCase } from '../usecases/LlmDatasetUseCase'
@@ -11,10 +11,11 @@ const jsonl = (count: number) => Array.from({ length: count }, (_, i) => JSON.st
 
 describe('평가 데이터셋 목록·문항 조회(#868)', () => {
   it('목록과 문항(쪽 번호 포함)을 읽기 전용 호출 그대로 건네고, 권한(403)이 없으면 실패가 아니라 null이다', async () => {
-    const datasets = vi.fn(async () => [{ name: 'simulation.act', kind: 'gate' as const, prompt: 'character_simulation.act', itemCount: 24, description: '저장소 시드' }])
+    const row = { name: 'simulation.act', kind: 'gate' as const, prompt: 'character_simulation.act', itemCount: 24, lastItemAt: '2026-11-24T01:02:03Z', description: '저장소 시드' }
+    const datasets = vi.fn(async () => [row])
     const items = vi.fn(async () => ({ items: [{ id: 'a', input: 1 }], page: 2, size: 20, total: 45, unavailable: [] }))
     const uc = make({ datasets, items })
-    expect(await uc.datasets()).toEqual([{ name: 'simulation.act', kind: 'gate' as const, prompt: 'character_simulation.act', itemCount: 24, description: '저장소 시드' }])
+    expect(await uc.datasets()).toEqual([row])
     expect((await uc.items('simulation.act', 2))?.total).toBe(45)
     expect(items).toHaveBeenCalledWith('simulation.act', 2)
     const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
@@ -23,15 +24,16 @@ describe('평가 데이터셋 목록·문항 조회(#868)', () => {
 })
 
 describe('평가 데이터셋 업로드(#868): 있는 세트에 .jsonl을 올리고 전부 아니면 무', () => {
-  it('세트 이름은 다듬고 .jsonl 본문·저작권 확인(true)을 그대로 보내며 서버가 만든 문항 수를 돌려준다', async () => {
-    const upload = vi.fn(async (_name: string, _file: string, _text: string, _confirmed: boolean) => 2)
+  it('세트 이름은 다듬고 .jsonl 본문·저작권 확인(true)을 그대로 보내며 서버의 응답(만든 문항 수·세트 종류·안내)을 그대로 돌려준다', async () => {
+    const result: DatasetUploadResult = { created: 2, kind: 'gate', notice: GATE_UPLOAD_NOTICE }
+    const upload = vi.fn(async (_name: string, _file: string, _text: string, _confirmed: boolean) => result)
     const text = jsonl(2)
-    expect(await make({ upload }).upload('  my-set  ', 'items.jsonl', text, true)).toBe(2)
+    expect(await make({ upload }).upload('  my-set  ', 'items.jsonl', text, true)).toBe(result)
     expect(upload).toHaveBeenCalledWith('my-set', 'items.jsonl', text, true)
   })
 
   it('올릴 세트가 비었거나 .jsonl 파일이 아니거나 저작권 확인이 없으면 보내지 않는다', async () => {
-    const upload = vi.fn(async () => 1)
+    const upload = vi.fn(async () => ({ created: 1, kind: 'general' as const, notice: null }))
     const uc = make({ upload })
     await rejects(uc.upload('  ', 'a.jsonl', jsonl(1), true), '올릴 세트를 골라 주세요.')
     await rejects(uc.upload('s', 'a.json', jsonl(1), true), '.jsonl 파일만 올릴 수 있어요.')
@@ -40,22 +42,22 @@ describe('평가 데이터셋 업로드(#868): 있는 세트에 .jsonl을 올리
   })
 
   it('올릴 세트의 종류별 필수 칸(채점 코드가 읽는 칸)과 expectedOutput 필수·파일 안 중복 input은 올리기 전에 줄 오류로 막는다(서버가 같은 규칙으로 다시 검사한다)', async () => {
-    const upload = vi.fn(async () => 1)
+    const upload = vi.fn(async () => ({ created: 1, kind: 'general' as const, notice: null }))
     const uc = make({ upload })
     const errorsOf = async (set: string, text: string) => ((await uc.upload(set, 'a.jsonl', text, true).catch((error) => error)) as DatasetInvalid).errors
     expect(await errorsOf('simulation.act', jsonl(1))).toEqual([{ line: 1, message: 'input.data(객체)가 필요해요.' }])   // 범용 줄은 시뮬레이션 세트 모양이 아니다
     expect(await errorsOf('optimize.simulation.narrate', jsonl(1))).toEqual([{ line: 1, message: 'input.data(객체)가 필요해요.' }])
     expect(await errorsOf('s', JSON.stringify({ input: { q: 1 }, metadata: { criteria: '기준' } }))).toEqual([{ line: 1, message: 'expectedOutput이 필요해요.' }])
-    expect(await errorsOf('s', JSON.stringify({ input: { q: 1 }, expectedOutput: '정답' }))).toEqual([{ line: 1, message: 'metadata.criteria(글)가 필요해요.' }])
-    expect(await errorsOf('s', jsonl(1) + '\n' + jsonl(1))).toEqual([{ line: 2, message: '같은 input이 1번째 줄에 이미 있어요.' }])
+    expect(await errorsOf('s', JSON.stringify({ input: { q: 1 }, expectedOutput: '정답' }))).toEqual([{ line: 1, message: 'metadata.criteria가 필요해요.' }])
+    expect(await errorsOf('s', jsonl(1) + '\n' + jsonl(1))).toEqual([{ line: 2, message: '파일의 1번째 줄과 input이 같아요.' }])
     expect(upload).not.toHaveBeenCalled()
     const text = jsonl(2)
-    expect(await uc.upload('s', 'a.jsonl', text, true)).toBe(1)   // 올릴 세트에 맞는 줄은 그대로 보낸다
+    expect((await uc.upload('s', 'a.jsonl', text, true)).created).toBe(1)   // 올릴 세트에 맞는 줄은 그대로 보낸다
     expect(upload).toHaveBeenCalledWith('s', 'a.jsonl', text, true)
   })
 
   it('형식이 틀린 줄이 하나라도 있으면 그 줄 목록(DatasetInvalid)으로 막고 보내지 않으며(일부만 올리지 않는다), 문항이 없거나 크기를 넘어도 보내지 않는다', async () => {
-    const upload = vi.fn(async () => 1)
+    const upload = vi.fn(async () => ({ created: 1, kind: 'general' as const, notice: null }))
     const uc = make({ upload })
     const bad = await uc.upload('s', 'a.jsonl', jsonl(1) + '\n{bad\n' + JSON.stringify({ id: 'x', input: { q: 1 } }) + '\n' + JSON.stringify({ input: null }), true).catch((error) => error)
     expect(bad).toBeInstanceOf(DatasetInvalid)
@@ -66,7 +68,7 @@ describe('평가 데이터셋 업로드(#868): 있는 세트에 .jsonl을 올리
   })
 
   it('크기 제한은 줄 검사보다 먼저 본다(서버도 413을 줄 오류(400)보다 먼저 준다): 틀린 줄이 섞인 큰 파일은 줄 목록이 아니라 크기 안내다', async () => {
-    const upload = vi.fn(async () => 1)
+    const upload = vi.fn(async () => ({ created: 1, kind: 'general' as const, notice: null }))
     const uc = make({ upload })
     await rejects(uc.upload('s', 'a.jsonl', jsonl(DATASET_MAX_LINES) + '\n{bad', true), `줄이 ${DATASET_MAX_LINES + 1}개라 너무 많아요. 500줄·2MB까지 올릴 수 있으니 나눠서 올려 주세요.`)
     await rejects(uc.upload('s', 'a.jsonl', JSON.stringify({ input: 'x'.repeat(DATASET_MAX_BYTES) }) + '\n{bad', true), '파일이 2MB를 넘어요. 500줄·2MB까지 올릴 수 있으니 나눠서 올려 주세요.')

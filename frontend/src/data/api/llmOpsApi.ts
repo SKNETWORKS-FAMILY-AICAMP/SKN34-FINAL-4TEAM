@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DATASET_PAGE_SIZE, DatasetInvalid, type DatasetItem, type EvalDataset, datasetKindOf } from '../../domain/entities/llmDatasets'
+import { DATASET_PAGE_SIZE, DatasetInvalid, type DatasetItem, type DatasetUploadResult, type EvalDataset } from '../../domain/entities/llmDatasets'
 import type { Dashboard } from '../../domain/entities/operationsDashboard'
 import type { JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
 import type {
@@ -98,16 +98,16 @@ const pipelineRecord = z.object({
   statusMessage: text, model: text, promptName: text, promptVersion: num, input: z.unknown().optional(), output: z.unknown().optional(), metadata: z.unknown().optional(),
 })
 
-// 평가 데이터셋(#868): 목록은 맨 배열이고(`{items}`로 와도 받는다), 문항은 `{items, total}`, 업로드는 `{created}`다.
-// 종류(kind)는 서버가 준 값이 정본이고, 아직 주지 않았거나 모르는 값이면 계약의 정의로 가른다(datasetKindOf).
+// 평가 데이터셋(#868): 목록은 서버가 주는 맨 배열이고(세트 종류 kind는 서버가 늘 주며 이름으로 짐작하지 않는다), 문항은 `{items, total}`, 업로드는 `{created, kind, notice}`다.
+const datasetKind = z.enum(['gate', 'pool', 'general'])
 const dataset = z.object({
-  name: z.string(), kind: z.enum(['gate', 'pool', 'general']).nullish().catch(null), prompt: text.transform((v) => v ?? null), itemCount: z.number(), description: text.transform((v) => v ?? null),
-}).transform(({ kind, ...row }) => ({ ...row, kind: kind ?? datasetKindOf(row) }))
+  name: z.string(), kind: datasetKind, prompt: text.transform((v) => v ?? null), itemCount: z.number(), lastItemAt: instant.nullish().transform((v) => v ?? null), description: text.transform((v) => v ?? null),
+})
 const datasets = z.array(dataset)
 // 문항의 세 값은 Langfuse에 저장된 JSON 그대로라 모양을 따지지 않는다(다른 도구가 만든 문항의 metadata가 객체가 아니어도 쪽 전체를 거부하지 않는다).
 const datasetItem = z.object({ id: z.string(), input: z.unknown().optional(), expectedOutput: z.unknown().optional(), metadata: z.unknown().optional() })
 const datasetItems = z.object({ items: z.array(datasetItem), total: z.number() })
-const uploaded = z.object({ created: z.number() })
+const uploaded = z.object({ created: z.number(), kind: datasetKind, notice: text.transform((v) => v ?? null) })
 
 const jobRun = z.object({
   id: z.string(), kind: z.string(), source: z.string(), status: z.string(), trigger: z.string(), progress: z.object({ done: z.number(), total: z.number() }).nullish(),
@@ -208,7 +208,7 @@ export class HttpLlmDatasetRepository extends LlmOpsApi implements LlmDatasetRep
     const { items, total } = await this.get(withQuery(`/llmops/datasets/${id(name)}/items`, { page: page + 1, size: DATASET_PAGE_SIZE }), datasetItems)
     return { items, page, size: DATASET_PAGE_SIZE, total, unavailable: [] }
   }
-  async upload(name: string, fileName: string, text: string, copyrightConfirmed: boolean) {
+  async upload(name: string, fileName: string, text: string, copyrightConfirmed: boolean): Promise<DatasetUploadResult> {
     const form = new FormData()
     form.append('file', new Blob([text], { type: 'application/x-ndjson' }), fileName)
     form.append('copyrightConfirmed', String(copyrightConfirmed))
@@ -218,7 +218,7 @@ export class HttpLlmDatasetRepository extends LlmOpsApi implements LlmDatasetRep
     const parsed = uploaded.safeParse(await response.json().catch(() => undefined))
     // 올라갔는지 모르는 채로 성공이라고 하지 않는다.
     if (!parsed.success) throw new OperationsError(UPLOAD_UNKNOWN_MESSAGE)
-    return parsed.data.created
+    return parsed.data
   }
 }
 

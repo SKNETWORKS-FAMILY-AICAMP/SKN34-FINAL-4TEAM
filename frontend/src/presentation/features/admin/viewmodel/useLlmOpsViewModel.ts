@@ -74,8 +74,8 @@ export function useLlmOpsViewModel(
   // 프롬프트 목록·상세의 '기본 모델 · 최근 사용 …' 근거(#857): 프롬프트가 연결된 노드의 최근 파이프라인 기록입니다. 보조 정보라 늦거나 실패해도 화면은 '기본 모델(환경 설정)'로 두고 이름을 지어내지 않습니다.
   const onPrompts = here === 'prompts:prompts'
   const recent = useAsyncData(async () => onPrompts ? useCase.promptRecords() : null, [useCase, onPrompts])
-  // 프롬프트 상세 ② 평가 세트의 데이터셋 목록·문항·업로드(#868): 올릴 세트는 처음에 그 프롬프트의 짝 세트입니다.
-  const dataset = useDatasetViewModel(mutate, !!promptName && stage === 'set', datasetUseCase, promptName ? pairSets(promptName)[0]?.dataset : undefined, pipelineFlowKey(workflow))
+  // 프롬프트 상세 ② 평가 세트의 데이터셋 목록·문항·업로드(#868): 올릴 세트는 처음에 그 프롬프트의 짝 세트이고, 짝 세트의 마지막 문항 시각은 ③ 평가·⑤ 게이트의 기준 Run 안내가 씁니다.
+  const dataset = useDatasetViewModel(mutate, promptName ? stage : null, datasetUseCase, promptName ? pairSets(promptName)[0]?.dataset : undefined, pipelineFlowKey(workflow))
 
   // AI 파이프라인(DEC-58, 프롬프트·평가 쪽의 AI 파이프라인 보기): 노드 목록, 고른 노드의 기록, 기록 한 줄의 실행 흐름. 기본 기간은 최근 7일이고 기록은 서버가 최신순 20건씩 줍니다.
   // Guard는 거절이 level이 아니라 출력에 있어 서버 level 조건을 보내지 않으므로(serverLevel) 결과 필터만 바꿀 때는 다시 읽지 않고 받은 쪽에서 가립니다.

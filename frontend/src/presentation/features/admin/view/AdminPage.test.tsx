@@ -12,10 +12,11 @@ import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
 import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
+import { InMemoryLlmDatasetRepository } from '../../../../data/mock/InMemoryLlmOpsRepositories'
 import { ADMIN_PERMISSIONS } from '../../../../domain/entities/admin'
-import { DatasetInvalid } from '../../../../domain/entities/llmDatasets'
+import { DatasetInvalid, GATE_UPLOAD_NOTICE, type EvalDataset } from '../../../../domain/entities/llmDatasets'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
-import type { Evaluation } from '../../../../domain/entities/llmOps'
+import { productionOf, type Evaluation } from '../../../../domain/entities/llmOps'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
 import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
@@ -1640,6 +1641,85 @@ it('프롬프트 상세 ⑤ 게이트는 버전마다 짝 세트의 가장 최�
   await within(panelOf(detail)).findByRole('region', { name: '회귀 평가 표' })
 })
 
+// ③ 평가·⑤ 게이트의 '세트가 바뀌어 기준을 다시 만들어요' 안내(#868): 기준 Run은 production 버전의 가장 최근 Run이고, 평가 서비스는 세트의 마지막 문항 시각(lastItemAt)과 같거나 먼저 시작한 Run을 기준으로 쓰지 않는다.
+const STALE = '세트가 바뀌어 다음 평가에서 기준 버전을 먼저 다시 평가해요(비용 두 배).'
+const pairRow = (lastItemAt: string | null): EvalDataset => ({ name: 'simulation.act', kind: 'gate', prompt: 'character_simulation.act', itemCount: 24, lastItemAt, description: '저장소 시드' })
+const baselineOf = async () => productionOf((await appContainer.resolve('llmOpsUseCase').prompt('character_simulation.act'))!)!.evaluation!.createdAt
+const shiftMs = (iso: string, ms: number) => new Date(Date.parse(iso) + ms).toISOString()
+/** 다른 프롬프트의 짝 세트 행: 이 프롬프트의 판단에 쓰이면 안 된다(목록의 앞 행이 아니라 이 프롬프트의 짝 세트를 이름으로 찾는다). */
+const otherRow = (lastItemAt: string | null): EvalDataset => ({ ...pairRow(lastItemAt), name: 'qa.grounding', prompt: 'story_context.answer' })
+type Settled = { mock: { results: { value: unknown }[] } }
+/** 목록 읽기가 끝나고 화면에 반영될 때까지 기다린다(없다고 단정하기 전에 읽기가 끝나야 한다). */
+const settle = async (datasets: Settled) => {
+  await waitFor(() => expect(datasets.mock.results.length).toBeGreaterThan(0))
+  await act(async () => { await datasets.mock.results.at(-1)!.value })
+}
+/** 짝 세트의 마지막 문항 시각을 정해 두고 그 단계(③ 평가·⑤ 게이트)의 패널을 연다. */
+const openStage = async (stage: '평가' | '게이트', rows: EvalDataset[], prompt = 'character_simulation.act') => {
+  const datasets = vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'datasets').mockResolvedValue(rows)
+  datasets.mockClear()
+  renderAdmin('llm', 'prompts&sub=evals')
+  const detail = await openLoop(prompt)
+  fireEvent.click(stepOf(detail, stage))
+  return { datasets, panel: () => within(panelOf(detail)) }
+}
+
+it('③ 평가와 ⑤ 게이트는 짝 세트의 마지막 문항이 기준 Run(production 버전의 가장 최근 Run)과 같거나 늦은 시각이면 다음 평가가 기준 버전을 먼저 다시 평가한다고(비용 두 배) 근거 시각과 함께 알린다(#868)', async () => {
+  const baseline = await baselineOf()
+  for (const [stage, last] of [['평가', shiftMs(baseline, 60_000)], ['게이트', baseline]] as const) {   // 뒤에 올린 경우와 같은 시각인 경우(같은 시각도 무효)
+    const { panel } = await openStage(stage, [otherRow('2020-01-01T00:00:00Z'), pairRow(last)])
+    const notice = await panel().findByText(STALE)
+    expect(notice.textContent).toContain('기준 Run 시작 ' + kstDateTime(baseline) + ' · simulation.act의 마지막 문항 ' + kstDateTime(last))
+    cleanup()
+  }
+})
+
+it('안내는 기준 Run이 세트의 마지막 문항보다 한순간이라도 뒤에 시작했거나, 세트에 문항 시각이 없거나(null), 목록에 짝 세트가 없으면 보이지 않는다(무효라고 단정하지 않는다)(#868)', async () => {
+  const baseline = await baselineOf()
+  for (const stage of ['평가', '게이트'] as const) {
+    for (const rows of [[pairRow(shiftMs(baseline, -1))], [pairRow(null)], [], [otherRow(shiftMs(baseline, 3_600_000)), pairRow(shiftMs(baseline, -1))], [otherRow(shiftMs(baseline, 3_600_000))]]) {
+      const { datasets, panel } = await openStage(stage, rows)
+      await settle(datasets)
+      expect([stage, rows.length, panel().queryByText(STALE)]).toEqual([stage, rows.length, null])
+      cleanup()
+    }
+  }
+})
+
+it('짝 평가 세트가 없는 프롬프트는 ③·⑤에서 세트 목록을 읽지도 않고 안내도 없다(#868)', async () => {
+  for (const stage of ['평가', '게이트'] as const) {
+    const { datasets, panel } = await openStage(stage, [pairRow(new Date().toISOString())], 'orchestration.main')
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 30)) })
+    expect([stage, datasets.mock.calls.length, panel().queryByText(STALE)]).toEqual([stage, 0, null])
+    cleanup()
+  }
+})
+
+it('평가 게이트 세트에 올리면 응답의 안내가 보이고 그 세트의 마지막 문항이 지금으로 바뀌어 ③ 평가·⑤ 게이트가 기준 Run 무효를 알린다(메모리 구현이 서버의 흐름을 따른다)(#868)', async () => {
+  const fresh = new InMemoryLlmDatasetRepository()   // 공유 메모리 저장소의 시각을 바꾸지 않으려고 이 시험만의 저장소로 읽고 올린다
+  const shared = appContainer.resolve('llmDatasetRepository')
+  const datasets = vi.spyOn(shared, 'datasets').mockImplementation(() => fresh.datasets())
+  vi.spyOn(shared, 'items').mockImplementation((name, page) => fresh.items(name, page))
+  vi.spyOn(shared, 'upload').mockImplementation((name, file, text, confirmed) => fresh.upload(name, file, text, confirmed))
+  const detail = await openSets()
+  // 시드 세트의 마지막 문항은 시연 평가 Run보다 먼저라 처음에는 안내가 없다.
+  fireEvent.click(stepOf(detail, '평가'))
+  await settle(datasets)
+  expect(within(panelOf(detail)).queryByText(STALE)).toBeNull()
+  fireEvent.click(stepOf(detail, '평가 세트'))
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).value).toBe('simulation.act'))
+  pickFile(form, 'a.jsonl', jsonl('x'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  await within(form).findByText("1개 문항을 'simulation.act' 세트(평가 게이트)에 올렸어요. " + GATE_UPLOAD_NOTICE)
+  for (const stage of ['평가', '게이트']) {
+    fireEvent.click(stepOf(detail, stage))
+    await within(panelOf(detail)).findByText(STALE)
+  }
+})
+
 it('짝 평가 세트가 없는 프롬프트의 상세는 ② 평가 세트가 없음을 알리고, ④ 자동 개선은 지원하지 않음을, ⑤ 게이트는 평가 없이 후보로 등록할 수 있음을 알린다(#857)', async () => {
   renderAdmin('llm', 'prompts&sub=evals')
   const detail = await openLoop('orchestration.main')
@@ -1723,7 +1803,6 @@ const actLine = (name: string) => JSON.stringify({ input: { set: 'dialogue', dat
 const jsonl = (...names: string[]) => names.map(actLine).join('\n')
 // 범용 세트(leak.spoiler 등)에 맞는 줄
 const generalJsonl = (...names: string[]) => names.map((name) => JSON.stringify({ input: { question: `${name} 질문` }, expectedOutput: '정답', metadata: { criteria: '기준' } })).join('\n')
-const GATE_NOTICE = '평가 게이트 세트에 올리면 다음 평가에서 기준 버전을 다시 평가해요(비용 발생).'
 const pickFile = (form: HTMLElement, name: string, text: string) => fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [new File([text], name)] } })
 const openSets = async (flow = '') => {
   renderAdmin('llm', `prompts&sub=evals${flow ? `&flow=${flow}` : ''}`)
@@ -1864,10 +1943,13 @@ it('미리보기는 올릴 세트 종류의 필수 칸으로 검사하고 세트
   // 파일 안에서 같은 input이 다시 나오면 뒤의 줄이 오류다.
   pickFile(form, 'dup.jsonl', [generalJsonl('a'), generalJsonl('a')].join('\n'))
   const dup = within(await within(form).findByLabelText('업로드 미리보기'))
-  await waitFor(() => expect(dup.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['2번째 줄 · 같은 input이 1번째 줄에 이미 있어요.']))
+  await waitFor(() => expect(dup.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['2번째 줄 · 파일의 1번째 줄과 input이 같아요.']))
   expect(form.textContent).toMatch(/input\(객체\)과 expectedOutput은 필수/)
   expect(form.textContent).toMatch(/문항 id\(서버가 붙여요\)를 비롯한 다른 칸은 오류/)
   expect(form.textContent).toMatch(/채점 코드가 읽는 칸/)
+  expect(form.textContent).toMatch(/추출 세트 말고는 글/)
+  expect(form.textContent).toMatch(/설정에 드는 core 정답이 하나 이상/)
+  expect(form.textContent).toMatch(/이 세트·짝 세트에 이미 있어도 오류예요/)
 })
 
 it('올릴 세트가 평가 게이트이면 기준 버전을 다시 평가한다는 비용 안내를 보이고, 최적화 풀·범용 세트에서는 보이지 않는다(#868 정확 구현 계약 8)', async () => {
@@ -1875,7 +1957,7 @@ it('올릴 세트가 평가 게이트이면 기준 버전을 다시 평가한다
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
   await waitFor(() => expect(target.options.length).toBe(10))
-  const notice = () => within(form).queryByText(GATE_NOTICE)
+  const notice = () => within(form).queryByText(GATE_UPLOAD_NOTICE)
   expect([target.value, !!notice()]).toEqual(['simulation.act', true])
   for (const [set, shown] of [['optimize.simulation.act', false], ['leak.spoiler', false], ['qa.grounding', true]] as const) {
     fireEvent.change(target, { target: { value: set } })
@@ -1929,7 +2011,7 @@ it('검사를 통과한 파일은 고른 세트에 올라가 서버가 만든 �
   await within(form).findByLabelText('업로드 미리보기')
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
   fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
-  await within(form).findByText("2개 문항을 'leak.spoiler' 세트에 올렸어요.")
+  await within(form).findByText("2개 문항을 'leak.spoiler' 세트(범용)에 올렸어요.")
   const table = within(panelOf(detail)).getByRole('region', { name: '평가 데이터셋 표' })
   await waitFor(() => expect(within(table).getAllByRole('row').slice(1).map(cellsOf).find((cells) => cells[0] === 'leak.spoiler')).toEqual(['leak.spoiler', '범용', '—', '7문항', '저장소 시드(ai-eval-seed)']))
   // 올린 세트가 골라져 문항 목록이 보이고(마지막 두 개가 방금 올린 문항), 폼은 비워지며 올리기는 다시 잠긴다.
@@ -1939,8 +2021,8 @@ it('검사를 통과한 파일은 고른 세트에 올라가 서버가 만든 �
   expect((within(form).getByRole('button', { name: '업로드' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
-it('올렸다는 문구는 올리기 전 미리보기 건수가 아니라 서버가 돌려준 문항 수를 쓰고, 평가 게이트 세트에 올렸으면 기준 버전을 다시 평가한다는 안내를 덧붙인다(#868)', async () => {
-  vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockResolvedValue(3)
+it('올렸다는 문구는 올리기 전 미리보기 건수가 아니라 서버가 돌려준 문항 수를 쓰고, 서버가 준 안내(notice)를 그대로 덧붙인다(#868)', async () => {
+  vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockResolvedValue({ created: 3, kind: 'gate', notice: GATE_UPLOAD_NOTICE })
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(10))
@@ -1948,13 +2030,25 @@ it('올렸다는 문구는 올리기 전 미리보기 건수가 아니라 서버
   await within(form).findByLabelText('업로드 미리보기')
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
   fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
-  await within(form).findByText(`3개 문항을 'simulation.act' 세트에 올렸어요. ${GATE_NOTICE}`)
+  await within(form).findByText(`3개 문항을 'simulation.act' 세트(평가 게이트)에 올렸어요. ${GATE_UPLOAD_NOTICE}`)
+})
+
+it('세트 종류와 안내는 고른 세트가 아니라 서버의 응답을 따른다: 서버가 pool이라고 답하고 notice를 주지 않으면 평가 게이트를 골랐어도 그대로 보인다(#868)', async () => {
+  vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockResolvedValue({ created: 2, kind: 'pool', notice: null })
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  await waitFor(() => expect((within(form).getByLabelText('올릴 세트') as HTMLSelectElement).options.length).toBe(10))
+  pickFile(form, 'a.jsonl', jsonl('a', 'b'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  expect((await within(form).findByText(/^2개 문항을 'simulation\.act' 세트\(/)).textContent).toBe("2개 문항을 'simulation.act' 세트(최적화 풀)에 올렸어요.")
 })
 
 it('올릴 세트는 늘 목록에 있는 세트다: 프롬프트의 짝 세트가 목록에 없고 세트가 하나뿐이어도 그 세트로 올라가, 파일과 저작권 확인만으로 올릴 수 있다(#868)', async () => {
   const repo = appContainer.resolve('llmDatasetRepository')
-  vi.spyOn(repo, 'datasets').mockResolvedValue([{ name: 'only.set', kind: 'general', prompt: null, itemCount: 1, description: null }])
-  const upload = vi.spyOn(repo, 'upload').mockResolvedValue(1)
+  vi.spyOn(repo, 'datasets').mockResolvedValue([{ name: 'only.set', kind: 'general', prompt: null, itemCount: 1, lastItemAt: null, description: null }])
+  const upload = vi.spyOn(repo, 'upload').mockResolvedValue({ created: 1, kind: 'general', notice: null })
   const detail = await openSets()
   const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
   const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
@@ -1963,7 +2057,7 @@ it('올릴 세트는 늘 목록에 있는 세트다: 프롬프트의 짝 세트�
   await within(form).findByLabelText('업로드 미리보기')
   fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
   fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
-  await within(form).findByText("1개 문항을 'only.set' 세트에 올렸어요.")   // 짝 세트(simulation.act)가 목록에 없어도 목록의 세트로 간다
+  await within(form).findByText("1개 문항을 'only.set' 세트(범용)에 올렸어요.")   // 짝 세트(simulation.act)가 목록에 없어도 목록의 세트로 간다
   expect(upload.mock.calls[0][0]).toBe('only.set')
 })
 

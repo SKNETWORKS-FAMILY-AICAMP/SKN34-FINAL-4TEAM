@@ -141,6 +141,15 @@ export const perMillion = (price: number | null | undefined) => price == null ? 
 export const bodyText = (value: unknown) => value == null ? '' : typeof value === 'string' ? value : JSON.stringify(value, null, 2)
 
 export const productionOf = (p: Prompt) => p.versions.find((v) => v.labels.includes('production')) ?? null
+/**
+ * 세트가 바뀌어 기준 Run이 무효인가(#868, 평가 서비스가 기준 Run을 가리는 방법과 같다): 기준 Run은 production 버전의 가장 최근 평가 Run이고, 그 Run이 평가 세트의 마지막 문항 시각(lastItemAt)과 같거나
+ * 그보다 먼저 시작했으면 마지막 문항을 보지 못한 점수라 기준이 아니다(같은 시각도 뒤가 아니다). 그러면 다음 평가가 production 버전을 먼저 다시 평가한다(비용 두 배).
+ * production이나 그 버전의 평가 Run, 세트의 문항 시각을 모르면 무효라고 단정하지 않고 null이다. 무효이면 두 시각을 돌려 안내의 근거로 보인다.
+ */
+export function staleBaseline(p: Prompt, lastItemAt: string | null | undefined) {
+  const baselineAt = productionOf(p)?.evaluation?.createdAt
+  return baselineAt && lastItemAt && Date.parse(baselineAt) <= Date.parse(lastItemAt) ? { baselineAt, lastItemAt } : null
+}
 /** 코드 시드(AI 서비스가 seed 라벨로 등록한 버전, #705)가 production과 다르면 그 버전. 회귀 평가를 통과하면 승격할 수 있습니다. */
 export function pendingSeed(p: Prompt) {
   const seed = p.versions.find((v) => v.labels.includes('seed'))

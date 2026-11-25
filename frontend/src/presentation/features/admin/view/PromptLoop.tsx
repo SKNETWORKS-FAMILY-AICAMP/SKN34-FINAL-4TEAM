@@ -8,6 +8,7 @@ import { promptLabel } from '../../../../domain/entities/promptNames'
 import { kstDateTime } from '../../../shared/format'
 import type { LlmVM, VM } from './LlmOps'
 import { Evaluations, OptimizeForm } from './LlmOpsManage'
+import { BaselineNotice } from './BaselineNotice'
 import { ModelLabel } from './ModelLabel'
 import { formText } from './formValue'
 import { ActionLines, LiveState, Table } from './OperationsPanels'
@@ -70,6 +71,7 @@ export function PromptDetail({ vm, l }: Props) {
                       ? `후보 등록 조건: 평가 세트 ${p.evaluationDataset}의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).`
                       : '이 프롬프트는 짝 평가 세트가 없어 평가 없이 후보로 등록할 수 있어요.'}
                   </p>
+                  <BaselineNotice l={l} p={p} />
                   <VersionsTable vm={vm} l={l} p={p} recent={recent} stage="gate" />
                 </>
               )}
