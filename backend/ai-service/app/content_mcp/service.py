@@ -354,8 +354,9 @@ def _failure(text: str) -> ContentMcpFailure:
     status = int(parts[1]) if len(parts) > 1 and parts[0] == 'HTTP' and parts[1].isdigit() else None
     if status not in PASSED_STATUSES:
         # 작가에게는 고정 문구만 보이므로 원인(예: HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE)은 로그·추적에만 남긴다(#874).
+        # status_message는 예외가 감싼 tracing.observe를 빠져나갈 때 고정 문구로 덮이므로 metadata에 남긴다.
         reason = f'{head.strip()[:80]} {detail.strip()[:200]}'.strip()
         logger.warning('Content MCP 도구 오류: %s', reason)
-        tracing.client().update_current_span(level='WARNING', status_message=reason)
+        tracing.client().update_current_span(metadata={'contentError': reason})
         return ContentMcpFailure(502, 'Content 작업에 실패했습니다.')
     return ContentMcpFailure(status, detail.strip()[:200] or 'Content 작업을 완료할 수 없습니다.')

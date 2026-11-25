@@ -143,7 +143,7 @@ ai-service `app/content_mcp/`가 `openai-agents`의 `MCPServerStreamableHttp`로
 | 대상 | Content `WritingAiService`가 새 턴에 보낸 `target {workId, episode}`(episode는 요청의 `targetEpisode`, 없으면 근거 `episode`. 근거 회차가 다르면 `baseEpisode`를 더하지만 반영에는 쓰지 않는다). 모델이 만든 ID는 쓰지 않는다 |
 | 토큰 | Content가 작가의 `Authorization`을 AI에 `X-User-Authorization`으로 넘기고, AI는 그 요청의 MCP 호출에만 쓴다. 그래프 상태·체크포인트·추적에 넣지 않는다. resume 요청마다 새 토큰을 쓴다 |
 | 반영 | Text는 기존 초안 뒤에 잇고, Patch는 선택 문장이 초안에 정확히 한 번 있을 때만 바꾼다(없거나 여러 곳이면 쓰지 않고 409) |
-| 오류 | 도구 오류의 401·403·404·409·422는 Content detail 그대로, 그 밖은 502(작가에게는 고정 문구만 보이고, 그 밖의 원래 상태·코드·detail 앞 200자는 AI 로그·추적에 남긴다, #874), 연결 실패는 503으로 Writing 단계를 실패시킨다 |
+| 오류 | 도구 오류의 401·403·404·409·422는 Content detail 그대로, 그 밖은 502(작가에게는 고정 문구만 보이고, 그 밖의 원래 상태·코드·detail 앞 200자는 AI 로그와 추적의 현재 관측 metadata `contentError`에 남긴다, #874), 연결 실패는 503으로 Writing 단계를 실패시킨다 |
 
 ## 한계
 

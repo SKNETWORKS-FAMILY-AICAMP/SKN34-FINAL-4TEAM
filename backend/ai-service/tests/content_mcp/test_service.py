@@ -77,7 +77,7 @@ def test_unpassed_tool_error_keeps_502_but_leaves_original_status_and_code_in_lo
             service.call('episode_read', {'id': 'work', 'number': 3})
     assert (error.value.status, str(error.value)) == (502, 'Content 작업에 실패했습니다.')
     assert 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE' in caplog.text and '가' * 300 not in caplog.text
-    assert updates[0]['level'] == 'WARNING' and updates[0]['status_message'].startswith('HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE')
+    assert updates[0]['metadata']['contentError'].startswith('HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE')  # status_message는 observe가 덮는다
 
 
 def test_passed_4xx_tool_error_is_not_logged_as_a_warning(monkeypatch, caplog):
