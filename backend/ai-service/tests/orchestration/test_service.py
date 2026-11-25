@@ -222,6 +222,15 @@ def test_the_guard_history_is_the_last_three_turns_with_a_short_reply_and_the_fe
     assert tools.guard_history({'turns': turns, 'replaceHistory': True}) == []  # 메시지 수정 턴은 이전 턴을 보내지 않는다
 
 
+def test_the_guard_history_leaves_out_the_turns_the_guard_rejected_and_keeps_the_others():
+    turns = [{'request': '요청0', 'reply': {'status': 'completed'}},
+             {'request': '내 이메일은 kim@example.com 이야', 'reply': {'status': 'rejected', 'message': '개인정보는 알려 드릴 수 없어요.'}},
+             {'request': '요청2', 'reply': {'status': 'clarify', 'message': '어느 회차인가요?'}},
+             {'request': '요청3', 'reply': {'status': 'completed'}}]
+    sent = tools.guard_history({'turns': turns})
+    assert [t['request'] for t in sent] == ['요청0', '요청2', '요청3']  # 거절 턴은 빼고 남은 턴의 최근 3턴이다. 되물음(clarify) 턴은 그대로 둔다
+
+
 def test_each_turn_starts_without_previous_turn_results(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))

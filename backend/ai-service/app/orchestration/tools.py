@@ -149,10 +149,12 @@ def guard_history(turn: dict) -> list[dict]:
     """Decision Guard에 보낼 최근 턴의 {요청, 답변 앞부분, 그 턴에 실행된 기능}(#781). 지칭·대답을 풀 자료로만 쓴다.
 
     기능은 저장된 답변의 단계(reply.steps)에서 꺼내 옛 기능 키를 지금 키로 바꾸고 중복과 판정 기능이 아닌 단계(content_action)를 뺀다(새 상태 없음).
+    가드가 거절한 턴(reply.status == 'rejected')은 뺀 뒤 최근 턴을 센다: 가드가 막은 원문(키·이메일 등)을 외부로 다시 보내지 않는다.
     """
+    kept = [t for t in previous(turn) if (t.get('reply') or {}).get('status') != 'rejected']
     return [{'request': t['request'], 'reply': ((t.get('reply') or {}).get('message') or '')[:GUARD_REPLY],
              'features': [f for f in dict.fromkeys(current_feature(s['feature']) for s in (t.get('reply') or {}).get('steps') or []) if f in FEATURES]}
-            for t in previous(turn)[-GUARD_TURNS:]]
+            for t in kept[-GUARD_TURNS:]]
 
 
 def task(turn: dict) -> str:
