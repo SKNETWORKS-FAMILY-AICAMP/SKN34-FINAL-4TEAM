@@ -193,7 +193,7 @@
 <tr><td>작품 유형 선택·저장</td><td>✅</td></tr>
 <tr><td>승인 장르 1~2개 선택·저장</td><td>✅</td></tr>
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
-<tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/397">PR #397</a></td></tr>
+<tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>❌ <small>(중단: #372 not planned, 성능 부족. 작품 정보 편집의 추천 버튼은 화면에서 제거했고 서버 API(Content <code>tag-suggestions</code>·AI <code>work_tags</code>)는 남아 있음. 종전 구현 <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/397">PR #397</a>)</small></td></tr>
 <tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
 <tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과. #508: 상단 장식을 배경색으로 교체, 태블릿·휴대폰은 표지와 제목을 나란히 배치, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/582">PR #582</a> CI 통과. #608: Fork 카드 h2. #616: 해시태그·소개 전문보다 읽기 버튼 먼저 배치, 해시태그 없으면 빈 줄 숨김, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/627">PR #627</a>)</small></td></tr>
 <tr><td>내 작품 목록 조회</td><td>✅</td></tr>
