@@ -476,6 +476,19 @@ describe('HttpLlmDatasetRepository(#868 계약: 평가 데이터셋 API)', () =>
     await expect(upload(fail(403, { code: 'FORBIDDEN', message: 'Access denied.' }))).rejects.toThrow(new OperationsForbidden('이 작업을 할 권한이 없어요.'))
   })
 
+  it('프록시가 끊은 응답(504, 앱의 JSON code 없이 온 502·503)은 서버가 계속 문항을 만들었을 수 있어 올라갔는지 모른다고 알리고(다시 올리라고 하지 않는다), 앱이 보낸 실패(JSON code가 있는 502·500·400·404)는 그대로 실패로 알린다', async () => {
+  const upload = (f: ReturnType<typeof fail>) => new HttpLlmDatasetRepository(f).upload('s', 'a.jsonl', TEXT, true)
+  const unknown = new OperationsError('업로드 결과를 확인하지 못했어요. 문항 목록을 새로고침해 올라갔는지 확인해 주세요.')
+  const html = (status: number) => vi.fn(async () => new Response(`<html>${status}</html>`, { status }))
+  await expect(upload(html(504))).rejects.toThrow(unknown)   // nginx 읽기 제한(90초)을 넘기면 nginx가 504를 주지만 서버는 계속 만든다
+  await expect(upload(html(502))).rejects.toThrow(unknown)
+  await expect(upload(html(503))).rejects.toThrow(unknown)
+  await expect(upload(fail(504, { code: 'REQUEST_FAILED', message: 'Request could not be completed.' }))).rejects.toThrow(unknown)
+  // 앱이 처리하고 실패를 알린 응답은 되돌렸으니(최선) 그대로 실패 안내다.
+  await expect(upload(fail(502, { code: 'UPSTREAM_FAILED', message: 'Upstream service request failed.' }))).rejects.toThrow(new OperationsError('연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
+  await expect(upload(fail(500, { code: 'INTERNAL_ERROR', message: 'Request could not be completed.' }))).rejects.toThrow(new OperationsError('요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
+})
+
   it('업로드는 서버가 문항을 Langfuse에 한 건씩 만드느라 오래 걸릴 수 있어 일반 요청(15초)보다 긴 90초를 기다리고(앞단 nginx 읽기 제한과 같다), 응답을 못 받으면 올라갔는지 모른다고 알린다', async () => {
     const timeout = vi.spyOn(AbortSignal, 'timeout')
     await new HttpLlmDatasetRepository(ok({ created: 2 }, 201)).upload('s', 'a.jsonl', TEXT, true)

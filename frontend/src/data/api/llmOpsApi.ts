@@ -146,6 +146,8 @@ const uploadReason: ServerReason = (status, { code, errors }) => {
   if (status === 400 && code === 'DATASET_INVALID') return new DatasetInvalid(errors ?? [])
   if (status === 400 && code === 'COPYRIGHT_CONFIRM_REQUIRED') return COPYRIGHT_MESSAGE
   if (status === 413) return TOO_LARGE_MESSAGE
+  // 프록시가 끊은 응답(nginx 504, 앱의 JSON code 없이 온 502·503)은 서버가 계속 문항을 만들었을 수 있어 결과를 모른다(다시 올리라고 하면 문항이 또 생긴다).
+  if (status === 504 || ((status === 502 || status === 503) && !code)) return new OperationsError(UPLOAD_UNKNOWN_MESSAGE)
   return undefined
 }
 /** 비어 있는 조건은 서버에 보내지 않습니다. */
