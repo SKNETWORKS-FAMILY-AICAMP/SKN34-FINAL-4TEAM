@@ -34,7 +34,7 @@ DATA = HERE / '.data'
 SETS, GOLD, RESULTS = DATA / 'sets', DATA / 'gold', HERE / 'results'
 MANIFEST = DATA / 'webnovel' / 'manifest.json'   # 웹소설 선택표(작품·장르·회차 번호·원본 파일 해시): 로컬 전용
 DATASET = HERE.parents[1] / 'app' / 'evaluation' / 'datasets' / 'extraction.extract.jsonl'
-POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
+POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: 하위 폴더 optimize/(게이트 glob 밖, seed가 Dataset optimize.<이름>으로 따로 등록한다, #868)
 GATE_SIZE = 30   # 게이트 세트 회차 수(평가 1회 = 운영 모델 호출 이만큼)
 VAL = 20   # 최적화 풀의 val 문항 수 상한(시뮬레이션 풀 orig_export.VAL과 같다): 기본 호출 상한 150에서 기준 본문의 val 평가가 호출의 큰 몫을 쓰지 않게 작게 둔다
 VAL_SHARE = 0.4   # 풀이 작으면 val은 풀의 이 비율까지만(나머지는 train)

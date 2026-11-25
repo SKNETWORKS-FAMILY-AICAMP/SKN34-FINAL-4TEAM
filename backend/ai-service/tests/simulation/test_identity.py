@@ -159,6 +159,16 @@ def test_only_the_chosen_mask_adds_its_identity_never_another_mask_of_the_same_b
     assert 'MASK-IDENTITY' in mine and 'BODY-IDENTITY' in mine and 'MASK2-IDENTITY' not in mine
 
 
+def test_a_relation_with_another_card_of_a_person_in_the_scene_is_a_pair_relation_the_limit_never_cuts(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    monkeypatch.setattr(service, 'RELATION_LIMIT', 0)   # 같은 장면 인물과의 관계만 남는다
+    # 장면 인물은 가면 카드(승상)이고 카엘의 관계는 본체 카드(홍길동) 쪽에 있다: 같은 사람이라 이것도 같은 장면 인물과의 관계다.
+    read = world(identity(I1, MASK, BODY), relation('rel-kael-body', KAEL, BODY, '감시', 'REL-KAEL-BODY 카엘이 지켜본다'))
+    plan = SimulationPlan(mode='if', premise='IF-PREMISE 만약 승상이 카엘을 불렀다면?', characterIds=[KAEL, MASK])
+    _, (asked, _, _) = view(monkeypatch, read=read, plan=plan, actor=KAEL)
+    assert [d['ref'] for d in asked['known'] if d['ref'].startswith('relation:')] == [f'relation:{REL_KM}', 'relation:rel-kael-body']   # 리나·북문과의 관계(READ)는 빠진다
+
+
 # --- 둘을 함께 고를 수 없다 --------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize('ids', [[MASK, BODY], [BODY, KAEL, MASK], [MASK, MASK2]])

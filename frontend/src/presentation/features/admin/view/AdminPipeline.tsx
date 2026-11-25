@@ -1,28 +1,42 @@
-import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { Fragment, Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 'react'
 
+import { PIPELINE_FLOWS, type PipelineFlowKey } from '../../../../domain/entities/admin'
 import { LLM_FORBIDDEN, PERIODS, bodyText, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
+import { FLOW_DEFS, flowNodes, flowOfNode, isFlowStepId, type FlowDef } from '../../../../domain/entities/llmOpsFlows'
 import {
   PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recalledTitles, recordResult, spanMillis, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
 } from '../../../../domain/entities/llmOpsPipeline'
+import { promptLabel } from '../../../../domain/entities/promptNames'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
 import '../../../../styles/admin-pipeline.css'
 import type { LlmVM, VM } from './LlmOps'
+import { NodePromptLink } from './NodePromptLink'
 import { LiveState, Pager, Table } from './OperationsPanels'
+import { PromptName } from './PromptName'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 // react-force-graph(d3·canvas)는 파이프라인 그림을 볼 때만 내려받는다.
 const PipelineCanvas = lazy(() => import('./AdminPipelineCanvas'))
 
 /**
- * 프롬프트·모델 쪽의 '전체' 보기(DEC-58): 집필 AI 파이프라인을 고정 좌표 캔버스로 보이고, 노드(Decision Guard·메인 에이전트·업무 Agent·도구)를 고르면
+ * 프롬프트·평가 쪽의 'AI 파이프라인' 보기(DEC-58, 예전 프롬프트·모델의 전체): 집필 AI 파이프라인을 고정 좌표 캔버스로 보이고, 노드(Decision Guard·메인 에이전트·업무 Agent·도구)를 고르면
  * 그 노드의 observation 기록(결과 필터·표, 펼치면 입력·출력·메타데이터·도구 호출, 실행 흐름, 프롬프트 보기)을 캔버스와 노드 버튼 아래에 전체 폭으로 보인다(옆에 두면 표가 반쪽 폭에서 넘친다).
  * 캔버스는 보조라 같은 노드를 키보드로 고르는 버튼 목록을 캔버스 아래에 둔다. 노드를 고르면 기록 제목으로, 닫으면 눌렀던 노드 버튼으로 초점을 옮긴다.
+ * 프롬프트가 연결된 노드는 노드 버튼 목록과 기록 패널 머리에 '프롬프트 보기'(NodePromptLink: 하나면 버튼·여럿이면 목록·없으면 없음, #857)가 있어 프롬프트 상세(개선 루프)로 바로 갑니다. 캔버스 위에는 두지 않습니다.
+ * 워크플로우(주소 flow, #857 3차)는 사이드바 '프롬프트·평가' 아래 하위 탭이 고르고(3차 정정: 캔버스 위 선택 상자는 없다), 전체(서버 노드 흐름)와 내부에 여러 LLM 단계가 있는 에이전트의 내부 흐름 중 하나를 같은 자리에 그립니다. 흐름의 단계는 코드 근거로 정한 도메인 상수(llmOpsFlows)이고
+ * 건수·오류는 서버 노드와 1:1인 단계에만 있으며, 서버 노드가 없는 단계는 점선 구조용 노드(이름만, 고르면 단계 설명)입니다. 전체에서 내부 흐름이 있는 노드를 고르면 기록 패널에 '내부 흐름 보기'가 있습니다.
  */
-export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
-  const nodes = l.pipeline.data
-  const node = nodes?.find((n) => n.id === l.nodeId)
+export function AdminPipeline({ vm, l, workflow, onWorkflow }: { vm: VM; l: LlmVM; workflow: PipelineFlowKey; onWorkflow: (workflow: PipelineFlowKey) => void }) {
+  const server = l.pipeline.data
+  const def = workflow === 'all' ? null : FLOW_DEFS[workflow]
+  const name = PIPELINE_FLOWS.find(([key]) => key === workflow)?.[1] ?? ''
+  const nodes = server && (flowNodes(workflow, server) ?? server)
+  const parent = def ? server?.find((n) => n.id === def.node) : undefined
+  // 흐름 화면의 선택은 그 흐름의 노드나 집계 노드(서버 노드)만 보인다: 주소만 바뀌어(뒤로 가기 등) 남은 다른 흐름의 선택은 그리지 않는다.
+  const node = nodes?.find((n) => n.id === l.nodeId) ?? (parent?.id === l.nodeId ? parent : undefined)
+  const groups: [string, PipelineNode[]][] = !nodes ? [] : def ? [[`${name} 내부 흐름`, nodes]] : [['요청 흐름', nodes.filter((n) => !n.standalone)], ['단독 기능', nodes.filter((n) => n.standalone)]]
   const root = useAdminDetailFocus(l.nodeId)
   return (
     <section ref={root} className="panel admin-operations admin-pipeline" aria-label="AI 파이프라인">
@@ -39,22 +53,63 @@ export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
         ? (
           <div className="pipe-body">
             <div className="pipe-diagram">
+              {def && <FlowCaption l={l} def={def} parent={parent} />}
               <Suspense fallback={<p className="admin-data-state" role="status">파이프라인 그림을 불러오고 있어요.</p>}>
-                <PipelineCanvas nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} />
+                <PipelineCanvas nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} title={def ? `${name} 내부 흐름` : undefined} />
               </Suspense>
-              <NodeButtons nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} />
+              <NodeButtons l={l} groups={groups} selected={l.nodeId} onSelect={l.selectNode} />
             </div>
-            {node && <NodeRecords vm={vm} l={l} node={node} />}
+            {node && (isFlowStepId(node.id) ? <StepInfo l={l} node={node} parent={parent} /> : <NodeRecords vm={vm} l={l} node={node} workflow={workflow} onWorkflow={onWorkflow} />)}
           </div>
         )
         : <p className="admin-empty">파이프라인 노드가 없어요.</p>)}
-      <p className="admin-note">노드를 누르면 그 노드의 기록을 보여요. 건수는 고른 기간에 Langfuse에 기록된 단계 수이고, 입력·출력은 칸마다 앞 8,000자까지만 보여요.</p>
+      <p className="admin-note">
+        {def
+          ? '점선 노드는 서버 고정 노드 목록에 없는 단계라 이름만 그려요(단계별 서버 노드는 예정). 눌러 보면 단계 설명을 볼 수 있고, 서버 노드와 이어진 단계는 기록을 볼 수 있어요.'
+          : '노드를 누르면 그 노드의 기록을 보여요. 건수는 고른 기간에 Langfuse에 기록된 단계 수이고, 입력·출력은 칸마다 앞 8,000자까지만 보여요.'}
+      </p>
     </section>
   )
 }
 
-function NodeButtons({ nodes, selected, onSelect }: { nodes: PipelineNode[]; selected: string | null; onSelect: (id: string) => void }) {
-  const groups: [string, PipelineNode[]][] = [['요청 흐름', nodes.filter((n) => !n.standalone)], ['단독 기능', nodes.filter((n) => n.standalone)]]
+/** 흐름 화면의 설명과 서버 집계: 서버는 그 흐름의 LLM 단계를 한 서버 노드로 함께 세므로 그 노드의 건수를 집계로 보이고 그 노드의 기록 패널을 여는 버튼을 둔다. */
+function FlowCaption({ l, def, parent }: { l: LlmVM; def: FlowDef; parent?: PipelineNode }) {
+  return (
+    <div className="pipe-flow-caption">
+      <p className="small muted">{def.caption}</p>
+      {parent && (
+        <p className="small muted">
+          서버는 이 흐름의 LLM 단계를 ‘{parent.label}’ 한 노드로 함께 세요(단계별 노드는 예정): {nodeStats(parent)}{' '}
+          <button type="button" className="btn sm" onClick={() => l.selectNode(parent.id)}>집계 기록 보기</button>
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** 서버 노드가 없는 단계(구조용 노드)를 고르면 서버에 기록을 묻지 않고 단계 설명을 보인다: LLM 여부·설명·프롬프트(프롬프트 보기)·기록이 어디 있는지. */
+function StepInfo({ l, node, parent }: { l: LlmVM; node: PipelineNode; parent?: PipelineNode }) {
+  const llm = node.step?.llm
+  return (
+    <section className="pipe-records pipe-stepinfo" aria-label={`${node.label} 단계`}>
+      <div className="table-head">
+        <h2 tabIndex={-1}>{node.label} 단계</h2>
+        <button type="button" className="btn sm" onClick={l.closeNode}>단계 닫기</button>
+      </div>
+      <p className="small muted">{llm ? 'LLM 호출 · 단계별 서버 노드가 없어 건수·오류는 보이지 않아요(예정)' : 'LLM 아님 · 건수·오류를 세지 않는 단계예요'}</p>
+      {node.step?.note && <p>{node.step.note}</p>}
+      {node.promptNames.length > 0 && (
+        <div className="pipe-meta">
+          <p className="small muted">프롬프트 {node.promptNames.map((code, i) => <Fragment key={code}>{i > 0 && ' / '}<PromptName code={code} /></Fragment>)}</p>
+          <NodePromptLink l={l} node={node} />
+        </div>
+      )}
+      {llm && parent && <p className="admin-note">이 단계의 호출 기록은 서버 노드 ‘{parent.label}’의 기록에 함께 있어요(위 ‘집계 기록 보기’).</p>}
+    </section>
+  )
+}
+
+function NodeButtons({ l, groups, selected, onSelect }: { l: LlmVM; groups: [string, PipelineNode[]][]; selected: string | null; onSelect: (id: string) => void }) {
   return (
     <div className="pipe-nodes">
       {groups.filter(([, list]) => list.length).map(([title, list]) => (
@@ -63,10 +118,11 @@ function NodeButtons({ nodes, selected, onSelect }: { nodes: PipelineNode[]; sel
           <ul>
             {list.map((n) => (
               <li key={n.id}>
-                <button type="button" className={`pipe-node${n.errors ? ' bad' : ''}`} aria-current={n.id === selected ? 'true' : undefined} data-record-id={n.id} onClick={() => onSelect(n.id)}>
+                <button type="button" className={`pipe-node${n.errors ? ' bad' : ''}${n.step ? ' structural' : ''}`} aria-current={n.id === selected ? 'true' : undefined} data-record-id={n.id} onClick={() => onSelect(n.id)}>
                   <b>{n.label}</b>
                   <span className="small muted">{nodeStats(n)}</span>
                 </button>
+                <NodePromptLink l={l} node={n} />
               </li>
             ))}
           </ul>
@@ -76,16 +132,23 @@ function NodeButtons({ nodes, selected, onSelect }: { nodes: PipelineNode[]; sel
   )
 }
 
-function NodeRecords({ vm, l, node }: { vm: VM; l: LlmVM; node: PipelineNode }) {
+function NodeRecords({ vm, l, node, workflow, onWorkflow }: { vm: VM; l: LlmVM; node: PipelineNode; workflow: PipelineFlowKey; onWorkflow: (workflow: PipelineFlowKey) => void }) {
   const page = l.records.data
   const rows = page ? filterRecords(node.id, l.recordFilter.result, page.items) : []
+  const inside = flowOfNode(node.id)
   return (
     <section className="pipe-records" aria-label={`${node.label} 기록`}>
       <div className="table-head">
         <h2 tabIndex={-1}>{node.label} 기록</h2>
-        <button type="button" className="btn sm" onClick={l.closeNode}>기록 닫기</button>
+        <div className="rowend">
+          {inside && inside !== workflow && <button type="button" className="btn sm" onClick={() => onWorkflow(inside)}>내부 흐름 보기</button>}
+          <button type="button" className="btn sm" onClick={l.closeNode}>기록 닫기</button>
+        </div>
       </div>
-      <p className="small muted">{nodeStats(node)} · p95 지연 {spanMillis(node.p95LatencyMs)} · 프롬프트 {node.promptNames.length ? node.promptNames.join(', ') : '없음'}</p>
+      <div className="pipe-meta">
+        <p className="small muted">{nodeStats(node)} · p95 지연 {spanMillis(node.p95LatencyMs)} · 프롬프트 {node.promptNames.length ? node.promptNames.map((name, i) => <Fragment key={name}>{i > 0 && ' / '}<PromptName code={name} /></Fragment>) : '없음'}</p>
+        <NodePromptLink l={l} node={node} />
+      </div>
       <div className="admin-filter">
         <label className="field">
           결과
@@ -143,12 +206,12 @@ function RecordRow({ l, node, row }: { l: LlmVM; node: PipelineNode; row: Pipeli
         </td>
         <td>{spanMillis(row.latencyMs)}</td>
         <td>{row.model ?? '—'}</td>
-        <td>{row.promptName ? `${row.promptName} v${row.promptVersion ?? '?'}` : '—'}</td>
+        <td>{row.promptName ? <><PromptName code={row.promptName} /> v{row.promptVersion ?? '?'}</> : '—'}</td>
         <td className="act-menu">
           <PopMenu className="row-menu" label={`「${row.name} ${row.id}」 조치`} icon={<MoreVerticalIcon />}>
             <button type="button" role="menuitem" onClick={() => l.openFlow(row.traceId, row.id)}>실행 흐름 보기</button>
             {prompts.map((name) => (
-              <button key={name} type="button" role="menuitem" onClick={() => l.openPrompt(name)}>프롬프트 보기{prompts.length > 1 ? ` · ${name}` : ''}</button>
+              <button key={name} type="button" role="menuitem" onClick={() => l.openPrompt(name)}>프롬프트 보기{prompts.length > 1 ? ` · ${promptLabel(name)}` : ''}</button>
             ))}
           </PopMenu>
         </td>
@@ -215,7 +278,7 @@ function FlowPanel({ vm, l, flow }: { vm: VM; l: LlmVM; flow: { traceId: string;
 }
 
 function FlowStep({ step, depth, here }: { step: Observation; depth: number; here: boolean }) {
-  const meta = [step.type, spanMillis(step.endTime ? step.latencyMs : null), step.model, step.promptName ? `${step.promptName} v${step.promptVersion ?? '?'}` : null].filter(Boolean).join(' · ')
+  const meta = [step.type, spanMillis(step.endTime ? step.latencyMs : null), step.model, step.promptName ? `${promptLabel(step.promptName)} v${step.promptVersion ?? '?'}` : null].filter(Boolean).join(' · ')
   return (
     <li className="pipe-step" style={{ '--depth': depth } as CSSProperties} aria-current={here ? 'true' : undefined}>
       <div className="pipe-step-head">

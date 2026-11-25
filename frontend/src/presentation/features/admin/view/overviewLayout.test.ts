@@ -1,21 +1,31 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-// 개요(data 탭)의 배치는 렌더 테스트(CI 전용)가 DOM으로 지키고, 여기서는 로컬 단위 범위에서 소스의 순서·연결만 고정한다(AdminPage.test의 정적 소스 계약과 같은 방식).
+// 대시보드(data 탭)와 에이전트 지표(LLM Ops 첫 쪽)의 배치는 렌더 테스트(CI 전용)가 DOM으로 지키고, 여기서는 로컬 단위 범위에서 소스의 순서·연결만 고정한다(AdminPage.test의 정적 소스 계약과 같은 방식).
 const read = (name: string) => readFileSync(new URL(name, import.meta.url), 'utf8')
 const dashboard = read('./OperationsDashboard.tsx')
+const agents = read('./AgentMetrics.tsx')
+const panels = read('./OperationsPanels.tsx')
 const metrics = read('./ServiceMetrics.tsx')
 const charts = read('./AdminCharts.tsx')
 const css = read('./admin-operations.css')
 
-describe('관리 개요 배치 계약', () => {
-  it('작은 요약 카드가 맨 위이고 그 아래에 서비스 지표 그래프, 최근 7일 AI 사용 그래프가 온다', () => {
-    const order = ['className="admin-summary"', '<ServiceMetrics', '<WeeklyUsage'].map((part) => dashboard.indexOf(part))
+describe('대시보드·에이전트 지표 배치 계약', () => {
+  it('대시보드는 요약 카드(서비스 지표) 띠가 맨 위이고 그 아래에 서비스 지표 그래프가 오며, AI 사용 그래프는 없다', () => {
+    const order = ['<SummaryBand cards={serviceCards(data)}', '<ServiceMetrics'].map((part) => dashboard.indexOf(part))
     expect(order.every((at) => at > 0)).toBe(true)
     expect(order).toEqual([...order].sort((a, b) => a - b))
+    expect(dashboard).not.toMatch(/WeeklyUsage|aiCards/)
   })
 
-  it('요약 띠는 8장이 마지막 줄 없이 나뉘도록 2열, 넓은 화면은 4열이다(auto-fit이면 1440px에서 5열이 되어 5+3으로 갈린다)', () => {
+  it('에이전트 지표는 AI 요청·경고 요약 카드 → 최근 7일 AI 사용 그래프 → 에이전트별 지표(카드·표) 순이다', () => {
+    const order = ['<AiOverview', '<WeeklyUsage', '<Metrics'].map((part) => agents.indexOf(part))
+    expect(order.every((at) => at > 0)).toBe(true)
+    expect(order).toEqual([...order].sort((a, b) => a - b))
+    expect(agents).toMatch(/<SummaryBand cards=\{aiCards\(data\)\}/)
+  })
+
+  it('요약 띠는 카드 넷이 마지막 줄 없이 나뉘도록 2열, 넓은 화면은 4열이다(auto-fit이면 1440px에서 5열이 되어 갈린다)', () => {
     const summary = css.match(/\.adm \.admin-summary \{[^}]*\}/)![0]
     expect(summary).toMatch(/grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
     expect(summary).not.toMatch(/auto-fit/)
@@ -23,7 +33,7 @@ describe('관리 개요 배치 계약', () => {
   })
 
   it('카드의 바로 가기 링크는 이름에 카드 이름을 넣어 같은 글자의 링크 넷을 구분한다', () => {
-    expect(dashboard).toMatch(/<Go to=\{card\.to\} aria-label=\{`\$\{card\.label\} 바로 가기`\}>바로 가기<\/Go>/)
+    expect(panels).toMatch(/<Go to=\{card\.to\} aria-label=\{`\$\{card\.label\} 바로 가기`\}>바로 가기<\/Go>/)
   })
 
   it('서비스 지표의 비율 목록은 차트 아래가 아니라 캡션과 그림 사이(차트의 lead 자리)에 둔다', () => {

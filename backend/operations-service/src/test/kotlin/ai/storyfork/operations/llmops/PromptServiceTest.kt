@@ -9,6 +9,7 @@ import ai.storyfork.operations.llmops.service.EvaluationService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.dto.PromptCreateRequest
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
+import ai.storyfork.operations.llmops.service.dto.PromptVersion
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -30,9 +31,10 @@ class PromptServiceTest {
         }
     })
     private val activities = mock(AdminActivityService::class.java)
+    private val ai = mock(AiClient::class.java)   // what the AI service runs a prompt on when its version names no model; an unstubbed mock knows none
     private val operators = Operators()
     private val evaluations = EvaluationService(operators.permissions, langfuse, mock(AiClient::class.java), mock(AdminActivityService::class.java))
-    private val service = PromptService(operators.permissions, langfuse, evaluations, activities, listOf("gpt-chosen", "gpt-other"))
+    private val service = PromptService(operators.permissions, langfuse, evaluations, activities, ai, listOf("gpt-chosen", "gpt-other"))
 
     /** An experiment as Langfuse lists it for a prompt evaluation: the metadata values are strings and name the prompt version (the name is free here). */
     private fun run(name: String, createdAt: String, prompt: String, version: Int, dataset: String = "qa-regression") = json(
@@ -343,5 +345,84 @@ class PromptServiceTest {
         assertThrows(IllegalArgumentException::class.java) { service.promote(operators.llm, "qa/answer", PromptPromoteRequest(0)) }
         assertThrows(IllegalArgumentException::class.java) { service.candidate(operators.llm, "qa/answer", PromptPromoteRequest(0)) }
         verifyNoInteractions(activities)
+    }
+
+    private fun effective(versions: List<PromptVersion>) = versions.map { it.effectiveModel to it.modelSource }
+
+    @Test
+    fun `a version shows the model it chose and otherwise the model the AI service runs the prompt on`() {
+        givenRuns()
+        `when`(ai.promptDefaultModels()).thenReturn(mapOf("qa" to "gpt-env", "character_simulation.act" to "gpt-6.1-terra", "no.default" to null))
+        `when`(langfuse.prompts()).thenReturn(listOf(
+            json("""{"name":"qa","versions":[1,2],"labels":["production","seed"]}"""),
+            json("""{"name":"character_simulation.act","versions":[1],"labels":["production"]}"""),
+            json("""{"name":"no.default","versions":[1],"labels":["production"]}"""),
+            json("""{"name":"unknown","versions":[1],"labels":["production"]}"""),
+        ))
+        `when`(langfuse.prompt("qa", "production")).thenReturn(json("""{"name":"qa","version":2,"labels":["production"],"config":{"model":"gpt-chosen"}}"""))
+        `when`(langfuse.prompt("qa", "seed")).thenReturn(version("qa", 1, """["seed"]"""))
+        for (name in listOf("character_simulation.act", "no.default", "unknown")) `when`(langfuse.prompt(name, "production")).thenReturn(version(name, 1, """["production"]"""))
+
+        val items = service.list(operators.llm).items.associateBy { it.name }
+
+        // The version's own model wins and says so; otherwise the AI service's answer says what really runs; no answer is unknown (null), never a guess.
+        assertEquals(listOf("gpt-chosen" to "version", "gpt-env" to "default"), effective(items.getValue("qa").versions))
+        assertEquals(listOf("gpt-6.1-terra" to "default"), effective(items.getValue("character_simulation.act").versions))
+        assertEquals(listOf<Pair<String?, String?>>(null to null), effective(items.getValue("no.default").versions))
+        assertEquals(listOf<Pair<String?, String?>>(null to null), effective(items.getValue("unknown").versions))
+        assertEquals(listOf("gpt-chosen", null), items.getValue("qa").versions.map { it.model })   // the plain model field is still only what the version chose
+        verify(ai, times(1)).promptDefaultModels()
+    }
+
+    @Test
+    fun `the detail gives every version its effective model from one read of the AI defaults`() {
+        givenRuns()
+        `when`(ai.promptDefaultModels()).thenReturn(mapOf("qa" to "gpt-env"))
+        `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
+        `when`(langfuse.prompt("qa", 2)).thenReturn(json("""{"name":"qa","version":2,"labels":["production"],"config":{"model":"gpt-other"}}"""))
+        `when`(langfuse.prompt("qa", 1)).thenReturn(version("qa", 1, "[]"))
+
+        val versions = service.detail(operators.llm, "qa").versions
+
+        assertEquals(listOf("gpt-other" to "version", "gpt-env" to "default"), effective(versions))
+        verify(ai, times(1)).promptDefaultModels()
+    }
+
+    @Test
+    fun `an AI service that cannot answer leaves the default model unknown and does not fail the prompt screens`() {
+        givenRuns()
+        `when`(ai.promptDefaultModels()).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        val chosen = json("""{"name":"qa","version":2,"labels":["production"],"config":{"model":"gpt-chosen"}}""")
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa","versions":[1,2],"labels":["production","seed"]}""")))
+        `when`(langfuse.prompt("qa", "production")).thenReturn(chosen)
+        `when`(langfuse.prompt("qa", "seed")).thenReturn(version("qa", 1, """["seed"]"""))
+        `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
+        `when`(langfuse.prompt("qa", 2)).thenReturn(chosen)
+        `when`(langfuse.prompt("qa", 1)).thenReturn(version("qa", 1, """["seed"]"""))
+
+        for (versions in listOf(service.list(operators.llm).items.single().versions, service.detail(operators.llm, "qa").versions)) {
+            assertEquals(listOf<Pair<String?, String?>>("gpt-chosen" to "version", null to null), effective(versions))
+        }
+    }
+
+    @Test
+    fun `a created candidate and promoted version shows the model it chose without asking the AI service`() {
+        givenRuns()
+        val chosen = json("""{"model":"gpt-chosen"}""")
+        `when`(langfuse.createPrompt(mapOf("name" to "qa", "type" to "text", "prompt" to json("\"지시\""), "labels" to emptyList<String>(), "config" to chosen)))
+            .thenReturn(json("""{"name":"qa","version":5,"labels":["latest"],"config":{"model":"gpt-chosen"}}"""))
+        `when`(langfuse.prompt("qa", 5)).thenReturn(json("""{"name":"qa","version":5,"labels":["latest"],"config":{"model":"gpt-chosen"}}"""))
+        `when`(langfuse.prompt("qa", 6)).thenReturn(version("qa", 6, """["latest"]"""))
+
+        val created = service.create(operators.llm, "qa", PromptCreateRequest(json("\"지시\""), null, chosen))
+        val candidate = service.candidate(operators.llm, "qa", PromptPromoteRequest(5))
+        `when`(langfuse.prompt("qa", 5)).thenReturn(json("""{"name":"qa","version":5,"labels":["candidate-5"],"config":{"model":"gpt-chosen"}}"""))
+        val promoted = service.promote(operators.llm, "qa", PromptPromoteRequest(5))
+        val bare = service.candidate(operators.llm, "qa", PromptPromoteRequest(6))
+
+        for (version in listOf(created, candidate, promoted)) assertEquals("gpt-chosen" to "version", version.effectiveModel to version.modelSource)
+        // Asking would put a second service in the path of a write: a version without a model is read again from the list, which asks.
+        assertEquals(null to null, bare.effectiveModel to bare.modelSource)
+        verifyNoInteractions(ai)
     }
 }

@@ -1,5 +1,6 @@
 package ai.storyfork.operations.llmops.service
 
+import ai.storyfork.operations._common.client.AiClient
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
@@ -18,6 +19,7 @@ import ai.storyfork.operations.member.repository.requirePermission
 import ai.storyfork.operations.security.OperationsMember
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 
 private const val LLM = "llm"
@@ -29,8 +31,9 @@ private const val NAME_MAX = 100
 /**
  * The evaluation set each prompt is evaluated on (#787, 2026-11-24 user decision; the manuscript extraction pair is #824): only the sets built from that very call. A version of these prompts
  * becomes a candidate once its newest run on the set passed; every other prompt has no fitting set and becomes a candidate without an evaluation.
+ * The evaluation dataset list reads the same pairs the other way round (#868).
  */
-private val EVALUATION_SETS = mapOf(
+internal val EVALUATION_SETS = mapOf(
     "story_context.answer" to "qa.grounding",
     "character_simulation.act" to "simulation.act",
     "character_simulation.narrate" to "simulation.narrate",
@@ -45,6 +48,8 @@ class PromptService(
     private val langfuse: LangfuseClient,
     private val evaluations: EvaluationService,
     private val activities: AdminActivityService,
+    /** Only the AI service knows what a prompt without a chosen model runs on (#868). */
+    private val ai: AiClient,
     /** Models a version may choose (#806): the OpenAI models the AI service calls, `LLMOPS_MODELS` (comma separated) adds or removes one. */
     @Value("\${app.operations.llmops-models}") private val models: List<String>,
 ) {
@@ -56,12 +61,13 @@ class PromptService(
     fun list(member: OperationsMember): PromptListResponse {
         permissions.requirePermission(member, LLM)
         val latest = evaluations.latestByVersion(sets = EVALUATION_SETS)
+        val defaults = defaultModels()
         return PromptListResponse(langfuse.prompts().parallelStream().map { meta ->
             val name = meta.path("name").asString()
             val listed = labels(meta)
             val production = if (PRODUCTION in listed) langfuse.prompt(name, PRODUCTION) else null
             val seed = if (SEED in listed && production?.let { SEED in labels(it) } != true) langfuse.prompt(name, SEED) else null
-            prompt(meta, listOfNotNull(production, seed).sortedByDescending { it.path("version").asInt() }, latest)
+            prompt(meta, listOfNotNull(production, seed).sortedByDescending { it.path("version").asInt() }, latest, defaults)
         }.toList())
     }
 
@@ -69,7 +75,7 @@ class PromptService(
         permissions.requirePermission(member, LLM)
         val meta = langfuse.prompts(name).firstOrNull { it.path("name").asString() == name } ?: throw NoSuchElementException("Prompt not found.")
         val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { langfuse.prompt(name, it) }
-        return prompt(meta, versions, evaluations.latestByVersion(sets = EVALUATION_SETS), withBody = true).copy(models = models)
+        return prompt(meta, versions, evaluations.latestByVersion(sets = EVALUATION_SETS), defaultModels(), withBody = true).copy(models = models)
     }
 
     /** A new version without any label: it only reaches production through [promote]. */
@@ -90,7 +96,7 @@ class PromptService(
         }
         request.commitMessage?.trim()?.takeIf { it.isNotEmpty() }?.let { body["commitMessage"] = it }
         val created = langfuse.createPrompt(body)
-        val version = version(created, null)
+        val version = version(created, null).effective()
         activities.record(member, "PROMPT_CREATE", "PROMPT", name, "v${version.version}")
         return version
     }
@@ -112,7 +118,7 @@ class PromptService(
             langfuse.setPromptLabels(name, request.version, listOf(candidate))  // Langfuse adds it and keeps the other labels
             activities.record(member, "PROMPT_CANDIDATE", "PROMPT", name, "v${request.version}")
         }
-        return PromptVersion(request.version, (labels - candidate) + candidate, createdAt(current), evaluation?.summary(), model(current))
+        return PromptVersion(request.version, (labels - candidate) + candidate, createdAt(current), evaluation?.summary(), model(current)).effective()
     }
 
     /** Moves the production label to the version. Only a candidate goes there; restoring an older version is no exception (register it as a candidate first). */
@@ -121,19 +127,21 @@ class PromptService(
         require(request.version >= 1) { "Invalid version." }
         val current = langfuse.prompt(name, request.version)
         val labels = labels(current)
-        if (PRODUCTION in labels) return version(current, evaluations.latest(name, request.version, EVALUATION_SETS[name]))
+        if (PRODUCTION in labels) return version(current, evaluations.latest(name, request.version, EVALUATION_SETS[name])).effective()
         if (candidateLabel(request.version) !in labels) throw CandidateRequiredException()
         val evaluation = evaluations.latest(name, request.version, EVALUATION_SETS[name])  // only for the answer, on the same set as the candidate gate
         // Langfuse adds the sent label and keeps it unique across versions, so production moves here and the version's other labels stay.
         // Only production is sent: re-sending labels read earlier could move back a label another request moved meanwhile.
         langfuse.setPromptLabels(name, request.version, listOf(PRODUCTION))
         activities.record(member, "PROMPT_PROMOTE", "PROMPT", name, "v${request.version}")
-        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation?.summary(), model(current))
+        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation?.summary(), model(current)).effective()
     }
 
-    private fun prompt(meta: JsonNode, versions: List<JsonNode>, latest: Map<Pair<String, Int>, Evaluation>, withBody: Boolean = false): Prompt {
+    private fun prompt(
+        meta: JsonNode, versions: List<JsonNode>, latest: Map<Pair<String, Int>, Evaluation>, defaults: Map<String, String?>, withBody: Boolean = false,
+    ): Prompt {
         val name = meta.path("name").asString()
-        val read = versions.map { version(it, latest[name to it.path("version").asInt()], withBody) }
+        val read = versions.map { version(it, latest[name to it.path("version").asInt()], withBody).effective(defaults[name]) }
         val live = read.firstOrNull { PRODUCTION in it.labels }?.version
         return Prompt(name, read, labels(meta).count { CANDIDATE.matches(it) && it != live?.let(::candidateLabel) }, EVALUATION_SETS[name])
     }
@@ -142,6 +150,23 @@ class PromptService(
         node.path("version").asInt(), labels(node), createdAt(node), evaluation?.summary(), model(node), node.get("prompt")?.takeIf { withBody },
         node.path("commitMessage").textOrNull()?.takeIf { withBody },
     )
+
+    /**
+     * What the AI service runs a prompt on when a version chooses no model comes from its environment, so the AI service is asked, once per read. One that cannot
+     * answer leaves it unknown (empty): the screens still load and the versions without a model show no effective model, which is not a guess.
+     */
+    private fun defaultModels(): Map<String, String?> = try {
+        ai.promptDefaultModels()
+    } catch (_: ResponseStatusException) {
+        emptyMap()
+    }
+
+    /** The model the version really runs on: its own choice, else [default] (what the AI service runs the prompt on); neither is unknown. */
+    private fun PromptVersion.effective(default: String? = null) = when {
+        model != null -> copy(effectiveModel = model, modelSource = "version")
+        default != null -> copy(effectiveModel = default, modelSource = "default")
+        else -> this
+    }
 
     private fun candidateLabel(version: Int) = "candidate-$version"
 

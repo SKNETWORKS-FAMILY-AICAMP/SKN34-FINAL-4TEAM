@@ -12,6 +12,11 @@ export type PipelineNode = {
   count: number; errors: number; p95LatencyMs?: number | null
   /** 그 노드의 generation에 연결된 프롬프트 이름 */
   promptNames: string[]
+  /**
+   * 서버 응답에는 없습니다(#857 3차). 워크플로우(내부 흐름) 정의가 서버 노드가 없는 단계를 그릴 때만 붙는 구조용 노드 표시이며, 건수·오류는 없고(0) 이름만 그립니다.
+   * llm은 그 단계가 LLM 호출인지(아니면 코드·Content 처리), note는 단계 설명입니다.
+   */
+  step?: { llm: boolean; note?: string }
 }
 export type PipelineQuery = { from: string; to: string }
 export type PipelineRecord = {
@@ -41,6 +46,8 @@ const LABEL_GAP = 4
 const SOLO_GAP = 36
 const SOLO_COLUMN_GAP = 14
 const SOLO_PER_ROW = 5
+/** 두 칸 넘게 거슬러 가는 선(인물 시뮬레이션의 다음 턴)은 중간 노드를 가로지르지 않도록 노드 아래로 이만큼 처져 돌고, 그 자리를 전체 높이에 더합니다. */
+const ARC_SAG = 28
 /** 되돌아가는 선을 같은 두 노드의 앞으로 가는 선과 겹치지 않게 내려 그리는 높이와, 굽는 자리를 되돌아가는 쪽으로 당기는 거리입니다. */
 const RETURN_DROP = 10
 const RETURN_BEND = 10
@@ -66,6 +73,8 @@ type PipelineLayout = {
 }
 
 const linkKey = (source: string, target: string) => JSON.stringify([source, target])
+/** 두 칸 넘게 떨어진 두 자리(옆 칸이면 아님). */
+const far = (a: Point, b: Point) => Math.abs(a.x - b.x) > NODE_WIDTH + COLUMN_GAP
 /**
  * 되돌아가는 선: 앞이 없는 노드(요청)부터 깊이 우선으로 이어 따라가다가 아직 끝나지 않은 노드로 돌아오는 선입니다. 이 선들을 빼면 흐름에 순환이 없어
  * 서버 노드 배열 순서와 무관하게 칸이 정해집니다. 앞이 없는 노드가 없는 순환뿐이면 적힌 순서의 첫 노드부터 따라갑니다.
@@ -134,8 +143,9 @@ export function layoutPipeline(nodes: PipelineNode[]): PipelineLayout {
     spot.set(n.id, { x: centerX + ((i % perRow) - (inRow - 1) / 2) * (NODE_WIDTH + SOLO_COLUMN_GAP), y: soloTop + NODE_HEIGHT / 2 + row * (NODE_HEIGHT + ROW_GAP) })
   })
   const all = nodes.map((n) => spot.get(n.id)!)
+  const hanging = [...back].some((key) => { const [source, target] = JSON.parse(key) as [string, string]; return far(spot.get(source)!, spot.get(target)!) })
   const left = Math.min(...all.map((p) => p.x)) - NODE_WIDTH / 2, right = Math.max(...all.map((p) => p.x)) + NODE_WIDTH / 2
-  const top = Math.min(Math.min(...all.map((p) => p.y)) - NODE_HEIGHT / 2, ...labels.map((l) => l.y - LABEL_HEIGHT / 2)), bottom = Math.max(...all.map((p) => p.y)) + NODE_HEIGHT / 2
+  const top = Math.min(Math.min(...all.map((p) => p.y)) - NODE_HEIGHT / 2, ...labels.map((l) => l.y - LABEL_HEIGHT / 2)), bottom = Math.max(...all.map((p) => p.y)) + NODE_HEIGHT / 2 + (hanging ? ARC_SAG : 0)
   const cx = (left + right) / 2, cy = (top + bottom) / 2
   return {
     nodes: nodes.map((n) => ({ ...n, x: spot.get(n.id)!.x - cx, y: spot.get(n.id)!.y - cy })),
@@ -150,15 +160,29 @@ export function layoutPipeline(nodes: PipelineNode[]): PipelineLayout {
  * 되돌아가는 선은 거꾸로 오른쪽 노드 왼쪽 가장자리에서 왼쪽 노드 오른쪽 가장자리로 잇되, 같은 두 노드를 잇는 앞으로 가는 선과 겹치지 않게 아래로 비키고 굽는 자리를 돌아가는 쪽으로 당깁니다.
  */
 export function linkCurve(from: Point, to: Point, back: boolean) {
+  if (back && far(from, to)) {
+    // 두 칸 넘게 거슬러 가는 선: 옆면으로 이으면 중간 노드를 가로지르므로 두 노드의 아래 가운데를 노드 아래로 처진 호로 잇고 위를 향해 닿는다(up).
+    const start = { x: from.x, y: from.y + NODE_HEIGHT / 2 }, end = { x: to.x, y: to.y + NODE_HEIGHT / 2 }, sag = Math.max(start.y, end.y) + ARC_SAG
+    return { points: [start, { x: start.x, y: sag }, { x: end.x, y: sag }, end] as [Point, Point, Point, Point], dir: -1, up: true }
+  }
   const dir = back ? -1 : 1, drop = back ? RETURN_DROP : 0
   const start = { x: from.x + (dir * NODE_WIDTH) / 2, y: from.y + drop }, end = { x: to.x - (dir * NODE_WIDTH) / 2, y: to.y + drop }
   const bend = (start.x + end.x) / 2 + (back ? RETURN_BEND : 0)
-  return { points: [start, { x: bend, y: start.y }, { x: bend, y: end.y }, end] as [Point, Point, Point, Point], dir }
+  return { points: [start, { x: bend, y: start.y }, { x: bend, y: end.y }, end] as [Point, Point, Point, Point], dir, up: false }
 }
 
-/** 캔버스(role="img")의 요약 이름. 캔버스는 보조라 같은 정보가 아래 노드 버튼 목록에도 있습니다. */
-export const pipelineSummary = (nodes: PipelineNode[]) => `집필 AI 파이프라인: 노드 ${nodes.length}개, 오류가 있는 노드 ${nodes.filter((n) => n.errors > 0).length}개`
-export const nodeStats = (n: Pick<PipelineNode, 'count' | 'errors'>) => `${count(n.count)}건 · 오류 ${count(n.errors)}건`
+/**
+ * 캔버스(role="img")의 요약 이름. 캔버스는 보조라 같은 정보가 아래 노드 버튼 목록에도 있습니다. 워크플로우(내부 흐름)는 title로 이름을 바꾸고, 서버 노드가 없는 단계(구조용 노드)가 있으면
+ * 건수·오류가 있는 단계 수를 따로 말합니다(구조용 노드의 오류 0은 '없음'이 아니라 '모름'이라 센 값처럼 말하지 않습니다).
+ */
+export const pipelineSummary = (nodes: PipelineNode[], title = '집필 AI 파이프라인') => {
+  const counted = nodes.filter((n) => !n.step)
+  return counted.length === nodes.length
+    ? `${title}: 노드 ${nodes.length}개, 오류가 있는 노드 ${nodes.filter((n) => n.errors > 0).length}개`
+    : `${title}: 단계 ${nodes.length}개, 건수·오류가 있는 단계 ${counted.length}개(나머지는 서버 노드가 없어 이름만)`
+}
+/** 노드 건수 줄. 서버 노드가 없는 단계(step)는 건수 대신 LLM 호출인지만 알립니다. */
+export const nodeStats = (n: Pick<PipelineNode, 'count' | 'errors' | 'step'>) => (n.step ? (n.step.llm ? 'LLM 호출' : 'LLM 아님') : `${count(n.count)}건 · 오류 ${count(n.errors)}건`)
 /** observation 지연 글. Langfuse 시각이 밀리초 단위라 0은 같은 밀리초 안에 끝난 값(1ms 미만)이고, 종료 시각이 없어 모르는 값은 null이라 —입니다. */
 export const spanMillis = (latencyMs: number | null | undefined) => (latencyMs === 0 ? '1ms 미만' : millis(latencyMs))
 
@@ -263,5 +287,5 @@ export function recalledTitles(record: Pick<PipelineRecord, 'output' | 'metadata
   })
 }
 
-/** 프롬프트 보기 대상: 그 기록의 프롬프트이고, 기록에 없으면 노드에 연결된 프롬프트입니다. */
-export const promptTargets = (node: Pick<PipelineNode, 'promptNames'>, record: Pick<PipelineRecord, 'promptName'>) => (record.promptName ? [record.promptName] : node.promptNames)
+/** 프롬프트 보기 대상: 그 기록의 프롬프트이고, 기록이 없거나 기록에 없으면 노드에 연결된 프롬프트입니다(노드 자체의 '프롬프트 보기'는 기록 없이 부릅니다, #857). */
+export const promptTargets = (node: Pick<PipelineNode, 'promptNames'>, record?: Pick<PipelineRecord, 'promptName'>) => (record?.promptName ? [record.promptName] : node.promptNames)

@@ -2,6 +2,8 @@
  * LLMOps 화면 값(DEC-55). 정본은 Langfuse이고 운영 서비스가 중계합니다.
  * 비어 올 수 있는 값은 `?: T | null`이며, 화면은 비어 있음을 0으로 바꾸지 않습니다.
  */
+import type { PipelineRecord } from './llmOpsPipeline'
+
 export type TraceItem = {
   id: string; timestamp: string; feature: string
   /** success | failed | timeout. 새 값이 생겨도 받을 수 있게 문자열로 둡니다. */
@@ -28,7 +30,8 @@ export type MetricRow = {
 export type Metrics = { rows: MetricRow[]; adoptionRate?: number | null; approvalRate?: number | null; filterRestoreRate?: number | null }
 export type MetricsGroup = 'day' | 'feature' | 'model'
 export type MetricsQuery = { from: string; to: string; groupBy: MetricsGroup }
-export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['feature', '기능'], ['model', '모델']]
+/** 에이전트 지표(#857)는 기능별이 기본(카드)이라 기능이 맨 앞입니다. */
+export const METRICS_GROUPS: [MetricsGroup, string][] = [['feature', '기능'], ['day', '날짜'], ['model', '모델']]
 
 /**
  * model은 그 버전에 고른 모델(#705, Langfuse 버전 config.model)이고 비면 AI 서비스의 환경 변수 기본 모델입니다.
@@ -37,6 +40,8 @@ export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['fe
 export type PromptVersion = {
   version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
   model?: string | null; prompt?: string | null; commitMessage?: string | null
+  /** 서버가 정한 실제 모델(#868): 버전이 고른 모델이면 그 모델('version'), 아니면 AI 서비스가 실제로 쓰는 기본 모델('default'). 서버가 알 수 없으면 null이고 응답에 없을 수도 있습니다. */
+  effectiveModel?: string | null; modelSource?: 'version' | 'default' | null
 }
 /**
  * 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다.
@@ -66,6 +71,10 @@ export type Evaluation = {
   items?: EvaluationItem[] | null
 }
 export type EvaluationInput = { dataset: string; prompt: string; version: number }
+
+/** 프롬프트 개선 루프(#857)의 여섯 단계: 프롬프트 → 평가 세트 → 평가 → 자동 개선 → 게이트 → 서비스 반영. 프롬프트 상세 위의 단계 표시와 아래 패널이 같은 키를 씁니다. */
+export const LOOP_STAGES = [['prompt', '프롬프트'], ['set', '평가 세트'], ['eval', '평가'], ['optimize', '자동 개선'], ['gate', '게이트'], ['serve', '서비스 반영']] as const
+export type LoopStage = (typeof LOOP_STAGES)[number][0]
 
 /** 자동 개선(GEPA, #823) 요청: 기준 버전과 평가 호출 상한(1~500)입니다. */
 export type OptimizationInput = { version: number; maxMetricCalls: number }
@@ -114,6 +123,8 @@ export const traceStatusLabel = (status: string) => TRACE_STATUSES.get(status) ?
 export const evaluationStatusLabel = (status: string) => EVALUATION_STATUSES.get(status) ?? status
 /** 평가 통과 여부: 아직 결과가 없으면(실행 중) 대시입니다. */
 export const passedLabel = (passed: boolean | null | undefined) => (passed == null ? '—' : passed ? '통과' : '미통과')
+/** 평가 통과 여부의 칩 색: 미통과만 실패 색(bad)이고, 통과는 중립, 결과 없음(null)은 칠하지 않는다. */
+export const passTone = (passed: boolean | null | undefined) => (passed === false ? 'bad' : passed ? 'ok' : '')
 
 /** 조회 기간 선택지(시간). 지금부터 거꾸로 센 구간으로 보냅니다. */
 export const PERIODS: [number, string][] = [[24, '최근 24시간'], [24 * 7, '최근 7일'], [24 * 30, '최근 30일']]
@@ -130,13 +141,43 @@ export const perMillion = (price: number | null | undefined) => price == null ? 
 export const bodyText = (value: unknown) => value == null ? '' : typeof value === 'string' ? value : JSON.stringify(value, null, 2)
 
 export const productionOf = (p: Prompt) => p.versions.find((v) => v.labels.includes('production')) ?? null
+/**
+ * 세트가 바뀌어 기준 Run이 무효인가(#868, 평가 서비스가 기준 Run을 가리는 방법과 같다): 기준 Run은 production 버전의 가장 최근 평가 Run이고, 그 Run이 평가 세트의 마지막 문항 시각(lastItemAt)과 같거나
+ * 그보다 먼저 시작했으면 마지막 문항을 보지 못한 점수라 기준이 아니다(같은 시각도 뒤가 아니다). 그러면 다음 평가가 production 버전을 먼저 다시 평가한다(비용 두 배).
+ * production이나 그 버전의 평가 Run, 세트의 문항 시각을 모르면 무효라고 단정하지 않고 null이다. 무효이면 두 시각을 돌려 안내의 근거로 보인다.
+ */
+export function staleBaseline(p: Prompt, lastItemAt: string | null | undefined) {
+  const baselineAt = productionOf(p)?.evaluation?.createdAt
+  return baselineAt && lastItemAt && Date.parse(baselineAt) <= Date.parse(lastItemAt) ? { baselineAt, lastItemAt } : null
+}
 /** 코드 시드(AI 서비스가 seed 라벨로 등록한 버전, #705)가 production과 다르면 그 버전. 회귀 평가를 통과하면 승격할 수 있습니다. */
 export function pendingSeed(p: Prompt) {
   const seed = p.versions.find((v) => v.labels.includes('seed'))
   return seed && !seed.labels.includes('production') ? seed : null
 }
-/** 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 이름을 단정하지 않습니다(#808). */
-export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델(환경 설정)'
+/**
+ * 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 프론트가 이름을 알 수 없습니다(#808).
+ * 서버가 실제 기본 모델(effectiveModel)을 알려 주면 '기본 모델 · gpt-…'(#868)이고, 못 알려 줬을 때만 파이프라인 기록에서 실제로 쓰인 모델을 찾은(recentDefaultModel) '기본 모델 · 최근 사용 …'을 근거와 함께 보입니다(#857). 둘 다 없으면 이름을 지어내지 않습니다.
+ */
+export const modelLabel = (model: string | null | undefined, recent?: Pick<RecentModel, 'model'> | null, effective?: string | null) =>
+  model ?? (effective ? `기본 모델 · ${effective}` : recent ? `기본 모델 · 최근 사용 ${recent.model}` : '기본 모델(환경 설정)')
+/** 프롬프트의 실제 기본 모델(#868): 모델을 고르지 않은 버전(modelSource가 default)에 서버가 채운 effectiveModel. 높은 버전부터 찾고, 서버가 못 알려 주면 null입니다. */
+export const defaultModelOf = (prompt: Prompt) => [...prompt.versions].sort((a, b) => b.version - a.version).find((v) => v.modelSource === 'default' && v.effectiveModel)?.effectiveModel ?? null
+
+/** 기본 모델로 도는 버전이 파이프라인 기록에 남긴 가장 최근 모델과 그 버전·시각. */
+export type RecentModel = { model: string; version: number; at: string | null }
+/**
+ * '기본 모델 · 최근 사용 …'의 근거(#857): 모델을 고르지 않은 버전(= 환경 설정의 기본 모델로 도는 버전)이 파이프라인 기록에 남긴 가장 최근 모델입니다.
+ * 기록의 프롬프트 이름·버전·모델이 모두 있고, 그 버전이 이 프롬프트에 있으며 모델이 정해지지 않은 버전일 때만 씁니다(모델을 고른 버전의 기록은 기본 모델이 아니고, 목록 응답처럼
+ * 버전이 모자라 모르는 버전의 기록도 단정하지 않습니다). 목록 순서를 믿지 않고 시작 시각으로 고르며 근거가 없으면 null입니다.
+ */
+export function recentDefaultModel(prompt: Prompt, records: PipelineRecord[]): RecentModel | null {
+  const unpinned = new Set(prompt.versions.filter((v) => !v.model).map((v) => v.version))
+  const time = (at: string | null) => (at ? Date.parse(at) : -Infinity)
+  return records
+    .flatMap((r): RecentModel[] => (r.promptName === prompt.name && r.model && r.promptVersion != null && unpinned.has(r.promptVersion) ? [{ model: r.model, version: r.promptVersion, at: r.startTime ?? null }] : []))
+    .reduce<RecentModel | null>((latest, r) => (!latest || time(r.at) > time(latest.at) ? r : latest), null)
+}
 /** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
 const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
 export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)

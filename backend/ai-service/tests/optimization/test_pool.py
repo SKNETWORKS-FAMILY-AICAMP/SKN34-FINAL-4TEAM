@@ -1,4 +1,4 @@
-"""최적화 풀 데이터(app/evaluation/datasets/optimize/*.jsonl) 불변식: 게이트 세트와 겹치지 않고, 공개 작품만이며, train·val이 있고, seed가 올리지 않는다."""
+"""최적화 풀 데이터(app/evaluation/datasets/optimize/*.jsonl) 불변식: 게이트 세트와 겹치지 않고, 공개 작품만이며, train·val이 있고, seed가 optimize.<게이트 세트> Dataset으로 올린다."""
 
 import json
 from pathlib import Path
@@ -48,9 +48,11 @@ def test_only_public_works_with_the_judge_inputs_the_regression_evaluation_reads
         assert set(row['metadata']['judge']) == {'character', 'scene', 'facts'} and row['expectedOutput'].strip()
 
 
-def test_the_pool_folder_is_not_seeded_into_langfuse():
+def test_the_pool_folder_is_seeded_as_the_optimize_datasets_with_the_same_rows():
     loaded = seed.load()
-    pool_ids = {row['id'] for name, *_ in CASES for row in rows(service.POOLS / f'{name}.jsonl')}
 
-    assert not any(name.startswith('optimize') for name in loaded)
-    assert not pool_ids & {item['id'] for items in loaded.values() for item in items}
+    for name, *_ in CASES:   # Langfuse에는 풀 파일 그대로 올라간다
+        assert loaded[f'optimize.{name}'] == rows(service.POOLS / f'{name}.jsonl')
+    gate_ids = {item['id'] for name, items in loaded.items() if not name.startswith('optimize.') for item in items}
+    pool_ids = {item['id'] for name, items in loaded.items() if name.startswith('optimize.') for item in items}
+    assert pool_ids and not pool_ids & gate_ids   # 항목 id는 Langfuse에서 전역 고유라 풀 id가 게이트 id와 겹치면 안 된다

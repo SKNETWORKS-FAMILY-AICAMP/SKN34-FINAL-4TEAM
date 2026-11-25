@@ -32,8 +32,11 @@ from app.simulation.models import (GAP_LABELS, Action, Beat, Evidence, Narration
 TURN_LIMIT = 12   # 인물 대사 턴 수 한도. 나레이션·독백은 세지 않는다.
 MAX_TURNS = 40    # 나레이션·독백까지 합친 턴 수 안전 한도(연출이 서술만 되풀이하지 않게)
 REGENERATIONS = 2
-FORBIDDEN_LIMIT = 20  # 인물 대사 검사 입력의 금지 목록 상한(#646): 문단·직전 장면과 겹침이 큰 항목만 남긴다. 원문 기반 평가(해리 포터 ④ 300문항)에서 검사 입력 토큰이 77% 줄고 판정 정확도는 통계적으로 같았다
-SCENE_LINES = 6       # 금지 목록을 고를 때 문단과 함께 보는 직전 장면 줄 수
+FORBIDDEN_LIMIT = 20  # 검사 입력의 금지 목록 상한(#646): 문단·직전 장면과 겹침이 큰 항목만 남긴다. 대사 검사는 원문 기반 평가(해리 포터 ④ 300문항)에서 입력 토큰이 77% 줄고 판정 정확도는 통계적으로 같았다. 독백·나레이션 검사도 같은 상한이다(평가 전)
+SCENE_LINES = 6       # 금지 목록·관계를 고를 때 문단·전제와 함께 보는 직전 장면 줄 수
+# 인물 입력(known)의 관계 줄 상한(#646). 같은 장면 인물과 이어진 관계는 상한과 무관하게 남기고 나머지는 장면과 BM25 점수가 높은 순으로 채운다.
+# 48은 원문 기반 평가(simulation-original.md §11.3)에서 말투·의도가 유의하게 떨어지지 않은 V5의 값이다(24개인 V3는 입력이 바뀐 문항에서 말투가 떨어졌다). 상한 없는 세계관에서 다시 재기 전의 잠정값이다.
+RELATION_LIMIT = 48
 CUT = 200  # 모델이 쓴 이유·설명을 작가에게 보일 때 자르는 길이(Structured Outputs 스키마에는 길이 제약을 못 둔다)
 KINDS = {'if': ['knowledge_leak', 'voice_mix', 'relation', 'premise'],
          'flow': ['knowledge_leak', 'voice_mix', 'relation', 'beat']}
@@ -518,6 +521,28 @@ def _relations(snapshot: WorldSnapshot, person: set[str]) -> list[dict]:
     return items
 
 
+def _person(world: World, card_id: str) -> set[str]:
+    """같은 사람의 카드 id 전부: 본체와 그 다른 이름 카드들(「동일 인물」)이다. 고른 카드가 어느 쪽이든 같고, 묶이지 않은 카드는 그 카드 하나다."""
+    body = world.bodies.get(card_id, card_id)
+    return {body, *(i for i, b in world.bodies.items() if b == body)}
+
+
+def _scene_relations(snapshot: WorldSnapshot, person: set[str], together: set[str], query: str) -> list[dict]:
+    """_relations 중 RELATION_LIMIT개까지만 싣는다(#646). together(같은 장면에 나오는 다른 인물들의 카드)가 끝점인 관계는 상한과 무관하게 모두 남기고,
+    나머지는 query(장면의 전제·지금 비트·직전 줄)와 BM25 점수가 높은 순으로 상한까지 채운다(점수가 없는 관계는 채우지 않는다). 원래 순서를 지키고 상한 이하면 그대로 돌려준다.
+
+    ponytail: 낱말·음절 bigram BM25(`novelbrain.bm25_rank`)라 같은 뜻의 다른 낱말로 가리킨 관계는 점수가 낮다. 필요하면 recall의 PPR 순위를 RRF로 합친다. 줄인 관계도 recall이 같은 장면으로 찾으면 조회 항목으로 다시 들어온다.
+    """
+    items = _relations(snapshot, person)
+    if len(items) <= RELATION_LIMIT:
+        return items
+    ends = {f'relation:{r.id}': {r.source, r.target} for r in snapshot.relations}
+    paired = {d['ref'] for d in items if ends[d['ref']] & together}
+    ranked = novelbrain.bm25_rank(query, [(d['ref'], d['text']) for d in items if d['ref'] not in paired])
+    keep = paired | {ref for ref, _ in ranked[:max(RELATION_LIMIT - len(paired), 0)]}
+    return [d for d in items if d['ref'] in keep]
+
+
 def _direction(plan: SimulationPlan, beat: Beat | None) -> dict:
     """인물에게는 지금 비트(흐름) 또는 IF 전제만 보인다. 뒤의 비트는 미래 정보라 넣지 않는다."""
     if plan.mode == 'if':
@@ -525,27 +550,28 @@ def _direction(plan: SimulationPlan, beat: Beat | None) -> dict:
     return {'mode': 'flow', **({'currentBeat': {'ref': f'beat:{beat.index}', 'text': beat.text}} if beat else {})}
 
 
-def _query(direction: dict, seen: list[dict]) -> str:
-    """recall 검색어: 지금 비트나 전제와 가장 최근에 드러난 일."""
+def _query(direction: dict, seen: list[dict], lines: int = 1) -> str:
+    """recall 검색어: 지금 비트나 전제와 가장 최근에 드러난 일(lines줄). 관계를 고를 때는 직전 SCENE_LINES줄을 본다."""
     goal = direction.get('premise') or direction.get('currentBeat') or {'text': ''}
-    return ' '.join([goal['text'], seen[-1]['text'] if seen else '']).strip()
+    return ' '.join([goal['text'], *(s['text'] for s in seen[-lines:])]).strip()
 
 
 def character_view(plan: SimulationPlan, world: World, scene: Scene, actor: Card) -> tuple[dict, dict, list[Evidence]]:
     """그 인물이 아는 것만으로 조립한 모델 입력과 검사 보조 자료(금지 목록·다른 인물의 말투), 조회 근거.
 
     인물 대사와 그 인물 시점의 나레이션·독백이 같은 입력을 쓴다. 입력은 호출마다 새로 만들고 이전 인물의 입력은 넘기지 않는다.
+    관계 줄은 RELATION_LIMIT개를 넘으면 장면 관련분만 싣는다(같은 장면에 나오는 다른 인물과의 관계는 늘 싣는다, _scene_relations).
     """
     direction, seen = _direction(plan, current_beat(scene.result)), seen_lines(scene)
     recalled = novelbrain.recall(world.snapshot, actor.id, world.episode, _query(direction, seen), stage=3, manuscript=world.manuscript)
     own, future = _docs(actor, world.episode, world.characters.get(world.bodies.get(actor.id, '')))
+    cast = [world.characters[i] for i in plan.characterIds]
+    together = {i for c in cast if c.id != actor.id for i in _person(world, c.id)}   # 장면에 함께 나오는 다른 인물들의 카드(「동일 인물」이면 이어진 카드 모두)
     # 자기 관계는 같은 사람(「동일 인물」: 본체와 그 다른 이름들)의 모든 카드가 끝점인 관계를 합친 것이다. 이름은 고른 카드의 것만 쓴다(self·present).
     # ponytail: recall은 고른 카드 기준이라 다른 쪽 카드에만 이어진 사건·물건 카드의 본문은 Gap으로 남는다(관계 문장은 위에서 합쳐 넣는다). 필요하면 filter_for_character에 같은 사람의 id 집합을 넘긴다.
-    body = world.bodies.get(actor.id, actor.id)
-    mine = [*own, *_relations(world.snapshot, {body, *(i for i, b in world.bodies.items() if b == body)})]
+    mine = [*own, *_scene_relations(world.snapshot, _person(world, actor.id), together, _query(direction, seen, SCENE_LINES))]
     taken = {d['ref'] for d in mine}
     known = [*mine, *({'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items if i.ref not in taken)]
-    cast = [world.characters[i] for i in plan.characterIds]
     asked = {'self': {'id': actor.id, 'name': actor.title}, 'known': known, 'present': [c.title for c in cast],
              'scene': seen, 'direction': direction}
     refs = {d['ref'] for d in known}
@@ -683,15 +709,13 @@ def relevant(docs: list[dict], query: str, cap: int) -> list[dict]:
     return [docs[i] for i in keep]
 
 
-def check_payload(payload: dict, kinds: list[str], paragraph: str, kind: str) -> dict:
-    """검사 모델 입력: 턴 입력(payload)에 검사 종류와 검사할 문단을 더한다. 인물 대사(kind가 character)는 금지 목록을 문단·직전 장면 줄과 겹침이 큰 FORBIDDEN_LIMIT개로 줄인다(#646).
-    줄인 범위 밖의 누설은 이 검사가 놓칠 수 있다(서버 규칙 검사 _problem은 인칭·되풀이만 본다). 평가의 같은 문항 짝 비교에서 정답 판정은 통계적으로 같았다(주입 거절 7↑12↓, p=0.36).
-    독백·나레이션 검사는 평가하지 않아 그대로 둔다."""
-    body = {**payload, 'checks': kinds, 'paragraph': paragraph}
-    if kind == 'character':
-        scene = ' '.join(line['text'] for line in payload.get('scene', [])[-SCENE_LINES:])
-        body['forbidden'] = relevant(payload.get('forbidden', []), f'{paragraph} {scene}', FORBIDDEN_LIMIT)
-    return body
+def check_payload(payload: dict, kinds: list[str], paragraph: str) -> dict:
+    """검사 모델 입력: 턴 입력(payload)에 검사 종류와 검사할 문단을 더하고, 금지 목록(forbidden)은 문단·직전 장면 줄과 겹침이 큰 FORBIDDEN_LIMIT개로 줄인다(#646).
+    대사·독백·나레이션 검사가 모두 이 입력을 쓴다(전지적 나레이션 검사의 금지 목록은 미공개 설정 전체라 가장 크다).
+    줄인 범위 밖의 누설은 이 검사가 놓친다: 서버 규칙 검사(_problem)는 인칭·문체와 되풀이만 보고 누설은 판정하지 않는다. 대사 검사는 평가의 같은 문항 짝 비교에서
+    정답 판정이 통계적으로 같았고(주입 거절 7↑12↓, p=0.36) 독백·나레이션 검사는 평가 전이다(#642 성적표로 다시 잰다)."""
+    scene = ' '.join(line['text'] for line in payload.get('scene', [])[-SCENE_LINES:])
+    return {**payload, 'checks': kinds, 'paragraph': paragraph, 'forbidden': relevant(payload.get('forbidden', []), f'{paragraph} {scene}', FORBIDDEN_LIMIT)}
 
 
 def verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:

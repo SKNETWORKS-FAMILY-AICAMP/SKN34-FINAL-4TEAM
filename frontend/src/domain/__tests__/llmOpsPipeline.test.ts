@@ -157,6 +157,19 @@ describe('linkCurve: 선의 곡선', () => {
     expect(b3.y - from.y).toBe(b0.y - to.y)
     expect([b0.y > forward.points[3].y, b3.y > forward.points[0].y]).toEqual([true, true])
   })
+
+  it('두 칸 넘게 거슬러 가는 선은 중간 노드를 가로지르지 않도록 노드 아래로 돌아 왼쪽 노드의 아래 가운데에 위를 향해 닿는다(#857 3차: 인물 시뮬레이션의 다음 턴)', () => {
+    const far = { x: 3 * (NODE_WIDTH + 48), y: 0 }, near = { x: 0, y: 0 }
+    const curve = linkCurve(far, near, true)
+    const [p0, p1, p2, p3] = curve.points
+    expect([p0, p3]).toEqual([{ x: far.x, y: NODE_HEIGHT / 2 }, { x: 0, y: NODE_HEIGHT / 2 }])
+    expect([p1.x, p2.x]).toEqual([far.x, near.x])
+    expect(p1.y).toBeGreaterThan(NODE_HEIGHT / 2)
+    expect(p2.y).toBe(p1.y)
+    expect(curve.up).toBe(true)
+    // 바로 이웃한 칸으로 돌아가는 선과 앞으로 가는 선은 그대로 옆면에서 이어진다.
+    expect([linkCurve({ x: 180, y: 0 }, near, true).up, linkCurve(near, far, false).up, linkCurve(from, to, false).up]).toEqual([false, false, false])
+  })
 })
 
 const linkedAfter = (id: string, next: string[]) => (n: PipelineNode) => (n.id === id ? { ...n, next } : n)
@@ -190,6 +203,11 @@ describe('노드 표시 글', () => {
   it('요약은 노드 수와 오류가 있는 노드 수를, 건수 줄은 건수와 오류 수를 쉼표 숫자로 말한다', () => {
     expect(pipelineSummary([node('a', [], { count: 3 }), node('b', [], { count: 5, errors: 2 })])).toBe('집필 AI 파이프라인: 노드 2개, 오류가 있는 노드 1개')
     expect(nodeStats(node('g', [], { count: 1234, errors: 0 }))).toBe('1,234건 · 오류 0건')
+    // 서버 노드가 없는 단계(구조용 노드, #857 3차)는 건수 대신 LLM 호출인지만 알리고, 요약은 건수가 있는 단계 수를 따로 말한다.
+    expect([nodeStats({ count: 0, errors: 0, step: { llm: true } }), nodeStats({ count: 0, errors: 0, step: { llm: false } })]).toEqual(['LLM 호출', 'LLM 아님'])
+    expect(pipelineSummary([node('a', [], { count: 3 }), node('b', [], { step: { llm: true } }), node('c', [], { step: { llm: false } })], '인물 시뮬레이션 내부 흐름'))
+      .toBe('인물 시뮬레이션 내부 흐름: 단계 3개, 건수·오류가 있는 단계 1개(나머지는 서버 노드가 없어 이름만)')
+    expect(pipelineSummary([node('a', [], { count: 3 })], '다른 제목')).toBe('다른 제목: 노드 1개, 오류가 있는 노드 0개')
   })
 
   it('결과 필터는 전체·통과·거절/오류이고 전체만 서버에 보내지 않는 빈 값이다', () => {
@@ -323,6 +341,12 @@ describe('Guard 판정·메인 출력 읽기', () => {
     expect(promptTargets(guard, rec({ promptName: 'decision_guard.judge' }))).toEqual(['decision_guard.judge'])
     expect(promptTargets(node('qa', [], { promptNames: ['qa-answer', 'qa-check'] }), rec({ name: 'step.qa' }))).toEqual(['qa-answer', 'qa-check'])
     expect(promptTargets(node('apply'), rec({ name: 'step.qa.apply' }))).toEqual([])
+  })
+
+  it('기록 없이 노드만 주면 노드에 연결된 프롬프트가 그대로 나오고(여럿이면 목록), 없으면 빈 목록이라 버튼을 달지 않는다(#857: 파이프라인 노드의 프롬프트 보기)', () => {
+    expect(promptTargets(node('guard', [], { promptNames: ['decision_guard.judge'] }))).toEqual(['decision_guard.judge'])
+    expect(promptTargets(node('character_simulation', [], { promptNames: ['character_simulation.act', 'character_simulation.narrate'] }))).toEqual(['character_simulation.act', 'character_simulation.narrate'])
+    expect(promptTargets(node('apply'))).toEqual([])
   })
 })
 

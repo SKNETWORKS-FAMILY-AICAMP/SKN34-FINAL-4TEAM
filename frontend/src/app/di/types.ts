@@ -71,6 +71,9 @@ export type AppCradle = {
   operationsDashboardUseCase: import('../../domain/usecases/OperationsDashboardUseCase').OperationsDashboardUseCase
   llmOpsRepository: import('../../domain/repositories/LlmOpsRepository').LlmOpsRepository
   llmOpsUseCase: import('../../domain/usecases/LlmOpsUseCase').LlmOpsUseCase
+  /** 평가 데이터셋 조회·업로드(#857). 서버 API가 아직 없어 실제 모드는 null(화면이 '서버 준비 중'으로 잠금)이고 mockup·테스트 컨테이너만 메모리 구현입니다. */
+  llmDatasetRepository: import('../../domain/repositories/LlmDatasetRepository').LlmDatasetRepository
+  llmDatasetUseCase: import('../../domain/usecases/LlmDatasetUseCase').LlmDatasetUseCase
   jobMonitorRepository: import('../../domain/repositories/JobMonitorRepository').JobMonitorRepository
   jobMonitorUseCase: import('../../domain/usecases/JobMonitorUseCase').JobMonitorUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase

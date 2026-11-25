@@ -6,18 +6,19 @@
 
 ## 흐름 한 줄
 
-LLMOps 화면의 `자동 개선` 버튼 → 운영이 접수 → AI 작업 워커가 (production 기준 Run이 없으면 기준 평가) → GEPA로 최적화 풀에서 지시문을 고쳐 val 점수가 가장 높은 후보를 고르고 → 시드보다 0.05 이상 나으면 새 버전(라벨 없음)으로 저장 → 그 버전의 **게이트 세트** 회귀 평가 Run 1회로 끝난다. 후보 등록·서비스 반영은 사람이 기존 버튼으로 한다.
+LLMOps 화면의 `자동 개선` 버튼 → 운영이 접수 → AI 작업 워커가 (유효한 production 기준 Run이 없으면 기준 평가) → GEPA로 최적화 풀에서 지시문을 고쳐 val 점수가 가장 높은 후보를 고르고 → 시드보다 0.05 이상 나으면 새 버전(라벨 없음)으로 저장 → 그 버전의 **게이트 세트** 회귀 평가 Run 1회로 끝난다. 후보 등록·서비스 반영은 사람이 기존 버튼으로 한다.
 
 ## 데이터: 게이트 세트와 최적화 풀
 
-| 프롬프트 | 게이트 세트(Langfuse, 기존) | 최적화 풀(AI 이미지 안, Langfuse 아님) | train | val | 라이선스(저작권 만료 / CC BY-SA 3.0) |
+| 프롬프트 | 게이트 세트(Langfuse, 기존) | 최적화 풀(저장소 파일, seed가 Langfuse Dataset `optimize.<게이트 세트>`로 등록) | train | val | 라이선스(저작권 만료 / CC BY-SA 3.0) |
 |---|---|---|---|---|---|
 | `character_simulation.act` | `simulation.act` 24문항 | `app/evaluation/datasets/optimize/simulation.act.jsonl` 126문항(1.25MB) | 106 | 20 | 73 / 53 |
 | `character_simulation.narrate` | `simulation.narrate` 46문항(나레이션 24·독백 22) | `.../optimize/simulation.narrate.jsonl` 54문항(0.45MB) | 34 | 20 | 45 / 9 |
 
 - 풀은 원문 평가 공개 세트(고전 5·근대 5·SCP 5, 해리 포터 없음)의 문항 중 **게이트 세트가 고르지 않은 나머지**다. 항목 모양은 게이트 세트와 같고(`input`·`expectedOutput`·`metadata.judge`) `metadata.split`(`train`·`val`)이 더해진다. 게이트 세트와 한 문항도 겹치지 않아(`tests/optimization/test_pool.py`) 게이트 세트가 최적화가 한 번도 보지 못한 검증 세트다.
 - val은 풀 전체에서 같은 간격으로 20개(풀이 작으면 풀의 40%까지)다. 기본 호출 상한 150에서 기준 본문의 val 평가(20호출)가 호출의 큰 몫을 쓰지 않게 작게 잡았고, 묶음(라이선스·종류)이 풀에 있는 비율대로 섞인다.
-- `datasets/optimize/`는 `seed.load()`(`datasets/*.jsonl`만 읽음)에 안 걸려 Langfuse에 올라가지 않는다.
+- `datasets/optimize/`는 seed가 Langfuse Dataset `optimize.<게이트 세트 이름>`(예 `optimize.simulation.act`)로 멱등 등록한다(#868, `seed.load()`가 `datasets/*.jsonl`과 함께 읽는다). `load_pool`은 Langfuse 키가 있으면 그 Dataset에서 읽고(운영 화면에서 올린 문항 포함, 읽지 못하면 저장소 파일로 몰래 바꾸지 않고 실패), 키가 없는 로컬 오프라인 평가에서만 저장소 파일을 읽는다. seed는 Langfuse에 같은 id·input·expectedOutput·metadata의 문항이 이미 있으면(Langfuse가 저장하는 값으로 견준다) 올리지 않는다(올리면 문항 시각이 바뀌어 배포마다 기준 Run이 무효가 되므로. 없거나 내용이 다른 문항만 올린다).
+- 운영 화면 업로드([계약](../design/operations-llmops-contract.md#평가-데이터셋-api-868)): **pool에 올리면** 다음 자동 개선부터 그 문항을 쓰고 기준 Run과 상관없다. `metadata.split`이 없는 줄은 input 해시로 **그 풀의 기존 val 비율**(act 20/126 ≈ 16%)대로 train·val이 정해진다. **gate에 올리면** 그 세트의 마지막 문항이 바뀌어 기준 Run이 무효가 되므로 다음 평가가 production 버전을 먼저 다시 평가한다(비용 발생). 풀과 게이트는 같은 input을 나누어 갖지 않아 업로드도 짝 세트에 이미 있는 input을 거절한다.
 - 다시 만들기(호출 없음): `backend/ai-service/eval/simulation/.data`에 원문 평가 데이터(`/Users/yunseongho/orca/storyfork-eval-data/sim-orig-eval/.data`)를 연결한 뒤 `python eval/simulation/orig_cli.py export --pool`(게이트 세트는 `--pool` 없이 같은 명령, 바꾸면 기준 Run을 다시 만든다).
 
 ## 비용과 시간(어림)
@@ -26,7 +27,7 @@ LLMOps 화면의 `자동 개선` 버튼 → 운영이 접수 → AI 작업 워�
 
 | `maxMetricCalls` | act의 OpenAI 호출 | narrate의 OpenAI 호출 | 비고 |
 |---|---|---|---|
-| 150(기본) | 2×150 + 2×24 = 348 | 2×150 + 2×46 = 392 | 기준 평가가 없으면 게이트 세트 평가만큼 더 든다 |
+| 150(기본) | 2×150 + 2×24 = 348 | 2×150 + 2×46 = 392 | 유효한 기준 Run이 없으면(게이트 세트에 문항을 올린 직후 포함) 게이트 세트 평가만큼 더 든다 |
 | 500(서버 상한) | 1,048 | 1,092 | |
 
 - 시간·금액은 첫 실행에서 실측했다(act 상한 150: 약 9~10분, OpenAI 호출 380건 안팎, 약 0.65달러, [결과](#첫-실행-결과-841-2026-11-24)). 처음 어림(호출당 2~3초, 항목 5개 동시면 20~45분)보다 훨씬 빨랐다. narrate는 아직 재지 않았다.

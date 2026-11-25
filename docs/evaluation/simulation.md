@@ -182,7 +182,7 @@ uv run --locked --extra dev python eval/simulation/sim_cli.py run --suite qualit
 
 ### 8.5 프롬프트 크기(평가 비용을 키우는 쪽)
 
-- 인물 입력(`character_view`)에는 그 인물이 끝점인 관계가 **모두** 들어간다(회상 상위 몇 개가 아니다). 그래서 인물당 관계 상한을 둔다. 상한 전 150문항의 인물 입력은 중앙값 18만 자·최대 31만 자(관계 줄이 87%)였고,
+- 인물 입력(`character_view`)에는 그 인물이 끝점인 관계가 **모두** 들어간다(회상 상위 몇 개가 아니다). 그래서 인물당 관계 상한을 둔다(#646 뒤에는 서비스가 관계 줄을 `RELATION_LIMIT`(48)개로 줄이므로 이 절의 입력 크기는 그 전 값이다, [§8.8](#88-646-장면-관련분만-싣기-측정-계획)). 상한 전 150문항의 인물 입력은 중앙값 18만 자·최대 31만 자(관계 줄이 87%)였고,
   **상한 150 뒤에는 중앙값 3.08만 자·90분위 5.2만 자·최대 6.16만 자**(JSON, `ensure_ascii=False`)다. 글자/토큰 비 2.0(한국어 본문 1.5·JSON 뼈대 3.5의 사이 어림, 실사용량으로 확인하지 못했다)으로 세면 중앙값 약 1.5만 토큰·최대 약 3.1만 토큰이다.
 - `estimate --world hp`(상한 뒤, 출력을 호출당 상한으로 센 값): 품질 A·B 각 약 $2.64, 속도 A·B·C·E 각 약 $1.45·$1.45·$1.44·$1.17(D는 C와 같은 실행). 실제는 이보다 낮다.
 - 더 줄이려면 `--person-cap`·`--max-attend`·`--max-relations`를 낮춰 다시 조립하고 `seed-hp`를 다시 실행한다(응답은 캐시라 호출 없이 몇 초).
@@ -224,3 +224,34 @@ uv run --locked --extra dev python eval/simulation/sim_cli.py run --suite qualit
 - 원문 세계관의 시공간 일치(0.45)가 얇은 세계관(0.78)보다 낮고 검사 위반률(0.50 대 0.07)·재생성(0.79 대 0.08)·멈춤(0.19 대 0.01)이 크게 높다. 질문마다 기준 회차 뒤의 설정·기억이 대량으로 금지 목록에 들어가 검사가 오경보(0.42)를 많이 내 재생성과 멈춤이 늘었다고 보이지만,
   채점 모델이 바뀐 영향·영어 질문과 한국어 카드의 어휘 차이와 분리해 확인하지 못했다. 같은 채점 모델로 얇은 세계관을 다시 재야 정확히 비교된다.
 - 품질은 OpenAI 금액을 쓰지 않았다(ocx 호출 2,047회: act 533·check 532·judge 982, 입력 약 2,510만·출력 약 40만 토큰).
+
+### 8.8 #646 장면 관련분만 싣기 측정 계획
+
+> 상태: **실행 전.** 서비스는 2026-11-25에 바꿨고(단위 테스트만 돌렸다) 유료 실모델 전후 비교는 하지 않았다. 아래는 비용 승인 뒤에 돌리는 방법이다.
+
+서비스가 바뀐 것([계약](../design/character-simulation-contract.md)): ① 인물 입력(`known`)의 관계 줄이 `service.RELATION_LIMIT`(48)개를 넘으면 같은 장면 인물과 이어진 관계는 모두 싣고 나머지는 장면(전제·지금 비트·직전 6줄)과 BM25가 맞는 순으로 상한까지만 싣는다.
+② 검사 입력의 금지 목록이 대사뿐 아니라 독백·전지적 나레이션 검사에서도 `service.FORBIDDEN_LIMIT`(20)개다(§8.7에서 나레이션 검사가 설정 비용의 87%였다). 기준선 A와 8.5·8.7의 입력 크기는 이 변경 전 코드의 값이다.
+
+**무엇을 재나.** 이슈 완료 기준은 '품질 하락 없이 대형 세계관 턴 입력 토큰 감소'다. 8.7의 세계관은 인물당 관계 상한 150이라 V3·V5(관계 24·48개) 평가에서 절감이 −18%·−9%뿐이었다([원문 기반 평가 §11.4](simulation-original.md#114-채택미채택-사유)). 그래서 **상한 없는 세계관**(관계 약 1만 개)에서 다시 잰다.
+
+1. 상한 없는 세계관을 만든다(응답은 캐시라 호출 없이 몇 초). `build-hp`는 `world.json`을 덮어쓰므로 지금 것을 먼저 복사한다.
+2. 같은 명령을 **기준 코드**(이 PR 이전 develop)와 **이 브랜치**에서 돌린다. 기준 실행이 끝나면 `.data/runs/{quality,speed}-<설정>-hp.jsonl`과 `results/{quality,speed}-hp.json`을 옮겨 두고 시작한다(남겨 두면 같은 명령이 그 기록을 이어 받아 이 브랜치의 입력으로 다시 재지 않는다).
+3. 비교: 속도(기준 A·E, 이 브랜치 A)는 토큰/턴·$/장면·턴 p50·p95·한 번에 통과·장면 결말, 품질(A)은 시공간 최종·성격·검사 위반률·누설 적발률·오경보율·멈춤과 같은 질문의 짝 비교(정확 부호 검정)다.
+
+```bash
+cd backend/ai-service
+cp .data/hp/world.json .data/hp/world.person-cap-150.json          # 인물당 상한 150 세계관을 보관한다
+uv run --locked --extra dev python eval/simulation/sim_cli.py build-hp --person-cap 9900   # 인물당 상한을 서버 한도(9,900)와 같게 = 상한 없음, 호출 없음
+uv run --locked --extra dev python eval/simulation/sim_cli.py estimate --world hp          # 호출 없음. 예상 금액으로 --limit-usd를 정한다(아래 한계)
+set -a; . <저장소 루트 .env>; set +a
+# 아래 셋을 기준 코드와 이 브랜치에서 각각 한 번씩(같은 명령). 속도는 유료라 비용 승인 뒤에만 돈다
+uv run --locked --extra dev python eval/simulation/sim_cli.py run --suite speed --world hp --configs A,E --limit-usd <상한>
+uv run --locked --extra dev python eval/simulation/sim_cli.py run --suite quality --world hp --configs A --via ocx   # 금액 0(구독 경로)
+uv run --locked --extra dev python eval/simulation/sim_cli.py report --world hp
+```
+
+한계:
+
+- **품질 성적표는 인물 대사 턴만 지난다**(§7): 독백·전지적 나레이션 검사에서 금지 목록을 줄인 뒤의 누설 적발률 변화는 이 비교로 보이지 않는다. 원문 기반 ④ 검사 세트도 대사만 잰다. 나레이션에 사실을 주입해 적발률을 재는 세트가 따로 필요하다(없다).
+- `sim_cli estimate`·`measure_quality`·`measure_speed`는 검사 입력을 `service.check_payload` 없이 조립해 금지 목록 줄이기(대사는 V2부터)를 반영하지 않는다. 입력 크기 예상(`check_in`·`narrate_check_in`)은 상한 위쪽이므로 실제 토큰은 `run`의 기록으로 본다.
+- 관계 48개와 BM25 선택은 잠정값이다. 품질이 떨어지면 상한을 올리거나, 점수가 없는 관계도 원래 순서로 채우는 쪽(평가 V3·V5가 이쪽이었다)을 시험한다.

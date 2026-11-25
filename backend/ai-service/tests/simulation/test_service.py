@@ -570,6 +570,62 @@ def test_the_checker_gets_other_characters_secrets_and_the_characters_future_as_
     assert 'forbidden' not in kael and 'voices' not in kael  # 인물에게는 금지 목록이 가지 않는다
 
 
+# --- 인물 입력의 관계 줄은 장면 관련분만(#646) ---------------------------------------------------------------------------
+
+NAMES = [a + b for a in '가나다라마바사아자차카타' for b in '거너더러머']   # 서로 다른 두 글자 이름 60개(관계 줄을 BM25로 가르려면 상대 이름이 달라야 한다)
+QUIET = SimulationPlan(mode='if', premise='만약 둘이 마주친다면?', characterIds=[KAEL, LINA])   # 전제에 이름이 하나도 없다
+
+
+def crowded(n=60):
+    """READ에 카엘이 끝점인 관계 n개를 더한 세계관: 상대는 이름이 서로 다른 인물 카드이고 관계 줄은 '카엘의 우정: <이름>'뿐이다."""
+    return {**READ, 'cards': [*READ['cards'], *(card(f'crowd-{i}', NAMES[i], '') for i in range(n))],
+            'relationships': [*READ['relationships'], *(relation(f'crowd-rel-{i}', KAEL, f'crowd-{i}', '우정', '') for i in range(n))]}
+
+
+def relation_refs(asked):
+    return [d['ref'] for d in asked['known'] if d['ref'].startswith('relation:')]
+
+
+def test_a_crowded_world_input_keeps_the_pair_relations_and_the_ones_the_scene_names_and_cuts_the_rest(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    monkeypatch.setattr(service, 'RELATION_LIMIT', 5)
+    plan = SimulationPlan(mode='if', premise=f'만약 {NAMES[7]} 와 {NAMES[41]} 가 온다면?', characterIds=[KAEL, LINA])
+    _, (asked, extra, _) = view(monkeypatch, plan=plan, read=crowded())
+    # 카엘↔리나(같은 장면 인물끼리)는 늘 남고, 전제에 이름이 나온 둘이 이어 남는다. 북문 관계(REL6)와 나머지 58개는 장면과 맞지 않아 빠진다.
+    assert relation_refs(asked) == [f'relation:{REL}', f'relation:{REL3}', 'relation:crowd-rel-7', 'relation:crowd-rel-41']
+    assert extra['others'][0]['relations'] == [f'relation:{REL}', f'relation:{REL3}']   # 호칭 검사가 보는 화자와의 관계도 그대로다
+
+
+def test_the_relations_with_the_other_characters_in_the_scene_are_kept_even_when_they_alone_exceed_the_limit(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    monkeypatch.setattr(service, 'RELATION_LIMIT', 1)
+    plan = SimulationPlan(mode='if', premise=f'만약 {NAMES[7]} 가 온다면?', characterIds=[KAEL, LINA])
+    _, (asked, _, _) = view(monkeypatch, plan=plan, read=crowded())
+    assert relation_refs(asked) == [f'relation:{REL}', f'relation:{REL3}']   # 상한(1)보다 많아도 둘 다 남고, 전제에 이름이 나온 관계는 자리가 없다
+
+
+def test_the_relations_follow_the_last_lines_of_the_scene(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    monkeypatch.setattr(service, 'RELATION_LIMIT', 3)
+    read = crowded()
+
+    def about(name):
+        scene = scene_of(QUIET, ('narration', {'observed': f'{name} 가 문 앞에 서 있었다.'}))
+        return relation_refs(view(monkeypatch, plan=QUIET, scene=scene, read=read)[1][0])
+
+    assert about(NAMES[7])[2:] == ['relation:crowd-rel-7'] and about(NAMES[41])[2:] == ['relation:crowd-rel-41']   # 앞의 둘은 카엘↔리나
+
+
+def test_a_world_within_the_limit_gives_the_same_input_as_one_without_any_limit(monkeypatch):
+    fake_novelbrain(monkeypatch)
+    read = crowded(10)   # 카엘의 관계는 READ의 셋과 더한 열 개
+    monkeypatch.setattr(service, 'RELATION_LIMIT', 13)
+    _, (within, within_extra, _) = view(monkeypatch, plan=QUIET, read=read)
+    monkeypatch.setattr(service, 'RELATION_LIMIT', 10**6)
+    _, (unlimited, unlimited_extra, _) = view(monkeypatch, plan=QUIET, read=read)
+    assert len(relation_refs(within)) == 13 and (within, within_extra) == (unlimited, unlimited_extra)
+
+
 # --- 인물 턴의 문체·따옴표·호칭 --------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize('raw, expected', [
@@ -880,17 +936,14 @@ def test_relevant_keeps_the_docs_most_like_the_query_in_their_original_order():
     assert service.relevant(docs, '북문 열쇠', 9) is docs   # 상한 이하면 그대로
 
 
-def test_check_payload_limits_the_forbidden_docs_of_a_dialogue_to_the_ones_like_the_paragraph_and_scene():
+def test_check_payload_limits_the_forbidden_docs_to_the_ones_like_the_paragraph_and_scene():
     docs = forbidden_docs(40) + [{'ref': 'card:x#goal', 'label': '목표', 'text': '리나는 북문 열쇠를 훔쳐 달아난다', 'owner': '리나'}]
-    body = service.check_payload(check_input(docs), ['knowledge_leak', 'voice_mix'], '"리나가 북문 열쇠를 훔친다는 걸 알아."', 'character')
+    body = service.check_payload(check_input(docs), ['knowledge_leak', 'voice_mix'], '"리나가 북문 열쇠를 훔친다는 걸 알아."')
     assert len(body['forbidden']) == service.FORBIDDEN_LIMIT and body['forbidden'][-1]['ref'] == 'card:x#goal'   # 문단과 겹치는 문서가 남고 원래 순서가 유지된다
     assert body['checks'] == ['knowledge_leak', 'voice_mix'] and body['paragraph'].startswith('"리나가') and body['scene'] == check_input(docs)['scene']
     assert [d['ref'] for d in body['forbidden'][:-1]] == sorted(d['ref'] for d in body['forbidden'][:-1])
 
 
-def test_check_payload_leaves_short_lists_and_non_dialogue_turns_alone():
+def test_check_payload_leaves_a_list_within_the_limit_alone():
     few = forbidden_docs(service.FORBIDDEN_LIMIT)
-    assert service.check_payload(check_input(few), ['knowledge_leak'], '문단', 'character')['forbidden'] == few
-    many = forbidden_docs(service.FORBIDDEN_LIMIT + 10)
-    for kind in ('narration', 'monologue'):   # 평가하지 않은 턴(전지적 나레이션 검사는 따로 큰 입력이다)은 줄이지 않는다
-        assert service.check_payload(check_input(many), ['knowledge_leak'], '문단', kind)['forbidden'] == many
+    assert service.check_payload(check_input(few), ['knowledge_leak'], '문단')['forbidden'] == few

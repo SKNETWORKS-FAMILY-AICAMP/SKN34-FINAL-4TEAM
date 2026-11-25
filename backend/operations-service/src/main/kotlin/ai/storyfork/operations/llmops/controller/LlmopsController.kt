@@ -5,8 +5,10 @@ import ai.storyfork.operations.llmops.service.dto.*
 import ai.storyfork.operations.security.OperationsMember
 import java.time.Instant
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 /** Member Bearer API (operator + llm permission, checked by each service before any input is read or Langfuse is called). */
 @RestController
@@ -21,6 +23,7 @@ class LlmopsController(
     private val settings: LlmopsSettingService,
     private val pipelines: PipelineService,
     private val optimizations: OptimizationService,
+    private val datasets: DatasetService,
 ) {
     @GetMapping("/traces")
     fun traces(
@@ -88,6 +91,22 @@ class LlmopsController(
     @PostMapping("/evaluations")
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun startEvaluation(@AuthenticationPrincipal member: OperationsMember, @RequestBody request: EvaluationRequest) = evaluations.start(member, request)
+
+    @GetMapping("/datasets")
+    fun datasets(@AuthenticationPrincipal member: OperationsMember) = datasets.list(member)
+
+    @GetMapping("/datasets/{name}/items")
+    fun datasetItems(
+        @AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestParam(defaultValue = "1") page: Int, @RequestParam(defaultValue = "20") size: Int,
+    ) = datasets.items(member, name, page, size)
+
+    /** A missing file or confirmation reaches the service as null, which answers with its own code instead of the binder's generic 400. */
+    @PostMapping("/datasets/{name}/items", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @ResponseStatus(HttpStatus.CREATED)
+    fun uploadDatasetItems(
+        @AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestPart("file", required = false) file: MultipartFile?,
+        @RequestParam(required = false) copyrightConfirmed: Boolean?,
+    ) = datasets.upload(member, name, file, copyrightConfirmed)
 
     @GetMapping("/leak-checks")
     fun leakChecks(@AuthenticationPrincipal member: OperationsMember) = leakChecks.list(member)

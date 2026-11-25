@@ -73,6 +73,11 @@ def _endpoint(name: str) -> tuple[str | None, str | None, str | None, str | None
     return base_url, own('API_KEY') if base_url else os.environ.get('OPENAI_API_KEY'), own('MODEL') or default_model, own('THINKING') if base_url else None
 
 
+def default_model(name: str) -> str | None:
+    """호출(plan·act·narrate·check)의 프롬프트 버전에 모델이 없을 때 쓰는 모델(환경 변수·상수). 운영 화면이 프롬프트의 기본 모델을 보일 때 읽는다(#868)."""
+    return _endpoint(name)[2] or None
+
+
 def _details(usage: dict | None) -> dict | None:
     """generation에 남기는 사용량(응답의 usage_metadata 모양을 Langfuse usage_details 모양으로)."""
     return usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']}
