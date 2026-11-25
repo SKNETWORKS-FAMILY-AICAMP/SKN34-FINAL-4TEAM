@@ -33,6 +33,7 @@ it('화면 진입만으로 시작하지 않으며 동의 후 명시적으로 접
 it('안내는 첫 문장(비공개 원고 포함)과 보조색 세부 문단뿐이고, 버튼 아래 반복 안내는 없다',async()=>{
  show({read:vi.fn().mockResolvedValue(null),start:vi.fn(),resume:vi.fn()})
  await screen.findByText('저장된 원고(비공개 포함)로 비공개 세계관 초안을 만들어요.')
+ expect(screen.getByText(/최초 구축을 마친 뒤 새 회차를 처음 발행하면, 세계관 초안 업데이트를 자동으로 요청해요\./).className).toBe('ep-muted')
  expect(screen.queryByText(/서버에서 저장된 원고가 있는지/)).toBeNull()
  expect(screen.queryByText(/저장된 비공개 원고도 대상이에요/)).toBeNull()
  expect(screen.getByText(/기존 카드가 있는 세계관은 자동으로 합치지 않아요/).className).toBe('ep-muted')
