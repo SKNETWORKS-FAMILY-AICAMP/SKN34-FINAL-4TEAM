@@ -109,19 +109,41 @@ def test_reads_every_page_of_the_public_list(monkeypatch):
     assert len(seen.pick[0][1]) == 205
 
 
-def test_cuts_long_cards_and_says_so(monkeypatch):
+def test_cuts_long_cards_and_stops_sending_cards_once_the_total_is_used_up(monkeypatch):
     monkeypatch.setattr(service, 'CARD_CHARS', 10)
     monkeypatch.setattr(service, 'TOTAL_CHARS', 15)
-    public = {'w1': public_world('w1', [card('c1', text='가' * 50), card('c2', text='나' * 8), card('c3', text='다' * 8)])}
+    public = {'w1': public_world('w1', [card('c1', text='가' * 50), card('c2', text='나' * 8), card('c3', text='다' * 8), card('c4', text='라')])}
     _, seen = platform(monkeypatch, public, pick=['w1'])
 
     service.platform(ASK)
 
-    cards = {c['cardId']: c for c in seen.refer[0][1][0]['cards']}
-    # 장당 10자, 전체 15자: 첫 카드는 장당 한도에서, 둘째는 남은 5자에서, 셋째는 남은 글자가 없어 본문 없이 잘렸다고만 표시한다.
+    [world] = seen.refer[0][1]
+    cards = {c['cardId']: c for c in world['cards']}
+    # 장당 10자, 전체 15자: 첫 카드는 장당 한도에서, 둘째는 남은 5자에서 잘리고, 남은 글자가 없으면 그 뒤 카드(c3·c4)는 입력에 넣지 않고 세계관에 생략 수만 단다.
     assert (cards['c1']['text'], cards['c1']['truncated']) == ('가' * 10, True)
     assert (cards['c2']['text'], cards['c2']['truncated']) == ('나' * 5, True)
-    assert (cards['c3']['text'], cards['c3']['truncated']) == ('', True)
+    assert list(cards) == ['c1', 'c2'] and world['omittedCards'] == 2
+
+
+def test_says_nothing_about_omitted_cards_while_every_card_fits(monkeypatch):
+    public = {'w1': public_world('w1', [card('c1'), card('c2')])}
+    _, seen = platform(monkeypatch, public, pick=['w1'])
+
+    service.platform(ASK)
+
+    [world] = seen.refer[0][1]
+    assert len(world['cards']) == 2 and 'omittedCards' not in world
+
+
+def test_rejects_a_citation_of_a_card_left_out_of_the_model_input(monkeypatch):
+    monkeypatch.setattr(service, 'TOTAL_CHARS', 4)
+    public = {'w1': public_world('w1', [card('c1', text='가나다라마'), card('c2')])}
+    platform(monkeypatch, public, pick=['w1'], refs=[('w1', 'c2', '근거')])
+
+    with pytest.raises(ResearchFailure) as error:
+        service.platform(ASK)
+
+    assert error.value.status == 502
 
 
 def test_keeps_short_cards_whole_and_hides_card_links_from_the_model(monkeypatch):

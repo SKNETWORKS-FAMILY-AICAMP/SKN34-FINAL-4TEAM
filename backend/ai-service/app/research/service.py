@@ -76,8 +76,10 @@ def platform(request: str) -> PlatformResult:
     if not picked:
         return PlatformResult(references=[], gaps=[NO_MATCH])
     read = [_read(i) for i in picked[:CANDIDATES]]
-    draft = agent.refer(request, _for_model(read))
-    cards = {(w['id'], c['id']): (w, c) for w in read for c in w['cards']}
+    sent = _for_model(read)
+    shown = {(w['worldId'], c['cardId']) for w in sent for c in w['cards']}  # 모델에 실제로 보낸 카드만 인용할 수 있다
+    cards = {(w['id'], c['id']): (w, c) for w in read for c in w['cards'] if (w['id'], c['id']) in shown}
+    draft = agent.refer(request, sent)
     references = []
     for ref in draft.references:
         if (found := cards.get((ref.worldId, ref.cardId))) is None:
@@ -117,17 +119,21 @@ def _read(world_id: str) -> dict:
 
 
 def _for_model(read: list[dict]) -> list[dict]:
-    """읽은 세계관을 2회차 입력으로 바꾼다. 카드 본문은 장당·전체 글자 수 상한으로 자르고, 잘랐으면 truncated를 단다. 카드 링크의 id는 글자로 벗긴다."""
+    """읽은 세계관을 2회차 입력으로 바꾼다. 카드 본문은 장당·전체 글자 수 상한으로 자르고, 잘랐으면 truncated를 단다.
+    전체 상한을 다 쓴 뒤의 카드는 입력에 넣지 않고 세계관에 생략 수(omittedCards)를 단다. 카드 링크의 id는 글자로 벗긴다."""
     left = TOTAL_CHARS
     worlds = []
     for world in read:
         cards = []
         for card in world['cards']:
+            if left <= 0:
+                continue
             full = strip_card_links(card['text'])
             text = full[:min(CARD_CHARS, left)]
             left -= len(text)
             cards.append({'cardId': card['id'], 'title': card['title'], 'cardType': card['cardType'], 'aliases': card['aliases'],
                           'tags': card['tags'], 'text': text, **({'truncated': True} if len(text) < len(full) else {})})
+        omitted = len(world['cards']) - len(cards)
         worlds.append({'worldId': world['id'], 'name': world['name'], 'description': world['description'][:SUMMARY_CHARS],
-                       'genre': world['genre'], 'author': world['authorNickname'], 'cards': cards})
+                       'genre': world['genre'], 'author': world['authorNickname'], 'cards': cards, **({'omittedCards': omitted} if omitted else {})})
     return worlds
