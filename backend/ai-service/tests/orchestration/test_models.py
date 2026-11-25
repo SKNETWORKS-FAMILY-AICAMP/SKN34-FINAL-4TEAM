@@ -3,7 +3,7 @@ import base64
 import pytest
 from pydantic import ValidationError
 
-from app.orchestration.models import Attachment, OrchestrationRequest, OrchestrationResponse, Resume, StepResult, WritingInput
+from app.orchestration.models import REQUEST_MAX, Attachment, Choice, OrchestrationRequest, OrchestrationResponse, Resume, StepResult, WritingInput
 from app.simulation.models import SimulationPlan, SimulationResult
 from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
 
@@ -193,6 +193,7 @@ def test_attachments_belong_to_a_new_request_not_a_resume():
 @pytest.mark.parametrize('choices', [
     [{'label': '가' * 21, 'message': '보낼 말'}],                          # label 20자 초과
     [{'label': '고르기', 'message': '가' * 2001}],                          # message는 요청 request 한도와 같다
+    [{'label': '고르기', 'message': '😀' * 1001}],                          # 한도는 UTF-16 단위다(코드 포인트는 1,001개지만 2,002단위)
     [{'label': '', 'message': '보낼 말'}],
     [{'label': '  ', 'message': '보낼 말'}],
     [{'label': '고르기', 'message': ' \n '}],
@@ -203,6 +204,15 @@ def test_reply_choices_are_at_most_four_short_labels_with_a_sendable_message(cho
     with pytest.raises(ValidationError):
         OrchestrationResponse.model_validate({'status': 'clarify', 'choices': choices})
     assert OrchestrationResponse(status='clarify').choices == []
+
+
+def test_a_choice_message_of_exactly_2000_utf16_units_is_accepted():
+    assert OrchestrationResponse.model_validate({'status': 'clarify', 'choices': [{'label': '고르기', 'message': '😀' * 1000}]}).choices
+
+
+def test_the_model_sees_the_choice_message_limit_in_the_tool_schema():
+    # ask_author 도구 스키마로 모델에게 한도를 알린다. 실제 검사는 UTF-16 단위 검증이 한다(#892 리뷰)
+    assert Choice.model_json_schema()['properties']['message']['maxLength'] == REQUEST_MAX
 
 
 # 승인 카드 확장(#795)
