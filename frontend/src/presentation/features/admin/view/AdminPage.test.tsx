@@ -1859,6 +1859,22 @@ it('올렸다는 문구는 올리기 전 미리보기 건수가 아니라 서버
   await within(form).findByText("3개 문항을 'simulation.act' 세트에 올렸어요.")
 })
 
+it('올릴 세트는 늘 목록에 있는 세트다: 프롬프트의 짝 세트가 목록에 없고 세트가 하나뿐이어도 그 세트로 올라가, 파일과 저작권 확인만으로 올릴 수 있다(#868)', async () => {
+  const repo = appContainer.resolve('llmDatasetRepository')
+  vi.spyOn(repo, 'datasets').mockResolvedValue([{ name: 'only.set', prompt: null, itemCount: 1, description: null }])
+  const upload = vi.spyOn(repo, 'upload').mockResolvedValue(1)
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  const target = await within(form).findByLabelText<HTMLSelectElement>('올릴 세트')
+  await waitFor(() => expect(target.options.length).toBe(1))
+  pickFile(form, 'a.jsonl', jsonl('a'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  await within(form).findByText("1개 문항을 'only.set' 세트에 올렸어요.")   // 짝 세트(simulation.act)가 목록에 없어도 목록의 세트로 간다
+  expect(upload.mock.calls[0][0]).toBe('only.set')
+})
+
 it('서버가 거절하면(400 DATASET_INVALID) 거절된 줄을 보이고 아무것도 올라가지 않았다고 알리며 입력은 유지하고, 새 파일을 고르면 거절 표시를 지운다(#868)', async () => {
   const errors = [{ line: 2, message: '서버 검사: input 형식이 맞지 않아요.' }, { line: 7, message: '서버 검사: metadata가 너무 커요.' }]
   vi.spyOn(appContainer.resolve('llmDatasetRepository'), 'upload').mockRejectedValue(new DatasetInvalid(errors))

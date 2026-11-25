@@ -9,7 +9,7 @@ type Picked = { fileName: string; text: string; size: number }
 
 /**
  * 프롬프트 상세 ② 평가 세트의 데이터셋(#868, 운영 서버 API): 목록·고른 세트의 문항(20개씩 쪽)·JSONL 업로드 폼.
- * 올릴 세트는 목록의 세트 중 하나(새 세트 만들기는 범위 밖)이고 처음에는 그 프롬프트의 짝 세트(preferred), 없으면 목록의 첫 세트입니다.
+ * 올릴 세트는 목록의 세트 중 하나(새 세트 만들기는 범위 밖)이고 처음에는 그 프롬프트의 짝 세트(preferred), 짝 세트가 목록에 없으면 목록의 첫 세트입니다(선택 상자에 없는 세트로 올라가지 않게 목록에 있는 것만 고릅니다).
  * 업로드 전 미리보기는 파일을 읽은 즉시 순수 규칙(parseDatasetJsonl·datasetLimitError)으로 검사하고, 올릴 때 UseCase가 같은 검사와 확인란을 다시 확인한 뒤 서버가 한 번 더 검사합니다.
  * 서버가 줄을 거절하면(DatasetInvalid) 그 줄 목록을 거절 표시로 남기고(아무것도 올라가지 않음) 입력은 유지합니다.
  */
@@ -27,7 +27,8 @@ export function useDatasetViewModel(mutate: AdminMutate, active: boolean, useCas
   const pickSeq = useRef(0)
   const datasets = useAsyncData(async () => (active ? useCase.datasets() : null), [useCase, active])
   const items = useAsyncData(async () => (active && selected ? useCase.items(selected, itemsPage) : null), [useCase, active, selected, itemsPage])
-  const target = chosen || preferred || datasets.data?.[0]?.name || ''
+  const names = datasets.data?.map((row) => row.name) ?? []
+  const target = [chosen, preferred].find((name) => name && names.includes(name)) ?? names[0] ?? ''
   const preview = useMemo(() => {
     if (!picked) return null
     const parsed = parseDatasetJsonl(picked.text)
@@ -38,7 +39,7 @@ export function useDatasetViewModel(mutate: AdminMutate, active: boolean, useCas
   return {
     datasets, selected, select: (name: string | null) => { setSelected(name); setItemsPage(0) }, items, itemsPage, setItemsPage,
     form: {
-      target, setTarget: setChosen, picked, pickError, preview, rejected, confirmed, setConfirmed, canSubmit, inputKey,
+      names, target, setTarget: setChosen, picked, pickError, preview, rejected, confirmed, setConfirmed, canSubmit, inputKey,
       pick: async (file: File | undefined) => {
         const seq = ++pickSeq.current
         setPicked(null)

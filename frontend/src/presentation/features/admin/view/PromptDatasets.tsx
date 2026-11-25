@@ -92,7 +92,7 @@ function ErrorLines({ errors }: { errors: { line: number; message: string }[] })
  * 서버가 줄을 거절하면 그 줄 목록을 거절 표시로 보입니다.
  */
 function UploadForm({ vm, l }: { vm: VM; l: LlmVM }) {
-  const { form } = l.dataset, preview = form.preview, names = l.dataset.datasets.data?.map((row) => row.name) ?? []
+  const { form } = l.dataset, { preview, names } = form
   const busy = !!vm.actions['dataset:upload']?.pending
   return (
     <form className="dataset-upload" aria-label="JSONL 업로드" onSubmit={(e) => { e.preventDefault(); void form.submit() }}>
