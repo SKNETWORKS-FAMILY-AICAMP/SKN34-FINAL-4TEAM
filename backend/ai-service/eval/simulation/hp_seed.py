@@ -5,7 +5,7 @@
 ① 카드를 개수·바이트 한도 안의 배치로 모두 저장한 뒤(서버가 관계 양 끝 카드를 검사한다) ② 관계를 회차 오름차순으로, 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 다른 것만 배치로 보낸다(고칠 것은 그 회차의 연결로, world.json에서 줄어든 것은 종료 연결로).
 서버는 관계를 지우지 않고 회차마다 종료 연결(lifecycle removed)을 쓰므로 줄어든 관계도 이 비교로 모든 회차에서 끝난다. 저장 key는 보내는 입력에서 정해 같은 입력의 재시도가 같은 요청으로 알아봐진다. 배치 하나가 실패하면 2초·4초… 기다려 같은 요청을 그대로 다시 보내고(저장 도중 멈춘 요청은 그래야 끝난다), 낡은 revision이면 서버를 다시 읽어(응답을 못 받은 사이 들어간 것은 빼고) 다시 보낸다.
 모든 시도가 실패한 배치는 세고 다음 배치로 계속 가며, 한 번 훑은 뒤 남은 단계만 한 번 더 시도하고 그래도 남으면 SeedError다(카드가 다 들어가지 않으면 관계는 보내지 않는다).
-world['work']에는 title·creationType·genres가 있어야 한다(seed._ensure_work가 읽는다). 원고(episodes/*.md)는 발행하지 않는다.
+world['work']에는 title·creationType·genres가 있어야 한다(seed._ensure_work가 읽는다). 원고는 `hp_episodes.py`가 만든 episodes/NNN.md가 있으면 회차 순서로 저장·발행한다(없으면 발행하지 않는다).
 서버가 끝에서 거절할 입력(빈 제목·본문 카드, 마지막 회차 시점 관계 10,000개 초과)은 아무것도 보내기 전에 알린다(check_world).
 
     cd backend/ai-service
@@ -26,7 +26,7 @@ from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-BASE = HERE / '.data' / 'hp'   # 적재할 세계관 디렉터리. episodes/*.md가 없어 원고는 발행하지 않는다(seed._ensure_work는 이 아래 episodes의 글만 발행한다)
+BASE = HERE / '.data' / 'hp'   # 적재할 세계관 디렉터리. seed._ensure_work는 이 아래 episodes/*.md(hp_episodes.py)만 발행한다
 LOCAL_HOSTS = {'localhost', '127.0.0.1', '::1'}
 MAX_RELATIONS = 10_000   # 서버 한도: 한 회차 시점의 활성 관계 수(RelationshipInputHelper.merge). 마지막 회차 시점이 가장 많다
 

@@ -1,0 +1,89 @@
+{
+ "target": "research",
+ "mode": "G",
+ "source": "research-G.jsonl",
+ "cases": 5,
+ "captures": 5,
+ "usd": {
+  "generate": 0.0357,
+  "judge": 0.0007
+ },
+ "ms_p50": 29750,
+ "summary": {
+  "measured": {
+   "n": 5,
+   "of": 5
+  },
+  "answered": {
+   "k": 2,
+   "n": 3,
+   "value": 0.6667,
+   "low": 0.2077,
+   "high": 0.9385
+  },
+  "has_reference": {
+   "k": 2,
+   "n": 2,
+   "value": 1.0,
+   "low": 0.3424,
+   "high": 1.0
+  },
+  "own_world_excluded": {
+   "k": 2,
+   "n": 2,
+   "value": 1.0,
+   "low": 0.3424,
+   "high": 1.0
+  },
+  "premise_corrected": {
+   "k": 1,
+   "n": 1,
+   "value": 1.0,
+   "low": 0.2065,
+   "high": 1.0
+  },
+  "sourced": {
+   "mean": 1.0,
+   "n": 3
+  },
+  "by_family": {
+   "platform": {
+    "has_reference": {
+     "k": 2,
+     "n": 2,
+     "value": 1.0,
+     "low": 0.3424,
+     "high": 1.0
+    },
+    "own_world_excluded": {
+     "k": 2,
+     "n": 2,
+     "value": 1.0,
+     "low": 0.3424,
+     "high": 1.0
+    }
+   },
+   "web": {
+    "answered": {
+     "k": 2,
+     "n": 3,
+     "value": 0.6667,
+     "low": 0.2077,
+     "high": 0.9385
+    },
+    "premise_corrected": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "sourced": {
+     "mean": 1.0,
+     "n": 3
+    }
+   }
+  }
+ },
+ "failed_cases": []
+}

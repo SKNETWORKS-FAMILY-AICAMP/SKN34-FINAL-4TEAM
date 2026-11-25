@@ -1,0 +1,320 @@
+{
+ "target": "pipeline",
+ "mode": "G",
+ "source": "pipeline-G.jsonl",
+ "cases": 8,
+ "captures": 8,
+ "usd": {
+  "generate": 0.0,
+  "judge": 0
+ },
+ "ms_p50": 33575,
+ "summary": {
+  "measured": {
+   "n": 7,
+   "of": 8
+  },
+  "final_ok": {
+   "k": 4,
+   "n": 7,
+   "value": 0.5714,
+   "low": 0.2505,
+   "high": 0.8418
+  },
+  "first_status_ok": {
+   "k": 4,
+   "n": 7,
+   "value": 0.5714,
+   "low": 0.2505,
+   "high": 0.8418
+  },
+  "no_write": {
+   "k": 7,
+   "n": 7,
+   "value": 1.0,
+   "low": 0.6457,
+   "high": 1.0
+  },
+  "pass": {
+   "k": 4,
+   "n": 7,
+   "value": 0.5714,
+   "low": 0.2505,
+   "high": 0.8418
+  },
+  "tools_ok": {
+   "k": 6,
+   "n": 7,
+   "value": 0.8571,
+   "low": 0.4869,
+   "high": 0.9743
+  },
+  "by_family": {
+   "hitl": {
+    "final_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "injection": {
+    "final_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "plan": {
+    "final_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "qa": {
+    "final_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "first_status_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "tools_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "rating": {
+    "final_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "first_status_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "tools_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "reject": {
+    "final_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "first_status_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "tools_ok": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "world": {
+    "final_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "first_status_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "no_write": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    },
+    "pass": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    },
+    "tools_ok": {
+     "k": 0,
+     "n": 1,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.7935
+    }
+   }
+  }
+ },
+ "failed_cases": [
+  "pipeline.conditional-01",
+  "pipeline.qa-01",
+  "pipeline.rating-01",
+  "pipeline.world-01"
+ ]
+}

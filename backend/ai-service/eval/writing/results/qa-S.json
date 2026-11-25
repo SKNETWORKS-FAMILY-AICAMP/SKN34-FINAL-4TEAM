@@ -1,0 +1,126 @@
+{
+ "target": "qa",
+ "mode": "S",
+ "source": "qa-S.jsonl",
+ "cases": 26,
+ "captures": 26,
+ "usd": {
+  "generate": 0.0,
+  "judge": 0.0
+ },
+ "ms_p50": 7851,
+ "summary": {
+  "measured": {
+   "n": 26,
+   "of": 26
+  },
+  "by_family": {
+   "future": {
+    "leak": {
+     "k": 0,
+     "n": 4,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.4899
+    }
+   },
+   "multi": {
+    "recall@8": {
+     "k": 0,
+     "n": 2,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.6576
+    },
+    "leak": {
+     "k": 0,
+     "n": 2,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.6576
+    }
+   },
+   "none": {
+    "leak": {
+     "k": 0,
+     "n": 5,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.4345
+    }
+   },
+   "setting": {
+    "leak": {
+     "k": 0,
+     "n": 5,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.4345
+    },
+    "card_found": {
+     "k": 5,
+     "n": 5,
+     "value": 1.0,
+     "low": 0.5655,
+     "high": 1.0
+    }
+   },
+   "single": {
+    "recall@8": {
+     "k": 3,
+     "n": 10,
+     "value": 0.3,
+     "low": 0.1078,
+     "high": 0.6032
+    },
+    "leak": {
+     "k": 0,
+     "n": 10,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.2775
+    }
+   }
+  },
+  "card_found": {
+   "k": 5,
+   "n": 5,
+   "value": 1.0,
+   "low": 0.5655,
+   "high": 1.0
+  },
+  "leak": {
+   "k": 0,
+   "n": 26,
+   "value": 0.0,
+   "low": 0.0,
+   "high": 0.1287
+  },
+  "recall@1": {
+   "k": 1,
+   "n": 12,
+   "value": 0.0833,
+   "low": 0.0149,
+   "high": 0.3539
+  },
+  "recall@3": {
+   "k": 2,
+   "n": 12,
+   "value": 0.1667,
+   "low": 0.047,
+   "high": 0.448
+  },
+  "recall@8": {
+   "k": 3,
+   "n": 12,
+   "value": 0.25,
+   "low": 0.0889,
+   "high": 0.5323
+  },
+  "rr": {
+   "mean": 0.1319,
+   "n": 12
+  }
+ },
+ "failed_cases": []
+}

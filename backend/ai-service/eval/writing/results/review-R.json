@@ -1,0 +1,96 @@
+{
+ "target": "review",
+ "mode": "R",
+ "source": "review-G.jsonl",
+ "cases": 14,
+ "captures": 14,
+ "usd": {
+  "generate": 0.0579,
+  "judge": 0
+ },
+ "ms_p50": 17872,
+ "summary": {
+  "measured": {
+   "n": 13,
+   "of": 14
+  },
+  "detected": {
+   "k": 5,
+   "n": 6,
+   "value": 0.8333,
+   "low": 0.4365,
+   "high": 0.9699
+  },
+  "false_alarm": {
+   "k": 0,
+   "n": 4,
+   "value": 0.0,
+   "low": 0.0,
+   "high": 0.4899
+  },
+  "findings": {
+   "mean": 2.0769,
+   "n": 13
+  },
+  "typos": {
+   "mean": 3.0,
+   "n": 3
+  },
+  "typos_found": {
+   "mean": 3.0,
+   "n": 3
+  },
+  "by_family": {
+   "clean": {
+    "false_alarm": {
+     "k": 0,
+     "n": 4,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.4899
+    },
+    "findings": {
+     "mean": 0.25,
+     "n": 4
+    }
+   },
+   "contradiction": {
+    "detected": {
+     "k": 5,
+     "n": 6,
+     "value": 0.8333,
+     "low": 0.4365,
+     "high": 0.9699
+    },
+    "findings": {
+     "mean": 0.8333,
+     "n": 6
+    }
+   },
+   "typo": {
+    "findings": {
+     "mean": 7.0,
+     "n": 3
+    },
+    "typos": {
+     "mean": 3.0,
+     "n": 3
+    },
+    "typos_found": {
+     "mean": 3.0,
+     "n": 3
+    }
+   }
+  },
+  "typo_recall": {
+   "k": 9,
+   "n": 9,
+   "value": 1.0,
+   "low": 0.7008,
+   "high": 1.0
+  }
+ },
+ "failed_cases": [
+  "review.typo-03"
+ ]
+}

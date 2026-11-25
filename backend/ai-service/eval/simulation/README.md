@@ -14,6 +14,7 @@
 | `hp_chapters.py` | 해리 포터 번역본 장 나누기(머리 형식·목차·빠진 장 처리, 못 찾은 장은 묶음) |
 | `hp_build.py` | 장 → 모델 추출 → 정체 정리(영어 이름) → 인물 IDENTITY·SOUL·GOAL → `.data/hp/world.json`(시연 세계관 형식, 서버 한도 안·인물당 관계 상한) · `preview.md` |
 | `hp_traits.py` | SOUL·GOAL 다시 쓰기: 원문 전체의 변하지 않는 면만 쓰게 하는 요청, 반전·결과 금지 낱말(정해 둔 것 + 인물의 뒤 회차에만 나오는 고유명사) 검사 |
+| `hp_episodes.py` | 장 나눈 글(`chapters/`) → 회차 원고 `episodes/NNN.md`(199화, 회차 번호 = `world.json`의 `ordinals`). 머리를 못 찾아 묶인 장과 1권 10·11장 경계는 원문을 읽고 정한 줄 번호로 나누고, 권 끝 목차·출판 정보·독자 편지·역자 후기·인터뷰를 자르며, OCR 쪽 번호·쪽 머리글·겹친 줄을 뺀다. 제목은 원문 목차·장 머리 줄(없으면 `N권 M장`). 5권 3장부터는 팬 번역(25~36장은 줄거리 요약)이라 원문 그대로다. `hp_seed.py`가 이 글을 발행한다 |
 | `hp_seed.py` | `world.json`을 로컬 스택에 배치로 적재하고 다시 실행하면 서버를 world.json과 같게 맞춘다(바뀐 카드·관계 갱신, 줄어든 관계는 종료 연결로 끝냄; `seed.py` 함수 재사용, localhost만, 비밀번호는 환경변수) |
 | `sim_via.py` | `--via ocx`: 로컬 OpenCodex 게이트웨이(구독 경로)용 채점 어댑터·시뮬레이션 `ChatOpenAI` 대체(`chat`, 429 대기 포함)와 금액 0 장부 |
 | `sim_quality.py` | 품질: 질문 → 운영 인물 턴 경로(`character_view` → `act` → 서버 규칙 → `check` → 재생성) → 공개 기준 채점 |

@@ -1,0 +1,128 @@
+{
+ "target": "qa",
+ "mode": "R",
+ "source": "qa-G.jsonl",
+ "cases": 26,
+ "captures": 26,
+ "usd": {
+  "generate": 0.0161,
+  "judge": 0.0048
+ },
+ "ms_p50": 1807,
+ "summary": {
+  "measured": {
+   "n": 26,
+   "of": 26
+  },
+  "by_family": {
+   "future": {
+    "correct": {
+     "k": 4,
+     "n": 4,
+     "value": 1.0,
+     "low": 0.5101,
+     "high": 1.0
+    },
+    "abstain_ok": {
+     "k": 4,
+     "n": 4,
+     "value": 1.0,
+     "low": 0.5101,
+     "high": 1.0
+    }
+   },
+   "multi": {
+    "correct": {
+     "k": 0,
+     "n": 2,
+     "value": 0.0,
+     "low": 0.0,
+     "high": 0.6576
+    }
+   },
+   "none": {
+    "correct": {
+     "k": 5,
+     "n": 5,
+     "value": 1.0,
+     "low": 0.5655,
+     "high": 1.0
+    },
+    "abstain_ok": {
+     "k": 5,
+     "n": 5,
+     "value": 1.0,
+     "low": 0.5655,
+     "high": 1.0
+    }
+   },
+   "setting": {
+    "correct": {
+     "k": 5,
+     "n": 5,
+     "value": 1.0,
+     "low": 0.5655,
+     "high": 1.0
+    }
+   },
+   "single": {
+    "correct": {
+     "k": 4,
+     "n": 10,
+     "value": 0.4,
+     "low": 0.1682,
+     "high": 0.6873
+    }
+   }
+  },
+  "abstain_ok": {
+   "k": 9,
+   "n": 9,
+   "value": 1.0,
+   "low": 0.7008,
+   "high": 1.0
+  },
+  "citation_hit": {
+   "k": 3,
+   "n": 12,
+   "value": 0.25,
+   "low": 0.0889,
+   "high": 0.5323
+  },
+  "citation_precision": {
+   "mean": 0.25,
+   "n": 12
+  },
+  "correct": {
+   "k": 18,
+   "n": 26,
+   "value": 0.6923,
+   "low": 0.5001,
+   "high": 0.835
+  },
+  "false_abstain": {
+   "k": 7,
+   "n": 17,
+   "value": 0.4118,
+   "low": 0.2161,
+   "high": 0.6399
+  },
+  "supported": {
+   "k": 25,
+   "n": 26,
+   "value": 0.9615,
+   "low": 0.8111,
+   "high": 0.9932
+  }
+ },
+ "failed_cases": [
+  "qa.multi-01",
+  "qa.multi-05",
+  "qa.single-01",
+  "qa.single-03",
+  "qa.single-06",
+  "qa.single-08",
+  "qa.single-09",
+  "qa.single-10"
+ ]
+}

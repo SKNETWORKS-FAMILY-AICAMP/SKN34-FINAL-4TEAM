@@ -1,0 +1,84 @@
+{
+ "target": "editing",
+ "mode": "G",
+ "source": "editing-G.jsonl",
+ "cases": 7,
+ "captures": 7,
+ "usd": {
+  "generate": 0.0069,
+  "judge": 0
+ },
+ "ms_p50": 8950,
+ "summary": {
+  "measured": {
+   "n": 7,
+   "of": 7
+  },
+  "chars": {
+   "mean": 1255.0,
+   "n": 1
+  },
+  "constraints": {
+   "k": 3,
+   "n": 3,
+   "value": 1.0,
+   "low": 0.4385,
+   "high": 1.0
+  },
+  "exact": {
+   "k": 1,
+   "n": 4,
+   "value": 0.25,
+   "low": 0.0456,
+   "high": 0.6994
+  },
+  "preserved": {
+   "k": 2,
+   "n": 4,
+   "value": 0.5,
+   "low": 0.15,
+   "high": 0.85
+  },
+  "by_family": {
+   "draft": {
+    "chars": {
+     "mean": 1255.0,
+     "n": 1
+    },
+    "constraints": {
+     "k": 1,
+     "n": 1,
+     "value": 1.0,
+     "low": 0.2065,
+     "high": 1.0
+    }
+   },
+   "patch": {
+    "exact": {
+     "k": 1,
+     "n": 4,
+     "value": 0.25,
+     "low": 0.0456,
+     "high": 0.6994
+    },
+    "preserved": {
+     "k": 2,
+     "n": 4,
+     "value": 0.5,
+     "low": 0.15,
+     "high": 0.85
+    }
+   },
+   "plan": {
+    "constraints": {
+     "k": 2,
+     "n": 2,
+     "value": 1.0,
+     "low": 0.3424,
+     "high": 1.0
+    }
+   }
+  }
+ },
+ "failed_cases": []
+}

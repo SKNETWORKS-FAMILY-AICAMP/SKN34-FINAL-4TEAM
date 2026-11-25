@@ -1,0 +1,83 @@
+{
+ "target": "world",
+ "mode": "G",
+ "source": "world-G.jsonl",
+ "cases": 9,
+ "captures": 9,
+ "usd": {
+  "generate": 0.0777,
+  "judge": 0
+ },
+ "ms_p50": 44135,
+ "summary": {
+  "measured": {
+   "n": 9,
+   "of": 9
+  },
+  "detected": {
+   "k": 5,
+   "n": 5,
+   "value": 1.0,
+   "low": 0.5655,
+   "high": 1.0
+  },
+  "findings": {
+   "mean": 4.0,
+   "n": 6
+  },
+  "forbidden": {
+   "mean": 0.3333,
+   "n": 3
+  },
+  "kept": {
+   "mean": 0.2222,
+   "n": 3
+  },
+  "valid": {
+   "k": 3,
+   "n": 3,
+   "value": 1.0,
+   "low": 0.4385,
+   "high": 1.0
+  },
+  "by_family": {
+   "clean": {
+    "findings": {
+     "mean": 5.0,
+     "n": 1
+    }
+   },
+   "conflict": {
+    "detected": {
+     "k": 5,
+     "n": 5,
+     "value": 1.0,
+     "low": 0.5655,
+     "high": 1.0
+    },
+    "findings": {
+     "mean": 3.8,
+     "n": 5
+    }
+   },
+   "enrich": {
+    "forbidden": {
+     "mean": 0.3333,
+     "n": 3
+    },
+    "kept": {
+     "mean": 0.2222,
+     "n": 3
+    },
+    "valid": {
+     "k": 3,
+     "n": 3,
+     "value": 1.0,
+     "low": 0.4385,
+     "high": 1.0
+    }
+   }
+  }
+ },
+ "failed_cases": []
+}
