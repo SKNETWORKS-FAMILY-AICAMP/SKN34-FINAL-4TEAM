@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { ImportUploadNotice, ImportWorldBuildResult } from '../../../shared/ImportWorldBuild'
@@ -68,6 +70,8 @@ function ImportSetup({ vm }: { vm: VM }) {
 
 function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
   const existing = plan.existingEpisodeCount
+  const mergeNoticeId = useId()
+  const canMergeNext = (index: number) => plan.episodes[index]?.excluded === false && plan.episodes[index + 1]?.excluded === false
   return (
     <section className="panel mi-preview" aria-label="가져올 회차 미리보기">
       <h2>미리보기</h2>
@@ -78,8 +82,10 @@ function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
       <p className="small muted">회차 번호는 이 목록의 순서예요. 제외한 회차도 번호를 차지하고, 앞 회차가 없으면 뒤 회차는 등록되지 않아요.</p>
       <fieldset disabled={!!vm.busy}>
         <legend className="sr-only">회차 조정</legend>
+        {plan.episodes.some((_, index) => canMergeNext(index)) && <p id={mergeNoticeId} className="small muted">합치면 앞 회차 제목을 기본으로 쓰고, 뒤 회차 제목은 본문에 남아요.</p>}
         <ol className="mi-list">{plan.episodes.map((episode, index) => {
           const number = index + 1
+          const canMerge = canMergeNext(index)
           return <li key={`${episode.from}-${episode.to}`} className={`mi-episode${episode.excluded ? ' is-excluded' : ''}`}>
             <div className="mi-episode-head">
               <label className="field">{number}번째 회차 제목<input className="inp" value={episode.title} maxLength={120} required aria-invalid={!episode.title.trim()} onChange={(e) => vm.setTitle(index, e.target.value)} /></label>
@@ -90,7 +96,9 @@ function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
             {episode.warnings.length > 0 && <ul className="mi-warn">{episode.warnings.map((warning) => <li key={warning}>경고: {warning}</li>)}</ul>}
             <div className="mi-actions">
               <label className="mi-check"><input type="checkbox" aria-label={`${number}번째 회차 제외`} checked={episode.excluded} onChange={(e) => vm.setExcluded(index, e.target.checked)} /> 제외</label>
-              <button type="button" className="btn sm" aria-label={`${number}번째 회차를 다음 회차와 합치기`} disabled={index === plan.episodes.length - 1 || episode.excluded || plan.episodes[index + 1].excluded} onClick={() => vm.mergeNext(index)}>다음 회차와 합치기</button>
+              <button type="button" className="btn sm" aria-label={`${number}번째 회차를 다음 회차와 합치기`}
+                aria-describedby={canMerge ? mergeNoticeId : undefined} disabled={!canMerge}
+                onClick={() => vm.mergeNext(index)}>다음 회차와 합치기</button>
             </div>
           </li>
         })}</ol>
