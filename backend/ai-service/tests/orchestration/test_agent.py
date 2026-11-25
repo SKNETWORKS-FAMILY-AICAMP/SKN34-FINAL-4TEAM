@@ -89,6 +89,9 @@ def test_an_allowed_decision_without_features_runs_the_main_agent_with_only_the_
 def test_the_main_agent_answers_small_talk_itself():
     # #782: 가드가 인사·잡담을 거절하지 않으므로 메인이 짧게 답하고, 창작과 무관한 작업은 안내만 한다.
     assert '인사·감사·잡담' in INSTRUCTIONS and '창작과 무관한 작업' in INSTRUCTIONS
+    # #893: 규칙 6의 고정 문장(UNSUPPORTED_MESSAGE)보다 규칙 8이 우선함을 지시문이 밝힌다.
+    rule8 = INSTRUCTIONS.split('\n8. ')[1].split('\n답변:')[0]
+    assert '규칙 6의 고정 문장 대신' in rule8
 
 
 def test_world_plot_is_gone_so_no_decision_can_end_as_unsupported():
