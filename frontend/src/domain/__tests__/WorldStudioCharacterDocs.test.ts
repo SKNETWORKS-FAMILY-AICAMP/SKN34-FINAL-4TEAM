@@ -5,6 +5,10 @@ import {
   characterDocName,
   characterDocOfFile,
   characterDocText,
+  docFillLineText,
+  docFillTarget,
+  docFillText,
+  type DocFillLine,
   episodeDocNumbers,
   importCharacterDocs,
   isEpisodeKey,
@@ -239,5 +243,21 @@ describe('불러온 글을 문서에 담기', () => {
     const row = person('본문')
     expect(importCharacterDocs(row, [['soul', '성격']])).toEqual({ replaced: [], text: '본문', docs: docs({ soul: '성격' }) })
     expect(importCharacterDocs(row, [['identity', '새 본문']])).toEqual({ replaced: ['identity'], text: '새 본문', docs: undefined })
+  })
+})
+
+describe('원고로 채우기 제안(#847)', () => {
+  const line = (over: Partial<DocFillLine> = {}): DocFillLine => ({ target: 'body', kind: 'description', episode: 2, quote: '키가 작고 얼굴이 검게 탔다.', ...over })
+  const fact = line({ kind: 'fact', quote: '치삼은 장터의 소금장수다.' })
+
+  it('화면 문서와 서버 문서 이름이 짝이다: IDENTITY.md는 body, SOUL.md는 soul이고 GOAL.md·회차 기억은 채우지 않는다', () => {
+    expect((['identity', 'soul', 'goal', 0, 3] as const).map(docFillTarget)).toEqual(['body', 'soul', undefined, undefined, undefined])
+  })
+
+  it('줄은 전처리가 문서에 쓰는 `[표지] 문장` 모양이고 문서에는 줄바꿈으로 이어 싣는다', () => {
+    expect(docFillLineText(line())).toBe('[묘사] 키가 작고 얼굴이 검게 탔다.')
+    expect(docFillLineText(fact)).toBe('[사실] 치삼은 장터의 소금장수다.')
+    expect(docFillText([line(), fact])).toBe('[묘사] 키가 작고 얼굴이 검게 탔다.\n[사실] 치삼은 장터의 소금장수다.')
+    expect(docFillText([])).toBe('')
   })
 })

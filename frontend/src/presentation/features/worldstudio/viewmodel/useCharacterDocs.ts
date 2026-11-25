@@ -6,6 +6,8 @@ import {
   characterDocText,
   type CharacterDocKey,
   type DocFileKey,
+  docFillTarget,
+  docFillText,
   episodeDocNumbers,
   hasCharacterDocs,
   importCharacterDocs,
@@ -18,13 +20,15 @@ import { cardTypeOf } from '../../../../domain/entities/studioCards'
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
-type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'update' | 'busy'>
+type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'update' | 'busy' | 'docFill'>
 
 /**
  * 편집 화면에서 보고 있는 카드의 본문 편집 상태. 인물 카드는 문서 네 종류(IDENTITY.md = 카드 본문 · SOUL.md · GOAL.md · memory/NN회차.md) 가운데 고른 문서 하나를 편집하고,
  * 인물이 아닌 카드는 늘 본문 하나다. 문서 규칙(이름·빠진 문서·파일 이름 해석·덮어쓰기 대상)은 `domain/entities/characterDocs`의 순수 함수가 정하고, 모두 초안 변경이라 세계관 저장을 거쳐 반영된다.
  * - 고른 문서는 카드마다 따로이고(다른 카드를 열면 IDENTITY.md부터), 고른 회차별 기억이 지워지면 IDENTITY.md로 돌아온다.
  * - 편집기는 처음 값만 읽으므로 `editorKey`가 바뀌면 다시 만든다: 카드·문서가 바뀔 때와 파일을 불러오거나 AI 검토의 수정안을 반영해(`reload`) 글이 밖에서 바뀔 때다.
+ * - 비어 있는 정체성·성격·말투 문서에는 '원고로 채우기 제안'(`fill`, #847)이 있다: 제안(원고 문장 줄)은 `studio.docFill`이 받고, `초안에 반영`(`apply`)이 편집 초안의 그 문서 글을 바꾼다
+ *   (문서가 비어 있을 때만 제안이 보이므로 작가가 쓴 글을 덮어쓰지 않고, 세계관 저장 전에는 서버에 닿지 않는다). 반영하면 편집기를 다시 만들고 결과를 `notice`로 알린다.
  * - 파일을 읽는 동안 초안이 바뀔 수 있어, 다 읽은 뒤에는 그때의 초안(`latest`)에서 카드를 다시 찾아 덮어쓸 문서를 가리고 적용한다. 편집 화면을 떠났으면 적용하지 않는다.
  */
 export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
@@ -46,6 +50,9 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
     if (key === 'identity') studio.update(cardId, { text })
     else studio.update(cardId, {}, { characterDocs: withCharacterDoc(setting.characterDocs, key, text) })
   }
+  const target = person ? docFillTarget(doc) : undefined
+  const fill = studio.docFill
+  const proposal = target ? fill.proposal(cardId, target) : null
   return {
     /** 인물 카드인지. 아니면 문서 목록 없이 본문 하나만 편집한다. */
     person,
@@ -103,7 +110,29 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
       setRevision((n) => n + 1)
       say(`문서 ${read.length}개를 불러왔어요: ${read.map(([key]) => characterDocName(key)).join(', ')}. 저장해야 반영돼요.`)
     },
-    /** 방금 한 파일 불러오기의 결과 문장들(이 카드에서 한 것만) */
+    /** 방금 한 파일 불러오기·제안 반영의 결과 문장들(이 카드에서 한 것만) */
     notice: notice?.card === cardId ? notice.lines : [],
+    /**
+     * 비어 있는 정체성·성격·말투 문서의 '원고로 채우기 제안'(#847). 그 밖의 문서에는 없다(null). `proposal`은 요청 전이면 null이고, 받았으면 원고 문장 줄(근거가 없으면 빈 목록)이다.
+     * `apply`는 줄이 있을 때 이 문서의 글을 그 줄들로 바꾼다(제안은 문서가 비어 있을 때만 보인다: 작가가 쓴 글을 덮어쓰지 않는다). `decline`은 반영하지 않기로 한다(초안은 그대로). `busy`는 저장 중이라 반영할 수 없는 때다.
+     */
+    fill: target && missing.includes(doc) ? {
+      consent: fill.consent,
+      setConsent: fill.setConsent,
+      lock: fill.lock,
+      running: fill.running(cardId),
+      error: fill.error(cardId),
+      proposal,
+      busy: studio.busy,
+      request: () => void fill.request(cardId),
+      apply: () => {
+        if (!proposal?.lines.length || studio.busy) return
+        write(doc, docFillText(proposal.lines))
+        setRevision((n) => n + 1)
+        setNotice({ card: cardId, lines: [`원고에서 찾은 ${proposal.lines.length}줄을 초안에 반영했어요. 세계관을 저장해야 서버에 반영돼요.`] })
+        fill.settle(cardId, target)
+      },
+      decline: () => fill.settle(cardId, target),
+    } : null,
   }
 }
