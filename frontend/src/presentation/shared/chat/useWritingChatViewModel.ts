@@ -29,7 +29,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const [live, setLive] = useState<LiveTurn | null>(null)
   // 끝난 턴의 진행 목록(#784, 턴 번호별). 지금 대화에서만 보이고 저장하지 않아 대화를 바꾸거나 새로 고치면 사라진다.
-  // 고치거나 지워 사라진 턴의 기록은 그 번호의 다음 턴이 끝날 때 덮어쓴다(이력에 없는 번호는 그리지 않는다).
+  // 지운 턴의 기록은 지울 때 함께 지우고, 고쳐 다시 보낸 턴의 기록은 그 요청이 성공했을 때 새 목록으로 바꾼다(이력에 없는 번호는 그리지 않는다).
   const [activityLog, setActivityLog] = useState<Record<number, ChatActivity[]>>({})
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
@@ -161,7 +161,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (id) await load(id)
         // 이력을 읽는 사이 작품이 바뀌었으면 뒷정리는 새 작품의 상태를 건드리지 않는다(옛 요청이 sceneTicket을 올려 새 작품의 멈춘 장면이 저절로 재생되던 문제).
         if (generation.current === owner) {
-          if (ok || activities.length) setActivityLog((log) => ({ ...log, [at]: activities }))
+          // 실패한 시도의 목록이 고치기 전 원래 턴의 기록을 덮어쓰지 않는다. 고쳐 보내기가 성공하면 뒤 턴들은 사라졌으니 그 기록도 지운다.
+          if (ok || (activities.length && editIndex === undefined)) setActivityLog((log) => ({
+            ...(ok && editIndex !== undefined ? Object.fromEntries(Object.entries(log).filter(([turn]) => Number(turn) < at)) : log), [at]: activities }))
           setLive(null); setPending(false)
           void refreshSessions()
           // 실패한 턴은 알리지 않는다: 무대가 저절로 다음 턴을 보내지 않고 작가가 다시 시도한다.
@@ -213,6 +215,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     deleteFrom: (index: number) => change(async () => {
       await useCase!.truncate(workId!, threadId!, index)
       if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
+      setActivityLog((log) => Object.fromEntries(Object.entries(log).filter(([turn]) => Number(turn) < index)))
       await refreshSessions()
     }, '메시지를 지우지 못했어요.'),
     /** index번 턴 답변의 좋아요·싫어요(#560). 저장에 성공한 뒤에만 눌린 상태를 바꾼다. null이면 취소다. */

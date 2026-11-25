@@ -11,9 +11,9 @@ import { useWritingChatViewModel } from './useWritingChatViewModel'
 import { NO_BEFORE, WORK_CHANGED_NOTE } from './PendingActionCard'
 import { WritingChat } from './WritingChat'
 
-const { sessions, history, send, open, writingEpisode, feedback } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn(), feedback: vi.fn() }))
+const { sessions, history, send, open, writingEpisode, feedback, truncate } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn(), feedback: vi.fn(), truncate: vi.fn() }))
 vi.mock('../../../app/appContainer', () => ({ appContainer: { resolve: () => useCase } }))
-const useCase = { sessions, history, send, open, writingEpisode, feedback }
+const useCase = { sessions, history, send, open, writingEpisode, feedback, truncate }
 
 // useAsyncData는 effect를 정리한 뒤에도 대기 중이던 읽기를 한 번 부른다(취소된 신호로). 다음 테스트의 호출 기록에 섞이지 않게 먼저 비운다.
 afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
@@ -1385,6 +1385,93 @@ it('고쳐 보낸 요청이 도착하기 전에 실패하면 원래 진행 목�
   await waitFor(() => expect(screen.getByRole('button', { name: '이 메시지 고치기' })).toBeTruthy())
   expect(screen.getByText('작업 1개')).toBeTruthy()
   expect(screen.getByText('원래 답')).toBeTruthy()
+})
+
+it('고친 요청 판정 실패 → 원래 목록 유지(#890)', async () => {
+  openThread([])
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '원래 답' }
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '원래 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'b', label: '웹 검색', status: 'failed' } })
+    onEvent({ type: 'activity', activity: { id: 'c', label: '세계관 읽기', status: 'done' } })
+    onEvent({ type: 'error', message: '판정에 실패했어요.' })
+  })
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '원래 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  await screen.findByText('판정에 실패했어요.')
+  await waitFor(() => expect(screen.getByRole('button', { name: '이 메시지 고치기' })).toBeTruthy())
+  expect(screen.getByText('작업 1개')).toBeTruthy()
+  expect(screen.queryByText('작업 2개')).toBeNull()
+})
+
+it('턴을 지우면 그 번호 이상의 진행 목록도 지워 같은 번호의 실패한 다음 턴에 옛 목록이 되살아나지 않는다(#890)', async () => {
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const first = { request: '첫 질문', reply }
+  const second = { request: '둘째 질문', reply }
+  openThread([first])
+  truncate.mockResolvedValue(undefined)
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, second] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('첫 질문')
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '둘째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first] })
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지부터 지우기' })[1])
+  await waitFor(() => expect(truncate).toHaveBeenCalledWith('w', 'a', 1))
+  await waitFor(() => expect(screen.queryByText('둘째 질문')).toBeNull())
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '셋째 질문', reply }] })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '셋째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '이 메시지 고치기' })).toHaveLength(2))
+  expect(screen.queryByText('작업 1개')).toBeNull()
+})
+
+it('앞 턴을 고쳐 다시 보내면 그 뒤 턴의 진행 목록도 지워 같은 번호의 실패한 다음 턴에 옛 목록이 되살아나지 않는다(#890)', async () => {
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const first = { request: '첫 질문', reply }
+  openThread([first])
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '둘째 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '고친 첫 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('첫 질문')
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '둘째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지 고치기' })[0])
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 첫 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  await waitFor(() => expect(screen.queryByText('둘째 질문')).toBeNull())
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '고친 첫 질문', reply }, { request: '셋째 질문', reply }] })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '셋째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '이 메시지 고치기' })).toHaveLength(2))
+  expect(screen.queryByText('작업 1개')).toBeNull()
 })
 
 describe('되묻기 선택지(#794)', () => {
