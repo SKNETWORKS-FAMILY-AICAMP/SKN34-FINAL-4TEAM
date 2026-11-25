@@ -2930,6 +2930,22 @@ def test_only_the_main_agent_gets_the_summary_block_before_the_last_five_turns(m
     assert '요청1' not in str(guard[0][1]) and '요청1' not in str(qa[0][1])  # 가드·Q&A에는 요약도 창 밖 턴도 없다
 
 
+def test_the_main_agent_gets_the_last_five_turns_without_the_rejected_ones(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청1')
+    fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
+    chat(thread, request='내 키는 sk-비밀')
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청3', '요청4', '요청5', '요청6')
+    calls.main.clear()
+    chats(thread, '요청7')
+    sent = [m for m in calls.main[0]['messages'] if isinstance(m, (HumanMessage, AIMessage))]
+    asked = [m.text for m in sent if isinstance(m, HumanMessage) and not m.text.startswith(prompt.SUMMARY_HEADER)]
+    assert asked == ['요청1', '요청3', '요청4', '요청5', '요청6', '요청7']  # 거절 턴을 빼고 5턴을 센다
+    assert 'sk-비밀' not in str([m.text for m in sent])
+
+
 def test_a_failed_summary_keeps_the_turn_and_the_next_turn_merges_the_missed_turns_again(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
