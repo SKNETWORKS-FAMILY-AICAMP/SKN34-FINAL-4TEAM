@@ -1509,6 +1509,16 @@ it('고치는 중에 저장한 초안이 바뀌면 고치기 폼 대신 제안 �
   expect(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' })).toBeTruthy()
 })
 
+it('고쳐서 승인을 누르면 첫 입력으로, 고치지 않기를 누르면 고쳐서 승인 버튼으로 키보드 초점이 옮겨 간다(#889)', async () => {
+  openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+    pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 3 } } } } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '고쳐서 승인' }))
+  expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '작품 제목' }))
+  fireEvent.click(screen.getByRole('button', { name: '고치지 않기' }))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '고쳐서 승인' }))
+})
+
 it('작품 정보 수정은 제목·소개를 고칠 수 있고, 빈 제목으로는 실행할 수 없으며 고치기를 닫으면 원래 카드로 돌아간다(#795)', async () => {
   openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
     pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 3 } } } } }])
