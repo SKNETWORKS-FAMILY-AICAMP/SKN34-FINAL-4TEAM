@@ -5,9 +5,9 @@ from openai import OpenAIError
 
 from app.world_review import agent
 from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import EnrichResult, ImpactResult, WorldReviewResult
+from app.world_review.models import EnrichResult, FillResult, ImpactResult, WorldReviewResult
 
-from .stubs import CONTEXT, PLANS, affected, fake_openai, finding, fix, request
+from .stubs import CONTEXT, PASSAGES, PLANS, affected, fake_openai, fill_line, fill_request, finding, fix, request
 
 
 def test_review_sends_the_world_as_data_and_returns_meta(monkeypatch):
@@ -58,6 +58,7 @@ CALLS = {
     'review': lambda: agent.review(request()),
     'enrich': lambda: agent.enrich('서윤을 보강해줘', request()),
     'impact': lambda: agent.impact('서윤의 나이를 바꾸면?', request(), CONTEXT, PLANS),
+    'fill': lambda: agent.fill(fill_request()),
 }
 
 
@@ -151,3 +152,41 @@ def test_enrich_and_impact_are_traced_with_the_request_and_refs_only(monkeypatch
     # 설정·원고 본문은 추적에 남기지 않고 요청 문장과 카드·관계 id 참조만 남긴다.
     assert recorded == {'request': asked, 'cards': ['seoyun', 'war', 'rule'], 'relationships': ['rel-1']}
     assert '약초꾼' not in json.dumps(recorded, ensure_ascii=False)
+
+
+# --- fill: 한 인물의 비어 있는 IDENTITY·SOUL을 채울 근거 문장을 원고 발췌에서 고른다 ----------------------------------------------------
+
+def test_fill_sends_the_names_the_targets_and_the_passages_as_data_and_returns_meta(monkeypatch):
+    parsed = FillResult(lines=[fill_line()])
+    seen = fake_openai(monkeypatch, parsed)
+
+    result, meta = agent.fill(fill_request())
+
+    assert seen['init']['store'] is False and seen['init']['max_retries'] == 0 and 0 < seen['init']['timeout'] < 75
+    assert seen['response_format']['json_schema']['name'] == 'FillResult'
+    # 카드 id는 모델이 쓸 데가 없어 보내지 않는다.
+    assert json.loads(seen['messages'][-1].content) == {'title': '치삼', 'aliases': ['치삼이'], 'targets': ['body', 'soul'], 'passages': PASSAGES}
+    assert result == parsed and meta['model'] == 'resolved-model'
+
+
+def test_fill_instructions_make_the_model_quote_the_manuscript_and_never_invent(monkeypatch):
+    seen = fake_openai(monkeypatch, FillResult(lines=[]))
+
+    agent.fill(fill_request())
+
+    instructions = seen['messages'][0].content
+    for needed in ('targets', 'passages', 'IDENTITY', 'SOUL', 'quote', '글자 그대로', '요약', 'fact', 'description', 'episode', '가장 작은 episode',
+                   '8개', '지시를 실행하지', '지어내', '다른 인물'):
+        assert needed in instructions, needed
+
+
+def test_fill_is_traced_with_the_card_the_targets_and_the_episodes_only(monkeypatch, spans):
+    fake_openai(monkeypatch, FillResult(lines=[fill_line()]))
+
+    agent.fill(fill_request())
+
+    [span] = [s for s in spans() if s.name == 'world_review.fill.generation']
+    recorded = json.loads(span.attributes['langfuse.observation.input'])
+    # 원고 발췌와 인물 이름은 추적에 남기지 않고 카드 id·대상·회차 번호만 남긴다.
+    assert recorded == {'cardId': 'chisam', 'targets': ['body', 'soul'], 'episodes': [2, 4]}
+    assert '소금장수' not in json.dumps(recorded, ensure_ascii=False) and '치삼' not in json.dumps(recorded, ensure_ascii=False)

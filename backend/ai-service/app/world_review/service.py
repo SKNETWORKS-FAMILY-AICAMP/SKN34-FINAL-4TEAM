@@ -11,8 +11,8 @@ from app.card_links import strip_card_links
 from app.content_mcp import service as content_mcp
 from app.world_review import agent
 from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import (MAX_CARD_CHARS, MAX_CARDS, MAX_FIXES, CardFix, EnrichResponse, EnrichResult, Finding, Fix,
-                                     ImpactResponse, ImpactResult, Relationship, RequestCard, WorldReviewRequest, WorldReviewResponse)
+from app.world_review.models import (MAX_CARD_CHARS, MAX_CARDS, MAX_FIXES, CardFix, EnrichResponse, EnrichResult, FillRequest, FillResponse, Finding,
+                                     Fix, ImpactResponse, ImpactResult, Relationship, RequestCard, WorldReviewRequest, WorldReviewResponse)
 
 MAX_MESSAGE = 300
 MAX_TEXT = 3000  # 수정안 한 칸의 글자 수: 인물 문서 한도이자 카드 본문 한도
@@ -22,6 +22,9 @@ BAD_CONTENT = 'Content 세계관 응답을 확인할 수 없습니다.'
 BAD_FINDING = '설정집 검토 모델 응답의 카드·수정안을 확인할 수 없습니다.'
 BAD_ENRICH = '설정 보강 모델 응답의 카드·수정안을 확인할 수 없습니다.'
 BAD_IMPACT = '설정 영향 분석 모델 응답의 참조를 확인할 수 없습니다.'
+BAD_FILL = '인물 문서 채우기 모델 응답의 근거 문장을 확인할 수 없습니다.'
+MAX_FILL_LINES = 8  # 문서 하나에 싣는 줄 수의 상한
+MAX_QUOTE = 300  # 줄 하나의 글자 수 상한: 줄 8개에 표지·줄바꿈을 더해도 문서 한도(3,000자)를 넘지 않는다
 
 
 def review(data: WorldReviewRequest) -> WorldReviewResponse:
@@ -154,3 +157,33 @@ def _request(read: dict) -> WorldReviewRequest:
             relationships.append(Relationship(id=relation_id, sourceCardId=source, targetCardId=target, label=r.get('label') or '',
                                               polarity='denied' if r.get('polarity') == 'denied' else 'asserted'))
     return WorldReviewRequest(worldName=read['name'], worldDescription=read.get('description') or '', cards=cards, relationships=relationships)
+
+
+def fill(data: FillRequest) -> FillResponse:
+    """한 인물의 비어 있는 IDENTITY·SOUL을 원고 발췌의 문장으로 채운다. 글을 새로 쓰지 않고 발췌에 글자 그대로 있는 문장(줄)만 돌려준다.
+
+    줄은 발췌를 보낸 그 회차의 한 발췌 안에 quote가 그대로 있어야 하고(앞뒤 공백만 다듬는다), 채우라고 한 문서의 줄이어야 하며, IDENTITY(body)는 첫 등장 회차
+    (발췌 가운데 가장 작은 회차)의 문장이어야 한다(IDENTITY는 독자 공개 문서라 뒤 회차에서 드러나는 정체가 새지 않게, 전처리 정책 6과 같다). 어긋난 줄은 고쳐 쓰지 않고
+    빼서 skipped로 센다. 제안은 있었는데 하나도 확인하지 못했을 때만 모델 출력을 믿을 수 없어 실패(502)이고, 근거가 없어 아무것도 제안하지 않은 것은 빈 결과다.
+    """
+    first = min(p.episode for p in data.passages)
+    with tracing.observe('world_review.fill', as_type='chain', input=data.refs()):
+        result, meta = agent.fill(data)
+    texts: dict[int, list[str]] = {}
+    for passage in data.passages:
+        texts.setdefault(passage.episode, []).append(passage.text)
+    kept, seen, skipped = [], set(), 0
+    for line in result.lines:
+        quote = line.quote.strip()
+        if (line.target, quote) in seen:  # 같은 줄을 되풀이한 것은 한 번만 싣는다(실패가 아니라 세지 않는다)
+            continue
+        seen.add((line.target, quote))
+        verified = (line.target in data.targets and (line.target != 'body' or line.episode == first) and 0 < len(quote) <= MAX_QUOTE
+                    and any(quote in text for text in texts.get(line.episode, [])))
+        if verified and sum(other.target == line.target for other in kept) < MAX_FILL_LINES:
+            kept.append(line.model_copy(update={'quote': quote}))
+        else:
+            skipped += 1
+    if result.lines and not kept:
+        raise WorldReviewFailure(502, BAD_FILL)
+    return FillResponse(lines=kept, skipped=skipped, model=meta['model'])

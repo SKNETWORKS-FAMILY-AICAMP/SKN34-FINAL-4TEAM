@@ -1,10 +1,10 @@
 import pytest
 from pydantic import ValidationError
 
-from app.world_review.models import (MAX_CARD_CHARS, MAX_CARDS, Affected, CardFix, EnrichResponse, Finding, Fix, ImpactResponse,
-                                     WorldReviewRequest)
+from app.world_review.models import (MAX_CARD_CHARS, MAX_CARDS, MAX_FILL_CHARS, Affected, CardFix, EnrichResponse, Finding, Fix, FillLine,
+                                     FillRequest, FillResponse, ImpactResponse, WorldReviewRequest)
 
-from .stubs import WORLD, affected, card, request
+from .stubs import FILL, WORLD, affected, card, fill_line, fill_request, request
 
 
 def docs(**body):
@@ -102,3 +102,55 @@ def test_impact_response_has_exactly_the_contract_keys():
 def test_affected_kinds_and_certainties_are_the_contract_values(patch):
     with pytest.raises(ValidationError):
         Affected(**{'kind': 'card', 'ref': 'a', 'title': 't', 'reason': 'r', 'certainty': 'confirmed', **patch})
+
+
+# --- fill: 한 인물의 비어 있는 IDENTITY·SOUL을 원고 발췌의 문장으로 채운다 ---------------------------------------------------------------
+
+def test_fill_limit_is_the_contract_number():
+    assert MAX_FILL_CHARS == 12000
+
+
+def test_fill_request_takes_one_card_its_names_the_empty_targets_and_the_passages():
+    data = fill_request()
+    assert (data.cardId, data.title, data.aliases, data.targets) == ('chisam', '치삼', ['치삼이'], ['body', 'soul'])
+    assert [(p.episode, p.text[:4]) for p in data.passages] == [(2, '장터의 '), (4, '"됐어,')]
+    assert fill_request(aliases=[]).aliases == []
+
+
+@pytest.mark.parametrize('patch', [
+    {'passages': []},                                                      # 발췌가 없으면 고를 문장이 없다
+    {'targets': []},                                                       # 채울 문서가 없다
+    {'targets': ['goal']},                                                 # GOAL은 선택 문서라 채우지 않는다
+    {'targets': ['body', 'soul', 'goal']},
+    {'title': ''},
+    {'cardId': ''},
+    {'passages': [{'episode': 0, 'text': '글'}]},                          # 회차는 1 이상
+    {'passages': [{'episode': 1, 'text': ''}]},
+])
+def test_a_fill_request_outside_the_contract_is_rejected(patch):
+    with pytest.raises(ValidationError):
+        FillRequest.model_validate({**FILL, **patch})
+
+
+def test_fill_passages_are_limited_to_12000_chars_in_total():
+    fill_request(passages=[{'episode': 1, 'text': '가' * 6000}, {'episode': 2, 'text': '나' * 6000}])
+    with pytest.raises(ValidationError):
+        fill_request(passages=[{'episode': 1, 'text': '가' * 6000}, {'episode': 2, 'text': '나' * 6001}])
+
+
+def test_fill_refs_are_the_card_id_the_targets_and_the_episode_numbers_never_the_text_or_the_names():
+    assert fill_request().refs() == {'cardId': 'chisam', 'targets': ['body', 'soul'], 'episodes': [2, 4]}
+    assert fill_request(passages=[{'episode': 5, 'text': '가'}, {'episode': 3, 'text': '나'}, {'episode': 5, 'text': '다'}]).refs()['episodes'] == [3, 5]
+
+
+def test_fill_line_kinds_and_targets_are_the_contract_values():
+    assert fill_line(target='soul', kind='fact').kind == 'fact'
+    with pytest.raises(ValidationError):
+        FillLine(target='goal', kind='fact', episode=1, quote='글')
+    with pytest.raises(ValidationError):
+        FillLine(target='body', kind='rule', episode=1, quote='글')
+
+
+def test_fill_response_has_exactly_the_contract_keys():
+    shown = FillResponse(lines=[fill_line()], skipped=1, model='m').model_dump()
+    assert shown == {'lines': [{'target': 'body', 'kind': 'description', 'episode': 2, 'quote': '키가 작고 얼굴이 검게 탔다.'}], 'skipped': 1, 'model': 'm'}
