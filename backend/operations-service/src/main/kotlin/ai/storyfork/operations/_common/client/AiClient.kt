@@ -9,6 +9,9 @@ data class EvaluationStarted(val runName: String)
 
 data class LeakVerdict(val suspected: Boolean, val reason: String? = null)
 
+/** What the AI service runs each prompt on when the prompt version chose no model, by prompt name; null where it has none to name. */
+data class PromptDefaultModels(val models: Map<String, String?>)
+
 /** AI service internal API (X-Internal-Token, see [aiRestClient]): it runs the evaluations and the leak judge but never changes a record. */
 class AiClient(private val http: RestClient) {
     /** The AI service answers 202 and keeps running; the Langfuse Dataset Run it names carries the result. */
@@ -16,6 +19,11 @@ class AiClient(private val http: RestClient) {
         http.post().uri("/internal/v1/evaluations").contentType(MediaType.APPLICATION_JSON)
             .body(mapOf("dataset" to dataset, "prompt" to prompt, "version" to version)).retrieve().body<EvaluationStarted>()
     }
+
+    /** The model each prompt really runs on when its version names none: only the AI service knows (its environment), so it is asked, never guessed. */
+    fun promptDefaultModels(): Map<String, String?> = upstream {
+        http.get().uri("/internal/v1/prompts/default-models").retrieve().body<PromptDefaultModels>()
+    }.models
 
     /** Hands a queued operations job run to the AI service (202): a worker there runs it by calling the operations execute API, so the run is only accepted here. */
     fun startJob(runId: UUID, kind: String) {

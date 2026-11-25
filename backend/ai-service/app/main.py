@@ -15,6 +15,7 @@ from app.story_qa.router import router as story_qa_router
 from app.orchestration import service as orchestration
 from app.orchestration.router import router as orchestration_router
 from app.preprocessing.router import router as preprocessing_router
+from app.prompt_models.router import router as prompt_models_router
 from app.rating.router import router as rating_router
 from app.research.router import router as research_router
 from app.serial.router import router as serial_router
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     application.include_router(story_qa_router)
     application.include_router(orchestration_router)
     application.include_router(preprocessing_router)
+    application.include_router(prompt_models_router)
     application.include_router(rating_router)
     application.include_router(research_router)
     application.include_router(serial_router)

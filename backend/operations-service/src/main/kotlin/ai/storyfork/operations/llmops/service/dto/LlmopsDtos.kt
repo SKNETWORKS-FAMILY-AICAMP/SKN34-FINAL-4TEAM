@@ -61,10 +61,12 @@ data class PromptEvaluation(val runId: String, val passed: Boolean?, val created
 /**
  * [createdAt] is null when Langfuse's prompt payload carries none. [model] is the model chosen for the version (its config.model, #705; null runs on the
  * AI service's environment default). [prompt] is the body, only in a prompt's detail (the list would carry every body of every version).
+ * [effectiveModel] is the model the version really runs on and [modelSource] says where it comes from: 'version' is [model], 'default' is what the AI service
+ * runs the prompt on when a version chooses none (#868); both are null when the AI service could not say (never a guess).
  */
 data class PromptVersion(
     val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
-    val commitMessage: String? = null,
+    val commitMessage: String? = null, val effectiveModel: String? = null, val modelSource: String? = null,
 )
 
 /**
@@ -116,6 +118,18 @@ data class OptimizationRequest(val version: Int, val maxMetricCalls: Int? = null
 data class OptimizationStartedResponse(val accepted: Boolean, val prompt: String, val version: Int, val maxMetricCalls: Int)
 
 data class EvaluationStartedResponse(val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String)
+
+// Evaluation datasets (#868): the sets of Langfuse the regression evaluation reads.
+
+/** [prompt] is the prompt that names the set as its evaluation set (the candidate gate), null for a set no prompt names; [itemCount] is all items of the set. */
+data class EvalDataset(val name: String, val prompt: String?, val itemCount: Long, val description: String?)
+
+/** One item as Langfuse stores it; the three values are JSON as stored, null when the item has none. */
+data class DatasetItem(val id: String, val input: JsonNode?, val expectedOutput: JsonNode?, val metadata: JsonNode?)
+
+data class DatasetItemPage(val items: List<DatasetItem>, val total: Long)
+
+data class DatasetUploadResponse(val created: Int)
 
 data class LeakCheck(
     val id: UUID, val traceId: String, val workId: String, val checkedAt: Instant, val matched: List<String>, val suspected: Boolean, val reason: String?,
