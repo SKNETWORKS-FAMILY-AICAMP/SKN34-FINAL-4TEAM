@@ -22,6 +22,13 @@ describe('groupOrderIssues: 같은 카드 이름이 반복되는 경고를 카�
     expect(groupOrderIssues([relation('비밀', 'r1', 3, null)])[0].detail).toBe('작가 전용 · 관계 글 1곳 (3화)')
   })
 
+  it('소설에 없는 회차로 정해진 카드는 N화부터 공개가 아니라 작가 전용 · N화는 아직 없어요로 쓴다(소설의 마지막 회차를 알 때만)', () => {
+    expect(groupOrderIssues([issue('캠프', {}, 193)], 0)[0].detail).toBe('작가 전용 · 193화는 아직 없어요 · 본문 1')
+    expect(groupOrderIssues([relation('캠프', 'r1', 3, 193)], 5)[0].detail).toBe('작가 전용 · 193화는 아직 없어요 · 관계 글 1곳 (3화)')
+    expect(groupOrderIssues([issue('캠프', {}, 5)], 5)[0].detail).toBe('5화부터 공개 · 본문 1') // 마지막 회차 안이면 그대로
+    expect(groupOrderIssues([issue('캠프', {}, 193)])[0].detail).toBe('193화부터 공개 · 본문 1') // 회차 수를 모르면 지어내지 않는다
+  })
+
   it('같은 관계 글이 이름을 두 번 불러도 한 곳이고 같은 회차는 한 번만 쓴다', () => {
     const groups = groupOrderIssues([relation('가', 'r1', 20), relation('가', 'r1', 20), relation('가', 'r2', 20)])
     expect(groups[0].detail).toBe('64화부터 공개 · 관계 글 2곳 (20화)')

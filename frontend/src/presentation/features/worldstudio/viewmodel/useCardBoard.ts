@@ -8,7 +8,7 @@ import { pageItems } from '../../../shared/pageItems'
 import { settingBoardEntries } from './settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
-type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'cardQuery' | 'setCardQuery' | 'review'>
+type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'cardQuery' | 'setCardQuery' | 'review' | 'linkedWorkId'>
 
 /** 설정집 게시판의 정렬: 공개 설정집과 같은 세 가지에 이 화면만의 `보완 필요 많은 순`(정리 필요·연결 필요·공개 순서·AI 의견을 센 수가 많은 카드부터, 같은 수는 설정집 순서)이 더해진다. */
 export const BOARD_SORTS = [...BOOK_SORTS, ['status', '보완 필요 많은 순']] as const
@@ -22,6 +22,7 @@ const TODO = 'todo'
  * 설정집 게시판과 편집 화면의 카드 목록 레일이 쓰는 목록(공개 설정집과 같은 분류 메뉴·검색·정렬). 분류·정렬은 쓰는 화면 안의 선택이라 로컬 상태이고,
  * 검색어는 기존 ViewModel의 `cardQuery`(제목·본문·분류·태그·별칭)를 그대로 써서 게시판과 레일이 같은 검색어를 본다.
  * 카드마다의 보완 상태(`statuses`: 정리 필요·연결 필요·공개 순서 확인·AI 의견 수)는 초안과 마지막 AI 검토에서 즉시 계산하고(공개 순서 경고의 자세한 내용은 `orderIssues`, 편집 화면이 그 카드의 것을 보인다), 게시판에서 고른 분류가 비었으면 `emptyKind`로 알린다.
+ * 소설이 연결되지 않은 세계관은 지우지 않은 카드가 모두 공개라 공개 순서 경고가 없다(저장된 공개 회차는 무시한다, DEC-53 보완).
  */
 export function useCardBoard(studio: Studio, { showEmptyKinds = false } = {}) {
   const [picked, setPicked] = useState<CardKind | typeof TODO>()
@@ -34,7 +35,8 @@ export function useCardBoard(studio: Studio, { showEmptyKinds = false } = {}) {
   const { categories } = cardCategories
   const entries = useMemo(() => settingBoardEntries(settings ?? [], categories), [settings, categories])
   const counts = useMemo(() => boardKindCounts(entries, showEmptyKinds), [entries, showEmptyKinds])
-  const orderIssues = useMemo(() => publicationOrderIssues(settings ?? []), [settings])
+  const linked = !!studio.linkedWorkId
+  const orderIssues = useMemo(() => (linked ? publicationOrderIssues(settings ?? []) : []), [settings, linked])
   const statuses = useMemo(() => cardStatuses(settings ?? [], findings, orderIssues), [settings, findings, orderIssues])
   // 게시판에 오르는 카드(관계·메모 같은 기존 항목은 아니다)만 센다.
   const todoCount = useMemo(() => entries.filter((e) => statuses.has(e.cardId)).length, [entries, statuses])

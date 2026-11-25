@@ -8,7 +8,7 @@ afterEach(cleanup)
 
 const body = (visibleFrom = 1, over: Partial<OrderIssue> = {}): OrderIssue => ({ cardId: 'me', source: 'body', name: '캠프장', named: { cardId: 'camp', title: '위즐리네 캠프장', from: 64 }, visibleFrom, ...over })
 const relation = (id: string, visibleFrom: number): OrderIssue => body(visibleFrom, { source: 'relation', relationId: id })
-const show = (issues: OrderIssue[], onOpen = vi.fn()) => { render(<WorldCardOrder issues={issues} relationTitle={(id) => '관계 ' + id} onOpenCard={onOpen} />); return onOpen }
+const show = (issues: OrderIssue[], onOpen = vi.fn(), limit?: number) => { render(<WorldCardOrder issues={issues} limit={limit} relationTitle={(id) => '관계 ' + id} onOpenCard={onOpen} />); return onOpen }
 
 it('경고가 없으면 아무것도 그리지 않는다(공개 순서 문제 없음 한 줄은 공개 범위 칸이 알린다)', () => {
   show([])
@@ -42,4 +42,15 @@ it('카드마다 따로 묶고 설명 한 줄은 저장·확정을 막지 않는
   expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['위즐리네 캠프장', '비밀 방']) // 경고가 많은 카드가 먼저
   expect(screen.getByText(/저장·확정을 막지 않아요/)).toBeTruthy()
   expect(screen.getByText('비밀 방', { selector: 'button' }).closest('li')!.querySelector('p')!.textContent).toBe('비밀 방 — 작가 전용 · 본문 1')
+})
+
+it('연결된 소설의 마지막 회차를 넘는 공개 회차는 N화부터 공개 대신 작가 전용 · N화는 아직 없어요로 쓴다(마지막 회차 안이거나 회차 수를 모르면 그대로)', () => {
+  show([body()], vi.fn(), 10)
+  expect(screen.getByRole('button', { name: '위즐리네 캠프장' }).closest('p')!.textContent).toBe('위즐리네 캠프장 — 작가 전용 · 64화는 아직 없어요 · 본문 1')
+  cleanup()
+  show([body()], vi.fn(), 64)
+  expect(screen.getByRole('button', { name: '위즐리네 캠프장' }).closest('p')!.textContent).toBe('위즐리네 캠프장 — 64화부터 공개 · 본문 1')
+  cleanup()
+  show([body()])
+  expect(screen.getByRole('button', { name: '위즐리네 캠프장' }).closest('p')!.textContent).toBe('위즐리네 캠프장 — 64화부터 공개 · 본문 1')
 })

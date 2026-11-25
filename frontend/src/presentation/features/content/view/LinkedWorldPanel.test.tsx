@@ -47,6 +47,92 @@ it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보�
   expect(onLink).toHaveBeenCalledWith(null)
 })
 
+/** 공개 세계관(장르 있음)이 이 소설에 연결된 목록 */
+const PUBLIC_MINE = [world('free', '빈 세계'), world('mine', '이 소설의 세계', 'w1', { visibility: 'public', genre: 'fantasy' })]
+const openUnlinkWarning = async (list: () => Promise<StudioWorld[]> = async () => PUBLIC_MINE) => {
+  const shown = show('mine', list)
+  await shown.card().findByRole('link', { name: '이 소설의 세계' }) // 세계관 목록을 읽어 공개 여부를 안 뒤
+  fireEvent.click(shown.card().getByRole('button', { name: '연결 해제' }))
+  return { ...shown, dialog: () => within(screen.getByRole('alertdialog', { name: '세계관 연결을 해제할까요?' })) }
+}
+
+it('공개 세계관의 연결 해제는 경고 대화 상자를 열어 세계관을 비공개로 바꾸고 해제(처음 초점)·공개 그대로 해제·취소를 고르게 하고, 고르기 전에는 해제를 요청하지 않는다', async () => {
+  const { dialog, onLink } = await openUnlinkWarning()
+  expect(onLink).not.toHaveBeenCalled()
+  const box = screen.getByRole('alertdialog', { name: '세계관 연결을 해제할까요?' })
+  expect(document.getElementById(box.getAttribute('aria-describedby')!)?.textContent).toBe('이 세계관은 공개 상태예요. 연결을 해제하면 작가 전용이던 설정 카드까지 모든 설정이 독자에게 공개돼요.')
+  expect(dialog().getAllByRole('button').map((button) => button.textContent)).toEqual(['세계관을 비공개로 바꾸고 해제', '공개 그대로 해제', '취소'])
+  await waitFor(() => expect(document.activeElement).toBe(dialog().getByRole('button', { name: '세계관을 비공개로 바꾸고 해제' }))) // 처음 초점은 안전한 쪽이다
+  fireEvent.click(dialog().getByRole('button', { name: '취소' }))
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  expect(onLink).not.toHaveBeenCalled()
+})
+
+it('세계관을 비공개로 바꾸고 해제를 고르면 장르를 현재 값 그대로 실어 해제를 요청하고 대화 상자를 닫으며, 성공하면 낡은 공개 여부를 다시 읽는다', async () => {
+  const { dialog, onLink, worlds } = await openUnlinkWarning()
+  fireEvent.click(dialog().getByRole('button', { name: '세계관을 비공개로 바꾸고 해제' }))
+  expect(onLink).toHaveBeenCalledWith(null, { makePrivate: { genre: 'fantasy' } })
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  await waitFor(() => expect(worlds.list).toHaveBeenCalledTimes(2)) // 세계관이 비공개로 바뀌었으니 목록의 공개 여부도 다시 읽는다
+})
+
+it('공개 그대로 해제를 고르면 비공개로 바꾸지 않고 해제를 요청하며(목록도 다시 읽지 않는다), 장르가 없는 세계관은 장르 없음 그대로 보낸다', async () => {
+  const { dialog, onLink, worlds } = await openUnlinkWarning()
+  fireEvent.click(dialog().getByRole('button', { name: '공개 그대로 해제' }))
+  expect(onLink).toHaveBeenCalledWith(null, {})
+  await act(async () => {})
+  expect(worlds.list).toHaveBeenCalledTimes(1)
+  cleanup()
+  const none = await openUnlinkWarning(async () => [world('mine', '이 소설의 세계', 'w1', { visibility: 'public' })])
+  fireEvent.click(none.dialog().getByRole('button', { name: '세계관을 비공개로 바꾸고 해제' }))
+  expect(none.onLink).toHaveBeenCalledWith(null, { makePrivate: { genre: null } })
+})
+
+it('비공개 세계관은 경고 없이 지금처럼 해제를 요청한다(확인은 호출한 쪽이 묻는다)', async () => {
+  const { card, onLink } = show('mine') // 목록의 이 세계관은 공개 여부가 없어 비공개다
+  await card().findByRole('link', { name: '이 소설의 세계' }) // 목록을 읽어 공개 여부를 안 뒤
+  fireEvent.click(card().getByRole('button', { name: '연결 해제' }))
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  expect(onLink).toHaveBeenCalledWith(null)
+})
+
+it('내 세계관 목록을 읽는 동안에는 공개 여부를 몰라 연결 해제가 잠기고, 읽고 나면 풀린다', async () => {
+  let finish!: (worlds: StudioWorld[]) => void
+  const { card, onLink, worlds } = show('mine', () => new Promise<StudioWorld[]>((resolve) => { finish = resolve }))
+  const unlink = () => card().getByRole<HTMLButtonElement>('button', { name: '연결 해제' })
+  await waitFor(() => expect(worlds.list).toHaveBeenCalled()) // 목록 요청이 나간 뒤(그때 finish가 정해진다)에도 아직 읽는 중이다
+  expect(unlink().disabled).toBe(true)
+  fireEvent.click(unlink()) // 잠긴 버튼은 아무것도 하지 않는다
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  expect(onLink).not.toHaveBeenCalled()
+  await act(async () => { finish(MINE) })
+  await waitFor(() => expect(unlink().disabled).toBe(false))
+})
+
+it('목록을 읽지 못하거나 목록에 이 세계관이 없어 공개 여부를 모르면 공개일 수 있다는 경고를 비공개 선택지 없이 공개 그대로 해제·취소만으로 열고, 처음 초점은 취소다', async () => {
+  const failed = show('mine', async () => { throw new Error('offline') })
+  await failed.card().findByRole('alert') // 내 세계관을 불러오지 못했어요
+  fireEvent.click(failed.card().getByRole('button', { name: '연결 해제' }))
+  const box = screen.getByRole('alertdialog', { name: '세계관 연결을 해제할까요?' })
+  expect(document.getElementById(box.getAttribute('aria-describedby')!)?.textContent).toBe('이 세계관의 공개 여부를 확인하지 못했어요. 공개 세계관이라면 연결을 해제할 때 작가 전용이던 설정 카드까지 모든 설정이 독자에게 공개돼요.')
+  const dialog = within(box)
+  expect(dialog.getAllByRole('button').map((button) => button.textContent)).toEqual(['공개 그대로 해제', '취소']) // 장르를 몰라 비공개로 바꿀 수 없다
+  await waitFor(() => expect(document.activeElement).toBe(dialog.getByRole('button', { name: '취소' })))
+  fireEvent.click(dialog.getByRole('button', { name: '취소' }))
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  expect(failed.onLink).not.toHaveBeenCalled()
+  fireEvent.click(failed.card().getByRole('button', { name: '연결 해제' }))
+  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: '공개 그대로 해제' }))
+  expect(failed.onLink).toHaveBeenCalledWith(null, {}) // 대화 상자가 확인을 받았으니 호출한 쪽이 다시 묻지 않는다
+  cleanup()
+  const absent = show('mine', async () => [world('free', '빈 세계')]) // 목록은 읽었지만 이 세계관이 없다
+  const unlink = () => absent.card().getByRole<HTMLButtonElement>('button', { name: '연결 해제' })
+  await waitFor(() => expect(unlink().disabled).toBe(false))
+  fireEvent.click(unlink())
+  expect(within(screen.getByRole('alertdialog')).getAllByRole('button').map((button) => button.textContent)).toEqual(['공개 그대로 해제', '취소'])
+  expect(absent.onLink).not.toHaveBeenCalled()
+})
+
 it('세계관 연결 구획은 같은 탭의 다른 카드와 같은 카드(tcard ep-card)이고, 표지 격자를 담은 연결 양식만 카드 폭을 다 쓰는 ep-pick-form이다(검색창은 양식 밖)', async () => {
   const { card } = show(null)
   const search = await card().findByRole('searchbox', { name: '세계관 검색' })

@@ -165,24 +165,25 @@ class WorldCardImageHttpIntegrationTest {
                 assertEquals(200,send("$studios/$world/publication","PUT",PublicationRequest("public","genre-01")).statusCode())
                 assertEquals(404,call(publicA,actor=null).statusCode())
 
-                // 확정하면 공개 카드가 가리키는 이미지만 비로그인으로 읽힌다. 비공개 카드·다른 세계관·없는 ID·UUID가 아닌 값은 아니다.
+                // 확정하면 지우지 않은 카드가 가리키는 이미지만 비로그인으로 읽힌다(연결된 소설이 없는 세계관은 카드별 공개 설정을 보지 않는다, DEC-53 보완). 다른 세계관·없는 ID·UUID가 아닌 값은 아니다.
                 assertEquals(200,send("$studios/$world/revisions","POST",SaveWorldRequest(revision,"images-save-1")).statusCode())
                 revision=json(call("$studios/$world")).path("draftRevision").asLong()
                 val seen=call(publicA,actor=null)
                 assertEquals(200,seen.statusCode());assertArrayEquals(png,seen.body());assertEquals("image/png",header(seen,"Content-Type"))
                 assertEquals("private, no-store",header(seen,"Cache-Control"));assertEquals("nosniff",header(seen,"X-Content-Type-Options"))
-                for(denied in listOf(b,foreign,UUID.randomUUID().toString())) assertEquals(404,call("$publics/$world/card-images/$denied",actor=null).statusCode(),denied)
+                for(denied in listOf(foreign,UUID.randomUUID().toString())) assertEquals(404,call("$publics/$world/card-images/$denied",actor=null).statusCode(),denied)
+                assertEquals(200,call("$publics/$world/card-images/$b",actor=null).statusCode()) // 작가 전용(비공개·2화부터)인 카드도 연결된 소설이 없으면 공개다
                 assertEquals(400,call("$publics/$world/card-images/not-a-uuid",actor=null).statusCode())
                 val detail=call("$publics/$world",actor=null)
-                assertEquals(listOf(a),json(detail).path("cards").values().map { it.path("imageId").asString() })
+                assertEquals(setOf(a,b),json(detail).path("cards").values().map { it.path("imageId").asString() }.toSet())
 
                 // 교체는 새 이미지를 올려 카드가 새 ID를 가리키는 것이다: 확정하기 전에는 공개 화면이 그대로이고 옛 이미지도 그대로 보인다.
                 val c=json(upload(world,jpeg)).path("imageId").asString()
                 assertEquals(200,saveDraft(shown.copy(semanticMetadata=mapOf("revealFromEpisode" to 1,"imageId" to c)),key="swap").statusCode())
-                assertEquals(a,json(call("$publics/$world",actor=null)).path("cards").get(0).path("imageId").asString())
+                assertEquals(a,json(call("$publics/$world",actor=null)).path("cards").values().first { it.path("id").asString()==shown.id.toString() }.path("imageId").asString())
                 assertEquals(200,call(publicA,actor=null).statusCode());assertEquals(404,call("$publics/$world/card-images/$c",actor=null).statusCode())
                 assertEquals(200,send("$studios/$world/revisions","POST",SaveWorldRequest(revision,"images-save-2")).statusCode())
-                assertEquals(c,json(call("$publics/$world",actor=null)).path("cards").get(0).path("imageId").asString())
+                assertEquals(c,json(call("$publics/$world",actor=null)).path("cards").values().first { it.path("id").asString()==shown.id.toString() }.path("imageId").asString())
                 assertEquals(200,call("$publics/$world/card-images/$c",actor=null).statusCode())
                 // 옛 이미지는 지워지지 않아 소유자는 읽지만, 어떤 확정 버전 카드도 가리키지 않으니 공개로는 404다.
                 assertEquals(404,call(publicA,actor=null).statusCode());assertEquals(200,call("$studios/$world/card-images/$a").statusCode())

@@ -416,7 +416,7 @@ class WorldStudioServicePostgresTest {
             val entered=CountDownLatch(1);val release=CountDownLatch(1)
             val slow=org.mockito.Mockito.spy(ctx.getBean(Neo4jRelationshipRepository::class.java))
             org.mockito.Mockito.doAnswer { call -> val result=call.callRealMethod();entered.countDown();check(release.await(10,TimeUnit.SECONDS));result }
-                .`when`(slow).read(id,1) // 공개 상세는 기준 회차 시점으로 읽는다(DEC-53): 연결된 소설이 없는 세계관의 기준 회차는 1화라 최신(null)이 아니다
+                .`when`(slow).read(id,null) // 연결된 소설이 없는 세계관의 공개 상세는 관계를 회차로 자르지 않고 최신(null)으로 읽는다(DEC-53 보완, 2026-11-25). 연결된 소설이 있으면 그 기준 회차 시점이다
             fun publicView(graph:Neo4jRelationshipRepository)=ai.storyfork.content.world.service.PublicWorldService(ctx.getBean(StudioWorldRepository::class.java),
                 ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),
                 ctx.getBean(SettingCardVersionRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),

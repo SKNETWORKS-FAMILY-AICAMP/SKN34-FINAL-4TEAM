@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { useEpisodeViewModel } from './useEpisodeViewModel'
 import type { Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
@@ -15,9 +16,9 @@ const work: Work = {
 const WORLD = '0b0f6f0e-3a51-4d6b-9a39-1f4f2b6d0a01'
 
 /** api 대역은 렌더 밖에서 한 번만 만든다(훅이 api가 바뀌면 다시 조회한다). 초안 목록 조회는 이 테스트의 관심사가 아니라 빈 목록을 기본으로 둔다. */
-async function open(api: object) {
+async function open(api: object, worlds: object = { setPublication: vi.fn() }) {
   const useCase = { writingList: vi.fn().mockResolvedValue([]), ...api }
-  const hook = renderHook(() => useEpisodeViewModel('w1', useCase as unknown as EpisodeUseCase, { upload: vi.fn() }))
+  const hook = renderHook(() => useEpisodeViewModel('w1', useCase as unknown as EpisodeUseCase, { upload: vi.fn() }, worlds as Pick<WorldStudioUseCase, 'setPublication'>))
   await act(async () => {})
   return hook.result
 }
@@ -48,6 +49,53 @@ it('연결 해제는 확인을 받은 뒤에만 보내고 끝나면 미연결로
   expect(ok).toBe(true)
   expect(api.linkWorldStudio).toHaveBeenCalledWith('w1', null)
   expect(result.current.active?.worldStudioId).toBeNull()
+  expect(result.current.notice).toBe('세계관 연결을 해제했어요.')
+})
+
+/** 공개 세계관의 해제(결정 4): 경고 대화 상자가 확인을 받아 release를 넘긴다. */
+const published = () => ({ list: vi.fn().mockResolvedValue([{ ...work, worldStudioId: WORLD }]), linkWorldStudio: vi.fn().mockResolvedValue({ workId: 'w1', worldId: null }) })
+
+it('공개 세계관을 비공개로 바꾸고 해제하면 공개 설정(장르는 현재 값 그대로)을 먼저 보내고 성공한 뒤에 해제하며, 확인을 다시 묻지 않는다', async () => {
+  const api = published()
+  const worlds = { setPublication: vi.fn().mockResolvedValue({}) }
+  const confirm = vi.spyOn(window, 'confirm')
+  const result = await open(api, worlds)
+  let ok = false
+  await act(async () => { ok = await result.current.linkWorld(null, { makePrivate: { genre: 'fantasy' } }) })
+  expect(ok).toBe(true)
+  expect(confirm).not.toHaveBeenCalled()
+  expect(worlds.setPublication).toHaveBeenCalledWith(WORLD, { visibility: 'private', genre: 'fantasy' })
+  expect(api.linkWorldStudio).toHaveBeenCalledWith('w1', null)
+  expect(worlds.setPublication.mock.invocationCallOrder[0]).toBeLessThan(api.linkWorldStudio.mock.invocationCallOrder[0])
+  expect(result.current.active?.worldStudioId).toBeNull()
+  expect(result.current.notice).toBe('세계관을 비공개로 바꾸고 연결을 해제했어요.')
+})
+
+it('비공개로 바꾸지 못하면 해제하지 않고 서버 사유를 연결 카드에 알린다', async () => {
+  const api = published()
+  const worlds = { setPublication: vi.fn().mockRejectedValue(new Error('세계관 공개 설정을 저장하지 못했어요.')) }
+  const result = await open(api, worlds)
+  let ok = true
+  await act(async () => { ok = await result.current.linkWorld(null, { makePrivate: { genre: null } }) })
+  expect(ok).toBe(false)
+  expect(api.linkWorldStudio).not.toHaveBeenCalled()
+  expect(result.current.error).toBe('세계관 공개 설정을 저장하지 못했어요.')
+  expect(result.current.origin).toBe('link')
+  expect(result.current.active?.worldStudioId).toBe(WORLD)
+  expect(result.current.notice).toBe('')
+})
+
+it('공개 그대로 해제는 확인을 다시 묻지 않고 공개 설정은 건드리지 않은 채 해제만 보낸다', async () => {
+  const api = published()
+  const worlds = { setPublication: vi.fn() }
+  const confirm = vi.spyOn(window, 'confirm')
+  const result = await open(api, worlds)
+  let ok = false
+  await act(async () => { ok = await result.current.linkWorld(null, {}) })
+  expect(ok).toBe(true)
+  expect(confirm).not.toHaveBeenCalled()
+  expect(worlds.setPublication).not.toHaveBeenCalled()
+  expect(api.linkWorldStudio).toHaveBeenCalledWith('w1', null)
   expect(result.current.notice).toBe('세계관 연결을 해제했어요.')
 })
 

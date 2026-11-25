@@ -48,6 +48,13 @@ export const cardRevealEpisode=({revealFromEpisode:n,visibility}:Pick<StudioSett
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
 /**
+ * 연결된 소설에 아직 없는 회차인지(결정 5): 소설의 마지막 회차([limit], 초안·이어받은 원작 회차 포함)를 읽었을 때만 판단한다. 읽는 중·실패(limit 없음)는 판단하지 않고 기존처럼 둔다.
+ * 저장된 값이 소설보다 커도 자동으로 고치지 않고(보이는 글만 `작가 전용 · N화는 아직 없어요`), 새로 정한 값은 저장 전 확인([worldWritingIssues])이 막는다.
+ */
+export const beyondNovel=(episode:number|undefined,limit:number|undefined)=>episode!==undefined&&limit!==undefined&&episode>limit
+export const missingEpisodeNote=(episode:number)=>`${episode}화는 아직 없어요`
+export const revealBeyondNovelError=(limit:number)=>limit>0?`이 소설은 ${limit}화까지 있어요.`:'이 소설에는 아직 회차가 없어요.'
+/**
  * 관계의 N화부터(`fromEpisode`)가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 값이 없는 것은 여기서 거르지 않는다(소설을 연결하지 않은 세계관은 1화이고,
  * 연결한 세계관의 새로 쓰거나 바꾼 관계만 값이 필요해 `lacksRelationFrom`을 저장 전 확인([worldWritingIssues])·관계 편집 패널·저장소가 따로 본다). 입력 칸·저장 전 확인·저장 검증이 같은 문구를 쓴다.
  */

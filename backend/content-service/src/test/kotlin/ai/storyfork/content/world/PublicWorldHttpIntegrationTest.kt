@@ -62,7 +62,7 @@ class PublicWorldHttpIntegrationTest {
                 assertEquals(200,send(studios,method="POST",body=create).statusCode())
                 val a=CardPayload(UUID.randomUUID(),"첫 인물","공개 원문","character","basic",aliases=listOf("별칭"),tags=listOf("태그"),visibility="public")
                 val b=a.copy(id=UUID.randomUUID(),title="둘째 인물")
-                // 카드의 기본은 비공개다(DEC-46). 공개 세계관에서도 이 카드와 이 카드에 닿는 관계는 보이지 않고 수에도 세지 않는다.
+                // 카드의 기본은 비공개다(DEC-46). 하지만 연결된 소설이 없는 세계관은 카드별 공개 설정을 보지 않고 지우지 않은 카드가 모두 공개다(DEC-53 보완): 이 카드와 이 카드에 닿는 관계도 보이고 수에 센다.
                 val secret=CardPayload(UUID.randomUUID(),"비공개 인물","비공개 원문","character","basic")
                 val relation=RelationshipPayload(UUID.randomUUID(),a.id,b.id,"emotional","관계 설명 원문",label="동료",direction="directed")
                 val secretRelation=RelationshipPayload(UUID.randomUUID(),a.id,secret.id,"structural","비공개 관계 설명",label="비공개 관계")
@@ -93,24 +93,24 @@ class PublicWorldHttpIntegrationTest {
                 assertEquals("첫 설명",view.path("description").asString());assertEquals("genre-01",view.path("genre").asString())
                 assertEquals("공개 작가",view.path("authorNickname").asString());assertEquals(1,view.path("revisionNo").asInt())
                 assertTrue(view.path("publishedAt").isString);assertEquals("current",view.path("relationshipStatus").asString())
-                assertEquals(2,view.path("cards").size())
+                assertEquals(3,view.path("cards").size())
                 val shown=view.path("cards").values().first { it.path("id").asString()==a.id.toString() }
                 assertEquals("첫 인물",shown.path("title").asString());assertEquals("공개 원문",shown.path("text").asString())
                 assertEquals("character",shown.path("cardType").asString())
                 assertEquals("별칭",shown.path("aliases").get(0).asString());assertEquals("태그",shown.path("tags").get(0).asString())
-                assertEquals(1,view.path("relationships").size())
-                val edge=view.path("relationships").get(0)
+                assertEquals(2,view.path("relationships").size())
+                val edge=view.path("relationships").values().first { it.path("id").asString()==relation.id.toString() }
                 assertEquals(relation.id.toString(),edge.path("id").asString());assertEquals(a.id.toString(),edge.path("sourceCardId").asString())
                 assertEquals(b.id.toString(),edge.path("targetCardId").asString());assertEquals("동료",edge.path("label").asString())
                 assertEquals("관계 설명 원문",edge.path("body").asString());assertEquals("directed",edge.path("direction").asString())
                 assertTrue(edge.path("polarity").isNull)
-                // 비공개 카드는 id·제목·본문 어느 것도, 그 카드에 닿는 관계도 나오지 않는다.
-                for(leak in listOf(secret.id.toString(),"비공개 인물","비공개 원문","비공개 관계")) assertFalse(detail.body().contains(leak),leak)
+                // 연결된 소설이 없으니 작가 전용(기본 비공개) 카드도 id·제목·본문과 그 카드에 닿는 관계까지 나온다.
+                for(shownText in listOf(secret.id.toString(),"비공개 인물","비공개 원문","비공개 관계")) assertTrue(detail.body().contains(shownText),shownText)
 
                 // 목록: 카드·관계 수, 작가 닉네임, 장르 필터, 잘못된 쿼리는 422다.
                 val all=json(anonymous(publics));assertEquals(1,all.path("total").asInt());assertEquals(0,all.path("page").asInt());assertEquals(24,all.path("size").asInt())
                 val item=all.path("items").get(0)
-                assertEquals(create.id.toString(),item.path("id").asString());assertEquals(2,item.path("cardCount").asInt());assertEquals(1,item.path("relationshipCount").asInt())
+                assertEquals(create.id.toString(),item.path("id").asString());assertEquals(3,item.path("cardCount").asInt());assertEquals(2,item.path("relationshipCount").asInt())
                 assertEquals("공개 작가",item.path("authorNickname").asString());assertEquals("genre-01",item.path("genre").asString())
                 assertEquals(1,json(anonymous("$publics?genre=genre-01&page=0&size=24")).path("items").size())
                 assertEquals(0,json(anonymous("$publics?genre=genre-14")).path("items").size())
@@ -124,7 +124,7 @@ class PublicWorldHttpIntegrationTest {
                 val draftRelation=RelationshipPayload(UUID.randomUUID(),a.id,draftCard.id,"structural","초안 관계",label="초안에만 있는 관계")
                 assertEquals(200,send("$studios/${create.id}/draft",method="PUT",body=EditWorldDraftRequest(2,"수정 중인 이름","수정 중",listOf(draftCard),listOf(draftRelation),"draft-only")).statusCode())
                 val saved=json(anonymous("$publics/${create.id}"))
-                assertEquals("공개할 세계관",saved.path("name").asString());assertEquals(2,saved.path("cards").size());assertEquals(1,saved.path("relationships").size())
+                assertEquals("공개할 세계관",saved.path("name").asString());assertEquals(3,saved.path("cards").size());assertEquals(2,saved.path("relationships").size())
 
                 // 소유자의 목록·상세에도 공개 설정이 보인다.
                 val mine=json(send(studios)).values().first { it.path("worldId").asString()==create.id.toString() }
@@ -139,7 +139,7 @@ class PublicWorldHttpIntegrationTest {
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"UPDATE worldstudio.relationship_state SET completed=false WHERE world_id='${create.id}'") }
                 val pending=anonymous("$publics/${create.id}");assertEquals(200,pending.statusCode())
                 assertEquals("unavailable",json(pending).path("relationshipStatus").asString());assertEquals(0,json(pending).path("relationships").size())
-                assertEquals(2,json(pending).path("cards").size())
+                assertEquals(3,json(pending).path("cards").size())
                 assertTrue(json(anonymous(publics)).path("items").get(0).path("relationshipCount").isNull)
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"UPDATE worldstudio.relationship_state SET completed=true WHERE world_id='${create.id}'") }
                 assertEquals("current",json(anonymous("$publics/${create.id}")).path("relationshipStatus").asString())

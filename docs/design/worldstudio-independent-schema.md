@@ -48,7 +48,7 @@ RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
 | 호출 | 회차 |
 |---|---|
 | 작가 관리 화면·초안 조회 (`GET /api/v1/world-studios/{id}?episode=N`, MCP `world_studio_read`) | 요청의 회차, 생략하면 최신 |
-| 공개 세계관 조회·목록의 관계 수 | 기준 회차(DEC-53): 연결된 소설의 발행된 마지막 회차, 소설이 연결되지 않았으면 1화 |
+| 공개 세계관 조회·목록의 관계 수 | 기준 회차(DEC-53): 연결된 소설의 발행된 마지막 회차, 소설이 연결되지 않았으면 회차 기준이 없어 최신 |
 | 독자 설정 위키 `GET /public/works/{id}/world-cards?upto=` | `upto`(카드와 같은 기준이라 관계 스포일러도 막힌다) |
 
 ### 저장
@@ -382,7 +382,7 @@ card_type은 카드 카테고리 코드다. 기본은 character/location/organiz
 - 조립 중 revision은 커밋할 수 없게 하고 확정 뒤 manifest와 버전은 수정·삭제할 수 없게 한다. 복원은 새 version/revision이다. 구체 봉인 trigger는 새 V1 SQL에서 테스트한다.
 - 활성 관계의 양 endpoint는 같은 revision의 활성 카드여야 한다. 관계 입력은 선택적이며 미등록을 관계 없음의 확정 사실로 해석하지 않는다.
 - 카드·관계 삭제는 lifecycle tombstone을 새 버전에 기록한다. 과거 version/manifest를 삭제하지 않는다.
-- 카드 초안과 불변 버전 모두 `visibility`를 가지며 기본값은 `private`다. `public` V2에서 `private` V1을 복원하면 V3에 V1의 비공개 정책도 복사한다. 명시 저장은 발행이 아니며 카드의 public만으로 독자 접근을 허용하지 않는다. 카드의 공개는 하나의 설정으로 정한다(DEC-53): `semanticMetadata.revealFromEpisode`('N화부터 공개')가 있으면 그 값, 없고 `visibility=public`이면 1화, 그 밖은 작가 전용이다. 공개 세계관·독자 설정 위키·가져오기·Fork는 마지막 저장 버전의 활성 카드 중 그 회차가 기준 회차(연결된 소설의 발행된 마지막 회차, 소설이 연결되지 않았으면 1) 이하인 것과 그 카드끼리의 기준 회차 시점 관계만 보인다([계약](public-world-contract.md#카드-공개-기준-일원화--dec-53)). 새 저장은 `revealFromEpisode`만 쓰고 `visibility`는 값이 있으면 `public`, 없으면 `private`로 맞춰 저장한다. 인물별 지식·상태의 회차별 공개는 이후 계약으로 연결한다.
+- 카드 초안과 불변 버전 모두 `visibility`를 가지며 기본값은 `private`다. `public` V2에서 `private` V1을 복원하면 V3에 V1의 비공개 정책도 복사한다. 명시 저장은 발행이 아니며 카드의 public만으로 독자 접근을 허용하지 않는다. 카드의 공개는 하나의 설정으로 정한다(DEC-53): `semanticMetadata.revealFromEpisode`('N화부터 공개')가 있으면 그 값, 없고 `visibility=public`이면 1화, 그 밖은 작가 전용이다. 공개 세계관·독자 설정 위키·가져오기·Fork는 마지막 저장 버전의 활성 카드 중 그 회차가 기준 회차(연결된 소설의 발행된 마지막 회차) 이하인 것과 그 카드끼리의 기준 회차 시점 관계만 보인다([계약](public-world-contract.md#카드-공개-기준-일원화--dec-53)). 단 연결된 소설이 없는 세계관은 이 값을 읽지 않고 활성 카드가 모두 공개이며 관계도 최신 시점이다(2026-11-25, [계약](public-world-contract.md#소설이-연결되지-않은-세계관--2026-11-25)). 새 저장은 `revealFromEpisode`만 쓰고 `visibility`는 값이 있으면 `public`, 없으면 `private`로 맞춰 저장한다. 인물별 지식·상태의 회차별 공개는 이후 계약으로 연결한다.
 
 ## 인증과 회차 연결
 
