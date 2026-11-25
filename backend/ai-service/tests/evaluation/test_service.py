@@ -375,6 +375,19 @@ def test_a_baseline_run_counts_only_if_it_started_after_the_newest_item_of_the_s
     assert (plan.baseline, plan.base_version) == (None, 2)   # 유효한 기준이 없으면 같은 작업에서 production(v2)을 먼저 평가한다
 
 
+def test_a_baseline_run_that_started_before_an_item_was_changed_is_invalid(monkeypatch):
+    # 올라간 문항의 내용이 바뀌면(upsert) 만들어진 시각이 그대로여도 마지막으로 바뀐 시각이 기준이다: 그 전에 시작한 Run은 바뀐 문항을 보지 못했다.
+    changed = item(2, QA, created='2026-11-19T04:00:00.000Z', updated=NEWEST)
+    between = experiment('qa.answer@v2-between', METRICS, started='2026-11-19T04:30:00.000Z')   # 만들어진 뒤지만 바뀌기 전에 시작
+    after = experiment('qa.answer@v2-after', METRICS, started='2026-11-19T05:00:00.001Z')
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), changed], experiments=[between], prompts=PRODUCTION)
+    assert (plan.baseline, plan.base_version) == (None, 2)
+
+    _, _, plan = prepared(monkeypatch, [item(1, QA), changed], experiments=[between, after], prompts=PRODUCTION)
+    assert plan.baseline.run == 'qa.answer@v2-after' and plan.base_version is None
+
+
 def test_the_newest_item_decides_not_the_first_one(monkeypatch):
     old = experiment('qa.answer@v2-old', METRICS, started='2026-11-19T04:00:00.000Z')   # 첫 문항(03:55)보다는 뒤지만 둘째 문항(05:00)보다 앞
 

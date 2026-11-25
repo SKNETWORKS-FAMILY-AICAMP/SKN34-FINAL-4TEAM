@@ -124,7 +124,7 @@ data class EvaluationStartedResponse(val runId: String, val dataset: String, val
 /**
  * [prompt] is the prompt that names the set as its evaluation set (the candidate gate), null for a set no prompt names; [itemCount] is all items of the set.
  * [kind] is gate (a prompt's evaluation set), pool (optimize.<gate>: what the prompt improvement trains on) or general (any other name).
- * [lastItemAt] is when the newest item of the set was created (the largest createdAt of its items, null for a set without items or times): a baseline Run that started
+ * [lastItemAt] is when the set last changed: the latest createdAt or updatedAt of its items (null for a set without items or times). A baseline Run that started
  * before it has not seen the whole set, so the evaluation service does not take it as the baseline (the same maximum, #868).
  */
 data class EvalDataset(val name: String, val prompt: String?, val kind: String, val itemCount: Long, val lastItemAt: Instant?, val description: String?)
