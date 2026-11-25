@@ -19,7 +19,7 @@ const edges = (key: Exclude<PipelineFlowKey, 'all'>) => FLOW_DEFS[key].steps.fla
 const promptsOf = (key: Exclude<PipelineFlowKey, 'all'>) => [...new Set(FLOW_DEFS[key].steps.flatMap((s) => s.prompts ?? []))].sort()
 
 describe('워크플로우 정의(#857 3차): 내부에 순서 있는 여러 LLM 단계가 있는 에이전트의 단계·연결', () => {
-  it('드롭다운 항목(전체 제외)마다 정의가 하나씩 있다', () => {
+  it('하위 탭 항목(전체 제외)마다 정의가 하나씩 있다', () => {
     expect(Object.keys(FLOW_DEFS)).toEqual(KEYS)
     expect(SERVER_IDS.length).toBeGreaterThan(15)
   })

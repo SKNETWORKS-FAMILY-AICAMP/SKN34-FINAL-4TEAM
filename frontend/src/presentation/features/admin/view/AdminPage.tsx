@@ -1,8 +1,8 @@
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
+import { Fragment, type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
 import { LINK_PATH_MAX } from '../../../../domain/entities/event'
-import { ADMIN_PERMISSIONS, LLM_PAGES, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref } from '../../../../domain/entities/admin'
+import { ADMIN_PERMISSIONS, LLM_PAGES, PIPELINE_FLOWS, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref, pipelineFlowHref, promptNavState } from '../../../../domain/entities/admin'
 import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel, reportTargetTitle, reportTargetTypeLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
@@ -39,7 +39,7 @@ type Data = NonNullable<VM['data']>
 
 /**
  * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 대시보드는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다.
- * LLM Ops의 세 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다.
+ * LLM Ops의 세 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다. 프롬프트·평가는 그 아래 하위 탭(AI 파이프라인의 워크플로우, #857 3차 정정)을 펼칩니다.
  */
 const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
@@ -124,6 +124,8 @@ export function AdminPage() {
   const [q] = useSearchParams()
   const tab = adminTab(q.get('tab'))
   const page = llmPage(q.get('view'))
+  // 사이드바 프롬프트·평가 아래 하위 탭: 그 쪽에 있을 때만 펼쳐지고, 켜진 하위 탭은 AI 파이프라인(전체) 보기의 flow입니다.
+  const { open, current: subTab } = promptNavState(tab, page, q.get('sub'), q.get('flow'))
   const vm = useAdminViewModel(tab)
   const { sel, filters, setSel } = vm
   const f = filters[tab] ??
@@ -154,27 +156,45 @@ export function AdminPage() {
     const dy = n.scrollHeight > n.clientHeight ? reveal(at.top, at.bottom, box.top, box.bottom) : 0
     if (dx) n.scrollLeft += dx
     if (dy) n.scrollTop += dy
-  }, [tab, page])
+  }, [tab, page, subTab])
   const content = useRef<HTMLElement>(null)
   // 머리 오른쪽 자리(데모 칩·목록 새로고침). 대시보드 탭은 자기 새로고침을 이 자리에 포털로 두므로 요소를 상태로 들고 있다가 건넵니다.
   const [headSide, setHeadSide] = useState<HTMLDivElement | null>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
   // 운영 API가 없는 데모 탭만 메뉴에 '데모' 배지를 답니다. 배지는 읽지 않게 두는 대신 링크 설명으로 스크린리더에 알립니다(링크 이름은 그대로).
   // 현재 표시는 탭과 쪽(view)이 모두 같을 때만 켭니다. LLM Ops 세 메뉴는 같은 탭이라 쪽까지 같아야 합니다.
+  // 하위 탭이 있는 쪽 링크(프롬프트·평가)는 펼침 표시(▾/▸)와 aria-expanded를 달고, 하위 탭이 켜져 있으면 현재 표시는 그 하위 탭 하나에만 두고 쪽 링크는 열림(open)만 표시합니다.
   const navLink = (k: AdminTab, l: string, view?: LlmPage) => {
-    const on = tab === k && (!view || view === page)
+    const parent = view === 'prompts'
+    const on = tab === k && (!view || view === page) && !(parent && subTab)
     const to = view ? llmPageHref(view) : `/admin?tab=${k}`
-    return (
+    const link = (
       <Go
         key={to}
         to={to}
-        className={on ? 'on' : ''}
+        className={[on && 'on', parent && open && 'open'].filter(Boolean).join(' ')}
         aria-current={on ? 'page' : undefined}
         aria-describedby={LIVE_TABS.includes(k) ? undefined : 'admin-demo-note'}
+        aria-expanded={parent ? open : undefined}
+        aria-controls={parent ? 'admin-prompts-subnav' : undefined}
       >
         {l}
         {!LIVE_TABS.includes(k) && <span className='nav-demo' aria-hidden='true'>데모</span>}
+        {parent && <span className='nav-caret' aria-hidden='true'>{open ? '▾' : '▸'}</span>}
       </Go>
+    )
+    if (!parent) return link
+    return (
+      <Fragment key={to}>
+        {link}
+        <ul id='admin-prompts-subnav' className='admin-subnav' aria-label={`${l} 하위 메뉴`} hidden={!open}>
+          {PIPELINE_FLOWS.map(([flow, label]) => (
+            <li key={flow}>
+              <Go to={pipelineFlowHref(flow)} className={flow === subTab ? 'on' : ''} aria-current={flow === subTab ? 'page' : undefined}>{label}</Go>
+            </li>
+          ))}
+        </ul>
+      </Fragment>
     )
   }
   // 새 공지·이벤트 폼은 목록이 보이지 않아 새로고침해도 화면이 안 바뀌므로 숨깁니다(목록·기존 글 상세에서는 다시 읽는 수단).

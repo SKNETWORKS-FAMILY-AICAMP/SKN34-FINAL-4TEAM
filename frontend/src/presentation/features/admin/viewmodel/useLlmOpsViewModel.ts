@@ -28,11 +28,11 @@ type Opened = { at: string; id: string; stage: LoopStage; run: string | null }
  * 에이전트 지표 쪽은 보기(sub)가 지표(에이전트 카드)·추적으로, 프롬프트·평가 쪽은 에이전트별 평가(입구)·프롬프트·모델·AI 파이프라인(DEC-58)으로 또 나뉩니다(#857). 보고 있는 것만 읽습니다.
  * 열어 둔 상세(추적·프롬프트 하나)는 그 상세가 속한 자리(쪽, 에이전트 지표·프롬프트·평가는 보기까지)에서만 보이고 자리를 옮기면 닫힙니다.
  * 프롬프트 상세는 개선 루프의 단계(stage)를 가지고 단계를 바꾸면 열어 둔 평가 Run(run)을 닫습니다. 다른 자리에 있는 상세로 가는 버튼(누설 검사의 추적 보기, 에이전트별 평가 표의 프롬프트·Run 상세,
- * 파이프라인의 프롬프트 보기)은 openPage로 그 자리로 옮겨 엽니다.
+ * 파이프라인의 프롬프트 보기)은 openPage로 그 자리로 옮겨 엽니다. AI 파이프라인의 워크플로우(주소 flow)가 바뀌면 고른 노드와 열어 둔 기록은 닫힙니다(다른 그림의 노드).
  * 변경 조치는 관리자 화면 공용 실행기(mutate)로 보내 진행·실패·완료 안내와 재조회를 한곳에서 합니다.
  */
 export function useLlmOpsViewModel(
-  mutate: AdminMutate, page: LlmPage, openPage: (page: LlmPage, sub?: string) => void, sub: string, useCase: LlmOpsUseCase = appContainer.resolve('llmOpsUseCase'),
+  mutate: AdminMutate, page: LlmPage, openPage: (page: LlmPage, sub?: string) => void, sub: string, workflow: string, useCase: LlmOpsUseCase = appContainer.resolve('llmOpsUseCase'),
   datasetUseCase: LlmDatasetUseCase | null = appContainer.resolve('llmDatasetUseCase'),
 ) {
   const [traceFilters, setTraceFilters] = useState(FIRST_TRACES)
@@ -83,6 +83,9 @@ export function useLlmOpsViewModel(
   const [nodeId, setNodeId] = useState<string | null>(null)
   const [recordFilter, setRecordFilter] = useState(FIRST_RECORDS)
   const [flow, setFlow] = useState<{ traceId: string; recordId: string } | null>(null)
+  // 워크플로우(주소 flow)가 바뀐 렌더에서 고른 노드와 열어 둔 실행 흐름을 닫습니다: 다른 그림의 노드라 이어 볼 수 없고, 사이드바 하위 탭·'내부 흐름 보기'·뒤로 가기가 모두 주소만 바꾸므로 주소를 따릅니다.
+  const [seenWorkflow, setSeenWorkflow] = useState(workflow)
+  if (seenWorkflow !== workflow) { setSeenWorkflow(workflow); setNodeId(null); setFlow(null) }
   const level = nodeId ? serverLevel(nodeId, recordFilter.result) : ''
   const pipeline = useAsyncData(async () => onPipeline ? useCase.pipeline(periodRange(pipelineHours)) : null, [useCase, onPipeline, pipelineHours])
   const records = useAsyncData(

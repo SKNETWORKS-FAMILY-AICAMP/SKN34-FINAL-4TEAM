@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import '../../../../test/fixtureApp'
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter, useNavigate } from 'react-router'
+import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import '../../../../test/testLocks'
@@ -238,27 +238,30 @@ it('기록 표의 프롬프트 칸은 한국어 이름(작은 코드)과 버전�
   ])
 })
 
+/** 사이드바 프롬프트·평가 아래 하위 탭(워크플로우): 현재 탭의 이름들과 이름으로 찾는 링크. */
+const subnav = () => screen.findByRole('list', { name: '프롬프트·평가 하위 메뉴' })
+const currentSub = async () => within(await subnav()).getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page').map((link) => link.textContent)
+const subTab = (name: string) => within(screen.getByRole('list', { name: '프롬프트·평가 하위 메뉴' })).getByRole('link', { name })
 const nodeButtons = (group: HTMLElement) => within(group).getAllByRole('button').filter((button) => button.classList.contains('pipe-node')).map((button) => [button.querySelector('b')?.textContent, button.querySelector('span')?.textContent])
 
-it('캔버스 위 드롭다운으로 워크플로우를 고른다: 전체가 기본이고 선택은 주소(flow)에 남으며 없거나 모르는 값은 전체다(#857 3차)', async () => {
+it('워크플로우는 캔버스 위 선택 상자가 아니라 사이드바 하위 탭으로 고른다: 선택 상자는 없고 전체가 기본이며, 선택은 주소(flow)에 남고 없거나 모르는 값은 전체다(#857 3차 정정)', async () => {
   renderPipeline()
-  const select = await screen.findByLabelText<HTMLSelectElement>('워크플로우')
-  expect([...select.options].map((o) => [o.value, o.text])).toEqual([
-    ['all', '전체'], ['simulation', '인물 시뮬레이션'], ['preprocessing', '원고 전처리'], ['review', '원고 검수'], ['research', '고증 조사'], ['writing', '기획·집필·수정'],
-  ])
-  expect(select.value).toBe('all')
+  await screen.findByRole('group', { name: '요청 흐름' })
+  expect(screen.queryByLabelText('워크플로우')).toBeNull()
+  expect(await currentSub()).toEqual(['전체'])
   screen.getByRole('img', { name: /^집필 AI 파이프라인: 노드 20개/ })
   cleanup()
   renderPipeline('&flow=simulation')
-  expect((await screen.findByLabelText<HTMLSelectElement>('워크플로우')).value).toBe('simulation')
+  expect(await currentSub()).toEqual(['인물 시뮬레이션'])
   cleanup()
   renderPipeline('&flow=nope')
-  expect((await screen.findByLabelText<HTMLSelectElement>('워크플로우')).value).toBe('all')
+  expect(await currentSub()).toEqual(['전체'])
 })
 
-it('흐름을 고르면 같은 자리에 그 흐름의 단계만 그리고(캔버스 요약·노드 버튼 목록), 서버 노드와 1:1인 단계만 건수를 보이며, 전체로 돌아오면 서버 노드 흐름이 다시 보인다(#857 3차)', async () => {
+it('하위 탭을 누르면 같은 자리에 그 흐름의 단계만 그리고(캔버스 요약·노드 버튼 목록), 서버 노드와 1:1인 단계만 건수를 보이며, 전체 탭으로 돌아오면 서버 노드 흐름이 다시 보인다(#857 3차 정정)', async () => {
   renderPipeline()
-  fireEvent.change(await screen.findByLabelText('워크플로우'), { target: { value: 'simulation' } })
+  await subnav()
+  fireEvent.click(subTab('인물 시뮬레이션'))
   const steps = await screen.findByRole('group', { name: '인물 시뮬레이션 내부 흐름' })
   expect(nodeButtons(steps)).toEqual([
     ['계획', 'LLM 호출'], ['연출 결정', 'LLM 호출'], ['NovelBrain 기억 회상', '18건 · 오류 0건'], ['턴 쓰기', 'LLM 호출'], ['검사', 'LLM 호출'], ['작가 승인·초안 반영', 'LLM 아님'],
@@ -266,9 +269,23 @@ it('흐름을 고르면 같은 자리에 그 흐름의 단계만 그리고(캔�
   screen.getByRole('img', { name: '인물 시뮬레이션 내부 흐름: 단계 6개, 건수·오류가 있는 단계 1개(나머지는 서버 노드가 없어 이름만)' })
   expect(screen.queryByRole('group', { name: '요청 흐름' })).toBeNull()
   expect(screen.queryByRole('group', { name: '단독 기능' })).toBeNull()
-  fireEvent.change(screen.getByLabelText('워크플로우'), { target: { value: 'all' } })
+  expect(await currentSub()).toEqual(['인물 시뮬레이션'])
+  fireEvent.click(subTab('전체'))
   await screen.findByRole('group', { name: '요청 흐름' })
   screen.getByRole('img', { name: /^집필 AI 파이프라인: 노드 20개/ })
+  expect(await currentSub()).toEqual(['전체'])
+})
+
+it('하위 탭으로 흐름을 옮기면 고른 노드와 열어 둔 기록이 닫히고, 전체 탭으로 돌아와도 이전 선택이 다시 열리지 않는다(#857 3차 정정)', async () => {
+  renderPipeline()
+  await pick('Decision Guard')
+  await panel('Decision Guard')
+  fireEvent.click(subTab('원고 검수'))
+  await screen.findByRole('group', { name: '원고 검수 내부 흐름' })
+  expect(screen.queryByRole('region', { name: 'Decision Guard 기록' })).toBeNull()
+  fireEvent.click(subTab('전체'))
+  await screen.findByRole('group', { name: '요청 흐름' })
+  expect(screen.queryByRole('region', { name: 'Decision Guard 기록' })).toBeNull()
 })
 
 it('모든 워크플로우가 정의한 단계를 노드 버튼 목록에 순서대로 그린다(구조용 단계는 점선 표시)', async () => {
@@ -332,7 +349,7 @@ it('노드를 고르면 기록 패널 머리에 프롬프트 보기가 있고(�
   fireEvent.pointerDown(document.body)
   fireEvent.click(sim.getByRole('button', { name: '내부 흐름 보기' }))
   await screen.findByRole('group', { name: '인물 시뮬레이션 내부 흐름' })
-  expect((screen.getByLabelText('워크플로우') as HTMLSelectElement).value).toBe('simulation')
+  expect(await currentSub()).toEqual(['인물 시뮬레이션'])   // 사이드바 하위 탭과 같은 주소로 옮겨 간다
   expect(screen.queryByRole('region', { name: '인물 시뮬레이션 기록' })).toBeNull()   // 흐름을 바꾸면 고른 노드는 닫힌다
   cleanup()
   renderPipeline()
@@ -438,23 +455,6 @@ it('지연은 같은 밀리초 안에 끝난 기록(0)을 1ms 미만으로, 종�
   const flow = within(await screen.findByRole('region', { name: '실행 흐름' }))
   await flow.findByText('RETRIEVER · 1ms 미만')
   flow.getByText('SPAN · —')
-})
-
-it('주소만 바뀌어(뒤로 가기 등) 다른 흐름으로 옮겨도 그 흐름에 속하지 않는 서버 노드의 기록은 남지 않고, 그 흐름의 집계 노드는 그대로 열린다(#857 3차)', async () => {
-  let go: (to: string) => void = () => undefined
-  const Go = () => { go = useNavigate(); return null }
-  render(
-    <Provider store={createAppStore({ role: 'admin' })}>
-      <MemoryRouter initialEntries={['/admin?tab=llm&view=prompts']} useTransitions={false}><Go /><AdminPage /></MemoryRouter>
-    </Provider>,
-  )
-  await pick('Decision Guard')
-  await panel('Decision Guard')
-  act(() => go('/admin?tab=llm&view=prompts&flow=preprocessing'))   // 드롭다운이 아니라 주소로만 옮긴다(노드 선택은 그대로 남는다)
-  await screen.findByRole('group', { name: '원고 전처리 내부 흐름' })
-  expect(screen.queryByRole('region', { name: 'Decision Guard 기록' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '집계 기록 보기' }))
-  await panel('원고 설정 추출')
 })
 
 it('서버 목록에 NovelBrain 노드가 없으면 그 단계도 구조용이라 단계 설명을 보이고 서버에 기록을 묻지 않는다(#857 3차, CodeRabbit 반영)', async () => {

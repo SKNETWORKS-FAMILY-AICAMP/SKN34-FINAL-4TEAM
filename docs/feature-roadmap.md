@@ -668,7 +668,7 @@
 <tr><td>응답 지연 조회</td><td>✅</td></tr>
 <tr><td>실행 성공·실패 상태 조회</td><td>✅</td></tr>
 <tr><td>AI 파이프라인 전체 보기(캔버스·노드별 Guard 판정·단계·도구 호출·NovelBrain 회상 기록)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/654">PR #654</a></td></tr>
-<tr><td>AI 파이프라인 워크플로우(내부 흐름) 선택 보기: 인물 시뮬레이션·원고 전처리·원고 검수·고증 조사·기획·집필·수정의 단계 순서와 단계별 프롬프트 보기 <small>(서버에 단계별 노드가 없어 단계별 건수·오류·기록은 예정)</small></td><td>❌ <small>(부분: 화면·도메인 소스와 메모리 응답만 구현, 병합 전. 서버 숫자는 NovelBrain 기억 회상 단계뿐)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/857">#857</a></td></tr>
+<tr><td>AI 파이프라인 워크플로우(내부 흐름) 보기(사이드바 프롬프트·평가 하위 탭으로 선택): 인물 시뮬레이션·원고 전처리·원고 검수·고증 조사·기획·집필·수정의 단계 순서와 단계별 프롬프트 보기 <small>(서버에 단계별 노드가 없어 단계별 건수·오류·기록은 예정)</small></td><td>❌ <small>(부분: 화면·도메인 소스와 메모리 응답만 구현, 병합 전. 서버 숫자는 NovelBrain 기억 회상 단계뿐)</small></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/857">#857</a></td></tr>
 <tr><td rowspan="9">40-B 프롬프트·모델 버전 관리</td><td>모델 버전 등록</td><td>✅</td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>모델 버전 조회</td><td>✅</td></tr>
 <tr><td>프롬프트 버전 등록</td><td>✅</td></tr>

@@ -66,7 +66,7 @@
 .adm .row-menu.pipe-prompt-menu .pop-menu-btn:hover, .adm .row-menu.pipe-prompt-menu .pop-menu-btn[aria-expanded="true"] { background: none; }
 .adm .pipe-prompt-menu .pop-menu-list [role="menuitem"] { height: auto; padding-top: 8px; padding-bottom: 8px; white-space: normal; }
 
-/* 워크플로우(#857 3차, 캔버스 위 드롭다운): 흐름 설명·서버 집계 줄, 서버 노드가 없는 단계(구조용 노드)는 점선 테두리, 기록 패널 머리의 통계·프롬프트 보기 줄, 단계 설명 패널. */
+/* 워크플로우(#857 3차, 사이드바 하위 탭으로 고른다): 흐름 설명·서버 집계 줄, 서버 노드가 없는 단계(구조용 노드)는 점선 테두리, 기록 패널 머리의 통계·프롬프트 보기 줄, 단계 설명 패널. */
 .adm .admin-pipeline .pipe-flow-caption { margin: 0 0 10px; }
 .adm .admin-pipeline .pipe-flow-caption p { margin: 0 0 4px; }
 .adm .admin-pipeline .pipe-node.structural { border-style: dashed; }

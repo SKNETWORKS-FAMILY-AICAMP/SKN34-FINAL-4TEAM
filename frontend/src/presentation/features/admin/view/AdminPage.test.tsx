@@ -768,6 +768,9 @@ const before = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Nod
 const region = (name: string) => screen.findByRole('region', { name })
 const llmMenu = async () => within(await screen.findByRole('navigation', { name: '관리자 업무' })).getByRole('group', { name: 'LLM Ops' })
 const links = (nav: HTMLElement) => within(nav).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href'), link.getAttribute('aria-current')])
+/** LLM Ops 묶음의 쪽 링크 셋(프롬프트·평가 아래 하위 탭 링크는 뺀다). */
+const pageLinks = (group: HTMLElement) => within(group).getAllByRole('link').filter((link) => !link.closest('ul'))
+const subnav = () => screen.findByRole('list', { name: '프롬프트·평가 하위 메뉴' })
 
 it('LLM Ops 에이전트 지표 쪽(기본)은 지표 보기에서 AI 요청·경고 요약 카드 → 최근 7일 AI 사용 → 에이전트별 지표를 위에서부터 쌓고, 추적은 보기 전환으로 옮겨 본다', async () => {
   renderAdmin('llm')
@@ -867,11 +870,11 @@ it('LLM Ops 프롬프트·평가 쪽은 보기 전환(sub)에 따라 전체(AI �
 })
 
 it('사이드바는 서비스 운영 묶음 위에 LLM Ops 묶음(에이전트 지표·프롬프트·평가·경고·누설 감시)을 두고, 현재 표시는 탭과 view가 모두 같은 메뉴에만 있다', async () => {
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')   // 하위 탭(워크플로우)이 켜지지 않는 보기라 쪽 링크가 현재 표시를 가진다
   const group = await llmMenu()
-  const items = within(group).getAllByRole('link')
+  const items = pageLinks(group)
   expect(items.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
-    ['에이전트 지표', '/admin?tab=llm'], ['프롬프트·평가', '/admin?tab=llm&view=prompts'], ['경고·누설 감시', '/admin?tab=llm&view=alerts'],
+    ['에이전트 지표', '/admin?tab=llm'], ['프롬프트·평가▾', '/admin?tab=llm&view=prompts'], ['경고·누설 감시', '/admin?tab=llm&view=alerts'],   // ▾는 하위 탭이 펼쳐졌다는 장식 표시(aria-hidden)
   ])
   expect(items.map((link) => [link.getAttribute('aria-current'), link.classList.contains('on')])).toEqual([[null, false], ['page', true], [null, false]])
   const menu = screen.getByRole('navigation', { name: '관리자 업무' })
@@ -880,10 +883,80 @@ it('사이드바는 서비스 운영 묶음 위에 LLM Ops 묶음(에이전트 �
   // 모르는 view는 에이전트 지표 메뉴가 켜지고, 다른 탭에서는 세 메뉴 모두 꺼진다.
   cleanup()
   renderAdmin('llm', 'nope')
-  expect(within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual(['page', null, null])
+  expect(pageLinks(await llmMenu()).map((link) => link.getAttribute('aria-current'))).toEqual(['page', null, null])
   cleanup()
   renderAdmin('jobs')
-  expect(within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual([null, null, null])
+  expect(pageLinks(await llmMenu()).map((link) => link.getAttribute('aria-current'))).toEqual([null, null, null])
+})
+
+it('프롬프트·평가는 사이드바에서 그 아래 하위 탭(전체·인물 시뮬레이션·원고 전처리·원고 검수·고증 조사·기획·집필·수정)으로 펼쳐지고, 펼침 표시(▾)·aria-expanded와 현재 하위 탭(aria-current)을 보인다(#857 3차 정정)', async () => {
+  renderAdmin('llm', 'prompts')
+  const group = await llmMenu()
+  const parent = within(group).getByRole('link', { name: '프롬프트·평가' })   // 이름은 보이는 글자 그대로(▾는 읽지 않는다)
+  expect([parent.getAttribute('aria-expanded'), parent.getAttribute('aria-controls'), parent.querySelector('.nav-caret')?.textContent, parent.querySelector('.nav-caret')?.getAttribute('aria-hidden')])
+    .toEqual(['true', 'admin-prompts-subnav', '▾', 'true'])
+  const sub = await subnav()
+  expect(sub.id).toBe('admin-prompts-subnav')
+  expect(links(sub)).toEqual([
+    ['전체', '/admin?tab=llm&view=prompts', 'page'],
+    ['인물 시뮬레이션', '/admin?tab=llm&view=prompts&flow=simulation', null],
+    ['원고 전처리', '/admin?tab=llm&view=prompts&flow=preprocessing', null],
+    ['원고 검수', '/admin?tab=llm&view=prompts&flow=review', null],
+    ['고증 조사', '/admin?tab=llm&view=prompts&flow=research', null],
+    ['기획·집필·수정', '/admin?tab=llm&view=prompts&flow=writing', null],
+  ])
+  // 쪽을 가리키는 현재 표시는 한 곳에만 둔다: 하위 탭이 켜져 있으면 쪽 링크(부모)는 열림 표시만 한다.
+  expect([parent.getAttribute('aria-current'), parent.classList.contains('on'), parent.classList.contains('open')]).toEqual([null, false, true])
+  expect(within(group).getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page')).toHaveLength(1)
+  // 캔버스 위 선택 상자는 없다(워크플로우는 사이드바 하위 탭으로 고른다).
+  expect(screen.queryByLabelText('워크플로우')).toBeNull()
+})
+
+it('켜진 하위 탭은 주소의 flow를 따르고(없거나 모르는 값은 전체), 에이전트별 평가·프롬프트·모델 보기에서는 하위 탭이 켜지지 않고 쪽 링크가 현재 표시를 가진다(#857 3차 정정)', async () => {
+  const current = async () => links(await subnav()).filter(([, , aria]) => aria).map(([text]) => text)
+  renderAdmin('llm', 'prompts&flow=simulation')
+  expect(await current()).toEqual(['인물 시뮬레이션'])
+  cleanup()
+  renderAdmin('llm', 'prompts&flow=nope')
+  expect(await current()).toEqual(['전체'])
+  cleanup()
+  for (const view of ['evals', 'prompts', 'models']) {
+    renderAdmin('llm', `prompts&sub=${view}&flow=simulation`)
+    expect(await current(), view).toEqual([])
+    const parent = within(await llmMenu()).getByRole('link', { name: '프롬프트·평가' })
+    expect([parent.getAttribute('aria-current'), parent.classList.contains('on'), parent.getAttribute('aria-expanded')], view).toEqual(['page', true, 'true'])
+    cleanup()
+  }
+})
+
+it('프롬프트·평가가 아닌 쪽에서는 하위 탭이 접히고(▸·aria-expanded=false·읽히지 않음), 쪽 링크를 누르면 그 쪽으로 가며 펼쳐진다(#857 3차 정정)', async () => {
+  renderAdmin('jobs')
+  const group = await llmMenu()
+  const parent = within(group).getByRole('link', { name: '프롬프트·평가' })
+  expect([parent.getAttribute('aria-expanded'), parent.querySelector('.nav-caret')?.textContent, parent.classList.contains('open')]).toEqual(['false', '▸', false])
+  expect(within(group).queryByRole('list', { name: '프롬프트·평가 하위 메뉴' })).toBeNull()
+  expect(document.getElementById('admin-prompts-subnav')?.hidden).toBe(true)   // aria-controls가 가리키는 목록은 있되 접혀 있다
+  expect(within(group).getAllByRole('link')).toHaveLength(3)
+  fireEvent.click(parent)
+  expect(links(await subnav())[0]).toEqual(['전체', '/admin?tab=llm&view=prompts', 'page'])
+  expect([parent.getAttribute('aria-expanded'), parent.querySelector('.nav-caret')?.textContent]).toEqual(['true', '▾'])
+  // 에이전트 지표·경고·누설 감시 쪽에서도 접혀 있다.
+  cleanup()
+  renderAdmin('llm', 'alerts')
+  expect(within(await llmMenu()).getByRole('link', { name: '프롬프트·평가' }).getAttribute('aria-expanded')).toBe('false')
+})
+
+it('하위 탭이 현재 항목이 되면 가로 메뉴 줄(900px 이하)에서 그 하위 탭이 보이게 메뉴를 옮긴다(#857 3차 정정)', async () => {
+  renderAdmin('llm', 'prompts')
+  const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
+  const rect = (top: number, bottom: number, left: number, right: number) => ({ top, bottom, left, right, width: right - left, height: bottom - top, x: left, y: top, toJSON: () => ({}) }) as DOMRect
+  for (const [prop, value] of Object.entries({ scrollHeight: 400, scrollWidth: 900, clientWidth: 300 })) Object.defineProperty(menu, prop, { configurable: true, value })
+  vi.spyOn(menu, 'getBoundingClientRect').mockReturnValue(rect(0, 400, 0, 300))
+  const link = within(menu).getByRole('link', { name: '기획·집필·수정' })
+  vi.spyOn(link, 'getBoundingClientRect').mockReturnValue(rect(0, 38, 400, 480))
+  fireEvent.click(link)
+  await waitFor(() => expect(link.getAttribute('aria-current')).toBe('page'))
+  expect(menu.scrollLeft).toBe(196)   // 오른쪽으로 벗어남: 오른쪽 가장자리에서 16px 여유
 })
 
 it('LLM Ops 화면 제목과 문서 제목은 쪽 이름을 붙인다', async () => {

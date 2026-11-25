@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { LLM_PAGES, METRICS_SUBS, PIPELINE_FLOWS, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptSub, promptSubHref } from '../entities/admin'
+import { LLM_PAGES, METRICS_SUBS, PIPELINE_FLOWS, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptNavState, promptSub, promptSubHref } from '../entities/admin'
 
 it('관리자 로그인 복귀는 허용 탭만 보존하고 외부 경로·임의 쿼리를 버린다', () => {
   expect(adminReturnPath('?tab=notices')).toBe('/admin?tab=notices')
@@ -80,4 +80,19 @@ it('로그인 복귀는 전체(AI 파이프라인) 보기의 알려진 flow만 �
   expect(adminReturnPath('?tab=llm&view=prompts&sub=evals&flow=simulation')).toBe('/admin?tab=llm&view=prompts&sub=evals')
   expect(adminReturnPath('?tab=llm&view=alerts&flow=simulation')).toBe('/admin?tab=llm&view=alerts')
   expect(adminReturnPath('?tab=llm&flow=simulation')).toBe('/admin?tab=llm')
+})
+
+it('사이드바 프롬프트·평가의 하위 탭은 그 쪽에서만 펼쳐지고, 켜진 하위 탭은 AI 파이프라인(전체) 보기의 flow 하나다(#857 3차 정정)', () => {
+  const state = promptNavState
+  // 프롬프트·평가의 AI 파이프라인(전체) 보기: 펼쳐지고 flow가 켜진 하위 탭이다(없거나 모르는 flow는 전체).
+  expect(state('llm', 'prompts', null, null)).toEqual({ open: true, current: 'all' })
+  expect(state('llm', 'prompts', 'all', 'simulation')).toEqual({ open: true, current: 'simulation' })
+  expect(state('llm', 'prompts', null, 'writing')).toEqual({ open: true, current: 'writing' })
+  expect(state('llm', 'prompts', null, 'nope')).toEqual({ open: true, current: 'all' })
+  // 같은 쪽의 다른 보기(에이전트별 평가·프롬프트·모델)는 하위 탭이 아니라 펼쳐지기만 하고 켜진 하위 탭이 없다(flow가 붙어 있어도 무시한다).
+  for (const sub of ['evals', 'prompts', 'models']) expect(state('llm', 'prompts', sub, 'simulation'), sub).toEqual({ open: true, current: null })
+  // 다른 쪽·다른 탭에서는 접힌다(탭이 llm이 아니면 view가 prompts여도 접힌다).
+  expect(state('llm', 'metrics', null, 'simulation')).toEqual({ open: false, current: null })
+  expect(state('llm', 'alerts', null, null)).toEqual({ open: false, current: null })
+  expect(state('jobs', 'prompts', null, 'simulation')).toEqual({ open: false, current: null })
 })

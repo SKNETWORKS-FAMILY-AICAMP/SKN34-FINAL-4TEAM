@@ -2,7 +2,7 @@ import type { PipelineFlowKey } from './admin'
 import type { PipelineNode } from './llmOpsPipeline'
 
 /**
- * 워크플로우(내부 흐름) 정의(#857 3차): AI 파이프라인 보기의 드롭다운이 고르는 흐름. '전체'(서버 노드 흐름)는 정의가 없고, 내부에 순서 있는 여러 LLM 단계가 있는 에이전트마다 하나씩 있다.
+ * 워크플로우(내부 흐름) 정의(#857 3차): 사이드바 '프롬프트·평가' 하위 탭이 고르는 흐름. '전체'(서버 노드 흐름)는 정의가 없고, 내부에 순서 있는 여러 LLM 단계가 있는 에이전트마다 하나씩 있다.
  * 단계·순서·프롬프트는 코드(backend/ai-service/app)와 설계 문서가 근거이고, 같은 에이전트의 프롬프트 전체와 같은지 llmOpsFlows.test.ts가 SEEDS(prompts.py)와 대조한다.
  * 건수·오류는 서버 고정 노드(GET /llmops/pipeline)가 있는 단계(server)에만 보인다. 서버 노드가 없는 단계는 구조용 노드(이름만, 점선)이고, 단계별 서버 노드는 예정이다
  * (docs/design/operations-ai-pipeline-contract.md). 서버가 지금 한 노드로 함께 세는 호출은 흐름의 parent 노드 집계로만 보인다.

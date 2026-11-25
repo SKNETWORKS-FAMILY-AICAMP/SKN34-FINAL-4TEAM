@@ -1,6 +1,6 @@
 import { Fragment, Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 'react'
 
-import { PIPELINE_FLOWS, pipelineFlowKey, type PipelineFlowKey } from '../../../../domain/entities/admin'
+import { PIPELINE_FLOWS, type PipelineFlowKey } from '../../../../domain/entities/admin'
 import { LLM_FORBIDDEN, PERIODS, bodyText, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
 import { FLOW_DEFS, flowNodes, flowOfNode, isFlowStepId, type FlowDef } from '../../../../domain/entities/llmOpsFlows'
 import {
@@ -25,7 +25,7 @@ const PipelineCanvas = lazy(() => import('./AdminPipelineCanvas'))
  * 그 노드의 observation 기록(결과 필터·표, 펼치면 입력·출력·메타데이터·도구 호출, 실행 흐름, 프롬프트 보기)을 캔버스와 노드 버튼 아래에 전체 폭으로 보인다(옆에 두면 표가 반쪽 폭에서 넘친다).
  * 캔버스는 보조라 같은 노드를 키보드로 고르는 버튼 목록을 캔버스 아래에 둔다. 노드를 고르면 기록 제목으로, 닫으면 눌렀던 노드 버튼으로 초점을 옮긴다.
  * 프롬프트가 연결된 노드는 노드 버튼 목록과 기록 패널 머리에 '프롬프트 보기'(NodePromptLink: 하나면 버튼·여럿이면 목록·없으면 없음, #857)가 있어 프롬프트 상세(개선 루프)로 바로 갑니다. 캔버스 위에는 두지 않습니다.
- * 캔버스 위 드롭다운(워크플로우, 주소 flow, #857 3차)은 전체(서버 노드 흐름)와 내부에 여러 LLM 단계가 있는 에이전트의 내부 흐름 중 하나를 같은 자리에 그립니다. 흐름의 단계는 코드 근거로 정한 도메인 상수(llmOpsFlows)이고
+ * 워크플로우(주소 flow, #857 3차)는 사이드바 '프롬프트·평가' 아래 하위 탭이 고르고(3차 정정: 캔버스 위 선택 상자는 없다), 전체(서버 노드 흐름)와 내부에 여러 LLM 단계가 있는 에이전트의 내부 흐름 중 하나를 같은 자리에 그립니다. 흐름의 단계는 코드 근거로 정한 도메인 상수(llmOpsFlows)이고
  * 건수·오류는 서버 노드와 1:1인 단계에만 있으며, 서버 노드가 없는 단계는 점선 구조용 노드(이름만, 고르면 단계 설명)입니다. 전체에서 내부 흐름이 있는 노드를 고르면 기록 패널에 '내부 흐름 보기'가 있습니다.
  */
 export function AdminPipeline({ vm, l, workflow, onWorkflow }: { vm: VM; l: LlmVM; workflow: PipelineFlowKey; onWorkflow: (workflow: PipelineFlowKey) => void }) {
@@ -45,12 +45,6 @@ export function AdminPipeline({ vm, l, workflow, onWorkflow }: { vm: VM; l: LlmV
           기간
           <select className="inp" value={l.pipelineHours} onChange={(e) => l.setPipelineHours(Number(e.target.value))}>
             {PERIODS.map(([hours, label]) => <option key={hours} value={hours}>{label}</option>)}
-          </select>
-        </label>
-        <label className="field">
-          워크플로우
-          <select className="inp" value={workflow} onChange={(e) => onWorkflow(pipelineFlowKey(e.target.value))}>
-            {PIPELINE_FLOWS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
         </label>
       </div>

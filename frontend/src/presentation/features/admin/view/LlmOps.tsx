@@ -38,9 +38,9 @@ export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
   const params = useSearchParams()[0]
   const rawSub = params.get('sub')
   const metrics = metricsSub(rawSub), prompts = promptSub(rawSub), workflow = pipelineFlowKey(params.get('flow'))
-  const l = useLlmOpsViewModel(vm.live.mutate, page, (next, nextSub) => navigate(placeHref(next, nextSub)), page === 'metrics' ? metrics : prompts)
-  // 워크플로우(주소 flow, AI 파이프라인 보기)를 바꾸면 고른 노드·열어 둔 기록은 닫습니다(다른 그림의 노드라 이어 볼 수 없습니다).
-  const onWorkflow = (next: PipelineFlowKey) => { l.closeNode(); navigate(pipelineFlowHref(next)) }
+  const l = useLlmOpsViewModel(vm.live.mutate, page, (next, nextSub) => navigate(placeHref(next, nextSub)), page === 'metrics' ? metrics : prompts, workflow)
+  // 워크플로우(주소 flow, AI 파이프라인 보기)는 사이드바 하위 탭이 고르고, 기록 패널의 '내부 흐름 보기'는 같은 주소로 옮겨 갑니다(VM이 주소가 바뀌면 고른 노드를 닫습니다).
+  const onWorkflow = (next: PipelineFlowKey) => navigate(pipelineFlowHref(next))
   // 목록에서 상세를 열면 상세 제목으로, 닫으면 눌렀던 목록 버튼으로 초점을 옮깁니다(프롬프트 상세 안의 평가 Run은 평가 단계가 따로 맡습니다).
   const root = useAdminDetailFocus(l.traceId ?? l.promptName, !!(l.trace.data || l.prompt.data))
   return (

@@ -50,8 +50,8 @@ export const promptSub = (v: string | null): PromptSub => PROMPT_SUBS.find(([sub
 export const promptSubHref = (sub: PromptSub) => sub === 'all' ? llmPageHref('prompts') : `${llmPageHref('prompts')}&sub=${sub}`
 
 /**
- * AI 파이프라인(전체) 보기의 워크플로우 선택(주소 `&flow=`, #857 3차): 전체(서버 노드 흐름, 기본)와, 내부에 순서 있는 여러 LLM 단계가 있는 에이전트의 내부 흐름 하나씩입니다.
- * 키가 주소에 남는 값이고 각 흐름의 단계·연결은 llmOpsFlows.ts에 있습니다. 없거나 모르는 값은 전체입니다.
+ * AI 파이프라인(전체) 보기의 워크플로우(주소 `&flow=`, #857 3차): 전체(서버 노드 흐름, 기본)와, 내부에 순서 있는 여러 LLM 단계가 있는 에이전트의 내부 흐름 하나씩입니다.
+ * 사이드바 '프롬프트·평가' 아래 하위 탭이 이 목록 그대로입니다(3차 정정: 캔버스 위 선택 상자를 없앴습니다). 키가 주소에 남는 값이고 각 흐름의 단계·연결은 llmOpsFlows.ts에 있습니다. 없거나 모르는 값은 전체입니다.
  */
 export const PIPELINE_FLOWS = [
   ['all', '전체'], ['simulation', '인물 시뮬레이션'], ['preprocessing', '원고 전처리'], ['review', '원고 검수'], ['research', '고증 조사'], ['writing', '기획·집필·수정'],
@@ -60,6 +60,15 @@ export type PipelineFlowKey = (typeof PIPELINE_FLOWS)[number][0]
 export const pipelineFlowKey = (v: string | null): PipelineFlowKey => PIPELINE_FLOWS.find(([key]) => key === v)?.[0] ?? 'all'
 /** 전체만 flow 없는 주소입니다(전체는 프롬프트·평가 쪽의 기본 보기라 sub도 없습니다). */
 export const pipelineFlowHref = (flow: PipelineFlowKey) => flow === 'all' ? promptSubHref('all') : `${promptSubHref('all')}&flow=${flow}`
+
+/**
+ * 사이드바 '프롬프트·평가' 아래 하위 탭(워크플로우, #857 3차 정정)의 상태입니다(주소만으로 정해집니다). 하위 탭은 그 쪽에 있을 때만 펼쳐지고(open),
+ * 켜진 하위 탭(current)은 AI 파이프라인(전체) 보기의 flow 하나입니다. 같은 쪽의 다른 보기(에이전트별 평가·프롬프트·모델)는 하위 탭이 아니라 펼쳐지기만 하고 켜진 하위 탭이 없습니다.
+ */
+export function promptNavState(tab: AdminTab, page: LlmPage, sub: string | null, flow: string | null): { open: boolean; current: PipelineFlowKey | null } {
+  const open = tab === 'llm' && page === 'prompts'
+  return { open, current: open && promptSub(sub) === 'all' ? pipelineFlowKey(flow) : null }
+}
 
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
 export function adminReturnPath(search: string): string {
