@@ -177,10 +177,10 @@ class ManuscriptBuildServiceTest {
     @Test fun `status sums the items the AI left out over the extraction results only`() {
         val job=job("failed")
         `when`(results.findAllByJobIdOrderByEpisode(job.id)).thenReturn(listOf(
-            saved(job,"extraction",1,mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 2,"SEMANTIC_TYPE_CONFLICT" to 1))),
-            saved(job,"extraction",2,mapOf("skipped" to emptyMap<String,Int>())),
-            saved(job,"extraction",3,mapOf("number" to 3)),
-            saved(job,"identity",0,mapOf("skipped" to mapOf("IGNORED" to 9)))))
+            saved(job,"extraction",1,mapOf("extraction" to mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 2,"SEMANTIC_TYPE_CONFLICT" to 1)))),
+            saved(job,"extraction",2,mapOf("extraction" to mapOf("skipped" to emptyMap<String,Int>()))),
+            saved(job,"extraction",3,mapOf("extraction" to mapOf("number" to 3))),
+            saved(job,"identity",0,mapOf("extraction" to mapOf("skipped" to mapOf("IGNORED" to 9))))))
         val response=service.status(job.id,owner)!!
         assertEquals(3,response.skippedItems)
         assertEquals(3,response.completedEpisodes)
@@ -190,7 +190,7 @@ class ManuscriptBuildServiceTest {
         val token=UUID.randomUUID()
         val job=job("completed",token)
         val found=listOf(
-            saved(job,"extraction",1,mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 3))),
+            saved(job,"extraction",1,mapOf("extraction" to mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 3)))),
             saved(job,"identity",0,mapOf("skippedLinks" to 1)),
             saved(job,"payload",0,mapOf("relations" to List(5) { emptyMap<String,Any?>() })),
         )

@@ -64,8 +64,8 @@ class ManuscriptBuildService(
             saved.mapNotNull { it.receipt?.let { receipt -> mapper.convertValue(receipt,ManuscriptLoadReceipt::class.java) } },
             extractions.sumOf { skippedItems(it.content) }+skippedLinks+skippedRelations,job.requestKey)
     }
-    /** 추출 결과의 skipped(코드별 건수)를 더한다. 이 필드가 없던 옛 결과는 0이다. */
-    private fun skippedItems(extraction:Map<String,Any?>)=(extraction["skipped"] as? Map<*,*>)?.values?.sumOf { (it as? Number)?.toInt() ?: 0 } ?: 0
+    /** 저장된 추출 결과({basis,evidence,extraction})에서 extraction의 skipped(코드별 건수)를 더한다. 이 필드가 없던 옛 결과는 0이다. */
+    private fun skippedItems(content:Map<String,Any?>)=((content["extraction"] as? Map<*,*>)?.get("skipped") as? Map<*,*>)?.values?.sumOf { (it as? Number)?.toInt() ?: 0 } ?: 0
     /**
      * 지금 원고가 고정한 입력과 다르다. 회차가 지워지거나 미저장이 돼 고정할 수 없는 경우도 바뀐 것으로 본다.
      * 업데이트 작업은 고정한 회차의 발행본만 보고(다른 회차의 새 발행은 다음 업데이트 몫이다) 발행이 중단되거나 다른 버전으로 바뀌어도 바뀐 것이다.
