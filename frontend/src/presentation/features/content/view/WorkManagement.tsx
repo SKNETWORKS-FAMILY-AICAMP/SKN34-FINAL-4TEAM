@@ -406,12 +406,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   )
 }
 
-/**
- * 공개 회차 머리의 '세계관 추출 중'·'세계관 업데이트 중' 배지다(initial-build-storage-contract). 세계관 탭 패널과 같은 `useManuscriptBuild`의 조회·2초 갱신을 그대로 쓰되 진행 중(queued·running·loading)일 때만 보인다.
- * 최초 구축이 먼저이고(둘 다 진행 중이면 '세계관 추출 중'), 발행 회차 업데이트(`job.update`)는 그다음이다(판정은 `worldBuildBadge`).
- * 작업 없음(404)·끝난 작업·조회 실패는 그리지 않는다: 실패를 완료나 진행 중으로 보이지 않고 오류는 패널이 보인다.
- * ponytail: 진행 중 조회가 한 번 실패하면 배지는 사라지고 탭을 옮기거나 새로 고칠 때까지 다시 읽지 않는다. 재시도·알림 연동은 후속.
- */
 /** 이력 탭의 한 묶음(발행 이력·원고 저장본·AI 요청·제안): 제목(h3)이 이름인 카드 구획이다(세계관·설정집 탭의 카드와 같은 `tcard ep-card`). */
 function HistoryCard({ title, children }: { title: string; children: ReactNode }) {
   const id = useId()
