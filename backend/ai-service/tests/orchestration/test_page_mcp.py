@@ -348,11 +348,12 @@ def test_every_write_tool_waits_for_approval_with_its_fixed_label(monkeypatch, n
 
 
 @pytest.mark.parametrize('name, kind, sent', [('story_plan_create', 'plot', None), ('story_plan_create', 'scene', 0),
+                                              ('story_plan_create', None, None),
                                               ('story_plan_update', 'plot', None), ('story_plan_update', 'scene', None)])
 def test_only_a_new_scene_plan_keeps_the_position_the_model_gave(monkeypatch, name, kind, sent):
     """모델이 story_plan_read 결과의 position을 그대로 실으면 Content가 422로 거절한다(#774). 플롯은 순서가 없고,
     읽은 장면 순번에는 삭제로 생긴 빈자리가 있어 이동 위치로 쓸 수 없으므로 수정에서는 뺀다(순서는 그대로 남는다)."""
-    data = {'kind': kind, 'title': '첫 장면', 'content': '', 'position': 0}
+    data = {'title': '첫 장면', 'content': '', 'position': 0, **({'kind': kind} if kind else {})}  # kind가 없어도 Content 규칙(장면만 position 허용)대로 뺀다
     fake_agents(monkeypatch, only_content((name, {'workId': 'work', 'id': 'p', 'data': data})))
     log = content(monkeypatch)
     thread = str(uuid4())
@@ -686,6 +687,47 @@ def test_an_edited_card_text_is_what_gets_written_and_the_model_is_told_it_was_e
     assert sent['request']['cards'][0]['id'] == 'k' and (sent['request']['cards'][0]['title'], sent['request']['cards'][0]['body']) == ('카엘 경', '작가가 고친 설명.')
     told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'world_studio_edit_draft')
     assert told.status == 'success' and 'reviewer replaced this tool call' in told.content  # 라이브러리 안내: 모델이 원래 인자를 다시 보내지 않게 한다
+
+
+PLAN = {'workId': 'work', 'data': {'kind': 'plot', 'title': '1막', 'content': '모델 내용'}}
+
+
+def write_result(monkeypatch, answer):
+    """story_plan_create 승인 대기에서 answer로 이어 갈 때 모델이 받은 쓰기 결과 JSON."""
+    calls = fake_agents(monkeypatch, only_content(('story_plan_create', PLAN)))
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread)
+    answer(thread)
+    told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'story_plan_create').content
+    return json.loads(told.rsplit('\n', 1)[-1])  # 고쳐서 승인이면 라이브러리 안내문이 앞에 붙고 결과 JSON은 마지막 줄이다
+
+
+@pytest.mark.parametrize('changed, fields', [
+    ({'title': '작가 제목', 'content': '작가 내용'}, ['content', 'title']),
+    ({'title': '작가 제목'}, ['title']),
+])
+def test_an_edited_write_result_names_the_text_fields_the_author_changed(monkeypatch, changed, fields):
+    result = write_result(monkeypatch, lambda thread: edit(thread, {**PLAN, 'data': {**PLAN['data'], **changed}}))
+    assert result['status'] == 'applied' and result['authorEdited'] == fields
+
+
+def test_a_plain_approval_result_has_no_author_edited(monkeypatch):
+    assert 'authorEdited' not in write_result(monkeypatch, lambda thread: resume(thread, True))
+
+
+CARDS = {'id': 'world', 'request': {'cards': [{'id': 'a', 'title': '가', 'body': '본문'}, {'id': 'b', 'title': '나', 'body': '본문'}]}}
+
+
+@pytest.mark.parametrize('name, asked, edited, fields', [
+    ('work_update', {'id': 'work', 'data': {'title': '제목', 'summary': '소개', 'revision': 1}},
+     {'id': 'work', 'data': {'title': '제목', 'summary': '새 소개', 'revision': 1}}, ['summary']),
+    ('world_studio_edit_draft', CARDS,
+     {'id': 'world', 'request': {'cards': [CARDS['request']['cards'][0], {'id': 'b', 'title': '나', 'body': '새 본문'}]}}, ['body']),
+    ('story_plan_create', PLAN, PLAN, []),  # 고쳐서 승인했지만 바꾼 글이 없으면 authorEdited가 없다(execute는 빈 목록을 싣지 않는다)
+])
+def test_edited_fields_names_only_the_changed_text_fields(name, asked, edited, fields):
+    assert mcp_tools.edited_fields(name, asked, edited) == fields
 
 
 @pytest.mark.parametrize('name, args, edited', [

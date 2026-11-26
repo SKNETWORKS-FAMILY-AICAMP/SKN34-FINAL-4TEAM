@@ -52,7 +52,7 @@ def patch(data: PatchRequest) -> PatchResponse:
 def pick_plan(data: PlanPickRequest) -> str | None:
     """계획 수정 모델 호출 1: 요청이 가리키는 계획 하나의 id. 하나로 정할 수 없으면 None이다. 목록에 있는지는 호출한 쪽이 확인한다."""
     _, result = agent_runtime.run('writing.plan_pick', '계획 선택', WritingFailure, PICK_PLAN_INSTRUCTIONS, data.model_dump(),
-                                  prompt_name='writing_editing.plan_pick', max_tokens=200, timeout=30, trace=data.model_dump(), schema=PlanPick)
+                                  prompt_name='writing_editing.plan_pick', max_tokens=2000, timeout=30, trace=data.model_dump(), schema=PlanPick)  # 추론 토큰도 한도에 포함된다(#867)
     return result.planId
 
 

@@ -68,6 +68,39 @@ def test_tool_errors_keep_content_status_and_detail_or_close_as_502(monkeypatch,
     assert (error.value.status, str(error.value)) == (status, message)
 
 
+def test_unpassed_tool_error_keeps_502_but_leaves_original_status_and_code_in_log_and_trace(monkeypatch, caplog):
+    updates = []
+    monkeypatch.setattr(service.tracing, 'client', lambda: type('C', (), {'update_current_span': lambda self, **kw: updates.append(kw)})())
+    content(monkeypatch, {'episode_read': (True, 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE\n관계 저장이 미완료입니다. ' + '가' * 300)})
+    with caplog.at_level('WARNING', logger=service.logger.name):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.call('episode_read', {'id': 'work', 'number': 3})
+    assert (error.value.status, str(error.value)) == (502, 'Content 작업에 실패했습니다.')
+    assert 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE' in caplog.text and '관계 저장' not in caplog.text  # detail은 남기지 않는다
+    assert updates[0]['metadata']['contentError'] == 'HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE'  # status_message는 observe가 덮는다
+
+
+def test_a_non_http_tool_error_is_logged_without_its_text(monkeypatch, caplog):
+    updates = []
+    monkeypatch.setattr(service.tracing, 'client', lambda: type('C', (), {'update_current_span': lambda self, **kw: updates.append(kw)})())
+    content(monkeypatch, {'episode_read': (True, 'Error invoking method: cannot deserialize "원고 문장"')})
+    with caplog.at_level('WARNING', logger=service.logger.name):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.call('episode_read', {'id': 'work', 'number': 3})
+    assert error.value.status == 502 and '원고 문장' not in caplog.text and 'HTTP 형식이 아닌 도구 오류' in caplog.text
+    assert updates == [{'metadata': {'contentError': 'HTTP 형식이 아닌 도구 오류'}}]  # 추적에도 원문을 넣지 않는다
+
+
+def test_passed_4xx_tool_error_is_not_logged_as_a_warning(monkeypatch, caplog):
+    updates = []
+    monkeypatch.setattr(service.tracing, 'client', lambda: type('C', (), {'update_current_span': lambda self, **kw: updates.append(kw)})())
+    content(monkeypatch, {'episode_read': (True, 'HTTP 409 CONFLICT\n초안이 최신이 아니에요.')})
+    with caplog.at_level('WARNING', logger=service.logger.name):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.call('episode_read', {'id': 'work', 'number': 3})
+    assert (error.value.status, str(error.value)) == (409, '초안이 최신이 아니에요.') and caplog.records == [] and updates == []
+
+
 def test_missing_user_token_or_base_url_never_calls_content(monkeypatch):
     calls = content(monkeypatch, {}, authorization='')
     with pytest.raises(ContentMcpFailure) as error:

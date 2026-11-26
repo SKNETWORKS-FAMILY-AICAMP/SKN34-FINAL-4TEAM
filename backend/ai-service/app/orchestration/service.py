@@ -561,6 +561,8 @@ async def _target(data: OrchestrationRequest):
         answer = {'decisions': [{**decision, 'args': edited if edited is not None else a['args']} for a in asked]}
         if token := data.resume.scope:  # 결정에는 실을 자리가 없어 이 요청의 설정으로 넘긴다. WriteApproval이 저장한다(#678).
             config = merge_configs(config, {'configurable': {agent.RESUME_SCOPE: token.model_dump()}})
+        if edited is not None:  # 쓰기 결과의 authorEdited가 된다(#875)
+            config = merge_configs(config, {'configurable': {mcp_tools.AUTHOR_EDITED: mcp_tools.edited_fields(asked[0]['name'], asked[0]['args'], edited)}})
     return CHAT, config, Command(resume=answer), dict(snapshot.values)
 
 
