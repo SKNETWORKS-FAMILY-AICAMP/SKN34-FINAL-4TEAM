@@ -116,6 +116,90 @@ class ManuscriptStructureVerifierTest {
         assertEquals("a\nb",ManuscriptStructureVerifier.fit(listOf("a","b","a")))
     }
 
+    // ---- 업데이트: 새 회차의 인물을 기존 인물과 이은 AI 링크(#952). 근거·후보 수·같은 사건·관계 동시 등장을 검증해 요청 카드별 결정을 낸다 ----
+
+    private fun updateEpisode(n:Int,source:String,mentions:List<Triple<String,String,String>>,events:List<List<String>> = emptyList(),relations:List<Pair<String,String>> = emptyList(),facts:List<List<String>> = emptyList())=
+        ManuscriptEpisodeResult(ManuscriptBuildResultBasis(n,"version-$n","hash-$n"),emptyList(),mapOf("source" to source,
+            "mentions" to mentions.map { (id,name,kind)->mapOf("id" to id,"name" to name,"kind" to kind,"quote" to source) },
+            "statements" to events.mapIndexed { i,subjects->mapOf("id" to "s$i","kind" to "event","subjects" to subjects) }+facts.mapIndexed { i,subjects->mapOf("id" to "f$i","kind" to "fact","subjects" to subjects) },
+            "relationships" to relations.mapIndexed { i,(from,to)->mapOf("id" to "r$i","source" to from,"target" to to) }))
+    private fun knownLink(left:String,right:String,quote:String,basis:String="explicit_alias",confirmedAt:Int=2,evidenceEpisode:Int=confirmedAt)=
+        mapOf("left" to left,"right" to right,"basis" to basis,"confirmedAt" to confirmedAt,"evidenceEpisode" to evidenceEpisode,"quote" to quote)
+    private fun knownIdentity(mapping:Map<String,String>,vararg links:Map<String,Any>):JsonNode=mapper.valueToTree(mapOf("mapping" to mapping,"knownLinks" to links.toList()))
+    private val knownNames=listOf(setOf("치삼","황 노인"),setOf("영희"))
+    private fun judge(episodes:List<ManuscriptEpisodeResult>,identity:JsonNode,names:List<Set<String>> = knownNames)=ManuscriptStructureVerifier.knownMatches(episodes,identity,names,mapper)
+    private val longName="김치삼은 장터로 나갔다."
+    private val oneMention=listOf(Triple("m1","김치삼","character"))
+    private val toCardA=mapOf("2:m1" to "card-a")
+
+    @Test fun `the known links the AI service wrote are read back as the same decisions`() {
+        // 파이썬 service.resolve·organize가 만든 ai-result-known.json이다(기존 인물 치삼·영희, 새 2화의 김치삼은 같은 인물, 박서방은 작가 확인).
+        val update=mapper.readTree(checkNotNull(javaClass.getResourceAsStream("/initial-build/ai-result-known.json")))
+        val episodes=extractionsOf(update)
+        ManuscriptStructureVerifier.verify(episodes,update.path("identity"),mapper.convertValue(update.path("payload"),ManuscriptLoadPayload::class.java),mapper)
+        val names=array(update.path("known")).map { known -> setOf(known.path("name").asString())+array(known.path("aliases")).map { it.asString() } }
+        val mapping=update.path("identity").path("mapping")
+        assertEquals(mapOf(mapping.path("2:m1").asString() to KnownMatch(0),mapping.path("2:m2").asString() to KnownMatch(null)),
+            ManuscriptStructureVerifier.knownMatches(episodes,update.path("identity"),names,mapper))
+    }
+    @Test fun `a link whose quote holds the new name and a name of the existing character matches that character`() {
+        // 두 이름이 인용에 각각 들어 있으면 근거가 선다. 성+이름('김치삼')과 기존 인물('치삼')은 짧은 이름이 긴 이름 밖에서도 나와야 한다. 기존 인물의 별칭 한 이름만 들어 있어도 된다.
+        val both="김치삼, 곧 치삼은 장터로 나갔다."
+        assertEquals(mapOf("card-a" to KnownMatch(0)),judge(listOf(updateEpisode(2,both,oneMention)),knownIdentity(toCardA,knownLink("0:k1","2:m1",both))))
+        val alias="황 노인, 곧 박서방은 문을 열었다."
+        assertEquals(mapOf("card-a" to KnownMatch(0)),judge(listOf(updateEpisode(2,alias,listOf(Triple("m1","박서방","character")))),knownIdentity(toCardA,knownLink("0:k1","2:m1",alias))))
+    }
+    @Test fun `a same-person link whose evidence does not hold is not matched but flagged for review`() {
+        listOf(longName to knownLink("0:k1","2:m1","김치삼은 어디에도 없다."),                        // 인용이 원문에 없다
+            longName to knownLink("0:k1","2:m1",longName),                                         // '치삼'이 '김치삼' 안에만 있어 두 호칭의 근거가 아니다
+            "$longName $longName" to knownLink("0:k1","2:m1",longName),                            // 원문에 두 번 나온다
+            "치삼은 장터로 나갔다." to knownLink("0:k1","2:m1","치삼은 장터로 나갔다."),              // 기존 인물의 이름만 있고 새 대상의 이름('김치삼')이 인용에 없다
+            "김치삼은 시장으로 나갔다." to knownLink("0:k2","2:m1","김치삼은 시장으로 나갔다."),       // 기존 인물의 이름이 인용에 없다
+            longName to knownLink("0:k1","2:m1",longName,confirmedAt=3,evidenceEpisode=2),         // confirmedAt이 근거 회차와 다르다
+            longName to knownLink("0:k1","2:m1","")).forEach { (source,link) ->                    // 인용이 비었다
+            assertEquals(mapOf("card-a" to KnownMatch(null)),judge(listOf(updateEpisode(2,source,oneMention)),knownIdentity(toCardA,link)),"$link")
+        }
+        val earlier=listOf(updateEpisode(1,"김치삼 이야기가 먼저 나왔다.",emptyList()),updateEpisode(2,longName,oneMention))  // 근거 회차가 대상 회차보다 앞선다
+        assertEquals(mapOf("card-a" to KnownMatch(null)),judge(earlier,knownIdentity(toCardA,knownLink("0:k1","2:m1","김치삼 이야기가 먼저 나왔다.",confirmedAt=1))))
+    }
+    @Test fun `only an explicit same-person link to one candidate matches and every doubt is flagged`() {
+        val source="김치삼, 곧 치삼은 영희와 장터로 나갔다."
+        val episodes=listOf(updateEpisode(2,source,oneMention))
+        fun verdict(vararg links:Map<String,Any>)=judge(episodes,knownIdentity(toCardA,*links))
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(knownLink("0:k1","2:m1",source),knownLink("0:k2","2:m1",source)),"기존 인물 후보가 둘이면 어느 쪽인지 알 수 없다")
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(knownLink("0:k1","2:m1",source,"uncertain")),"AI가 확신하지 못하면 작가가 확인한다")
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(knownLink("0:k1","2:m1",source),knownLink("0:k2","2:m1",source,"uncertain")))
+        assertEquals(mapOf("card-a" to KnownMatch(1)),verdict(knownLink("0:k1","2:m1",source,"distinct"),knownLink("0:k2","2:m1",source)),"다른 인물이라고 가른 쌍은 후보에서 뺀다")
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(knownLink("0:k1","2:m1",source),knownLink("0:k2","2:m1",source),knownLink("0:k1","2:m1","원문에 없는 인용","distinct")),"근거 없는 distinct는 후보를 지우지 않는다")
+        assertEquals(emptyMap<String,KnownMatch>(),verdict(knownLink("0:k1","2:m1",source,"distinct")),"다른 인물이라는 판단만 있으면 표시도 없다")
+        assertEquals(emptyMap<String,KnownMatch>(),verdict(knownLink("0:k1","2:m1",source),knownLink("0:k1","2:m1",source,"distinct")))
+    }
+    @Test fun `a new character in the same event or relation as the existing character is another person`() {
+        val source="김치삼은 치삼과 함께 장터로 나갔다."
+        val mentions=listOf(Triple("m1","김치삼","character"),Triple("m2","치삼","character"))
+        val link=knownLink("0:k1","2:m1",source)
+        fun verdict(mapping:Map<String,String>,events:List<List<String>> = emptyList(),relations:List<Pair<String,String>> = emptyList(),named:List<Triple<String,String,String>> = mentions,facts:List<List<String>> = emptyList())=
+            judge(listOf(updateEpisode(2,source,named,events,relations,facts)),knownIdentity(mapping,link))
+        val apart=mapOf("2:m1" to "card-a","2:m2" to "card-b")
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(apart,events=listOf(listOf("m1","m2"))),"같은 사건")
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(apart,relations=listOf("m2" to "m1")),"같은 관계")
+        assertEquals(mapOf("card-a" to KnownMatch(null)),verdict(apart+("2:m3" to "card-c"),events=listOf(listOf("m1","m3")),named=mentions+Triple("m3","치삼이","character")),"호칭 변형도 그 인물이다")
+        assertEquals(mapOf("card-a" to KnownMatch(0)),verdict(apart,events=listOf(listOf("m1"),listOf("m2"))),"따로 나오면 맞춘다")
+        assertEquals(mapOf("card-a" to KnownMatch(0)),verdict(apart,facts=listOf(listOf("m1","m2"))),"사건·관계가 아닌 진술에 함께 있는 것은 막지 않는다(두 호칭을 같은 사람으로 밝히는 문장일 수 있다)")
+        assertEquals(mapOf("card-a" to KnownMatch(0)),verdict(mapOf("2:m1" to "card-a","2:m2" to "card-a"),events=listOf(listOf("m1","m2"))),"같은 카드의 대상끼리는 막지 않는다")
+        assertEquals(mapOf("card-a" to KnownMatch(0)),verdict(apart+("2:m3" to "card-c"),events=listOf(listOf("m1","m3")),named=mentions+Triple("m3","영희","character")),"기존 인물의 이름과 맞지 않는 인물과는 함께 나와도 된다")
+    }
+    @Test fun `a link that is not about an existing character and a new character is refused`() {
+        val episodes=listOf(updateEpisode(2,longName,listOf(Triple("m1","김치삼","character"),Triple("m2","장터","location"))))
+        val mapping=mapOf("2:m1" to "card-a","2:m2" to "card-b")
+        listOf(knownLink("0:k9","2:m1",longName),knownLink("0:k1","2:m9",longName),knownLink("0:k1","2:m2",longName),  // 목록에 없는 기존 인물, 없는 대상, 인물이 아닌 대상
+            knownLink("0:k1","2:m1",longName,"same_name"),knownLink("1:m1","2:m1",longName)).forEach { link ->   // 쓰지 않는 basis, 기존 인물 ref가 아니다
+            assertThrows(IllegalArgumentException::class.java,{ judge(episodes,knownIdentity(mapping,link)) },"$link")
+        }
+        assertThrows(IllegalArgumentException::class.java) { judge(episodes,knownIdentity(mapping,knownLink("0:k1","2:m1",longName)),emptyList()) }  // 최초 구축에는 기존 인물이 없다
+        assertEquals(emptyMap<String,KnownMatch>(),judge(episodes,mapper.readTree("{\"mapping\":{}}")),"링크 필드가 없으면 비어 있다")
+    }
+
     private fun array(node:JsonNode)=(0 until node.size()).map { node.get(it) }
     private fun inputHash(extraction:Map<String,Any?>):String {
         fun ordered(value:Any?):Any?=when(value) {

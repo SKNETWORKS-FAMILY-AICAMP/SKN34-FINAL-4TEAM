@@ -5,8 +5,59 @@ import java.security.MessageDigest
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
+/** 업데이트에서 AI 링크를 검증한 결과. [index]는 맞춘 기존 인물(AI에 준 목록의 위치)이고 null이면 새 카드 + 확인 필요다(#952). */
+data class KnownMatch(val index:Int?)
+
 /** 구조화 응답이 영속 추출의 정체·문서·기억·관계를 바꾸거나 미래 정보를 소급하지 않는지 검사한다. */
 object ManuscriptStructureVerifier {
+    /** 인용에 두 이름이 각각 들어 있다. 한 이름이 다른 이름의 일부이면(김치삼·치삼) 짧은 이름이 긴 이름 밖에서도 나와야 한다: '김치삼은 …'만으로는 '치삼'과 같은 사람이라는 근거가 아니다. */
+    private fun both(quote:String,a:String,b:String):Boolean {
+        val (long,short)=if(a.length>=b.length) a to b else b to a
+        return quote.contains(long) && (if(long.contains(short)) quote.replace(long,"") else quote).contains(short)
+    }
+
+    /**
+     * 업데이트에서 AI가 새 회차의 인물을 기존 인물과 이은 링크(identity.knownLinks)를 요청 카드(key)별 결정으로 검증한다(#952).
+     * [known]은 AI에 준 기존 인물(ref "0:k1"부터 같은 순서)의 이름·별칭이다. 구조(기존 인물 ref·인물 대상·쓰는 basis)가 어긋나면 AI가 걸렀어야 할 오류라 거절하고,
+     * 근거(인용이 원문에 한 번, 두 이름이 인용에 각각 글자 그대로)·후보 수·같은 사건·관계 동시 등장은 통과하지 못해도 거절하지 않고 새 카드 + 확인 필요(index=null)로 돌린다.
+     * 근거를 통과한 distinct만 그 쌍을 후보에서 빼고(근거 없는 것은 기존 정체 정리처럼 없는 링크다) 다른 판단이 없으면 결정을 내지 않는다(표시 없는 새 카드).
+     */
+    internal fun knownMatches(all:List<ManuscriptEpisodeResult>,identity:JsonNode,known:List<Set<String>>,mapper:JsonMapper):Map<String,KnownMatch> {
+        fun array(node:JsonNode)= (0 until node.size()).map { node.get(it) }
+        val rows=all.sortedBy { it.basis.number }.associate { it.basis.number to mapper.valueToTree<JsonNode>(it.extraction) }
+        val mentions=rows.flatMap { (n,row)->array(row.path("mentions")).map { "$n:${it.path("id").asString()}" to it } }.toMap()
+        val mapping=mapper.convertValue(identity.path("mapping"),Map::class.java).entries.associate { it.key.toString() to it.value.toString() }
+        class Claim(val index:Int,val basis:String,val right:String,val grounded:Boolean)
+        val claims=array(identity.path("knownLinks")).map { link ->
+            val left=link.path("left").asString();val right=link.path("right").asString();val basis=link.path("basis").asString()
+            val index=Regex("0:k([0-9]+)").matchEntire(left)?.groupValues?.get(1)?.toInt()?.minus(1)
+            require(index!=null && index in known.indices && right in mentions && mentions.getValue(right).path("kind").asString()=="character" &&
+                basis in setOf("explicit_alias","explicit_coreference","uncertain","distinct") && right in mapping)
+            val n=link.path("evidenceEpisode").asInt();val quote=link.path("quote").asString();val source=rows[n]?.path("source")?.asString()
+            // 근거는 기존 정체 링크 검증과 같은 조건이다: 근거 회차에서 인용이 원문에 한 번, 새 대상의 이름과 기존 인물의 이름 하나가 인용에 글자 그대로 있다.
+            Claim(index,basis,right,source!=null && n==link.path("confirmedAt").asInt() && n>=right.substringBefore(':').toInt() && quote.isNotEmpty() &&
+                source.indexOf(quote).let { it>=0 && source.indexOf(quote,it+1)<0 } &&
+                mentions.getValue(right).path("name").asString().let { name -> known[index].any { both(quote,name,it) } })
+        }
+        // 같은 사건(event 진술의 대상)·관계(양 끝)에 함께 나온 두 인물은 다른 사람이다. 한 사람이 같은 사건에 두 이름으로 따로 나오거나 자기 자신과 관계를 맺지 않는다.
+        val groups=rows.flatMap { (n,row)->
+            array(row.path("statements")).filter { it.path("kind").asString()=="event" }.map { s -> array(s.path("subjects")).map { "$n:${it.asString()}" } } +
+                array(row.path("relationships")).map { r -> listOf("$n:${r.path("source").asString()}","$n:${r.path("target").asString()}") }
+        }
+        fun together(key:String,index:Int):Boolean {
+            val own=mentions.keys.filter { mapping[it]==key }.toSet()
+            fun alike(ref:String)=mentions.getValue(ref).let { m -> m.path("kind").asString()=="character" &&
+                m.path("name").asString().let { name -> known[index].any { it==name || nameKey(it)==nameKey(name) } } }
+            return groups.any { group -> group.any { it in own } && group.any { it !in own && it in mentions && alike(it) } }
+        }
+        return claims.groupBy { mapping.getValue(it.right) }.mapNotNull { (key,list) ->
+            val apart=list.filter { it.basis=="distinct" && it.grounded }.map { it.index }.toSet()
+            val named=list.filter { it.basis!="distinct" && it.index !in apart }
+            if(named.isEmpty()) null
+            else key to KnownMatch(named.map { it.index }.distinct().singleOrNull()?.takeIf { index -> named.any { it.grounded && it.basis!="uncertain" } && !together(key,index) })
+        }.toMap()
+    }
+
     /** 카드 본문·문서 줄의 표지(계약: kind → 한글). 파이썬 organize와 같은 글자여야 한다. */
     private val KIND_LABEL=mapOf("event" to "사건","description" to "묘사","fact" to "사실","rule" to "규칙","plan" to "계획","goal" to "목표","conjecture" to "추측")
     private fun marked(kind:String,quote:String)="[${KIND_LABEL.getValue(kind)}] $quote"

@@ -190,6 +190,45 @@ class ManuscriptBuildMapperTest {
         assertEquals(heroId,update(basisOf(old),listOf(hero(mapOf("12" to "12화"),title="치삼이"))).single().cards.single().id,"기존 카드의 별칭")
         assertEquals(heroId,update(basisOf(old),listOf(hero(mapOf("12" to "12화"),aliases=listOf("치삼아")))).single().cards.single().id,"요청 카드의 별칭")
     }
+    // ---- AI 판단 맞춤(#952): 글자 맞춤이 못 잡은 인물 요청 카드에 Content가 검증한 AI 결정(KnownMatch)을 쓴다 ----
+
+    private fun updateKnown(basis:WorldDraftResponse,cards:List<ManuscriptCard>,known:Map<String,KnownMatch>)=
+        ManuscriptBuildMapper.build(job,basis,ManuscriptLoadPayload(cards,emptyList()),emptyMap(),update=true,known=known)
+    private fun knownIndex(basis:WorldDraftResponse,id:UUID)=ManuscriptBuildMapper.knownCharacters(basis).indexOfFirst { it.id==id }
+    private fun character(key:String,title:String)=ManuscriptCard(key,"character",title,emptyList(),"본문",12,ManuscriptCharacterDocs("","",mapOf("12" to "b")))
+
+    @Test fun `the known characters are the active characters of the basis in card id order`() {
+        val high=existing(UUID.fromString("00000000-0000-0000-0000-00000000000b"),"치삼");val low=existing(UUID.fromString("00000000-0000-0000-0000-00000000000a"),"영희")
+        val basis=basisOf(high,existing(title="장터",type="location"),existing(title="옛 인물",lifecycle="removed"),low)
+        assertEquals(listOf(low.id,high.id),ManuscriptBuildMapper.knownCharacters(basis).map { it.id })
+    }
+    @Test fun `an AI match puts a character no letters matched onto the existing card and adds only memories`() {
+        val old=existing(heroId,"치삼",episodes=mapOf("1" to "첫 만남"));val basis=basisOf(old)
+        val card=updateKnown(basis,listOf(hero(mapOf("12" to "12화"),title="김치삼")),mapOf("hero" to KnownMatch(knownIndex(basis,heroId)))).single().cards.single()
+        assertEquals(heroId,card.id);assertEquals("치삼",card.title)
+        assertEquals(mapOf("1" to "첫 만남","12" to "12화"),(card.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"])
+    }
+    @Test fun `letters come first and the AI decision is read only for a request no letters matched`() {
+        val a=existing(heroId,"치삼",episodes=mapOf("1" to "a"));val b=existing(title="영희",episodes=mapOf("1" to "b"));val basis=basisOf(a,b)
+        val other=mapOf("hero" to KnownMatch(knownIndex(basis,b.id)))
+        listOf("치삼","치삼이").forEach { title ->  // 정확 일치와 호칭 변형
+            assertEquals(heroId,updateKnown(basis,listOf(hero(mapOf("12" to "12화"),title=title)),other).single().cards.single().id,title)
+        }
+    }
+    @Test fun `an AI decision that is not sure makes a new card flagged for review and no AI link leaves it unflagged`() {
+        val basis=basisOf(existing(heroId,"치삼",episodes=mapOf("1" to "a")))
+        val unsure=updateKnown(basis,listOf(hero(mapOf("12" to "12화"),title="김치삼")),mapOf("hero" to KnownMatch(null))).single().cards.single()
+        assertNotEquals(heroId,unsure.id);assertEquals(true,review(unsure))
+        assertNull(review(updateKnown(basis,listOf(hero(mapOf("12" to "12화"),title="김치삼")),emptyMap()).single().cards.single()))
+    }
+    @Test fun `an AI match gives way to a request that names the same card and two AI matches to one card do not merge`() {
+        val basis=basisOf(existing(heroId,"치삼",episodes=mapOf("1" to "a")));val index=knownIndex(basis,heroId)
+        val named=updateKnown(basis,listOf(character("exact","치삼"),character("ai","김치삼")),mapOf("ai" to KnownMatch(index))).single().cards
+        assertEquals(heroId,named.first { it.title=="치삼" }.id,"이름이 같은 요청 카드가 기존 카드를 맞춘다")
+        named.first { it.title=="김치삼" }.let { assertNotEquals(heroId,it.id);assertEquals(true,review(it)) }
+        val two=updateKnown(basis,listOf(character("a","김치삼"),character("b","박치삼")),mapOf("a" to KnownMatch(index),"b" to KnownMatch(index))).single().cards
+        assertTrue(two.none { it.id==heroId });assertTrue(two.all { review(it)==true })
+    }
     @Test fun `an event card is always new`() {
         val old=existing(title="11화 · 사건",type="event")
         val event=ManuscriptCard("event","event","11화 · 사건",emptyList(),"발생: 11화",11)
