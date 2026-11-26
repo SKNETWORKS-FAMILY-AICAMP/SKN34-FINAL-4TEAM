@@ -132,7 +132,11 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmdline-tools;23.0"
           tools="$ANDROID_HOME/cmdline-tools/23.0/bin"
           "$tools/sdkmanager" "platform-tools" "emulator" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.1.12297006" "system-images;android-35;google_apis;x86_64"
-          echo no | "$tools/avdmanager" create avd --name storyfork-ci --package "system-images;android-35;google_apis;x86_64"
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/storyfork-avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$tools/avdmanager" create avd --name storyfork-ci --path "$ANDROID_AVD_HOME/storyfork-ci.avd" --package "system-images;android-35;google_apis;x86_64"
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx storyfork-ci
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
       - name: Build the Android development APK
         working-directory: mobile
@@ -157,10 +161,10 @@ jobs:
           "$ANDROID_HOME/emulator/emulator" -accel-check
           "$ANDROID_HOME/emulator/emulator" -avd storyfork-ci -port 5554 -no-window -noaudio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           emulator_pid=$!
-          trap 'result=$?; if (( result != 0 )); then adb devices -l; tail -80 "$RUNNER_TEMP/emulator.log"; adb logcat -d -s AndroidRuntime:E ReactNativeJS:W | tail -80; fi; kill "$emulator_pid" 2>/dev/null || true' EXIT
+          trap 'result=$?; if (( result != 0 )); then timeout 8 adb devices -l; tail -80 "$RUNNER_TEMP/emulator.log"; timeout 8 adb logcat -d -s AndroidRuntime:E ReactNativeJS:W | tail -80; fi; kill "$emulator_pid" 2>/dev/null || true; exit "$result"' EXIT
           for ((attempt=0; attempt<120; attempt++)); do
             kill -0 "$emulator_pid"
-            if [[ $(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r") == 1 ]]; then break; fi
+            if [[ $(timeout 4 adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r") == 1 ]]; then break; fi
             sleep 2
           done
           if (( attempt == 120 )); then echo "Android emulator boot timed out"; exit 1; fi

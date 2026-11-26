@@ -37,6 +37,7 @@ class PushDeviceService(
             }
             // 재등록은 FCM의 최신 토큰을 확인한 요청이므로 SNS 상태를 다음 발송에서 다시 읽는다.
             device.endpointArn = null
+            device.registrationId = UUID.randomUUID()
             device.sessionId = sessionId
             device.token = token
         }
@@ -57,14 +58,14 @@ class PushDeviceService(
     }
 
     @Transactional(readOnly = true)
-    fun isActive(device: PushDevice) = devices.isActive(device.installationId, device.sessionId, device.token, Instant.now())
+    fun isActive(device: PushDevice) = devices.isActive(device.installationId, device.registrationId, Instant.now())
 
     @Transactional
     fun saveEndpoint(device: PushDevice, endpoint: String?) =
-        devices.saveEndpoint(device.installationId, device.sessionId, device.token, endpoint) == 1
+        devices.saveEndpoint(device.installationId, device.registrationId, endpoint) == 1
 
     @Transactional
     fun removeInvalid(device: PushDevice) {
-        devices.deleteMatching(device.installationId, device.sessionId, device.token)
+        devices.deleteMatching(device.installationId, device.registrationId)
     }
 }

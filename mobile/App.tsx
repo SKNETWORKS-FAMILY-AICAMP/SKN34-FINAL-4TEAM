@@ -183,6 +183,7 @@ function StoryforkWeb({ source, origin }: { source: string; origin: string }) {
         }}
         onMessage={onMessage}
         onError={() => setFailed(true)}
+        onHttpError={({ nativeEvent }) => { if (trustedPage(origin, nativeEvent.url)) setFailed(true); }}
         webviewDebuggingEnabled={__DEV__}
         javaScriptCanOpenWindowsAutomatically={false}
         setSupportMultipleWindows

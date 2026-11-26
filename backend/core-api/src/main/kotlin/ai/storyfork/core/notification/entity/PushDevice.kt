@@ -13,4 +13,5 @@ class PushDevice(
     @Column(name = "session_id", nullable = false) var sessionId: UUID,
     @Column(nullable = false, length = 4096) var token: String,
     @Column(name = "endpoint_arn", length = 512) var endpointArn: String? = null,
+    @Column(name = "registration_id", nullable = false) var registrationId: UUID = UUID.randomUUID(),
 )

@@ -37,10 +37,12 @@ class PushDeviceServiceTest {
         assertEquals("new-token", existing.token)
         assertNull(existing.endpointArn)
 
+        val previousRegistration = existing.registrationId
         existing.endpointArn = "cached-endpoint"
         service.register(member, session.id, installation, "new-token")
 
         assertNull(existing.endpointArn)
+        assertNotEquals(previousRegistration, existing.registrationId)
     }
 
     @Test

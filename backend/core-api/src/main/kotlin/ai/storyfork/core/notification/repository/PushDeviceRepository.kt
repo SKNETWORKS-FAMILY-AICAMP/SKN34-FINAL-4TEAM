@@ -24,17 +24,17 @@ interface PushDeviceRepository : JpaRepository<PushDevice, UUID> {
     fun deleteForMember(id: UUID, memberId: UUID): Int
 
     @Modifying
-    @Query("delete from PushDevice d where d.installationId = :id and d.sessionId = :sessionId and d.token = :token")
-    fun deleteMatching(id: UUID, sessionId: UUID, token: String): Int
+    @Query("delete from PushDevice d where d.installationId = :id and d.registrationId = :registrationId")
+    fun deleteMatching(id: UUID, registrationId: UUID): Int
 
     @Modifying
     @Query("update PushDevice d set d.endpointArn = :endpointArn where d.installationId = :id " +
-        "and d.sessionId = :sessionId and d.token = :token")
-    fun saveEndpoint(id: UUID, sessionId: UUID, token: String, endpointArn: String?): Int
+        "and d.registrationId = :registrationId")
+    fun saveEndpoint(id: UUID, registrationId: UUID, endpointArn: String?): Int
 
     @Query("select count(d) > 0 from PushDevice d, AuthSession s where s.id = d.sessionId and s.revoked = false " +
-        "and s.expiresAt > :now and d.installationId = :id and d.sessionId = :sessionId and d.token = :token")
-    fun isActive(id: UUID, sessionId: UUID, token: String, now: Instant): Boolean
+        "and s.expiresAt > :now and d.installationId = :id and d.registrationId = :registrationId")
+    fun isActive(id: UUID, registrationId: UUID, now: Instant): Boolean
 
     @Modifying
     @Query("delete from PushDevice d where d.sessionId in (select s.id from AuthSession s where s.revoked = true or s.expiresAt <= :now)")
