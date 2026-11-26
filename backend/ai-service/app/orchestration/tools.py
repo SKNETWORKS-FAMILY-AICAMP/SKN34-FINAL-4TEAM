@@ -506,7 +506,7 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None, shown: li
     여러 개인데 정해지지 않으면 대화에서 작가가 고른다. 여럿이면 첫 지적부터 끝 지적까지를 한 구간(5,000자 이하)으로 한 번에 고친다.
     앞뒤 문장은 검수한 판본 그대로인지 확인한 초안에서 자른다.
     """
-    turn, recipe = runtime.context, {}
+    turn, recipe, base = runtime.context, {}, {}  # base: 검수 판본과 같음을 확인한 초안. 같은 턴 뒤 검수가 수정 후보를 보게 한다(#915 리뷰)
     pick = lambda inputs: (inputs.get('writing_editing') or {}).get('fix', fix)  # noqa: E731
 
     def needs(inputs, scope):
@@ -538,6 +538,7 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None, shown: li
         chosen = [(content_mcp.place(body, findings[i]['quote']) if isinstance(body, str) else None, findings[i]) for i in picks]
         if revision != reviewed['result']['revision'] or any(at is None for at, _ in chosen):
             raise ContentMcpFailure(409, DRAFT_CHANGED)
+        base.update(body=body, revision=revision)
         chosen.sort(key=lambda placed: placed[0])  # 지시는 원고 순서로 적는다
         start, end = chosen[0][0], max(at + len(f['quote']) for at, f in chosen)
         if end - start > 5000:  # PatchRequest.selection 상한
@@ -552,7 +553,7 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None, shown: li
         return _recorded(recipe, 'patch', PatchRequest(selection=body[start:end], instruction=instruction[:2000],
                                                         precedingText=body[:start][-2000:], followingText=body[end:][:2000]))
 
-    return _written(_ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch', shown=shown), recipe, None)
+    return _written(_ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch', shown=shown), recipe, base or None)
 
 
 def _previous_plans(turn: dict) -> list[dict]:

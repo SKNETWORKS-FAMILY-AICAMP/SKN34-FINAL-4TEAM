@@ -971,6 +971,50 @@ def test_a_plain_patch_after_a_past_review_still_lets_the_author_pick_the_passag
     assert 'patch' not in names(calls)
 
 
+def test_the_author_picks_one_of_the_last_reviews_findings_on_resume(monkeypatch):
+    """#915 리뷰: 지난 턴 검수의 확정 지적이 여럿이면 작가가 고른 번호로 이어서 고친다."""
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('manuscript_review'))
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
+        workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
+        findings=[found('서윤은 웃엇다.'), found('바람이 차가왔다.')]))
+    write_turn(thread, request='검수해줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    planned = plan(Step('writing_editing', 'if_issues_found'))
+    name, args = planned.calls[0]
+    calls = fake_agents(monkeypatch, planned._replace(calls=[(name, {**args, 'from_review': True})]))
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': 4}})
+    assert write_turn(thread, request='확정된 문제 고쳐줘', target=TARGET).missingInputs == ['writing_editing']
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': 1}}})
+    assert (done.status, done.awaitingApproval) == ('waiting', 'writing_editing')
+    [(_, (patch,), _)] = [c for c in calls if c[0] == 'patch']
+    assert patch.selection == '바람이 차가왔다.'
+
+
+def test_a_review_after_fixing_the_last_reviews_finding_checks_the_fixed_candidate(monkeypatch):
+    """#915 리뷰(CodeRabbit): 지난 턴 검수로 고친 뒤 같은 턴에 검수하면 저장 초안이 아니라 수정 후보를 검수한다."""
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('manuscript_review'))
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
+        workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
+        findings=[found('서윤은 웃엇다.')]))
+    write_turn(thread, request='검수해줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    planned = plan(Step('writing_editing', 'if_issues_found'), Step('manuscript_review', check='mechanical'))
+    (fix_name, fix_args), review_call = planned.calls
+    fake_agents(monkeypatch, planned._replace(calls=[(fix_name, {**fix_args, 'from_review': True}), review_call]))
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': 4}})
+    seen = []
+
+    def review_candidate(data, base, written):
+        seen.append(base)
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId='r2', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    result = write_turn(thread, request='확정된 문제 고치고 다시 검수해줘', target=TARGET)
+    assert seen == [{'body': BODY, 'revision': 4}]
+    assert result.awaitingApproval == 'writing_editing'
+
+
 def test_the_last_review_is_not_used_after_the_history_is_replaced():
     done = {'feature': 'manuscript_review', 'status': 'completed', 'result': {'workId': 'work', 'episode': 3, 'findings': []}}
     turn = {'target': TARGET, 'turns': [{'reply': {'steps': [done]}}]}
