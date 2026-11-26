@@ -228,7 +228,7 @@ sequenceDiagram
 ```text
 SKN34-FINAL-4TEAM/
 ├─ frontend/                 React 웹 (storyfork-web)
-├─ mobile/                   Expo 모바일 앱 골격 (Android·iOS, #943)
+├─ mobile/                   Expo 모바일 앱 (Android·iOS, 웹 WebView + 알림, #943)
 ├─ backend/
 │  ├─ core-api/              Core: 회원·인증·세션·알림·Health
 │  ├─ content-service/       Content: 작품·회차·세계관·Fork·첨부·AI 제안
@@ -236,7 +236,7 @@ SKN34-FINAL-4TEAM/
 │  └─ ai-service/            AI: 내부 Health·이어쓰기 제안
 ├─ infrastructure/           Compose·nginx·MinIO, CI 변경 선택기, HTTP 시스템 테스트
 ├─ docs/                     설계·결정·ERD·유스케이스·조사·산출물
-├─ .github/workflows/        CI(ci.yml)·이미지 게시/배포(publish-images.yml)
+├─ .github/workflows/        CI(ci.yml)·이미지 게시/배포(publish-images.yml)·iOS 시뮬레이터 빌드(mobile-cd.yml)
 └─ compose.yaml              로컬 통합 실행 진입점
 ```
 
