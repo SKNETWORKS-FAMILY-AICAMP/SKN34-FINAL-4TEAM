@@ -135,6 +135,11 @@ it.each([
   expect(sheet()).toBeNull()
 })
 
+it('단계 목록은 바로가기를 링크 모양으로 보이는 onb-steps 클래스를 단다(storyfork.css 규칙과 짝)', () => {
+  renderAt('/')
+  expect(screen.getByRole('list').classList.contains('onb-steps')).toBe(true)
+})
+
 it('주 버튼은 작품 둘러보기이고 건너뛰기는 보조 버튼이다', () => {
   renderAt('/')
   const browse = screen.getByRole('button', { name: '작품 둘러보기' })

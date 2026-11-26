@@ -22,7 +22,7 @@ export function OnboardingSheet() {
     <Sheet sid="U46" label="처음 오셨나요?" onClose={vm.skip}>
       <div className="sh-h"><h3>처음 오셨나요?</h3><button type="button" className="x" aria-label="닫기" onClick={vm.skip}>✕</button></div>
       <p>STORYFORK는 원작을 읽고, 원하는 회차에서 나만의 이야기로 이어 쓰는 곳이에요.</p>
-      <ol>{STEPS.map((s) => (
+      <ol className="onb-steps">{STEPS.map((s) => (
         <li key={s.title}>
           <b>{s.title}</b> — {s.text}
           {s.link && <> <Go to={s.link.to} onClick={vm.skip}>{s.link.label}</Go></>}
