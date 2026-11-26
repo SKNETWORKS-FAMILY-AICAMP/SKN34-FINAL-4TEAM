@@ -1,13 +1,13 @@
 """집필 AI 오케스트레이션(#473): 메인 에이전트 하나가 요청을 해석해 서브 에이전트를 부르고 답을 종합하며, 바깥 LangGraph는 승인·장면·종료와 체크포인트만 맡는다.
 
-바깥 그래프는 main_agent → (scene ⇄ apply) → finish다. main_agent 노드가 메인 에이전트(app/orchestration/agent.py, create_agent)를 실행한다.
+바깥 그래프는 main_agent → (scene ⇄ apply) → finish → summarize다. main_agent 노드가 메인 에이전트(app/orchestration/agent.py, create_agent)를 실행한다.
 메인 에이전트는 턴당 1회 Decision Guard로 범위·기능을 판정받고(거절·기능 없음이면 아무것도 실행하지 않는다), 판정된 기능의
 ask_* 도구(app/orchestration/tools.py)만 순서대로 불러 원본 결과를 단계로 남긴 뒤 하나의 답변(message)을 쓴다. 상태는 체크포인트에
 그대로 저장할 수 있도록 JSON 값만 담는다.
 
 멀티턴(#57): Content가 발급한 threadId의 대화는 체크포인터에 turns로 쌓인다. 메인 에이전트는 최근 5턴의 요청·답변을, Decision Guard는
 처음부터 최근 3턴의 요청·답변 앞부분·실행 기능을(#781), Q&A는 이전 질문·답을 지칭 해석용 자료로만 받는다.
-5턴을 넘긴 대화는 finish가 창 밖으로 새로 밀려난 턴만 기존 요약(summary {text, upTo})에 합쳐(#790) 메인 에이전트만 최근 5턴 앞의
+5턴을 넘긴 대화는 finish가 턴을 저장한 뒤 summarize 노드가 창 밖으로 새로 밀려난 턴만 기존 요약(summary {text, upTo})에 합쳐(#790) 메인 에이전트만 최근 5턴 앞의
 참고용 요약 블록으로 받는다(가드·Q&A·기획 재사용은 받지 않는다). 요약이 실패하면 턴은 그대로 끝내고 요약을 두어 다음 턴에 다시 합친다.
 처음부터 다시 시작하는 턴은 요약을 비우고, 중간 턴 수정·삭제는 갈라진 checkpoint의 그 시점 요약을 이어받는다. 대화는 첫 턴의 Content 확인 scope(사용자·작품)에
 묶여 다른 scope로는 이어갈 수 없다. 웹 조사 외부 검색에는 대화 기록을 보내지 않는다.
@@ -39,7 +39,7 @@ import operator
 import os
 from collections import defaultdict
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
@@ -97,7 +97,7 @@ CONVERSATION_NOT_FOUND_MESSAGE = '대화나 메시지를 찾을 수 없습니다
 CONVERSATION_BUSY_MESSAGE = '진행 중인 작업이 끝난 뒤에 바꿀 수 있습니다.'
 TITLE_LENGTH = 40
 STREAM_FAILED_MESSAGE = '작업을 완료할 수 없습니다.'
-SUMMARY_MAX = 2000  # 요약 지시는 1,000자 이내다. 넘으면 쓰지 않고 실패로 둔다
+SUMMARY_MAX = 2000  # 요약 지시는 1,000자 이내다. 넘으면 이 길이에서 잘라 쓴다(사용자 결정 2026-11-25, #891)
 REWRITES = 2  # 원고 반영 대기에서 턴당 다시 쓰기 횟수(#795, 비용 상한)
 REWRITE_LIMIT = '이 요청에서는 더 다시 쓸 수 없어요. 반영하거나 반영하지 않기로 정해 주세요.'
 NOT_PICKABLE = '고를 수 있는 보강 제안이 아니에요. 대화를 다시 불러온 뒤 골라 주세요.'
@@ -117,7 +117,7 @@ class ConversationNotFound(Exception):
 
 
 class ConversationBusy(Exception):
-    """멈춘 실행이 있어 상태를 덮어쓰면 이어가기(resume)가 깨진다."""
+    """멈춘 실행이 있어 상태를 덮어쓰면 이어가기(resume)가 깨지거나, 이 프로세스에서 도는 실행이 곧 쓰는 checkpoint가 바꾼 값을 덮는다."""
 
 
 class ConversationUnavailable(Exception):
@@ -405,7 +405,12 @@ def finish(state: State) -> State:
         return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False, 'attachments': [],
                 'summary': None}
     # 첨부 원본은 이 턴이 끝나면 상태에서 비운다(turns에는 이름·종류만 남는다)
-    return {**done, 'turns': turn, 'attachments': [], **_summarized(state.get('summary'), [*state.get('turns', []), *turn])}
+    return {**done, 'turns': turn, 'attachments': []}
+
+
+def summarize_node(state: State) -> State:
+    """finish가 턴을 저장한 뒤 요약만 갱신한다(#891). 요약 호출이 길어져 연결이 끊겨도 이미 답한 턴은 저장돼 있다."""
+    return _summarized(state.get('summary'), state.get('turns', []))
 
 
 def _summarized(summary: dict | None, turns: list[dict]) -> State:
@@ -432,9 +437,9 @@ def summarize(text: str, turns: list[dict]) -> str:
         message, _ = agent_runtime.run('orchestration.summary.generation', '대화 요약', SummaryFailure, SUMMARY_INSTRUCTIONS, data,
                                        prompt_name='orchestration.summary', max_tokens=2000, timeout=40, trace=trace, effort='low')
         summary = message.text.strip()
-        if not summary or len(summary) > SUMMARY_MAX:
+        if not summary:
             raise SummaryFailure(502, '대화 요약 모델 응답을 확인할 수 없습니다.')
-    return summary
+    return summary[:SUMMARY_MAX]
 
 
 def _next(state: State) -> str:
@@ -457,10 +462,12 @@ def build() -> StateGraph:
     graph.add_node('scene', scene)
     graph.add_node('apply', apply)
     graph.add_node('finish', finish)
+    graph.add_node('summarize', summarize_node)
     graph.add_edge(START, 'main_agent')
     for name in ('main_agent', 'scene', 'apply'):
         graph.add_conditional_edges(name, _next, ['scene', 'apply', 'finish'])
-    graph.add_edge('finish', END)
+    graph.add_edge('finish', 'summarize')
+    graph.add_edge('summarize', END)
     return graph
 
 
@@ -665,16 +672,38 @@ def _unrated(turns: list[dict]) -> list[dict]:
     return [{k: v for k, v in turn.items() if k != 'feedback'} for turn in turns]
 
 
+def _running(snapshot) -> bool:
+    """멈추거나 도는 실행이 있는지. 요약만 남은 checkpoint(next=('summarize',))는 턴이 이미 저장돼 끝난 대화로 본다(#891): 요약은 다음 턴에 다시 합친다(이 프로세스에서 도는 요약은 _EXECUTING이 따로 막는다)."""
+    return bool(snapshot.next) and snapshot.next != ('summarize',)
+
+
+# ponytail: 이 프로세스에서 실행이 도는 대화의 threadId. 요약 노드가 도는 동안(next=('summarize',))은 checkpoint가 끊겨 남은 대화와 같아 보이지만, 그 사이 쓴 제목·평가를
+# 곧 끝나는 요약 checkpoint가 앞 checkpoint의 자식으로 써서 덮는다. _THREAD_LOCKS처럼 uvicorn 단일 프로세스 전제이고, 여러 프로세스로 늘리면 체크포인트 버전 비교로 바꾼다.
+_EXECUTING: set[str] = set()
+
+
+@contextmanager
+def _executing(data: OrchestrationRequest):
+    """대화 요청의 실행이 도는 동안만 그 threadId를 _EXECUTING에 둔다. 오류·연결 끊김으로 끝나도 뺀다(끊겨 남은 대화는 다시 바꿀 수 있다)."""
+    thread = data.conversation.threadId if data.conversation else ''
+    if thread:
+        _EXECUTING.add(thread)
+    try:
+        yield
+    finally:
+        _EXECUTING.discard(thread)
+
+
 async def _fork_point(config: dict, snapshot, index: int):
     """index번 턴 직전의 완료 checkpoint. 첫 턴이면 None이다. 멈춘 턴(마지막)도 고치거나 지울 수 있다."""
     turns = _turns(snapshot)
-    if index > len(turns) - (0 if snapshot.next else 1):
+    if index > len(turns) - (0 if _running(snapshot) else 1):
         raise ConversationNotFound()
     if index == 0:
         return None
     kept = _unrated(turns[:index])
     async for past in CHAT.aget_state_history(config):
-        if not past.next and _unrated(past.values.get('turns', [])) == kept:
+        if not _running(past) and _unrated(past.values.get('turns', [])) == kept:
             return past
     raise ConversationNotFound()
 
@@ -682,7 +711,7 @@ async def _fork_point(config: dict, snapshot, index: int):
 async def _branch(config: dict, snapshot, fork, index: int) -> dict:
     """fork에서 갈라지되 남는 index개 턴과 제목은 지금 값을 쓴다(fork 뒤에 남긴 평가·바꾼 제목을 잃지 않게)."""
     branched = await CHAT.aupdate_state({**config, 'configurable': fork.config['configurable']},
-                                        {'title': _title(snapshot.values), 'turns': Overwrite(_turns(snapshot)[:index])}, as_node='finish')
+                                        {'title': _title(snapshot.values), 'turns': Overwrite(_turns(snapshot)[:index])}, as_node='summarize')
     return {**config, 'configurable': branched['configurable']}
 
 
@@ -723,9 +752,9 @@ async def history(thread_id: str, scope: str) -> ChatHistory:
 
 async def rename(thread_id: str, scope: str, title: str) -> None:
     config, snapshot = await _owned(thread_id, scope)
-    if snapshot.next:
+    if _running(snapshot) or thread_id in _EXECUTING:
         raise ConversationBusy()
-    await CHAT.aupdate_state(config, {'title': title}, as_node='finish')
+    await CHAT.aupdate_state(config, {'title': title}, as_node='summarize')
 
 
 # ponytail: 같은 대화의 평가·지우기·삭제·메시지 수정(갈라지는 지점)은 이 프로세스 안에서만 차례로 처리한다(uvicorn 단일 프로세스, 잠금은 지우지 않는다). 여러 프로세스로 늘리면 체크포인트 버전 비교로 바꾼다.
@@ -750,16 +779,16 @@ async def truncate(thread_id: str, scope: str, index: int) -> None:
 
 
 async def feedback(thread_id: str, scope: str, index: int, value: str | None) -> None:
-    """index번 턴 답변의 좋아요·싫어요(#560, None이면 취소). 그 턴의 trace(runId)가 있으면 Langfuse 점수도 맞춘다. 멈춘 실행이 있으면 409다."""
+    """index번 턴 답변의 좋아요·싫어요(#560, None이면 취소). 그 턴의 trace(runId)가 있으면 Langfuse 점수도 맞춘다. 멈춘 실행이 있거나 이 프로세스에서 실행이 도는 중이면 409다."""
     async with _THREAD_LOCKS[thread_id]:  # 점수도 저장 순서대로 맞추려고 잠금 안에서 보낸다
         config, snapshot = await _owned(thread_id, scope)
-        if snapshot.next:
+        if _running(snapshot) or thread_id in _EXECUTING:
             raise ConversationBusy()
         turns = snapshot.values.get('turns', [])
         if not 0 <= index < len(turns):
             raise ConversationNotFound()
         turns = [{**turn, 'feedback': value} if i == index else turn for i, turn in enumerate(turns)]
-        await CHAT.aupdate_state(merge_configs(config, {'metadata': {'feedback': True}}), {'turns': Overwrite(turns)}, as_node='finish')
+        await CHAT.aupdate_state(merge_configs(config, {'metadata': {'feedback': True}}), {'turns': Overwrite(turns)}, as_node='summarize')
         if run_id := (turns[index].get('reply') or {}).get('runId'):
             await asyncio.to_thread(tracing.feedback, run_id, value)  # 점수 삭제는 동기 HTTP다
 
@@ -808,7 +837,7 @@ async def run(data: OrchestrationRequest, authorization: str = '') -> Orchestrat
     """
     content_mcp.AUTHORIZATION.set(authorization)
     graph, config, payload, state = await _begin(data, authorization)
-    with _traced(data, authorization, state) as turn:
+    with _traced(data, authorization, state) as turn, _executing(data):
         _claim(turn, payload, state)
         response = _response(await graph.ainvoke(payload, config))
         turn.status = _outcome(response)
@@ -857,7 +886,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
         graph, config, payload, state = await _begin(data, authorization)
         if config is not None and data.resume is None and data.fromTurn is None:
             config = merge_configs(config, {'configurable': {'persist_chat_intent_failure': True}})
-        with _traced(data, authorization, state) as turn:
+        with _traced(data, authorization, state) as turn, _executing(data):
             _claim(turn, payload, state)
             async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
                 if mode == 'custom':
@@ -885,7 +914,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
                         yield ServerSentEvent(event='waiting', data=waiting)
                         continue
                     before = state.get('steps', [])
-                    state.update(change)
+                    state.update(change or {})  # 바꿀 요약이 없는 summarize 갱신은 None으로 온다
                     if node == 'scene':
                         yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == 'character_simulation'))
                     elif node == 'apply':  # 방금 작가의 답을 받은 단계, 다시 쓰기(#795)로 결과가 바뀐 단계(후보 검수 포함)
