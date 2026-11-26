@@ -78,6 +78,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 
 - 앱 안의 STORYFORK WebView에서 로그인·알림함·수신 설정을 그대로 사용합니다. 인증은 기존 웹 세션을 따르고 SecureStore에는 Android 설치 UUID만 저장합니다.
 - 웹의 알림 SSE는 목록 재조회 신호입니다. WebView는 첫 조회를 기준선으로 만들고, ID와 서버 생성 시각이 새로 갱신된 미읽음 알림만 전면에서 로컬 알림으로 표시합니다. 네이티브에서 넘긴 알림 ID는 웹 세션으로 다시 조회해 `noticeTarget`으로 이동합니다.
+- 읽음 처리는 기존 `PATCH /api/v1/me/notifications/{id}/read`를 사용합니다. Vite를 거쳐 접속하는 개발 WebView의 출처는 Core `APP_CORS_ALLOWED_ORIGIN`에 지정합니다.
 - Android는 FCM V1 기기 토큰을 받은 뒤 현재 웹 인증 세션과 설치 UUID로 `POST /api/v1/me/push-devices`에 등록합니다. 같은 설치의 토큰 갱신은 기존 토큰을 교체합니다. 권한이 꺼지면 `DELETE /api/v1/me/push-devices/{installationId}`로 해제합니다. 세션 폐기 시 연결된 기기도 해제합니다.
 - Core는 알림 커밋 뒤 활성 기기에만 AWS SNS로 발송합니다. 선택 가능한 분류는 발송 전 설정을 다시 확인합니다. 화면에 표시하는 내용은 `summary`와 본인 알림 조회용 ID입니다. 비활성 토큰은 정리하며, SNS 실패는 로그로 남기고 알림함 기록을 보존합니다.
 - iOS 경로는 시뮬레이터의 전면 SSE·로컬 알림입니다. 원격 APNs와 앱 스토어 배포는 이 범위에서 다루지 않습니다.
