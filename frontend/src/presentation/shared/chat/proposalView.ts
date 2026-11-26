@@ -40,6 +40,7 @@ export function proposalStageView(reply: ChatReply | null, open: { number: numbe
 
   const episode = reply.approvalEpisode ?? null
   const comparable = episode !== null && open?.number === episode
+  const body = comparable ? open.body : '' // 비교할 지금 초안(반영 회차가 열린 회차일 때만)
   const openEpisode = episode !== null && !comparable ? episode : null
   const notice = openEpisode !== null ? `${openEpisode}화 초안에 반영하는 제안이에요. ${openEpisode}화를 열어 비교해 주세요.`
     : episode === null ? '반영할 회차를 알 수 없어 지금 원고와 비교할 수 없어요.' : ''
@@ -47,11 +48,11 @@ export function proposalStageView(reply: ChatReply | null, open: { number: numbe
 
   if (after !== undefined) { // 부분 수정·조건부 수정: 수정 전·후 글만 있다
     const old = before ?? ''
-    const at = comparable && old ? open.body.indexOf(old) : -1
+    const at = comparable && old ? body.indexOf(old) : -1
     // 서버는 수정 전 글이 초안에 한 번만 있을 때만 바꾼다(place): 여러 곳이면 어느 곳인지 꾸며 강조하지 않는다.
-    const repeated = at >= 0 && open.body.indexOf(old, at + 1) >= 0
+    const repeated = at >= 0 && body.indexOf(old, at + 1) >= 0
     if (at >= 0 && !repeated) {
-      const head = open.body.slice(0, at), tail = open.body.slice(at + old.length)
+      const head = body.slice(0, at), tail = body.slice(at + old.length)
       return { kind: 'patch', episode, openEpisode, notice, current: column(`지금 초안 · ${episode}화`, head, old, tail), proposal: column('제안', head, after, tail) }
     }
     return { kind: 'patch', episode, openEpisode, current: column('수정 전', '', old), proposal: column('수정 후', '', after),
@@ -61,7 +62,7 @@ export function proposalStageView(reply: ChatReply | null, open: { number: numbe
   // 새 원고는 초안 끝에 이어 붙는다(Content render_writing): 오른쪽은 반영 후 모습이고 붙는 글만 강조한다.
   const text = stepText(step)
   return comparable
-    ? { kind: 'draft', episode, openEpisode, notice, current: column(`지금 초안 · ${episode}화`, open.body), proposal: column('반영 후', open.body.trim() ? `${open.body}
+    ? { kind: 'draft', episode, openEpisode, notice, current: column(`지금 초안 · ${episode}화`, body), proposal: column('반영 후', body.trim() ? `${body}
 
 ` : '', text) }
     : { kind: 'draft', episode, openEpisode, notice, current: null, proposal: column('제안 · 초안 끝에 이어 붙여요', text) }
