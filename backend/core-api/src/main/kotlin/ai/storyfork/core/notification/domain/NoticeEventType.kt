@@ -2,7 +2,7 @@ package ai.storyfork.core.notification.domain
 
 /**
  * Core가 알림으로 바꿔 주는 사건 종류(계약 schemaVersion 1). code는 RabbitMQ routing key이자 메시지의 type이다.
- * 새 사건은 여기에 추가하고 docs/notification-event-contract.md에도 적는다. 처음 연결할 사건은 팀 확인 전의 후보다.
+ * 새 사건은 여기에 추가하고 docs/notification-event-contract.md에도 적는다. [summary]는 detail이 없을 때의 기본 문구이고, 구체 문구는 NoticeSummary가 만든다(#941). 처음 연결할 사건은 팀 확인 전의 후보다.
  */
 enum class NoticeEventType(val code: String, val kind: NoticeKind, val summary: String, val targetType: String) {
     /** Content 세계관 변경 -> 해당 작품을 보는 Fork 독자에게 읽기 알림(UC-27). */
@@ -23,10 +23,10 @@ enum class NoticeEventType(val code: String, val kind: NoticeKind, val summary: 
     /** Content MCP 쓰기가 작품·회차·플롯·공지·작품 설정을 바꿈 -> 도구를 부른 작가에게 AI 변경 알림(#553). target.id는 작품 id. 같은 대상의 읽지 않은 알림은 묶는다. */
     MCP_WORK_CHANGED("content.mcp.work-changed", NoticeKind.AI_TOOL, "AI가 MCP로 작품을 수정했어요", "work"),
 
-    /** 운영자가 작품을 제한함 -> 작품 소유자에게 처리 결과 알림(#553). 묶지 않는다. */
+    /** 운영자가 작품(detail.episodeNumber가 있으면 그 회차)을 제한함 -> 작품 소유자에게 처리 결과 알림(#553·#941). 묶지 않는다. */
     OPERATOR_WORK_RESTRICTED("content.operator.work-restricted", NoticeKind.RESULT, "운영자가 작품을 제한했어요", "work"),
 
-    /** 운영자가 작품 제한을 해제함 -> 작품 소유자에게 처리 결과 알림(#553). 묶지 않는다. */
+    /** 운영자가 작품(detail.episodeNumber가 있으면 그 회차) 제한을 해제함 -> 작품 소유자에게 처리 결과 알림(#553·#941). 묶지 않는다. */
     OPERATOR_WORK_UNRESTRICTED("content.operator.work-unrestricted", NoticeKind.RESULT, "운영자가 작품 제한을 해제했어요", "work"),
 
     /** 운영자가 댓글을 숨김 -> 댓글 작성자에게 처리 결과 알림(#553). target.id는 댓글이 달린 작품 id. 묶지 않는다. */
@@ -34,6 +34,12 @@ enum class NoticeEventType(val code: String, val kind: NoticeKind, val summary: 
 
     /** 운영자가 숨긴 댓글을 다시 게시함 -> 댓글 작성자에게 처리 결과 알림(#553). target.id는 댓글이 달린 작품 id. 묶지 않는다. */
     OPERATOR_COMMENT_RESTORED("content.operator.comment-restored", NoticeKind.RESULT, "운영자가 숨긴 내 댓글을 다시 게시했어요", "work"),
+
+    /** 운영자가 세계관을 제한함 -> 세계관 소유자에게 처리 결과 알림(#941). target.id는 WorldStudio 세계관 id. 묶지 않는다. */
+    OPERATOR_WORLD_RESTRICTED("content.operator.world-restricted", NoticeKind.RESULT, "운영자가 세계관을 제한했어요", "world"),
+
+    /** 운영자가 세계관 제한을 해제함 -> 세계관 소유자에게 처리 결과 알림(#941). target.id는 WorldStudio 세계관 id. 묶지 않는다. */
+    OPERATOR_WORLD_UNRESTRICTED("content.operator.world-unrestricted", NoticeKind.RESULT, "운영자가 세계관 제한을 해제했어요", "world"),
 
     /** 운영 서비스 경고 발생 -> `llm`·`jobs` 권한을 가진 운영자마다 한 건의 알림(DEC-55). 끌 수 없는 처리 결과 분류이고 target.id는 경고 id다. */
     OPERATIONS_ALERT_RAISED("operations.alert.raised", NoticeKind.RESULT, "운영 경고가 발생했어요", "alert");
