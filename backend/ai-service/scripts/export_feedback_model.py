@@ -68,4 +68,3 @@ if __name__ == "__main__":
     parser.add_argument("--g2", action="store_true")
     args = parser.parse_args()
     export(args.source, args.destination, G2_FILES if args.g2 else FILES)
-

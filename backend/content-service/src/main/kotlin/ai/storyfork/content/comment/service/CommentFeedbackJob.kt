@@ -38,4 +38,3 @@ class CommentFeedbackJob(private val store: CommentFeedbackStore, private val ai
         jobs.forEach { store.complete(it,prediction.getValue(it.id)) }
     }
 }
-

@@ -31,4 +31,3 @@ class CommentFeedbackJobTest {
     @Test fun unauthorized() = failed(HttpClientErrorException(HttpStatus.FORBIDDEN),"AI_HTTP_403",false)
     @Test fun missingModel() = failed(HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE),"AI_HTTP_503",true)
 }
-

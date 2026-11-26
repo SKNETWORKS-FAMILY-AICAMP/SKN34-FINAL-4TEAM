@@ -20,4 +20,3 @@ volumes:
   feedback-model:
     external: true
     name: ${FEEDBACK_MODEL_VOLUME:?Set FEEDBACK_MODEL_VOLUME to the verified model volume}
-

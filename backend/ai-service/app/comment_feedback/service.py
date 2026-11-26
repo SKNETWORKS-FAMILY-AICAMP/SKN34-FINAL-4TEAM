@@ -85,4 +85,3 @@ def load_classifier():
     except Exception as error:
         logging.getLogger(__name__).warning("피드백 분류기 로딩 실패 (%s)", type(error).__name__)
         return None
-
