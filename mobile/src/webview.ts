@@ -20,3 +20,11 @@ export function tapDestination(data: unknown, base = API_BASE_URL) {
   const path = payloadTarget(data)
   return path ? webUrl(path, base) : null
 }
+
+/**
+ * 하단 탭을 눌렀을 때 WebView 안에서 실행할 스크립트. 웹 라우터(react-router의 BrowserRouter)는 popstate를 받아 화면을 바꾸므로
+ * 주소 기록에 경로를 더하고 popstate를 보내면 페이지를 새로 읽지 않고 이동하며 뒤로가기 기록도 쌓인다(웹은 바꾸지 않는다).
+ * 끝의 true는 react-native-webview가 마지막 식이 값이 아니면 iOS에서 조용히 실패하는 것을 피하기 위한 것이다.
+ */
+export const navigateScript = (path: string) =>
+  `(function (path) { if (location.pathname + location.search !== path) { history.pushState(null, '', path); dispatchEvent(new PopStateEvent('popstate')) } })(${JSON.stringify(path)}); true;`

@@ -67,7 +67,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 
 ## 모바일 앱 WebView 브리지 메시지
 
-모바일 앱(`mobile/`, #943)은 웹을 WebView로 보이고 알림만 맡는다. 앱은 SSE에 연결하거나 Core API를 부르지 않고, 웹이 `window.ReactNativeWebView.postMessage(JSON 문자열)`로 보낸 메시지만 받는다. 웹은 앱 안에서만(`window.ReactNativeWebView`가 있을 때) 보내며 브라우저에서는 아무것도 바뀌지 않는다. 형식은 웹 `frontend/src/domain/entities/nativeBridge.ts`가 만들고 앱 `mobile/src/bridge.ts`가 zod로 검증하며 두 쪽의 시험이 같은 JSON을 쓴다. 형식을 바꾸면 이 표와 두 파일을 함께 고친다.
+모바일 앱(`mobile/`, #943)은 웹을 WebView로 보이고 알림과 하단 탭만 맡는다. 앱은 SSE에 연결하거나 Core API를 부르지 않고, 웹이 `window.ReactNativeWebView.postMessage(JSON 문자열)`로 보낸 메시지만 받는다. 웹은 앱 안에서만(`window.ReactNativeWebView`가 있을 때) 보내며 브라우저에서는 아무것도 바뀌지 않는다. 형식은 웹 `frontend/src/domain/entities/nativeBridge.ts`가 만들고 앱 `mobile/src/bridge.ts`가 zod로 검증하며 두 쪽의 시험이 같은 JSON을 쓴다. 형식을 바꾸면 이 표와 두 파일을 함께 고친다.
 
 | type | 보내는 때 | 필드 |
 | --- | --- | --- |
@@ -82,6 +82,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 - 앱은 회원별 기준선(`id`+`createdAt`)을 메모리에만 둔다. 앱을 켠 뒤·로그아웃 뒤·다른 회원으로 바뀐 뒤 처음 받은 목록은 기준선만 만들고 알리지 않으며, 그다음 목록에서 기준선에 없던 읽지 않은 알림만 `expo-notifications` 로컬 알림(제목은 분류 이름, 본문은 `summary`)으로 띄운다. `ai-tool`은 같은 알림의 시각만 올라가므로 `createdAt`이 바뀌면 새 알림으로 본다. 알림 권한은 처음 알림 목록을 받을 때(로그인한 걸 안 뒤) 한 번 묻는다.
 - 알림(로컬 알림·`xcrun simctl push` 알림)을 누르면 앱은 알림 데이터(`kind`·`targetType`·`targetId`)에서 웹 `noticeTarget`과 같은 규칙의 경로를 만들어 WebView를 같은 origin의 그 경로로 옮긴다(이동 대상이 없으면 옮기지 않는다). 원격 알림 payload는 expo-notifications 규칙대로 최상위 `body` 객체에 이 값들을 둔다.
 - 앱을 내려 두면(백그라운드) 웹의 SSE도 멈춰 그동안은 알림이 오지 않는다. 돌아오면 웹이 SSE를 다시 연결하고(`ready`) 목록을 다시 읽어 보내므로 그동안 생긴 알림이 그때 로컬 알림이 된다(iOS 시뮬레이터에서 확인, 재연결은 웹의 유휴 감시 시간만큼 걸릴 수 있다). 앱을 완전히 종료했다가 다시 켠 경우에는 처음 받은 목록이 기준선이라 그동안 생긴 알림은 띄우지 않는다(웹 알림함·배지에는 그대로 있다). iOS APNs 원격 푸시는 이번 범위 밖이다(Android FCM은 별도).
+- 앱이 WebView에 주입하는 스크립트(웹 코드 변경 없음)도 같은 채널로 `{"type":"storyfork.background","color":"rgb(248, 249, 250)"}`(웹 body의 배경색)를 보낸다. 앱은 같은 origin 검증을 거친 것만 받아 상태바 띠·하단 탭을 웹 테마(라이트·다크)와 같은 색으로 맞추며 알림과는 무관하다(`mobile/src/appearance.ts`).
 
 ## 발행 쪽 약속
 
