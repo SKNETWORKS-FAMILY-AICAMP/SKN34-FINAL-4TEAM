@@ -26,7 +26,7 @@ LLMOps 화면 '프롬프트·평가'의 보기 '에이전트별 평가'(`&sub=ev
 | 에이전트 · 기능 | 모드 | 평가 세트(항목 수) | 지표 | 최근 결과 |
 |---|---|---|---|---|
 | 메인 에이전트 · `orchestration.main` | — | 평가 세트 없음(후속) | — | — |
-| Decision Guard · `decision_guard.judge` | 새 답변 생성 | `decision_guard.routing`(49) | `guard`(거절 판정) · `precision`(기능 정밀도) · `recall`(기능 재현율) | 최근 Run |
+| Decision Guard · `decision_guard.judge` | 새 답변 생성 | `decision_guard.routing`(49) | `guard`(거절 판정) · `precision`(기능 정밀도) · `recall`(기능 재현율) · `rejected`(정답이 거절인 항목만 거절 여부) | 최근 Run |
 | Q&A · `story_context.answer` | 새 답변 생성 | `qa.grounding`(6) | `faithfulness`(근거 충실도) · `context_precision`(문맥 정밀도) | 최근 Run |
 | Q&A · 비공개 설정 누설(Fork 응답) | 새 답변 생성 | `leak.spoiler`(5) | GEval 누설 점수 | 최근 Run |
 | Q&A · 설정·관계 발췌(`world_excerpts`) | 원문 검색 | 한국어 62문항(설정 14·누설 62) | Recall@8 · MRR@8 · 비공개 설정 누설 | 버튼 없음 · CI에서 확인 — setting Recall@8 1.00 · MRR@8 0.92, 누설 0건 |
@@ -43,7 +43,7 @@ LLMOps 화면 '프롬프트·평가'의 보기 '에이전트별 평가'(`&sub=ev
 | 전처리 설정 추출 · `manuscript_extraction.extract` | 새 답변 생성 | `extraction.extract`(30) | `recall`(재현율) · `quote_ok`(인용 통과율) | 최근 Run |
 
 - 후보 등록 평가 게이트(#787)는 Q&A 답변(`qa.grounding`)·인물 대사(`simulation.act`)·나레이션(`simulation.narrate`)·Decision Guard 판정(`decision_guard.routing`, #783)·설정 추출(`extraction.extract`, #824)에만 있다. 나머지 세트(`leak.spoiler`·`world.conflict`·`writing.fix`)는 범용이라 게이트가 아니다. `leak.spoiler`는 운영 정기 작업 `leak_sample_check`가 실제 Fork 응답을 표본으로 판정하는 것과 같은 방식(DeepEval)이다. 방식은 [운영 LLMOps 계약](../design/operations-llmops-contract.md), 시뮬레이션 세트는 [원문 평가 §10](simulation-original.md#10-운영-llmops-등록-형식내보내기)에 있다.
-- 세트가 생기면 '평가 세트 없음(후속)' 행을 그 세트·지표로 바꾼다. 전처리 설정 추출은 #824로 `extraction.extract`(30회차)로 바뀌었다: 채점 모델 없이 코드가 정답표와 대조하고 `recall`은 설정다운 정답만 센다([추출 평가 세트](extraction-set.md)). Decision Guard는 #783으로 `decision_guard.routing`(49항목)으로 바뀌었다: 실제 판정을 정답과 견줘 모델 없이 `guard`(거절 종류 일치)·`precision`(고른 기능 중 맞은 비율)·`recall`(정답 기능 중 고른 비율)로 채점한다([세트 안내](../../backend/ai-service/app/evaluation/datasets/README.md)).
+- 세트가 생기면 '평가 세트 없음(후속)' 행을 그 세트·지표로 바꾼다. 전처리 설정 추출은 #824로 `extraction.extract`(30회차)로 바뀌었다: 채점 모델 없이 코드가 정답표와 대조하고 `recall`은 설정다운 정답만 센다([추출 평가 세트](extraction-set.md)). Decision Guard는 #783으로 `decision_guard.routing`(49항목)으로 바뀌었다: 실제 판정을 정답과 견줘 모델 없이 `guard`(거절 종류 일치)·`precision`(고른 기능 중 맞은 비율)·`recall`(정답 기능 중 고른 비율)·`rejected`(정답이 거절인 항목만 거절 여부, #888)로 채점한다([세트 안내](../../backend/ai-service/app/evaluation/datasets/README.md)).
 - 웹 검색은 제외한다(결과가 시점마다 달라 고정 입력이 성립하지 않는다, 재현 불가). Content 원고 벡터 검색(`app/retrieval`)은 후속이다: 색인·검색 범위는 Content가 소유하고 호출에 Content 내부 API와 Content가 서명한 토큰이 필요하다. NovelBrain 평가의 '벡터'는 운영과 같은 고정 리비전의 E5-small로 AI가 문단을 직접 임베딩해 코사인 kNN으로 찾는 근사다.
 
 ### 1.2 화면 표에 없는 평가(로컬 CLI)
