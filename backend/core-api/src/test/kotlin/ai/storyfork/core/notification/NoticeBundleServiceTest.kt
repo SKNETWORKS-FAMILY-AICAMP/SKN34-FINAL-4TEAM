@@ -147,4 +147,41 @@ class NoticeBundleServiceTest {
         assertEquals(others.size * 2, savedRows().size)
         assertTrue(calls("bumpUnread").isEmpty())
     }
+
+    @Test
+    fun `a bundled change counts itself, opens the latest episode and says how many more changes there are`() {
+        val existing = unread().apply { targetEpisode = 3 }
+        givenUnread(existing)
+
+        service.create(request().copy(summary = "AI가 MCP로 「별의 숲」 5화 원고를 수정했어요", targetEpisode = 5, bundleSubject = "「별의 숲」 5화 원고"))
+        service.create(request().copy(summary = "AI가 MCP로 「별의 숲」 플롯을 수정했어요", targetEpisode = null, bundleSubject = "「별의 숲」 플롯"))
+
+        assertTrue(savedRows().isEmpty())
+        assertEquals(2, existing.bundledCount)
+        assertEquals(null, existing.targetEpisode)
+        assertEquals("AI가 MCP로 「별의 숲」 플롯 외 2건을 수정했어요", existing.summary)
+    }
+
+    @Test
+    fun `an event without a phrase still counts in the bundle but keeps the summary`() {
+        val existing = unread()
+        givenUnread(existing)
+
+        val response = service.create(request())
+
+        assertEquals(1, existing.bundledCount)
+        assertEquals("AI가 MCP로 작품을 수정했어요", existing.summary)
+        assertEquals("AI가 MCP로 작품을 수정했어요", response?.summary)
+    }
+
+    @Test
+    fun `a new row keeps the episode to open`() {
+        givenNewRowsAreSaved()
+
+        val response = service.create(request().copy(targetEpisode = 4))
+
+        assertEquals(4, savedRows().single().targetEpisode)
+        assertEquals(0, savedRows().single().bundledCount)
+        assertEquals(4, response?.targetEpisode)
+    }
 }

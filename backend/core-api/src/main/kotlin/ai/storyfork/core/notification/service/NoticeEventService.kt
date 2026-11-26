@@ -2,6 +2,7 @@ package ai.storyfork.core.notification.service
 
 import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.notification.domain.NoticeEventType
+import ai.storyfork.core.notification.domain.NoticeSummary
 import ai.storyfork.core.notification.repository.NoticeRepository
 import ai.storyfork.core.notification.service.dto.NoticeCreateRequest
 import ai.storyfork.core.notification.service.dto.NoticeEventMessage
@@ -34,6 +35,11 @@ class NoticeEventService(
         val target = message.target
         if (target?.type != type.targetType) invalid("target.type")
         val targetId = target.id?.takeIf { it.isNotBlank() && it.length <= 100 } ?: invalid("target.id")
+        val detail = message.detail
+        if ((detail?.episodeNumber ?: 1) < 1) invalid("detail.episodeNumber")
+        // 회차로 이동하는 것은 작품 대상 알림뿐이다(세계관 대상은 회차가 없다).
+        val episode = detail?.episodeNumber?.takeIf { type.targetType == "work" }
+        val text = NoticeSummary.of(type, detail)
 
         if (noticeRows.existsBySourceEventId(eventId)) return NoticeEventResult.DUPLICATE
         if (!members.existsById(recipientId)) {
@@ -41,7 +47,7 @@ class NoticeEventService(
             return NoticeEventResult.DROPPED_UNKNOWN_MEMBER
         }
         return try {
-            val created = notices.create(NoticeCreateRequest(recipientId, type.kind, type.summary, type.targetType, targetId, eventId))
+            val created = notices.create(NoticeCreateRequest(recipientId, type.kind, text.summary, type.targetType, targetId, eventId, episode, text.subject))
             if (created == null) NoticeEventResult.SKIPPED_PREFERENCE else NoticeEventResult.CREATED
         } catch (e: DataIntegrityViolationException) {
             // 같은 사건이 동시에 도착해 다른 소비자가 먼저 저장한 경우만 중복이다. 그 외 제약 위반은 그대로 다시 던진다.

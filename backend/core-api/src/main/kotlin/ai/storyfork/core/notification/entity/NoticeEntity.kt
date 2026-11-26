@@ -14,11 +14,15 @@ class NoticeEntity(
     @Id val id: UUID,
     @Column(name = "recipient_id", nullable = false) val recipientId: UUID,
     @Column(nullable = false, length = 40) val kind: String,
-    @Column(nullable = false, length = 300) val summary: String,
+    @Column(nullable = false, length = 300) var summary: String,
     @Column(name = "target_type", length = 40) val targetType: String? = null,
     @Column(name = "target_id", length = 100) val targetId: String? = null,
     @Column(name = "created_at", nullable = false) val createdAt: Instant,
     @Column(name = "read_at") var readAt: Instant? = null,
     @Column(name = "deleted_at") var deletedAt: Instant? = null,
     @Column(name = "source_event_id") val sourceEventId: UUID? = null,
+    /** 회차 단위 사건의 회차 번호(#941). ai-tool 묶음은 마지막 사건의 값으로 바뀐다. */
+    @Column(name = "target_episode") var targetEpisode: Int? = null,
+    /** ai-tool 묶음에 합쳐진 사건 수(#941). 처음 알림은 0이고 "외 n건"의 n이다. */
+    @Column(name = "bundled_count", nullable = false) var bundledCount: Int = 0,
 )

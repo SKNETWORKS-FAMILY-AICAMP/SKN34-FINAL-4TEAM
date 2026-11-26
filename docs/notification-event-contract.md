@@ -26,7 +26,8 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
   "type": "content.world.changed",
   "occurredAt": "2026-11-05T06:15:08Z",
   "recipientId": "<알림을 받을 회원 UUID>",
-  "target": { "type": "work", "id": "<작품 id>" }
+  "target": { "type": "work", "id": "<작품 id>" },
+  "detail": { "title": "별의 숲", "episodeNumber": 3, "subject": "원고" }
 }
 ```
 
@@ -36,7 +37,12 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 - `occurredAt`: 발생 시각(ISO-8601 UTC). 알림 정렬은 Core가 저장한 시각을 쓴다.
 - `recipientId`: 받는 회원 한 명. 여러 명에게 보낼 때는 회원마다 별도 메시지(고유 `eventId`)를 발행한다.
 - `target`: 사건 종류가 요구하는 대상. `type`이 표와 같아야 하고 `id`는 1~100자.
-- 알림 문구는 Core가 사건 종류별로 정한다. 메시지에 개인 정보·본문 내용을 넣지 않는다.
+- `detail`(선택, #941): 알림 문구를 구체화하는 재료. 없거나 `title`이 비면 Core는 사건 종류의 기본 문구를 쓴다(이전 발행자와 호환).
+  - `title`: 작품명(`target.type`이 `work`) 또는 세계관명(`world`). 공백·줄바꿈은 한 칸으로 접고 40자에서 자른다.
+  - `episodeNumber`: 회차 단위 사건의 회차 번호(1 이상, 0 이하는 계약 위반). `work` 대상만 저장하며 알림을 누르면 그 회차로 간다. 작품 제한·해제는 이 값이 있으면 그 회차의 제한이다.
+  - `subject`: AI 변경 사건에서 바뀐 것을 가리키는 짧은 구절(예: `원고`, `플롯`, `설정 카드 「카드명」`). 60자에서 자른다.
+  - `reason`: 운영자 제한 사유(신고 처리로 제한한 경우의 신고 사유 등). 있으면 제한 알림 끝에 붙이고, 100자에서 자른다.
+- 알림 문구는 Core가 사건 종류와 `detail`로 만든다(예시는 아래 표, 문구 규칙은 `NoticeSummary`). 메시지에 비공개 원고 본문·개인정보를 넣지 않고 제목·회차 번호·짧은 대상 구절만 싣는다.
 
 ## 사건 종류
 
@@ -44,11 +50,12 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 | --- | --- | --- | --- |
 | `content.world.changed` | 읽기(끌 수 있음) | `work` | 후보. 수신자 결정 규칙은 Content 쪽 확인 필요 |
 | `operations.alert.raised` | 처리 결과(끌 수 없음) | `alert` | 운영 서비스가 경고를 만들 때 `llm`·`jobs` 권한 운영자마다 발행([계약](design/operations-llmops-contract.md#사이트-안-알림)). 화면은 `/admin?tab=llm&view=alerts`(LLM Ops 경고·누설 감시)로 이동 |
-| `content.episode.published` | 읽기(끌 수 있음) | `work` | 관심 작품에 새 회차(처음 발행한 회차 번호)가 올라왔을 때. 수신자는 그 작품을 관심 작품으로 담은 회원(작가 본인 제외), `target.id`는 작품 id. 회차 번호·제목은 싣지 않는다 |
-| `content.mcp.world-changed` | AI·외부 도구 변경(`ai-tool`, 끌 수 있음) | `world` | MCP 쓰기 도구가 세계관 내용·설정을 바꿨을 때 도구를 부른 회원(작가 본인)에게. 같은 대상의 읽지 않은 알림이 있으면 시각만 올린다([계약](design/mcp-change-notice-contract.md)) |
-| `content.mcp.work-changed` | AI·외부 도구 변경(`ai-tool`, 끌 수 있음) | `work` | MCP 쓰기 도구가 작품·회차·플롯·공지·작품 설정을 바꿨을 때. 수신·묶음 규칙은 위와 같다 |
-| `content.operator.work-restricted`·`content.operator.work-unrestricted` | 처리 결과(끌 수 없음) | `work` | 운영자가 작품을 제한·해제했을 때 작품 소유자에게([계약](design/mcp-change-notice-contract.md#운영자-조치-알림)) |
-| `content.operator.comment-hidden`·`content.operator.comment-restored` | 처리 결과(끌 수 없음) | `work` | 운영자가 댓글을 숨김·다시 게시했을 때 댓글 작성자에게, `target.id`는 댓글이 달린 작품 id |
+| `content.episode.published` | 읽기(끌 수 있음) | `work` | 관심 작품에 새 회차(처음 발행한 회차 번호)가 올라왔을 때. 수신자는 그 작품을 관심 작품으로 담은 회원(작가 본인 제외), `target.id`는 작품 id, `detail`의 `title`·`episodeNumber`로 "관심 작품 「작품명」에 4화가 올라왔어요" |
+| `content.mcp.world-changed` | AI·외부 도구 변경(`ai-tool`, 끌 수 있음) | `world` | MCP 쓰기 도구가 세계관 내용·설정을 바꿨을 때 도구를 부른 회원(작가 본인)에게. 같은 대상의 읽지 않은 알림이 있으면 그 알림에 묶는다([계약](design/mcp-change-notice-contract.md)). `detail` 예: "AI가 MCP로 「세계관명」의 설정 카드 「카드명」을 수정했어요" |
+| `content.mcp.work-changed` | AI·외부 도구 변경(`ai-tool`, 끌 수 있음) | `work` | MCP 쓰기 도구가 작품·회차·플롯·공지·작품 설정을 바꿨을 때. 수신·묶음 규칙은 위와 같다. `detail` 예: "AI가 MCP로 「작품명」 3화 원고를 수정했어요" |
+| `content.operator.work-restricted`·`content.operator.work-unrestricted` | 처리 결과(끌 수 없음) | `work` | 운영자가 작품을(`detail.episodeNumber`가 있으면 그 회차를) 제한·해제했을 때 작품 소유자에게([계약](design/mcp-change-notice-contract.md#운영자-조치-알림)). `detail` 예: "운영자가 「작품명」 3화를 제한했어요 · 사유: 신고 사유" |
+| `content.operator.world-restricted`·`content.operator.world-unrestricted` | 처리 결과(끌 수 없음) | `world` | 운영자가 세계관을 제한·해제했을 때 세계관 소유자에게(#941), `target.id`는 WorldStudio 세계관 id. `detail` 예: "운영자가 「세계관명」 세계관을 제한했어요" |
+| `content.operator.comment-hidden`·`content.operator.comment-restored` | 처리 결과(끌 수 없음) | `work` | 운영자가 댓글을 숨김·다시 게시했을 때 댓글 작성자에게, `target.id`는 댓글이 달린 작품 id. `detail` 예: "운영자가 「작품명」 3화에 남긴 내 댓글을 숨겼어요" |
 | `core.credit.expiring` | 크레딧(끌 수 없음) | `credit-expiry` | Core가 발행. 남은 크레딧이 `app.credit.expiry-notice.lead-time`(기본 3일, 임시) 안에 소멸하는 회원에게 소멸 날짜마다 한 번. `target.id`는 소멸 날짜(KST, `yyyy-MM-dd`), `eventId`는 회원·날짜로 고정 |
 | `core.member.withdrawal-requested` | 권리·보안(끌 수 없음) | `withdrawal` | Core가 발행. 탈퇴를 요청한 회원 본인에게, `target.id`는 탈퇴 요청 id. 유예 중 로그인하면 볼 수 있다 |
 
@@ -57,7 +64,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 ## Core의 처리 규칙
 
 - 같은 `eventId`는 한 번만 알림이 된다. 회원이 삭제한 알림도 다시 살아나지 않는다.
-- 예외: `ai-tool` 분류는 같은 수신자·대상의 읽지 않은 알림이 있으면 새 알림 없이 그 알림의 시각만 올린다. 묶은 사건의 `eventId`는 저장하지 않으므로 읽거나 삭제한 뒤 같은 사건이 다시 전달되면 새 알림이 생길 수 있다.
+- 예외: `ai-tool` 분류는 같은 수신자·대상의 읽지 않은 알림이 있으면 새 알림 없이 그 알림에 묶는다: 시각을 올리고, 묶인 수를 하나 늘리고, 이동 회차를 마지막 사건의 값으로 바꾸고, 마지막 사건에 `detail`이 있으면 요약을 "AI가 MCP로 「작품명」 3화 원고 외 2건을 수정했어요"(마지막 대상 외 묶인 수)로 바꾼다(#941). 묶은 사건의 `eventId`는 저장하지 않으므로 읽거나 삭제한 뒤 같은 사건이 다시 전달되면 새 알림이 생길 수 있다.
 - 회원이 해당 분류 수신을 꺼 두었으면 알림을 만들지 않고 정상 처리(ack)한다.
 - 없는 회원 대상 사건은 버리고 정상 처리한다.
 - 형식·계약 위반은 재시도 없이 DLQ로 보낸다. DB 등 일시 오류는 3회 재시도 후 DLQ로 간다.
