@@ -1663,3 +1663,45 @@ it('작품 정보 수정은 제목·소개를 고칠 수 있고, 빈 제목으�
   expect(screen.getByRole('button', { name: '실행' })).toBeTruthy()
   expect(send).not.toHaveBeenCalled()
 })
+
+// ── 원고 영역으로 옮긴 승인 제안(#909): 집필실이 onOpenProposal을 주면 채팅에는 한 줄과 링크만 남는다 ──
+describe('원고 반영 제안 한 줄(#909)', () => {
+  const renderWith = (onOpenProposal?: (opener?: HTMLElement) => void) =>
+    render(<WritingChat workId="w" basis={basis} emptyTitle="" emptyText="" suggestions={[]} onOpenProposal={onOpenProposal} />)
+
+  it('onOpenProposal이 있으면 승인 카드 대신 한 줄과 원고 영역에서 보기 링크만 보이고, 링크가 호스트에 연 버튼을 알린다', async () => {
+    writingApproval(2)
+    const open = vi.fn()
+    renderWith(open)
+    expect(await screen.findByText('2화 초안 반영 제안 · 반영 여부를 기다려요')).toBeTruthy()
+    for (const name of ['초안에 반영', '반영하지 않기', /다시 쓰기/]) expect(screen.queryByRole('button', { name })).toBeNull()
+    expect(screen.queryByRole('heading', { name: '2화 초안에 반영할까요?' })).toBeNull()
+    const link = screen.getByRole('button', { name: '원고 영역에서 보기' })
+    fireEvent.click(link)
+    expect(open).toHaveBeenCalledWith(link)
+  })
+
+  it('계획 수정안도 한 줄로 줄인다', async () => {
+    openThread([{ request: '계획 고쳐 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', steps: [{ feature: 'writing_editing', task: 'revise_plan', status: 'completed',
+      planRevision: { kind: 'scene', before: { title: '재회', content: 'a' }, after: { title: '재회', content: 'b' } } }] } }])
+    renderWith(vi.fn())
+    expect(await screen.findByText('계획 수정안 · 저장 여부를 기다려요')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '계획에 저장' })).toBeNull()
+  })
+
+  it('World 제안·Content 작업 승인은 onOpenProposal이 있어도 채팅 카드 그대로다', async () => {
+    openThread([{ request: '설정 보강', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world', steps: [{ feature: 'world', task: 'enrich', status: 'completed', world: { task: 'enrich', fixes: [], note: '' } }] } }])
+    renderWith(vi.fn())
+    expect(await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '원고 영역에서 보기' })).toBeNull()
+  })
+
+  it('onOpenProposal이 없는 화면(세계관 작업실 등)은 지금처럼 승인 카드 전체를 보인다', async () => {
+    writingApproval(2)
+    renderWith()
+    expect(await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '초안에 반영' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '다시 쓰기 (2번 남음)' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '원고 영역에서 보기' })).toBeNull()
+  })
+})
