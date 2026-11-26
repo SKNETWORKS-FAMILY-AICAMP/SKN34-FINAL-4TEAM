@@ -199,8 +199,8 @@ async def execute(request) -> Command:
     # HITL edit는 원래 호출을 남기고 영어 안내만 붙여 모델이 작가 수정으로 알아듣지 못한다. 그대로면 원 요청과 달라졌다고 안내한다(#875).
     edited = get_config()['configurable'].get(AUTHOR_EDITED)
     told = {'tool': name, 'status': 'applied', 'revision': revision, **({'authorEdited': edited} if edited else {})}
-    if name == 'story_plan_create' and isinstance(done, dict) and isinstance(done.get('position'), int):
-        # 모델은 자기가 준 순서로 답하므로 실제 저장 순서를 알린다. 다르면 _append_scene_if_beyond가 빼서 맨 뒤에 붙인 경우다(#917).
+    if name == 'story_plan_create' and isinstance(done, dict) and isinstance(done.get('position'), int) and args['data'].get('kind') == 'scene':
+        # 장면 생성 결과에만 알린다(플롯은 순서가 없고 Content가 기본값 0을 돌려줄 뿐이다). 모델은 자기가 준 순서로 답하므로 실제 저장 순서를 알린다. 다르면 _append_scene_if_beyond가 빼서 맨 뒤에 붙인 경우다(#917).
         # position은 Content가 0부터 센 값이라 그대로 말하면 작가가 보는 순서보다 하나 앞서므로, 사람이 읽는 순서(1부터)는 order로 따로 알린다.
         told['position'] = done['position']
         told['order'] = done['position'] + 1

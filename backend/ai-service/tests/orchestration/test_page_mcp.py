@@ -401,6 +401,19 @@ def test_the_model_is_told_where_the_new_scene_was_really_put(monkeypatch, posit
     assert done['order'] == saved + 1  # Content의 position은 0부터라 작가가 보는 순서(1부터)는 하나 더 크다. 모델이 그 순서로 답하게 한다
 
 
+@pytest.mark.parametrize('kind', ['plot', None])
+def test_a_new_plot_result_carries_no_position_or_order(monkeypatch, kind):
+    """플롯은 순서가 없다. Content는 기본값 0을 돌려줄 뿐이라 그대로 알리면 모델이 '1번째 플롯'처럼 답한다(#917). 순서는 장면 생성 결과에만 알린다."""
+    data = {'title': '1막', 'content': '', **({'kind': kind} if kind else {})}  # kind가 없으면 장면이 아니다(Content 규칙)
+    calls = fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    content(monkeypatch, story_plan_create={'revision': 1, 'position': 0})
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    done = json.loads(next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'story_plan_create').content)
+    assert done['revision'] == 1 and not {'position', 'order', 'appended'} & done.keys()
+
+
 def test_a_new_scene_whose_scene_count_cannot_be_read_fails_the_step_without_writing(monkeypatch):
     data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': 5}
     fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
