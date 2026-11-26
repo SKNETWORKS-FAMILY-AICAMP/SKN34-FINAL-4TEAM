@@ -202,8 +202,10 @@ def _refs(attachments: list[dict]) -> list[dict]:
 
 
 def _conversation(state: State) -> list:
-    """메인 에이전트가 받는 최근 5턴의 요청·답변과 그 앞의 이전 대화 요약(#790). 지칭 해석·맥락용이며 근거가 아니다."""
-    recent = [m for t in _previous(state)[-HISTORY_TURNS:] for m in
+    """메인 에이전트가 받는 최근 5턴(거절 턴 제외)의 요청·답변과 그 앞의 이전 대화 요약(#790). 지칭 해석·맥락용이며 근거가 아니다."""
+    # 가드가 거절한 턴(reply.status == 'rejected')은 통째로 빼고 센다: 가드의 guard_history와 같은 규칙이며 막은 원문을 메인 모델에 다시 보내지 않는다(#887). 되묻기 턴은 남긴다.
+    kept = [t for t in _previous(state) if (t.get('reply') or {}).get('status') != 'rejected']
+    recent = [m for t in kept[-HISTORY_TURNS:] for m in
               (HumanMessage(t['request']), AIMessage((t.get('reply') or {}).get('message') or ''))]
     summary = None if state.get('replaceHistory') else (state.get('summary') or {}).get('text')
     return [HumanMessage(f'{SUMMARY_HEADER}\n{summary}'), *recent] if summary else recent
