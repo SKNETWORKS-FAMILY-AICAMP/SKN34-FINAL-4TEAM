@@ -15,6 +15,7 @@ resume마다 계획 모델 호출이 interrupt 앞에서 다시 일어나기 때
 import json
 from collections.abc import Callable
 from typing import Annotated, Literal
+from uuid import uuid4
 
 from langchain.tools import ToolRuntime
 from langchain_core.messages import ToolMessage
@@ -256,6 +257,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
     step = {'feature': feature, 'when': when, 'status': 'not_started', **({'task': task_kind} if task_kind else {})}
     read, scope = inputs(runtime.state), runtime.state.get('retrievalScope')
     name, answered, ran = _name(step), {}, False
+    line = uuid4().hex  # 진행 목록 줄 id. 모델의 tool_call_id 같은 내부 id는 싣지 않는다
     try:
         while needs(read, scope):
             if not turn.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
@@ -269,19 +271,23 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             scope = answer.get('scope') or scope
             answered = {'inputs': read, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
-        agent_runtime.report(runtime.tool_call_id, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
         ran = True
+        agent_runtime.report(line, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
         with tracing.observe(f'step.{feature}', as_type='agent'):
             step.update(status='completed', result=call(read, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
-        agent_runtime.report(runtime.tool_call_id, name, 'done', feature=feature)
+        agent_runtime.report(line, name, 'done', feature=feature)
         return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', _clarify(str(ask), ask.choices), failed=True)
     except FAILURES as error:
         step.update(status='failed', error=str(error))
+    except Exception:  # 예상 밖 예외도 줄이 running으로 남아 멈춘 것처럼 보이지 않게 한다
+        if ran:
+            agent_runtime.report(line, name, 'failed', feature=feature)
+        raise
     if ran:  # 실패는 failed로 보이고, 조건이 거짓이라 건너뛴 단계(skipped)는 끝난 작업이다
-        agent_runtime.report(runtime.tool_call_id, name, 'failed' if step['status'] == 'failed' else 'done', feature=feature)
+        agent_runtime.report(line, name, 'failed' if step['status'] == 'failed' else 'done', feature=feature)
     return _reply(runtime, feature, _summary(step), {'steps': [*shown, step], **answered}, failed=step['status'] == 'failed',
                   artifact=step.get('result'))
 
@@ -602,6 +608,8 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     """
     turn = runtime.context
     step = {'feature': 'character_simulation', 'when': 'always', 'status': 'not_started'}
+    line, name = uuid4().hex, CAPABILITY_NAMES['character_simulation']
+    agent_runtime.report(line, name, 'running', feature='character_simulation')
     try:
         with tracing.observe('step.character_simulation.plan', as_type='agent'):
             if form := turn.get('simulationForm'):  # 버튼 진입: 모델에게 묻지 않고 작가가 양식에 적은 값을 세계관으로 확인해 쓴다
@@ -610,7 +618,12 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
                 drafted = simulation.plan(request, history(turn), turn.get('target'))
     except FAILURES as error:
         step.update(status='failed', error=str(error))
+        agent_runtime.report(line, name, 'failed', feature='character_simulation')
         return _reply(runtime, 'character_simulation', _summary(step), {'steps': [step]}, failed=True)
+    except Exception:
+        agent_runtime.report(line, name, 'failed', feature='character_simulation')
+        raise
+    agent_runtime.report(line, name, 'done', feature='character_simulation')  # 되묻기도 끝난 작업이다
     if gaps := drafted.gaps():
         asked = ', '.join(GAP_LABELS[g] for g in gaps)
         message = f'시뮬레이션을 시작하려면 {asked}을(를) 알려 주세요.'

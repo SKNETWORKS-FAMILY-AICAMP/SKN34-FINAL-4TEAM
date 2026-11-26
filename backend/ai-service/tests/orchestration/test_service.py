@@ -2,8 +2,10 @@ import asyncio
 import base64
 import contextlib
 import json
+import re
 import threading
 import time
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -15,7 +17,7 @@ from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import prompt, service, tools
-from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest
+from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest, QaStepResult
 from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
 
@@ -3396,6 +3398,65 @@ def test_a_conversation_whose_summary_was_cut_off_can_still_be_renamed_and_rated
     conversation('feedback', thread, ME, 0, 'up')
     history = conversation('history', thread, ME)
     assert (history.title, history.turns[0].feedback) == ('새 제목', 'up')
+
+
+# 진행 목록(activity) 리뷰 후속(#890)
+
+
+def lines(events, label=None):
+    """(라벨, 상태) 목록. label을 주면 그 줄만."""
+    return [(d['label'], d['status']) for n, d in events if n == 'activity' and label in (None, d['label'])]
+
+
+@pytest.mark.parametrize('drafted, fail, last', [
+    (None, None, 'done'),
+    (SimulationPlan(characterIds=['k']), None, 'done'),  # 되묻기는 실패가 아니라 끝난 작업이다
+    (None, SimulationFailure(503, '시뮬레이션 계획에 실패했습니다.'), 'failed'),
+])
+def test_character_simulation_reports_its_own_activity_line(monkeypatch, drafted, fail, last):
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=drafted, fail={'sim_plan': fail} if fail else None)
+    fake_scene(monkeypatch)
+    assert lines(stream(REQUEST, target=TARGET, scope=SCOPE, activities=True), '인물 시뮬레이션') == [('인물 시뮬레이션', 'running'), ('인물 시뮬레이션', last)]
+
+
+def test_an_unexpected_error_in_the_character_simulation_plan_marks_its_line_failed_and_is_raised_again(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), fail={'sim_plan': RuntimeError('boom')})
+    events = stream(REQUEST, target=TARGET, scope=SCOPE, activities=True)
+    assert lines(events, '인물 시뮬레이션') == [('인물 시뮬레이션', 'running'), ('인물 시뮬레이션', 'failed')]
+    assert events[-1][0] == 'error'  # 예외를 삼키지 않고 올려 스트림이 오류로 끝난다
+
+
+def ask_lines(monkeypatch, call):
+    """_ask를 직접 실행해 진행 목록 보고 (id, 상태)와 결과를 돌려준다. 예외는 그대로 올라오므로 호출한 쪽이 본다."""
+    seen = []
+    monkeypatch.setattr(tools.agent_runtime, 'report', lambda id, label, status, target=None, feature=None: seen.append((id, label, status)))
+    runtime = SimpleNamespace(context={}, state={}, tool_call_id='call-9', stream_writer=lambda event: None)
+    return seen, lambda: tools._ask(runtime, 'story_context', call)
+
+
+def test_an_unexpected_error_in_a_sub_agent_marks_its_line_failed_and_is_raised_again(monkeypatch):
+    def boom(inputs, scope):
+        raise RuntimeError('boom')
+    seen, run_ask = ask_lines(monkeypatch, boom)
+    with pytest.raises(RuntimeError):
+        run_ask()
+    assert [(label, status) for _, label, status in seen] == [('작품 질문', 'running'), ('작품 질문', 'failed')]
+
+
+@pytest.mark.parametrize('error', [tools.Skipped('건너뜀'), tools.Clarify('어느 회차인가요?')])
+def test_a_skipped_or_clarifying_sub_agent_ends_its_line_as_done(monkeypatch, error):
+    def call(inputs, scope):
+        raise error
+    seen, run_ask = ask_lines(monkeypatch, call)
+    run_ask()
+    assert [(label, status) for _, label, status in seen] == [('작품 질문', 'running'), ('작품 질문', 'done')]
+
+
+def test_activity_ids_are_fresh_per_call_not_the_model_tool_call_id(monkeypatch):
+    seen, run_ask = ask_lines(monkeypatch, lambda inputs, scope: QaStepResult(claims=[], gaps=[]))
+    run_ask()
+    (first, _, _), (second, _, _) = seen
+    assert first == second and first != 'call-9' and re.fullmatch(r'[0-9a-f]{32}', first)
 
 
 @pytest.mark.parametrize('how', ['run', 'stream'])
