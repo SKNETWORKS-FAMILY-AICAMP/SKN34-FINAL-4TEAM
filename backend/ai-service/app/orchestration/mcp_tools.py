@@ -182,6 +182,6 @@ async def execute(request) -> Command:
     revision = next((done[k] for k in ('draftRevision', 'revision') if isinstance(done, dict) and isinstance(done.get(k), int)), 0)
     step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'completed', 'result': {'tool': name, 'label': label}, 'approval': 'approved',
             'applied': {'episode': (turn.get('target') or {}).get('episode', 0), 'revision': revision}}
-    # HITL edit는 모델의 호출 인자를 작가가 고친 값으로 덮어써 모델은 고쳤다는 걸 모른다. 그대로면 원 요청과 달라졌다고 안내한다(#875).
+    # HITL edit는 원래 호출을 남기고 영어 안내만 붙여 모델이 작가 수정으로 알아듣지 못한다. 그대로면 원 요청과 달라졌다고 안내한다(#875).
     edited = get_config()['configurable'].get(AUTHOR_EDITED)
     return _result(step, call, json.dumps({'tool': name, 'status': 'applied', 'revision': revision, **({'authorEdited': edited} if edited else {})}))

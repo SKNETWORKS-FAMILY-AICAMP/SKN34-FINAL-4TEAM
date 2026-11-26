@@ -716,6 +716,20 @@ def test_a_plain_approval_result_has_no_author_edited(monkeypatch):
     assert 'authorEdited' not in write_result(monkeypatch, lambda thread: resume(thread, True))
 
 
+CARDS = {'id': 'world', 'request': {'cards': [{'id': 'a', 'title': '가', 'body': '본문'}, {'id': 'b', 'title': '나', 'body': '본문'}]}}
+
+
+@pytest.mark.parametrize('name, asked, edited, fields', [
+    ('work_update', {'id': 'work', 'data': {'title': '제목', 'summary': '소개', 'revision': 1}},
+     {'id': 'work', 'data': {'title': '제목', 'summary': '새 소개', 'revision': 1}}, ['summary']),
+    ('world_studio_edit_draft', CARDS,
+     {'id': 'world', 'request': {'cards': [CARDS['request']['cards'][0], {'id': 'b', 'title': '나', 'body': '새 본문'}]}}, ['body']),
+    ('story_plan_create', PLAN, PLAN, []),  # 고쳐서 승인했지만 바꾼 글이 없으면 authorEdited가 없다(execute는 빈 목록을 싣지 않는다)
+])
+def test_edited_fields_names_only_the_changed_text_fields(name, asked, edited, fields):
+    assert mcp_tools.edited_fields(name, asked, edited) == fields
+
+
 @pytest.mark.parametrize('name, args, edited', [
     ('work_update', {'id': 'work', 'data': {'title': '제목', 'summary': '소개', 'revision': 1}}, {'id': 'work', 'data': {'title': '새 제목', 'summary': '새 소개', 'revision': 1}}),
     ('story_plan_create', {'workId': 'work', 'data': {'kind': 'plot', 'title': '1막'}}, {'workId': 'work', 'data': {'kind': 'plot', 'title': '첫 막'}}),
