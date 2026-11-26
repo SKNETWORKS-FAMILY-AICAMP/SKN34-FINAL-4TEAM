@@ -8,6 +8,7 @@ Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 �
 
 import asyncio
 import json
+import logging
 import os
 import uuid
 from contextvars import ContextVar
@@ -17,8 +18,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
-from app import agent_runtime
+from app import agent_runtime, tracing
 from app.content_mcp.errors import ContentMcpFailure
+
+logger = logging.getLogger(__name__)
 
 AUTHORIZATION: ContextVar[str] = ContextVar('content_mcp_authorization', default='')
 # Content가 사용자에게 보여 줄 detail로 거절하는 상태. 그 밖의 도구 오류는 502로 닫는다.
@@ -350,5 +353,11 @@ def _failure(text: str) -> ContentMcpFailure:
     parts = head.split()
     status = int(parts[1]) if len(parts) > 1 and parts[0] == 'HTTP' and parts[1].isdigit() else None
     if status not in PASSED_STATUSES:
+        # 작가에게는 고정 문구만 보이므로 원인(예: HTTP 503 RELATIONSHIP_WRITE_INCOMPLETE)은 로그·추적에만 남긴다(#874).
+        # 상태·코드만 남긴다: 그 밖의 오류 글은 모델이 보낸 인자(원고·계획 글)를 되풀이할 수 있다.
+        # status_message는 예외가 감싼 tracing.observe를 빠져나갈 때 고정 문구로 덮이므로 metadata에 남긴다.
+        reason = ' '.join(parts[:3]) if status is not None else 'HTTP 형식이 아닌 도구 오류'
+        logger.warning('Content MCP 도구 오류: %s', reason)
+        tracing.client().update_current_span(metadata={'contentError': reason})
         return ContentMcpFailure(502, 'Content 작업에 실패했습니다.')
     return ContentMcpFailure(status, detail.strip()[:200] or 'Content 작업을 완료할 수 없습니다.')

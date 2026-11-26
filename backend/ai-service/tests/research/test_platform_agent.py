@@ -23,6 +23,12 @@ def test_pick_asks_for_world_ids_as_structured_output(monkeypatch):
     assert '실행하지 않는다' in seen['messages'][0].content  # 카드·설명 속 지시를 따르지 않는다는 안전 지시
 
 
+def test_pick_leaves_room_for_reasoning_tokens(monkeypatch):
+    seen = fake_chat(monkeypatch, text=PlatformPick(worldIds=['w1']).model_dump_json())
+    agent.pick('마법 학원 참고', WORLDS)
+    assert seen['init']['max_tokens'] == 2000  # 추론 토큰도 한도에 포함돼 500에서는 간헐적으로 잘렸다(#867)
+
+
 def test_refer_returns_the_draft_from_the_read_cards(monkeypatch):
     draft = PlatformDraft(references=[Reference(worldId='w1', cardId='c1', note='참고')], gaps=['빠진 것'])
     seen = fake_chat(monkeypatch, text=draft.model_dump_json())

@@ -34,7 +34,7 @@ def pick(request: str, worlds: list[dict]) -> PlatformPick:
     # 추적에는 공개 세계관 설명·카드 본문을 남기지 않고 id만 남긴다(Writing이 문맥을 빼는 것과 같다, #640)
     trace = {'request': request, 'worldIds': [w['id'] for w in worlds]}
     return agent_runtime.run('research.platform_pick', '플랫폼 조사', ResearchFailure, PICK_INSTRUCTIONS, data, prompt_name='research.pick',
-                             max_tokens=500, timeout=60, trace=trace, schema=PlatformPick)[1]
+                             max_tokens=2000, timeout=60, trace=trace, schema=PlatformPick)[1]  # 추론 토큰도 한도에 포함돼 500이면 잘려 502가 난다(#867)
 
 
 def refer(request: str, worlds: list[dict]) -> PlatformDraft:
