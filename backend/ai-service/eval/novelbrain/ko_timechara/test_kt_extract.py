@@ -3,9 +3,13 @@
 import json
 from types import SimpleNamespace
 
+import pytest
+
+import kt_exec
+import kt_extract
 from batch import SyncExecutor, run_rounds
 from cost import CostLog
-from kt_extract import extractor, finish, summarize_extraction
+from kt_extract import build, check_targets, extractor, finish, parse_args, summarize_extraction
 from kt_label import EpisodeLabel, Ev, Learn, LearnedLabel, Ref
 from kt_world import WChar, WEvent, WorldOut, load_world
 from llm import Ledger, Llm
@@ -101,3 +105,41 @@ def test_finish_keeps_names_apart_that_one_event_lists_as_different_people(tmp_p
     finish(works, [record], tmp_path / 'out')
     knowledge = json.loads((tmp_path / 'out' / 'w00' / 'knowledge.jsonl').read_text().splitlines()[0])
     assert [p['name'] for p in knowledge['events'][0]['participants']] == ['소연', '주소연']
+
+
+# ---- 게이트웨이(구독) 경로: 유료 OpenAI 키·Batch를 쓰지 않고 새 작품만 추출한다 ----
+
+GATEWAY = ['n01', 'n02', '--gen-model=gpt-6-luna', '--name=n-extract', '--limit-usd=5']
+
+
+def test_gateway_options_need_ids_a_name_a_cap_and_never_the_paid_batch_path():
+    args = parse_args(GATEWAY)
+    assert (args.ids, args.gen_model, args.name, args.limit_usd, args.workers, args.mode) == (['n01', 'n02'], 'gpt-6-luna', 'n-extract', 5.0, 6, 'sync')
+    for bad in (['--gen-model=gpt-6-luna', '--name=x', '--limit-usd=5'],                                    # 작품 id 없이는 기존 작품까지 다시 쓸 수 있다
+                ['n01', '--gen-model=gpt-6-luna', '--limit-usd=5'], ['n01', '--gen-model=gpt-6-luna', '--name=x'],   # 이름·상한 필수
+                GATEWAY + ['--mode=batch']):                                                                # Batch는 OpenAI 키를 쓴다
+        with pytest.raises(SystemExit):
+            parse_args(bad)
+    assert parse_args(['w01', '--mode=batch']).gen_model is None and parse_args([]).ids == []                  # 옵션 없는 실행은 예전 그대로(작품 전체)
+
+
+def test_check_targets_refuses_works_that_already_have_extraction_outputs_unless_overwrite(tmp_path):
+    (tmp_path / 'w01').mkdir()
+    (tmp_path / 'w01' / 'knowledge.jsonl').write_text('')
+    with pytest.raises(SystemExit):
+        check_targets(['n01', 'w01'], tmp_path)
+    check_targets(['n01'], tmp_path)
+    check_targets(['w01'], tmp_path, overwrite=True)
+
+
+def test_build_uses_the_gateway_llm_with_half_the_workers_and_stops_before_building_anything_for_a_finished_work(tmp_path, monkeypatch):
+    for module in (kt_exec, kt_extract):
+        monkeypatch.setattr(module, 'KT', tmp_path / 'kt')
+    (tmp_path / 'kt' / 'works' / 'w01').mkdir(parents=True)
+    (tmp_path / 'kt' / 'works' / 'w01' / 'world.json').write_text('{}')
+    with pytest.raises(SystemExit):
+        build(parse_args(['w01', '--gen-model=gpt-6-luna', '--name=x', '--limit-usd=5']))
+    assert not (tmp_path / 'kt' / 'cache-x').exists()                                                        # 막힌 실행은 캐시·장부를 만들지 않는다
+    llm, executor, plan = build(parse_args(GATEWAY + ['--gen-effort=low']))
+    assert (llm.model, llm.via, llm.limit_usd, llm.cache_dir) == ('gpt-6-luna@low', 'ocx', 5.0, tmp_path / 'kt' / 'cache-n-extract')
+    assert isinstance(executor, SyncExecutor) and executor.workers == 6 and plan['limit_usd'] == 5.0 and plan['batch'] is False

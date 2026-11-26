@@ -1,0 +1,338 @@
+{
+  "configs": {
+    "link_bm25": {
+      "by_kind": {
+        "place": {
+          "pairs": {
+            "accuracy": 0.6875,
+            "ci": [
+              0.5793201821792608,
+              0.7784974167215235
+            ],
+            "correct": 55,
+            "failed": 0,
+            "n": 80
+          },
+          "questions": {
+            "accuracy": 0.83125,
+            "ci": [
+              0.7656098584028624,
+              0.8813564798164909
+            ],
+            "correct": 133,
+            "failed": 0,
+            "n": 160
+          }
+        },
+        "time": {
+          "pairs": {
+            "accuracy": 0.6375,
+            "ci": [
+              0.5281059097698362,
+              0.7342936627574055
+            ],
+            "correct": 51,
+            "failed": 0,
+            "n": 80
+          },
+          "questions": {
+            "accuracy": 0.81875,
+            "ci": [
+              0.7518173600355944,
+              0.8707351541000097
+            ],
+            "correct": 131,
+            "failed": 0,
+            "n": 160
+          }
+        }
+      },
+      "by_side": {
+        "absent": {
+          "accuracy": 0.9,
+          "ci": [
+            0.8148912101660255,
+            0.9484530008223144
+          ],
+          "correct": 72,
+          "failed": 0,
+          "n": 80
+        },
+        "after": {
+          "accuracy": 0.7375,
+          "ci": [
+            0.6318083375343555,
+            0.8214272877399715
+          ],
+          "correct": 59,
+          "failed": 0,
+          "n": 80
+        },
+        "before": {
+          "accuracy": 0.9,
+          "ci": [
+            0.8148912101660255,
+            0.9484530008223144
+          ],
+          "correct": 72,
+          "failed": 0,
+          "n": 80
+        },
+        "present": {
+          "accuracy": 0.7625,
+          "ci": [
+            0.6585901502919855,
+            0.8423544881691125
+          ],
+          "correct": 61,
+          "failed": 0,
+          "n": 80
+        }
+      },
+      "by_work_kind": {
+        "web": {
+          "pairs": {
+            "accuracy": 0.6625,
+            "ci": [
+              0.586183801320542,
+              0.7311959117681972
+            ],
+            "correct": 106,
+            "failed": 0,
+            "n": 160
+          },
+          "questions": {
+            "accuracy": 0.825,
+            "ci": [
+              0.7795811523375173,
+              0.8627081644148702
+            ],
+            "correct": 264,
+            "failed": 0,
+            "n": 320
+          }
+        }
+      },
+      "context": {
+        "items": 5.6625,
+        "kinds": {
+          "cell": 0,
+          "event": 937,
+          "identity": 164,
+          "manuscript": 0,
+          "memory": 711,
+          "relation": 0
+        },
+        "n": 320
+      },
+      "pairs": {
+        "accuracy": 0.6625,
+        "ci": [
+          0.586183801320542,
+          0.7311959117681972
+        ],
+        "correct": 106,
+        "failed": 0,
+        "n": 160
+      },
+      "picked": {
+        "direct": 136,
+        "hearsay": 1,
+        "unknown": 183
+      },
+      "questions": {
+        "accuracy": 0.825,
+        "ci": [
+          0.7795811523375173,
+          0.8627081644148702
+        ],
+        "correct": 264,
+        "failed": 0,
+        "n": 320
+      }
+    },
+    "no_vector": {
+      "by_kind": {
+        "place": {
+          "pairs": {
+            "accuracy": 0.6,
+            "ci": [
+              0.49045264548149986,
+              0.700383407265585
+            ],
+            "correct": 48,
+            "failed": 0,
+            "n": 80
+          },
+          "questions": {
+            "accuracy": 0.775,
+            "ci": [
+              0.7042857994110268,
+              0.8328183304314551
+            ],
+            "correct": 124,
+            "failed": 0,
+            "n": 160
+          }
+        },
+        "time": {
+          "pairs": {
+            "accuracy": 0.525,
+            "ci": [
+              0.41695451180328746,
+              0.6307545013834838
+            ],
+            "correct": 42,
+            "failed": 0,
+            "n": 80
+          },
+          "questions": {
+            "accuracy": 0.75,
+            "ci": [
+              0.6775748906186185,
+              0.8107015910563651
+            ],
+            "correct": 120,
+            "failed": 0,
+            "n": 160
+          }
+        }
+      },
+      "by_side": {
+        "absent": {
+          "accuracy": 0.9,
+          "ci": [
+            0.8148912101660255,
+            0.9484530008223144
+          ],
+          "correct": 72,
+          "failed": 0,
+          "n": 80
+        },
+        "after": {
+          "accuracy": 0.6375,
+          "ci": [
+            0.5281059097698362,
+            0.7342936627574055
+          ],
+          "correct": 51,
+          "failed": 0,
+          "n": 80
+        },
+        "before": {
+          "accuracy": 0.8625,
+          "ci": [
+            0.7703270280036946,
+            0.9214536632044886
+          ],
+          "correct": 69,
+          "failed": 0,
+          "n": 80
+        },
+        "present": {
+          "accuracy": 0.65,
+          "ci": [
+            0.5407980232189245,
+            0.7454560559017032
+          ],
+          "correct": 52,
+          "failed": 0,
+          "n": 80
+        }
+      },
+      "by_work_kind": {
+        "web": {
+          "pairs": {
+            "accuracy": 0.5625,
+            "ci": [
+              0.48505879638054433,
+              0.6370103240382016
+            ],
+            "correct": 90,
+            "failed": 0,
+            "n": 160
+          },
+          "questions": {
+            "accuracy": 0.7625,
+            "ci": [
+              0.7129324654569242,
+              0.8058396749969272
+            ],
+            "correct": 244,
+            "failed": 0,
+            "n": 320
+          }
+        }
+      },
+      "context": {
+        "items": 5.796875,
+        "kinds": {
+          "cell": 0,
+          "event": 820,
+          "identity": 519,
+          "manuscript": 0,
+          "memory": 140,
+          "relation": 376
+        },
+        "n": 320
+      },
+      "pairs": {
+        "accuracy": 0.5625,
+        "ci": [
+          0.48505879638054433,
+          0.6370103240382016
+        ],
+        "correct": 90,
+        "failed": 0,
+        "n": 160
+      },
+      "picked": {
+        "direct": 119,
+        "hearsay": 3,
+        "unknown": 198
+      },
+      "questions": {
+        "accuracy": 0.7625,
+        "ci": [
+          0.7129324654569242,
+          0.8058396749969272
+        ],
+        "correct": 244,
+        "failed": 0,
+        "n": 320
+      }
+    }
+  },
+  "leak": {
+    "link_bm25": {
+      "asked_ep_ctx": 0.475,
+      "foreign_ctx": 0.0,
+      "future_ctx": 0.021875,
+      "unseen_ctx": 0.0
+    },
+    "no_vector": {
+      "asked_ep_ctx": 0.465625,
+      "foreign_ctx": 0.0,
+      "future_ctx": 0.015625,
+      "unseen_ctx": 0.0
+    }
+  },
+  "models": {
+    "gen_model": [
+      "gpt-6-luna@low"
+    ],
+    "gen_via": [
+      "ocx"
+    ]
+  },
+  "paired": {},
+  "paired_by_kind": {
+    "place": {},
+    "time": {}
+  },
+  "paired_by_work_kind": {
+    "web": {}
+  },
+  "pairs": 160,
+  "questions": 320
+}

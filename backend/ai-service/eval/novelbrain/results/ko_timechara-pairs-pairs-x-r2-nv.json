@@ -1,0 +1,203 @@
+{
+  "configs": {
+    "no_vector": {
+      "by_kind": {
+        "place": {
+          "pairs": {
+            "accuracy": 0.575,
+            "ci": [
+              0.46569091970838705,
+              0.6774361198519266
+            ],
+            "correct": 46,
+            "failed": 0,
+            "n": 80
+          },
+          "questions": {
+            "accuracy": 0.7875,
+            "ci": [
+              0.7177577354595728,
+              0.8437602184666584
+            ],
+            "correct": 126,
+            "failed": 0,
+            "n": 160
+          }
+        },
+        "time": {
+          "pairs": {
+            "accuracy": 0.6125,
+            "ci": [
+              0.5029345562232477,
+              0.711756003117223
+            ],
+            "correct": 49,
+            "failed": 0,
+            "n": 80
+          },
+          "questions": {
+            "accuracy": 0.80625,
+            "ci": [
+              0.7381247358914426,
+              0.8600139541604125
+            ],
+            "correct": 129,
+            "failed": 0,
+            "n": 160
+          }
+        }
+      },
+      "by_side": {
+        "absent": {
+          "accuracy": 0.9,
+          "ci": [
+            0.8148912101660255,
+            0.9484530008223144
+          ],
+          "correct": 72,
+          "failed": 0,
+          "n": 80
+        },
+        "after": {
+          "accuracy": 0.6375,
+          "ci": [
+            0.5281059097698362,
+            0.7342936627574055
+          ],
+          "correct": 51,
+          "failed": 0,
+          "n": 80
+        },
+        "before": {
+          "accuracy": 0.975,
+          "ci": [
+            0.9133539994467789,
+            0.9931172511018748
+          ],
+          "correct": 78,
+          "failed": 0,
+          "n": 80
+        },
+        "present": {
+          "accuracy": 0.675,
+          "ci": [
+            0.5664032172496735,
+            0.7675598750577254
+          ],
+          "correct": 54,
+          "failed": 0,
+          "n": 80
+        }
+      },
+      "by_work_kind": {
+        "classic": {
+          "pairs": {
+            "accuracy": 0.59375,
+            "ci": [
+              0.4225972657298823,
+              0.744805975196862
+            ],
+            "correct": 19,
+            "failed": 0,
+            "n": 32
+          },
+          "questions": {
+            "accuracy": 0.796875,
+            "ci": [
+              0.6828613244878341,
+              0.8772669743730419
+            ],
+            "correct": 51,
+            "failed": 0,
+            "n": 64
+          }
+        },
+        "web": {
+          "pairs": {
+            "accuracy": 0.59375,
+            "ci": [
+              0.5071382471838718,
+              0.674898378585233
+            ],
+            "correct": 76,
+            "failed": 0,
+            "n": 128
+          },
+          "questions": {
+            "accuracy": 0.796875,
+            "ci": [
+              0.7433702713938375,
+              0.8416014960213878
+            ],
+            "correct": 204,
+            "failed": 0,
+            "n": 256
+          }
+        }
+      },
+      "context": {
+        "items": 5.8125,
+        "kinds": {
+          "event": 800,
+          "identity": 654,
+          "manuscript": 0,
+          "memory": 89,
+          "relation": 317
+        },
+        "n": 320
+      },
+      "pairs": {
+        "accuracy": 0.59375,
+        "ci": [
+          0.5163154555128467,
+          0.666788225115272
+        ],
+        "correct": 95,
+        "failed": 0,
+        "n": 160
+      },
+      "picked": {
+        "direct": 115,
+        "hearsay": 1,
+        "unknown": 204
+      },
+      "questions": {
+        "accuracy": 0.796875,
+        "ci": [
+          0.7493925923611828,
+          0.8373139950568635
+        ],
+        "correct": 255,
+        "failed": 0,
+        "n": 320
+      }
+    }
+  },
+  "leak": {
+    "no_vector": {
+      "asked_ep_ctx": 0.50625,
+      "foreign_ctx": 0.0,
+      "future_ctx": 0.0,
+      "unseen_ctx": 0.0
+    }
+  },
+  "models": {
+    "gen_model": [
+      "gpt-6-luna@low"
+    ],
+    "gen_via": [
+      "ocx"
+    ]
+  },
+  "paired": {},
+  "paired_by_kind": {
+    "place": {},
+    "time": {}
+  },
+  "paired_by_work_kind": {
+    "classic": {},
+    "web": {}
+  },
+  "pairs": 160,
+  "questions": 320
+}

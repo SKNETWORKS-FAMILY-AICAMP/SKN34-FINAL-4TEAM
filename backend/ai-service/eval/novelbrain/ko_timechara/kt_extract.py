@@ -5,25 +5,31 @@
     set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev python eval/novelbrain/ko_timechara/kt_extract.py [--mode=sync|batch] [작품 id …]
 
+유료 OpenAI 키·Batch 대신 로컬 게이트웨이(구독 경로, 실지출 0)로 새 작품만 추출하려면 작품 id를 직접 주고 모델·이름·금액 상한을 준다(OPENAI_API_KEY는 필요 없다):
+    env -u OPENAI_API_KEY -u LANGFUSE_PUBLIC_KEY -u LANGFUSE_SECRET_KEY uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_extract.py \
+        --gen-model=gpt-6-luna [--gen-effort=low] --name=<이름> --limit-usd=5 [--workers=6] n01 n02 …
+응답 캐시는 KT/cache-<이름>, 장부는 KT/cost-<이름>.jsonl(정가 환산 금액)이고, 이미 추출 결과가 있는 작품은 --overwrite 없이는 다시 쓰지 않는다.
+
 결과는 `KT/works/<id>/{knowledge.jsonl,world.json,extract_stats.json}`(git 무시)에 쓰고 화면에는 집계만 낸다.
 """
 
+import argparse
 import json
-import sys
 from collections import Counter
 from itertools import combinations
 from pathlib import Path
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다(스크립트로 실행할 때 eval/novelbrain을 찾는다)
-from batch import Round, cost_report, plan_for, run_rounds
+from batch import Round, SyncExecutor, cost_report, plan_for, run_rounds
 from kt_common import KT
-from kt_exec import load_works, make_executor, make_llm
+from kt_exec import EFFORTS, load_works, make_executor, make_gen_llm, make_llm
 from kt_label import (LABEL_INSTRUCTIONS, LABEL_TOKENS, LEARN_INSTRUCTIONS, LEARN_TOKENS, EpisodeLabel, LearnedLabel, build_knowledge,
                       learned_input, verify_episode, verify_learned)
 from kt_text import canonical_names
 from kt_world import WORLD_INSTRUCTIONS, WORLD_TOKENS, WorldOut, build_world, save_world, validate_world
 
 EMPTY_WORLD = {'characters': {}, 'events': [], 'relations': []}
+OUTPUTS = ('knowledge.jsonl', 'world.json', 'extract_stats.json')   # 작품 폴더에 쓰는 추출 결과
 
 
 def extractor(works: dict):
@@ -85,13 +91,47 @@ def finish(works: dict, records: list[dict], root: Path) -> None:
         (folder / 'extract_stats.json').write_text(json.dumps(summarize_extraction(mine), ensure_ascii=False, indent=2))
 
 
-if __name__ == '__main__':
-    mode = next((a.split('=')[1] for a in sys.argv[1:] if a.startswith('--mode=')), 'sync')
-    chosen = load_works([a for a in sys.argv[1:] if not a.startswith('--')] or None)
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter, allow_abbrev=False)
+    parser.add_argument('ids', nargs='*', help='작품 id(기본: works/ 전체, --gen-model은 필수)')
+    parser.add_argument('--mode', choices=('sync', 'batch'), default='sync')
+    parser.add_argument('--gen-model', help='게이트웨이 모델 id(kt_exec.GEN_RATES): OpenAI 키·Batch 없이 로컬 게이트웨이(구독 경로)로 추출한다')
+    parser.add_argument('--gen-effort', choices=EFFORTS, help='응답 호출의 reasoning.effort(없으면 모델 기본, 응답 캐시 열쇠에 들어간다)')
+    parser.add_argument('--name', help='게이트웨이 실행 이름: 응답 캐시 cache-<이름>·장부 cost-<이름>.jsonl')
+    parser.add_argument('--limit-usd', type=float, help='게이트웨이 장부의 금액 상한(달러, 정가 환산)')
+    parser.add_argument('--workers', type=int, default=6, help='게이트웨이 동시 호출 수(기본 6 = 일반 실행기 12의 절반)')
+    parser.add_argument('--overwrite', action='store_true', help='이미 추출 결과가 있는 작품도 다시 쓴다(게이트웨이 실행의 보호를 푼다)')
+    args = parser.parse_args(argv)
+    if args.gen_model and (args.mode != 'sync' or not args.ids or not args.name or args.limit_usd is None):
+        raise SystemExit('--gen-model은 동기(--mode=sync)로만, 작품 id와 --name·--limit-usd를 함께 준다(Batch는 OpenAI 키를 쓰고, id 없이는 기존 작품을 다시 쓸 수 있다).')
+    return args
+
+
+def check_targets(ids: list[str], root: Path, overwrite: bool = False) -> None:
+    """이미 추출 결과(knowledge.jsonl·world.json·extract_stats.json)가 있는 작품은 --overwrite 없이는 다시 쓰지 않는다(호출 전에 멈춘다)."""
+    done = [wid for wid in ids if any((root / wid / name).exists() for name in OUTPUTS)]
+    if done and not overwrite:
+        raise SystemExit(f"추출 결과가 이미 있는 작품은 다시 쓰지 않는다(--overwrite로만): {', '.join(done)}")
+
+
+def build(args: argparse.Namespace):
+    """(llm, executor, plan): 게이트웨이 실행은 구독 경로의 Llm과 스레드 실행기(--workers), 아니면 예전과 같은 OpenAI Llm·실행기."""
+    if args.gen_model:
+        check_targets(args.ids, KT / 'works', args.overwrite)
+        llm = make_gen_llm(args.gen_model, args.name, args.limit_usd, args.gen_effort)
+        return llm, SyncExecutor(llm, args.workers), plan_for(llm, 'sync', args.limit_usd)
     llm = make_llm()
+    return llm, make_executor(llm, args.mode), plan_for(llm, args.mode)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    chosen = load_works(args.ids or None)
+    llm, executor, plan = build(args)
     tasks = [(wid, e['number']) for wid, work in chosen.items() for e in work['episodes']]
-    print(f'작품 {len(chosen)}편 · 회차 {len(tasks)}개 · 방식 {mode} · 장부 ${llm.cost.spent():.3f}', flush=True)
-    done = run_rounds(tasks, extractor(chosen), llm, make_executor(llm, mode), plan=plan_for(llm, mode))
+    how = f'{llm.model}(게이트웨이)' if args.gen_model else args.mode
+    print(f'작품 {len(chosen)}편 · 회차 {len(tasks)}개 · 방식 {how} · 장부 $' f'{llm.cost.spent():.3f}', flush=True)
+    done = run_rounds(tasks, extractor(chosen), llm, executor, plan=plan)
     finish(chosen, done, KT / 'works')
     for wid in chosen:
         stats = json.loads((KT / 'works' / wid / 'extract_stats.json').read_text())
@@ -101,3 +141,7 @@ if __name__ == '__main__':
               f"{stats['evidence_pass_rate']:.3f} · 세계관 인물 {stats['world'].get('characters', 0)} 사건 {stats['world'].get('events', 0)} "
               f"관계 {stats['world'].get('relations', 0)} · 영구 실패 {stats['failed']}")
     cost_report(llm)
+
+
+if __name__ == '__main__':
+    main()
