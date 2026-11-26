@@ -60,7 +60,8 @@ def test_event_quotes_reads_whole_event_entries_so_a_longer_sentence_does_not_ca
 
 
 def test_a_person_whose_memory_only_has_a_longer_sentence_is_not_linked_to_the_shorter_event():
-    shorter, longer = '철수는 문을 열었다.', '철수는 문을 열었다고 영희가 말했다.'
+    shorter, longer = '철수는 문을 열었다', '철수는 문을 열었다고 영희가 말했다.'
+    assert shorter in longer                                                                                       # 짧은 인용이 긴 인용의 부분 문자열이라야 부분 일치 검사로 바뀌면 이 테스트가 깨진다
     cards = [Card(key='entity-a', cardType='character', title='철수', aliases=[], body='', firstEpisode=1, characterDocs=CharacterDocs(soul='', goal='', episodes={'01': f'[사건] {longer}'})),
              Card(key='event-1', cardType='event', title='1화 · 짧은 사건', aliases=[], body=f'발생: 1화 / 참여: 철수\n[사건] {shorter}', firstEpisode=1),
              Card(key='event-2', cardType='event', title='1화 · 긴 사건', aliases=[], body=f'발생: 1화 / 참여: 철수\n[사건] {longer}', firstEpisode=1)]
@@ -81,3 +82,16 @@ def test_svc_world_survives_a_save_and_load_roundtrip(tmp_path):
     save_world(tmp_path / 'w.json', world)
     again = load_world(tmp_path / 'w.json')
     assert again['cards'] == world['cards'] and again['events'] == world['events'] and again['when'] == world['when']
+
+
+def test_an_event_is_linked_only_to_the_memory_of_its_own_episode_even_when_another_episode_quotes_the_same_sentence():
+    docs = lambda **episodes: CharacterDocs(soul='', goal='', episodes=episodes)  # noqa: E731
+    cards = [Card(key='entity-a', cardType='character', title='철수', aliases=[], body='', firstEpisode=1, characterDocs=docs(**{'01': f'[사건] {SALE}'})),
+             Card(key='entity-b', cardType='character', title='영희', aliases=[], body='', firstEpisode=1, characterDocs=docs(**{'01': f'[사건] {SALE}', '03': f'[사건] {SALE}'})),
+             Card(key='event-1', cardType='event', title='1화 · 첫 사건', aliases=[], body=f'발생: 1화 / 참여: 철수, 영희\n[사건] {SALE}', firstEpisode=1),
+             Card(key='event-3', cardType='event', title='3화 · 같은 문장의 다른 사건', aliases=[], body=f'발생: 3화 / 참여: 영희\n[사건] {SALE}', firstEpisode=3)]
+    world, _ = svc_world('w00', LoadPayload(cards=cards, relations=[]))
+    ids = ids_of(world)
+    by_episode = {m['episode']: m['experienced'] for m in world['events'].values()}
+    assert by_episode[1] == {ids['철수']: 1, ids['영희']: 1}
+    assert by_episode[3] == {ids['영희']: 3}                                                                        # 1화 기억만 가진 철수는 3화 사건을 겪은 것으로 잇지 않고, 같은 회차의 정확한 인용은 그대로 잇는다

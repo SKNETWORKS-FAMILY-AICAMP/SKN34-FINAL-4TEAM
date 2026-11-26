@@ -515,3 +515,21 @@ def test_main_dispatches_each_command_and_refuses_unknown_options(monkeypatch):
         with pytest.raises(SystemExit):
             kt_pairs.main(argv)                                                                                        # 철자 틀린 옵션이 조용히 무시돼 엉뚱한 모델로 도는 일을 막는다
     assert calls == []
+
+
+def test_run_refuses_a_work_filter_that_picks_no_question_and_keeps_the_rows_already_written(tmp_path, monkeypatch):
+    kt, _ = sandbox(tmp_path, monkeypatch, two_works())
+    written = kt / 'runs' / 'pairs-rows-p1.json'
+    written.write_text('[{"keep": 1}]')
+    monkeypatch.setattr(kt_pairs, 'make_gen_llm', lambda model, name, limit_usd, effort: gen_llm(tmp_path, Chooser(lambda text: number_of(text, 'direct'))))
+    with pytest.raises(SystemExit):
+        kt_pairs.run(('zero',), gen_model='gpt-6-luna', name='p1', limit_usd=1.0, works=('w99',))                   # pairs.jsonl에 없는 작품 id
+    assert written.read_text() == '[{"keep": 1}]'                                                                  # 빈 결과가 같은 이름의 기록을 덮지 않는다
+
+
+def test_run_runs_a_config_given_twice_only_once(tmp_path, monkeypatch):
+    kt, _ = sandbox(tmp_path, monkeypatch, two_works())
+    monkeypatch.setattr(kt_pairs, 'make_gen_llm', lambda model, name, limit_usd, effort: gen_llm(tmp_path, Chooser(lambda text: number_of(text, 'direct'))))
+    kt_pairs.run(('zero', 'zero', 's3'), gen_model='gpt-6-luna', name='d1', limit_usd=1.0, limit=1)
+    out = json.loads((kt / 'runs' / 'pairs-rows-d1.json').read_text())
+    assert len(out) == 1 * 2 * 2 and sorted(Counter(r['config'] for r in out).values()) == [2, 2]                  # 쌍 1개 × 문항 2 × 구성 2: 같은 문항이 두 번 기록돼 쌍이 집계에서 빠지지 않는다

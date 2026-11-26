@@ -398,3 +398,13 @@ def test_build_data_reads_the_world_file_the_caller_names_and_the_default_stays_
     monkeypatch.setattr(kt_run, 'cached_embeddings', lambda path, texts, kind: 'vectors')
     assert kt_run.build_data(['w00'])['w00']['world']['series'] == 'world'
     assert kt_run.build_data(['w00'], world='world2')['w00']['world']['series'] == 'world2'
+
+
+@pytest.mark.parametrize('options', [{'gen_model': '', 'limit_usd': 5.0}, {'gen_model': '  ', 'limit_usd': 5.0}, {'judge_model': ''}, {'gen_model': 'gemini-3.8-flash', 'judge_model': ' ', 'limit_usd': 1.0}])
+def test_an_empty_model_option_is_refused_instead_of_falling_back_to_the_paid_openai_path(options, tmp_path, monkeypatch):
+    kt, loaded = sandbox(tmp_path, monkeypatch, [row(0, 'future')])
+    (kt / 'runs' / 'rows.json').write_text('KEEP')
+    for name in (None, 'g'):
+        with pytest.raises(SystemExit):
+            kt_run.run('sync', ('zero',), name=name, **options)
+    assert loaded == [] and (kt / 'runs' / 'rows.json').read_text() == 'KEEP'

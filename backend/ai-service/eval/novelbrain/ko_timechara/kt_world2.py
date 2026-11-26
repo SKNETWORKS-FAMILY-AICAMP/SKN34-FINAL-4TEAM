@@ -29,7 +29,7 @@
 - 인물이 아닌 대상(장소·조직·능력·사물·규칙·이름 붙은 사건)의 카드는 본문 = 이름이고(공개 정보라 사건 줄거리를 실으면 그 사건을 모르는 인물에게 새어 나간다) ⑦이 짧은 정의 본문과 작가용 회차 칸을 채운다.
 - 평가용 덧붙임: world['events'](사건 카드 id → 회차·제목·인용·겪음/들음/이름만 나온 카드), world['aliases'], world['identity'](동일 인물 관계). NovelBrain은 읽지 않는다.
 
-결과는 KT/works/<작품 id>/<name>/episodes/NN.json(회차별), <name>.json(세계관), <name>_stats.json과 KT/<name>_stats.json(작품별·전체 통계)에 쓴다(git 무시, 원문 포함). 화면에는 집계만 낸다.
+결과는 KT/works/<작품 id>/<name>/episodes/NN.json(회차별)·episodes.json(이번 실행의 회차 목록), <name>.json(세계관), <name>_stats.json과 KT/<name>_stats.json(작품별·전체 통계)에 쓴다(git 무시, 원문 포함). 화면에는 집계만 낸다.
 응답 캐시 KT/cache-<name>·장부 KT/cost-<name>.jsonl은 --name별로 따로라 기존 산출물을 덮지 않는다. 같은 명령을 다시 치면 캐시로 호출 없이 다시 만든다.
 """
 
@@ -491,14 +491,14 @@ def event_id(episode: int, number: int) -> str:
 
 
 def earlier_events(records: list[dict]) -> list[dict]:
-    """앞 회차 기록의 사건 목록: id는 세계관 사건 카드 id(e<회차>-<번호>), known = 그 사건을 겪었거나 들은 인물의 기본 이름(_base, 이미 아는 사람)."""
-    return [{'id': event_id(r['episode'], i), 'episode': r['episode'], 'title': e['title'], 'detail': plain(e['detail']),
-             'known': {_base(m['name']) for m in e['mentions'] if m['kind'] == 'character' and m['role'] in ('experienced', 'heard')}}
+    """앞 회차 기록의 사건 목록: id는 세계관 사건 카드 id(e<회차>-<번호>). 이미 아는 사람은 여기서 가리지 않는다(이름이 같은 다른 사람일 수 있어 카드가 정해진 build_world2가 카드 id로 가린다)."""
+    return [{'id': event_id(r['episode'], i), 'episode': r['episode'], 'title': e['title'], 'detail': plain(e['detail'])}
             for r in records for i, e in enumerate(r['events'], 1)]
 
 
 def verify_learned(text: str, out: Learned, earlier: list[dict], people: dict[str, str], episode: int) -> tuple[list[dict], Counter]:
-    """뒤 회차에 전해 들음: 사건 id가 앞 회차 목록에 있고, 인물이 이 회차 ① 목록(호칭 변형 포함)에 있고, 그 사건을 이미 겪었거나 들은 사람이 아니고, 인용이 이 회차 원문에 있는 것만(같은 사건·인물은 한 번)."""
+    """뒤 회차에 전해 들음: 사건 id가 앞 회차 목록에 있고, 인물이 이 회차 ① 목록(호칭 변형 포함)에 있고, 인용이 이 회차 원문에 있는 것만(같은 사건·인물은 한 번).
+    그 사건을 이미 겪었거나 들은 사람인지는 이름으로 가리지 않는다(이름이 같은 다른 사람이면 처음 듣는 것이다): 카드가 정해진 build_world2가 카드 id로 가리고 learn_known으로 센다."""
     stats: Counter = Counter()
     by_id = {e['id']: e for e in earlier}
     kept, seen = [], set()
@@ -509,8 +509,6 @@ def verify_learned(text: str, out: Learned, earlier: list[dict], people: dict[st
             stats['learn_event'] += 1
         elif learner is None:
             stats['learn_name'] += 1
-        elif _base(learner) in event['known']:
-            stats['learn_known'] += 1
         else:
             stats['learn_quote_checked'] += 1
             found = evidence_ok(text, quote)
@@ -712,10 +710,11 @@ def resolve_groups(people: dict[str, tuple[int, int, str]], links: list[dict], a
     """인물 ref → 카드 번호와 동일 인물 관계 후보. 기본값은 이름이 같거나 호칭 변형(_base)이 같으면 한 카드이고, 앞 카드가 하나뿐이고 distinct로 갈리지 않았을 때만 합친다
     (앞 카드가 둘 이상이거나 distinct로 막히면 어느 쪽인지 몰라 따로 둔다). apart(apart_pairs: 같은 사건에 함께 나왔거나 서로 관계가 있는 쌍)도 distinct와 같게 막는다. same(숨기지 않은 단순 호칭 차이)은 카드를 합치되 distinct·apart로 갈린 쌍은 합치지 않고(merge_conflict),
     same(숨겨진 정체)은 카드를 따로 둔 채 별칭(right) → 본체(left)의 동일 인물 관계 후보를 근거 회차와 함께 낸다(DEC-53 저장 규칙대로 가면 하나에 본체 하나, 한 카드가 가면이면서 본체일 수 없고,
-    어기는 링크는 먼저 온 것만 남긴다 merge_identity_rule). uncertain은 세기만 한다."""
+    어기는 링크는 먼저 온 것만 남긴다 merge_identity_rule. 두 카드의 기록 한 쌍이라도 모델의 distinct면 만들지 않는다 merge_conflict, apart는 가면에 쓰지 않는다). uncertain은 세기만 한다."""
     stats: Counter = Counter()
     distinct = {frozenset((l['left'], l['right'])) for l in links if l['verdict'] == 'distinct'}
     stats['distinct'], stats['uncertain'] = len(distinct), sum(l['verdict'] == 'uncertain' for l in links)
+    model = set(distinct)   # 가면(숨겨진 정체)은 모델의 distinct만 따른다: 빙의·환생의 가면은 정체가 밝혀진 뒤에도 두 이름이 같은 사건·관계에 함께 나와 apart는 근거가 못 된다(#948)
     distinct |= set(apart)   # 모델의 distinct에 더해 데이터가 다른 사람이라고 보여 주는 쌍(apart_pairs)도 합치지 않는다
     group, members, by_key = {}, {}, {}
     for ref in sorted(people, key=lambda r: people[r][:2]):
@@ -755,6 +754,8 @@ def resolve_groups(people: dict[str, tuple[int, int, str]], links: list[dict], a
             stats['merge_same_group'] += 1
         elif masks.get(alias) == main:
             continue   # 같은 쌍은 먼저 온 것만
+        elif any(frozenset((x, y)) in model for x in members[main] for y in members[alias]):
+            stats['merge_conflict'] += 1   # 모델이 두 카드의 기록 한 쌍을 다른 사람이라 했다: 같은 사람의 가면이라는 판정과 모순이다
         elif alias in masks or alias in bodies or main in masks:
             stats['merge_identity_rule'] += 1   # DEC-53 저장 규칙: 한 카드는 가면이거나 본체이고 가면의 본체는 하나(사슬·순환 없음)
         else:
@@ -774,7 +775,7 @@ def build_world2(wid: str, records: list[dict], links: list[dict], text: str, le
     """검증된 회차별 기록과 합치기 결과로 평가용 세계관(kt_world.build_world와 같은 모양 + 평가용 덧붙임)과 통계를 만든다. 규칙은 모듈 설명.
 
     records는 회차 기록(characters·events·relations), links는 verify_links의 결과, text는 작품 전체 글(카드 제목을 고를 때 이름이 나온 횟수를 센다),
-    learned는 verify_learned의 결과(뒤 회차에 앞 사건을 전해 들음: 그 회차에 사건 카드로 '들음'을 잇고 듣는 인물의 그 회차 기억에 사건을 싣는다. 이미 겪었거나 같은 회차에 들은 인물·없는 사건·카드가 없는 인물은 건너뛴다).
+    learned는 verify_learned의 결과(뒤 회차에 앞 사건을 전해 들음: 그 회차에 사건 카드로 '들음'을 잇고 듣는 인물의 그 회차 기억에 사건을 싣는다. 이미 겪었거나 같은 회차에 들은 인물(카드 id로 가려 merge.learn_known으로 센다)·없는 사건·카드가 없는 인물은 건너뛴다).
     """
     people = {f"{r['episode']}:{i}": (r['episode'], i, name) for r in records for i, name in enumerate(r['characters'], 1)}
     group, identity, merge = resolve_groups(people, links, apart_pairs(records))
@@ -813,8 +814,11 @@ def build_world2(wid: str, records: list[dict], links: list[dict], text: str, le
     later: dict[tuple[str, str], int] = {}   # (사건 카드 id, 인물 카드 id) → 뒤 회차에 처음 들은 회차
     for item in sorted(learned, key=lambda x: x['episode']):
         cid = card_of.get((item['episode'], item['learner']))
-        if cid is not None and item['event'] in knew and cid not in knew[item['event']]:
-            later.setdefault((item['event'], cid), item['episode'])
+        if cid is not None and item['event'] in knew:
+            if cid in knew[item['event']]:
+                merge['learn_known'] += 1   # 같은 사람이 이미 겪었거나 같은 회차에 들은 사건이라 처음 듣는 것이 아니다(이름이 같은 다른 사람은 카드가 달라 여기 걸리지 않는다)
+            else:
+                later.setdefault((item['event'], cid), item['episode'])
     for (eid, cid), n in later.items():
         heard.setdefault((cid, n), []).append(event_of[eid])
     cards = []
@@ -1172,9 +1176,11 @@ def verify_section(original: str, out: Tightened) -> tuple[str | None, Counter]:
     if not lines:
         stats['empty'] += 1
         return None, stats
+    title = lambda line, label: (label, line[len(label):].strip().partition(': ')[0])  # noqa: E731   표지와 제목 전체로 견준다('뒷문 열기'가 남았다고 '문 열기'가 남은 것은 아니다)
+    kept = {title(line, label) for line in lines for label in EVENT_LABELS if line.startswith(label)}
     for line in original.split('\n'):
         label = next((x for x in EVENT_LABELS if line.startswith(x)), None)
-        if label and not any(kept.startswith(label) and line[len(label):].strip().partition(': ')[0] in kept for kept in lines):
+        if label and title(line, label) not in kept:
             lines.append(line)
             stats['restored'] += 1
     text = '\n'.join(lines)
@@ -1552,17 +1558,18 @@ def finish(works: dict, records: list[dict], merged: dict[str, dict], name: str,
         folder = root / wid / name
         (folder / 'episodes').mkdir(parents=True, exist_ok=True)
         for r in mine:
-            (folder / 'episodes' / f"{r['episode']:02d}.json").write_text(json.dumps(r, ensure_ascii=False))
+            (folder / 'episodes' / f"{r['episode']:02d}.json").write_text(json.dumps(r, ensure_ascii=False), encoding='utf-8')
+        (folder / 'episodes.json').write_text(json.dumps([r['episode'] for r in mine]), encoding='utf-8')   # 이번 실행의 회차 목록: 같은 이름으로 더 짧게 다시 돌려도 남은 옛 회차 파일을 다시 읽지 않는다(episode_records)
         done = merged[wid]
         learn = (learned or {}).get(wid, {'items': [], 'calls': 0, 'failed': 0, 'stats': {}})
-        (folder / 'merge.json').write_text(json.dumps({k: done[k] for k in ('raw', 'links', 'stats', 'failed', 'called')}, ensure_ascii=False))
+        (folder / 'merge.json').write_text(json.dumps({k: done[k] for k in ('raw', 'links', 'stats', 'failed', 'called')}, ensure_ascii=False), encoding='utf-8')
         if learned is not None:
-            (folder / 'learned.json').write_text(json.dumps(learn, ensure_ascii=False))
+            (folder / 'learned.json').write_text(json.dumps(learn, ensure_ascii=False), encoding='utf-8')
         world, built = build_world2(wid, mine, done['links'], '\n'.join(e['text'] for e in work['episodes']), learn['items'])
         refine = (refined or {}).get(wid)
         if refine is not None:
             world = apply_refine(world, refine['updates'])
-            (folder / 'refine.json').write_text(json.dumps(refine, ensure_ascii=False))
+            (folder / 'refine.json').write_text(json.dumps(refine, ensure_ascii=False), encoding='utf-8')
         save_world(root / wid / f'{name}.json', world)
         summary = summarize(mine)
         per_work[wid] = {**summary, 'cards': built['cards'], 'relations': built['relations'],
@@ -1571,9 +1578,16 @@ def finish(works: dict, records: list[dict], merged: dict[str, dict], name: str,
                          'learn_dropped': {k: v for k, v in sorted(learn['stats'].items()) if not is_count(k)},
                          'calls_all': summary['calls_total'] + int(done['called']) + learn['calls'] + (sum(refine['calls'].values()) if refine else 0),   # 회차별 호출 + 합치기 + 들음 + 다듬기
                          **({'refine': {'calls': refine['calls'], 'failed': refine['failed'], 'stats': refine['stats']}} if refine else {})}
-        (root / wid / f'{name}_stats.json').write_text(json.dumps(per_work[wid], ensure_ascii=False, indent=2, sort_keys=True))
-    total_path.write_text(json.dumps({'works': per_work, 'total': total_stats(per_work)}, ensure_ascii=False, indent=2, sort_keys=True))
+        (root / wid / f'{name}_stats.json').write_text(json.dumps(per_work[wid], ensure_ascii=False, indent=2, sort_keys=True), encoding='utf-8')
+    total_path.write_text(json.dumps({'works': per_work, 'total': total_stats(per_work)}, ensure_ascii=False, indent=2, sort_keys=True), encoding='utf-8')
     return per_work
+
+
+def episode_records(folder: Path) -> list[dict]:
+    """앞 단계 결과 폴더의 회차 기록: finish가 쓴 회차 목록(episodes.json)에 든 회차만 읽는다. 목록이 없는 옛 결과는 episodes/의 회차 파일 전부(옛 동작)."""
+    listed = folder / 'episodes.json'
+    paths = [folder / 'episodes' / f'{n:02d}.json' for n in json.loads(listed.read_text(encoding='utf-8'))] if listed.exists() else sorted((folder / 'episodes').glob('*.json'))
+    return [json.loads(p.read_text(encoding='utf-8')) for p in paths]
 
 
 def setup(gen_model: str, gen_effort: str | None, name: str, limit_usd: float, step_llms: tuple[str, ...]):
@@ -1631,16 +1645,20 @@ def report(per_work: dict[str, dict], started: float, llm) -> None:
 def refine_from(ids: list[str], *, base: str, gen_model: str, gen_effort: str | None, name: str, limit_usd: float, step_llms: tuple[str, ...] = (), refine: bool = True, tighten: bool = False) -> None:
     """앞 단계 결과(KT/works/<작품 id>/<base>/의 회차 기록·합치기·들음)는 그대로 읽고 ⑦ 카드 다듬기만 새로 부른다(앞 단계 호출 없음, 새 이름 name으로 따로 쓴다).
     refine=False면 같은 기록으로 기본 세계관만 다시 조립해 쓴다(전후 비교의 '전')."""
-    if name == base:
-        raise SystemExit('--name은 --from과 달라야 한다(앞 단계 결과를 덮어쓰지 않는다).')
+    try:
+        check_name(base)   # --from도 결과 이름이라 --name과 같은 규칙이다: './base'·'base/'처럼 표기만 다른 같은 디렉터리를 막는다
+    except SystemExit:
+        raise SystemExit(f"--from '{base}'은 쓸 수 없다: 영문·숫자로 시작하는 영문·숫자·-_.만 쓰는 결과 이름이다.") from None
+    if name.casefold() == base.casefold():   # 대소문자만 다른 이름은 대소문자를 구분하지 않는 파일 시스템에서 같은 디렉터리다
+        raise SystemExit('--name은 --from과 달라야 한다(대소문자만 달라도 같다: 앞 단계 결과를 덮어쓰지 않는다).')
     llm, executor = setup(gen_model, gen_effort, name, limit_usd, step_llms)
     works = load_works(ids or None)
     records, merged, learned = [], {}, {}
     for wid in works:
         folder = KT / 'works' / wid / base
-        records += [json.loads(p.read_text()) for p in sorted((folder / 'episodes').glob('*.json'))]
-        merged[wid] = json.loads((folder / 'merge.json').read_text())
-        learned[wid] = json.loads((folder / 'learned.json').read_text()) if (folder / 'learned.json').exists() else {'items': [], 'calls': 0, 'failed': 0, 'stats': {}}
+        records += episode_records(folder)
+        merged[wid] = json.loads((folder / 'merge.json').read_text(encoding='utf-8'))
+        learned[wid] = json.loads((folder / 'learned.json').read_text(encoding='utf-8')) if (folder / 'learned.json').exists() else {'items': [], 'calls': 0, 'failed': 0, 'stats': {}}
     print(f"작품 {len(works)}편 · 기록 {base} · 응답 {llm.model} · 장부 $" f"{llm.cost.spent():.3f}", flush=True)
     started = time.time()
     refined = refine_works(works, records, merged, learned, llm, executor, tighten) if refine else None

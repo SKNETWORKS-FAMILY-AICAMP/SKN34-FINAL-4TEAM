@@ -7,7 +7,7 @@
 서비스 코드는 import만 하고 고치지 않는다. 모델 호출은 기존 평가 하네스 eval/simulation/pipe_build(#836)가 하는 방식 그대로다: install('ocx')가 이 프로세스의 agent.ChatOpenAI 자리를 로컬 게이트웨이(구독 경로, gpt-6-luna, 금액 0)로
 바꿔 끼우고 추출 응답은 KT/svc에 캐시한다(서비스 프롬프트는 Langfuse 키가 없으면 코드 문자열이라 시작할 때 LANGFUSE_* 환경 변수를 지워 프롬프트 등록·원문 전송 부작용을 막는다). 서비스는 추출에 reasoning 강도를 정하지 않는다.
 변환 규칙(서비스가 Content에 적재하는 모양 그대로): 카드 본문·인물 문서(soul·goal·회차별 기억, '00'은 이야기 시작 전 0회)를 그대로 옮기고 공개 회차(revealFromEpisode)는 정하지 않는다(자동 적재는 공개 회차를 정하지 않는다, DEC-53).
-사건 카드는 인물과 관계가 없다(서비스는 사건을 인물의 회차 기억 문장 '[사건] 인용'으로만 잇는다): 평가용 덧붙임 world['events']의 '겪음'은 그 문장이 든 회차 기억을 가진 인물로 읽는다.
+사건 카드는 인물과 관계가 없다(서비스는 사건을 인물의 회차 기억 문장 '[사건] 인용'으로만 잇는다): 평가용 덧붙임 world['events']의 '겪음'은 사건 회차(firstEpisode)의 기억에 그 문장이 든 인물로 읽는다(다른 회차의 같은 문장은 잇지 않는다).
 관계는 시작만 옮기고(끝 표지·같은 관계의 되풀이는 뺀다) 동일 인물 후보(identityCandidates)는 작가가 승인해야 관계가 되므로 관계로 만들지 않는다.
 결과는 KT/works/<작품 id>/world_svc.json·world_svc_stats.json과 KT/world_svc_stats.json(git 무시)에 쓴다.
 """
@@ -68,10 +68,7 @@ def svc_world(wid: str, payload: LoadPayload) -> tuple[dict, dict]:
             continue
         rest = c.body.partition('\n')[2]
         quote = rest[len(EVENT_LINE):] if rest.startswith(EVENT_LINE) else rest
-        knowers = {}
-        for key, by_episode in memory.items():
-            if seen_at := [k for k, quotes in by_episode.items() if quote in quotes]:
-                knowers[ids[key]] = min(seen_at)
+        knowers = {ids[key]: c.firstEpisode for key, by_episode in memory.items() if quote in by_episode.get(c.firstEpisode, ())}   # 사건 회차의 기억만 본다: 다른 회차가 같은 문장을 인용해도 잇지 않는다
         events[ids[c.key]] = {'episode': c.firstEpisode, 'title': c.title, 'quote': quote, 'experienced': knowers, 'heard': {}, 'mentioned': []}
     character_id: dict[str, str] = {}
     for c in payload.cards:
@@ -108,11 +105,11 @@ def run(ids: list[str], workers: int) -> None:
         stats.update(episodes=len(work['episodes']), failures=[list(f) for f in built.failures], calls=built.calls, seconds=round(time.time() - started),
                      extraction={k: extraction[k] for k in ('kept', 'dropped', 'skipped', 'quotePass')})
         save_world(KT / 'works' / wid / 'world_svc.json', world)
-        (KT / 'works' / wid / 'world_svc_stats.json').write_text(json.dumps(stats, ensure_ascii=False, indent=2, sort_keys=True))
+        (KT / 'works' / wid / 'world_svc_stats.json').write_text(json.dumps(stats, ensure_ascii=False, indent=2, sort_keys=True), encoding='utf-8')
         per_work[wid] = stats
         print(f"{wid}: 회차 {stats['episodes']}(실패 {len(built.failures)}) · 모델 호출 {built.calls} · 카드 {stats['cards']} · 관계 {stats['relations']} · 사건 {stats['events']} · "
               f"동일 인물 후보 {stats['identity_candidates']} · 항목 통과 {extraction['kept']}/{extraction['kept'] + extraction['dropped']} · {stats['seconds']}초", flush=True)
-    (KT / 'world_svc_stats.json').write_text(json.dumps({'works': per_work}, ensure_ascii=False, indent=2, sort_keys=True))
+    (KT / 'world_svc_stats.json').write_text(json.dumps({'works': per_work}, ensure_ascii=False, indent=2, sort_keys=True), encoding='utf-8')
 
 
 def main(argv: list[str] | None = None) -> None:
