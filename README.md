@@ -228,6 +228,7 @@ sequenceDiagram
 ```text
 SKN34-FINAL-4TEAM/
 ├─ frontend/                 React 웹 (storyfork-web)
+├─ mobile/                   Expo 모바일 앱 골격 (Android·iOS, #943)
 ├─ backend/
 │  ├─ core-api/              Core: 회원·인증·세션·알림·Health
 │  ├─ content-service/       Content: 작품·회차·세계관·Fork·첨부·AI 제안
