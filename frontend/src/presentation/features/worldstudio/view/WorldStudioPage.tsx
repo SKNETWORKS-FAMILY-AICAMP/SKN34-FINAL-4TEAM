@@ -14,6 +14,7 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ManageMenu } from '../../../shared/shell/ManageMenu'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { labelOf } from '../viewmodel/settingBoard'
@@ -43,6 +44,15 @@ import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
+// 사용법 투어(#971): 관리 모드 사이드바의 메뉴·도구 버튼(data-tour="world-…")을 작업 순서대로 짚는다. 접힌 사이드바의 대상은 보이지 않아 단계에서 빠진다.
+const tour: TourStep[] = [
+  { target: 'world-book', title: '설정집', text: '설정 카드를 만들고 고쳐요. 도구줄의 새 설정에서 인물·장소·사건 같은 유형을 고르면 새 카드의 편집 화면이 열리고, 줄을 누르면 미리보기가 열려요.' },
+  { target: 'world-people', title: '관계도', text: '설정 카드 사이의 관계를 캔버스에서 바로 만들어요. 관계는 N화부터로 기록하고, 관계 기준 칸으로 그 회차 시점의 관계를 볼 수 있어요.' },
+  { target: 'world-novel', title: '소설 연결', text: '이 세계관과 소설을 1:1로 연결해요. 연결하면 설정 카드를 N화부터 공개하도록 정할 수 있고, 연결된 소설과 그 Fork 소설도 여기서 봐요.' },
+  { target: 'world-review', title: 'AI 검토', text: '저장한 설정 카드를 AI가 읽고 설정끼리의 모순·빠진 정보를 지적해요. 지적은 게시판 카드 줄의 ‘AI 의견’으로 보여요. 카드 내용을 OpenAI로 보내는 데 동의해야 요청할 수 있어요.' },
+  { target: 'world-save', title: '저장', text: '바뀐 설정은 저장해야 반영돼요. 저장은 발행·공개와 달라요.' },
+  { target: 'world-versions', title: '확정 버전 남기기', text: '공개 목록에 나오려면 확정 버전이 필요해요. 저장하지 않은 변경이 있으면 먼저 저장해야 해요.' },
+]
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 
 /**
@@ -259,12 +269,15 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
             </>
           )}
         >
+          {/* 첫 렌더는 목록 단계라 이 구역이 hidden이다: 편집 화면이 보일 때 시작해야 대상이 잡힌다(jsdom은 checkVisibility가 없어 브라우저에서만 재현). */}
+          <ScreenTour screen="world" steps={tour} ready={vm.flow.screen === 'editor'} className="btn sm weak tour-side" />
           <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
+                  data-tour={`world-${id}`}
                   aria-current={vm.view === id ? 'page' : undefined}
                   onClick={(e) => {
                     // 900px 이하의 가로 스크롤 줄에서 가장자리에 잘린 메뉴를 눌러도 그 버튼이 줄 안에 다 보이게 옆으로만 옮긴다(세로는 위 effect가 내용 카드 머리로 옮긴다).
@@ -354,7 +367,7 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
   const why = !supported ? '목업에서는 확정 버전을 지원하지 않아요.' : vm.dirty || vm.relationDirty ? '저장하지 않은 변경이 있어요. 먼저 세계관을 저장하세요.' : vm.sealIssues[0]?.message ?? ''
   return (
     <>
-      <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
+      <button type="button" className="btn sm" data-tour="world-versions" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
       {why && <span id={reason} className="small muted">{why}</span>}
     </>
   )

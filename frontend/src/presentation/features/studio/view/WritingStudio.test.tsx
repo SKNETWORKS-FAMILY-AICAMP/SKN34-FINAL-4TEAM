@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router'
@@ -751,14 +751,14 @@ it('고급 패널은 기본 모드에서 숨겨지고 토글해도 같은 원고
   expect(screen.getByLabelText('원고 본문')).toBe(editor)
 })
 
-it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
+it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)과 사용법 버튼만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
   renderStudio()
   const bar = screen.getByRole('banner')
   expect(within(bar).getByRole('button', { name: '뒤로' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
   expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 버전 1')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
-  expect(names).toEqual(['뒤로', '기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
+  expect(names).toEqual(['뒤로', '사용법', '기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
   for (const name of ['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력']) {
     expect(within(bar).queryByRole('link', { name })).toBeNull()
@@ -768,6 +768,28 @@ it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장
   expect(model.save).toHaveBeenCalledTimes(1)
   fireEvent.click(versionsButton())
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
+})
+
+it('사용법 버튼은 쓰는 순서대로 투어를 시작하고, 쓸 수 없는 회차(원작 기준)에서는 쓰기 단계를 뺀다(#971)', async () => {
+  const first = renderStudio()
+  const help = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(help.disabled).toBe(false))
+  fireEvent.click(help)
+  expect((await screen.findByRole('dialog', { name: '회차 고르기' })).querySelector('.tour-count')?.textContent).toBe('1 / 5')
+  first.unmount()
+  model.active = { ...originalActive, inherited: true }
+  renderStudio()
+  const again = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(again.disabled).toBe(false))
+  fireEvent.click(again)
+  expect((await screen.findByRole('dialog', { name: '회차 고르기' })).querySelector('.tour-count')?.textContent).toBe('1 / 2')
+})
+
+it('저장 실패 같은 오류 문구가 있어도 사용법 버튼은 잠기지 않는다(오류가 지워질 때 작업 도중 투어가 시작되지 않게)', async () => {
+  model.error = '저장하지 못했어요'
+  renderStudio()
+  const help = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(help.disabled).toBe(false))
 })
 
 it('처리 중이거나 회차가 없으면 상단 바와 메뉴 항목을 기존 조건대로 잠근다', () => {

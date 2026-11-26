@@ -1066,6 +1066,13 @@ it('저장 버전이 0이어도 주소에 ?new=1이 없으면(서재 관리하�
   expect(saveBar().queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장했으니 저장할 것이 없다
 })
 
+it('사용법 버튼은 설정집 → 관계도 → 소설 연결 → AI 검토 → 저장 → 확정 버전 순서로 투어를 시작한다(#971)', async () => {
+  await show()
+  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
+  const tip = await screen.findByRole('dialog', { name: '설정집' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 6')
+})
+
 it('처음 저장하면 관리 모드로 바뀌고 초점이 헤더 제목으로 간다', async () => {
   const { saveStudio } = await wizard({ saveStudio: bumpVersion })
   fireEvent.change(screen.getByRole('textbox', { name: '세계관 설명' }), { target: { value: '처음 쓴 소개' } })

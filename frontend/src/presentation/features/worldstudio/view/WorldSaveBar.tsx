@@ -19,7 +19,7 @@ export function WorldSaveBar({ vm }: { vm: VM }) {
     : vm.saved?.version === 0 ? '아직 저장하지 않았어요'
     : '저장됨'
   return (
-    <div className="world-save-bar" role="group" aria-label="저장 상태">
+    <div className="world-save-bar" data-tour="world-save" role="group" aria-label="저장 상태">
       <span role="status" className={'world-save-state ' + (text === '저장됨' ? 'ok' : vm.saveState === 'failed' ? 'bad' : 'wait')}>{text}</span>
       {first && vm.editing && (
         <span id={reason} className="small world-save-issue">

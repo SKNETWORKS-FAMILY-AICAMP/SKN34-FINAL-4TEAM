@@ -5,6 +5,7 @@ import { BackChev } from '../../../shared/icons'
 import { ImportUploadNotice, ImportWorldBuildResult } from '../../../shared/ImportWorldBuild'
 import { Sheet } from '../../../shared/Sheet'
 import { useScreenId } from '../../../shared/screenIds'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useManuscriptImportViewModel } from '../viewmodel/useManuscriptImportViewModel'
@@ -20,6 +21,14 @@ const RIGHTS = [
   '원고에 포함된 이미지를 사용할 권한이 있어요.',
 ]
 
+// 사용법 투어(#971): 위에서 아래로 가져오기 순서대로.
+const tour: TourStep[] = [
+  { target: 'import-work', title: '등록할 작품', text: '원고를 넣을 작품을 골라요. 서버에 저장된 작품이 있어야 해요.' },
+  { target: 'import-rights', title: '권리 확인', text: '이 원고를 등록할 권리가 있는지 3가지를 확인해요. 모두 확인해야 파일을 고를 수 있어요.' },
+  { target: 'import-file', title: '원고 파일', text: 'TXT나 EPUB 파일을 골라요. TXT 10MB·EPUB 50MB 이하이고 한 번에 300회차까지 가져와요.' },
+  { target: 'import-preview', title: '미리보기', text: '미리보기에서 회차 나눔과 제목을 확인하고 제외·합치기를 조정한 뒤 등록해요. 등록한 원고는 나만 볼 수 있는 초안·저장 버전으로 들어가고 공개되지 않아요.' },
+]
+
 /** 실제 모드 `/import`: TXT·EPUB 파일을 서버에서 읽어 회차로 등록한다. 데모 화면은 `ImportPage`가 `--mode mockup`에서 그대로 맡는다. */
 export function ManuscriptImportPage() {
   const vm = useManuscriptImportViewModel()
@@ -29,7 +38,7 @@ export function ManuscriptImportPage() {
     <>
       <Gnb on="lib" />
       <main id="main" tabIndex={-1} className="wrap manuscript-import">
-        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>내 소설 가져오기</h1></div>
+        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>내 소설 가져오기</h1><ScreenTour screen="import" steps={tour} ready={!vm.result && !vm.worksLoading && !vm.worksError} className="btn sm tour-end" /></div>
         {vm.result ? <ImportResult vm={vm} result={vm.result} /> : <>
           <ImportSetup vm={vm} />
           {vm.plan && <ImportPreview vm={vm} plan={vm.plan} />}
@@ -50,17 +59,19 @@ function ImportSetup({ vm }: { vm: VM }) {
         {vm.worksLoading ? <p role="status">작품을 불러오고 있어요…</p>
           : vm.worksError ? <p role="alert">{vm.worksError} <button type="button" className="btn sm" onClick={vm.reloadWorks}>다시 불러오기</button></p>
           : !vm.works.length ? <p>서버에 저장된 작품이 없어요. 먼저 작품을 만들어 주세요. <Go to="/content" className="btn sm" onClick={(e) => { if (!vm.confirmLeave()) e.preventDefault() }}>작품 만들기</Go></p>
-          : <label className="field">원고를 넣을 작품<select className="inp" value={vm.workId} onChange={(e) => vm.selectWork(e.target.value)}><option value="">작품을 선택해 주세요</option>{vm.works.map((work) => <option key={work.id} value={work.id}>{work.title}</option>)}</select></label>}
+          : <label className="field" data-tour="import-work">원고를 넣을 작품<select className="inp" value={vm.workId} onChange={(e) => vm.selectWork(e.target.value)}><option value="">작품을 선택해 주세요</option>{vm.works.map((work) => <option key={work.id} value={work.id}>{work.title}</option>)}</select></label>}
         <p className="small muted">만든 세계관은 이 작품과 연결되지 않고 세계관 작업실에 따로 저장돼요.{' '}
           <Go to="/worldstudio" className="btn sm" disabled={!!vm.busy}
             onClick={(e) => { if (!vm.confirmLeave()) e.preventDefault() }}>세계관 만들기</Go></p>
         <h2 className="mi-step">2. 권리 확인</h2>
-        {RIGHTS.map((text, index) => <label key={text} className="mi-check"><input type="checkbox" checked={vm.rights[index]} onChange={(e) => vm.setRight(index, e.target.checked)} /> {text}</label>)}
+        <div data-tour="import-rights">
+          {RIGHTS.map((text, index) => <label key={text} className="mi-check"><input type="checkbox" checked={vm.rights[index]} onChange={(e) => vm.setRight(index, e.target.checked)} /> {text}</label>)}
+        </div>
         <p className="small muted">등록은 공개·발행·AI 학습 동의가 아니에요. 등록한 원고는 나만 볼 수 있는 초안·저장 버전으로 들어가요.</p>
         <h2 className="mi-step">3. 원고 파일</h2>
-        <label className="field">원고 파일 (.txt, .epub)<input className="inp" type="file" accept=".txt,.epub" disabled={!vm.workId || !vm.allRights} onChange={(e) => vm.pickFile(e.target.files?.[0] ?? null)} /></label>
+        <label className="field" data-tour="import-file">원고 파일 (.txt, .epub)<input className="inp" type="file" accept=".txt,.epub" disabled={!vm.workId || !vm.allRights} onChange={(e) => vm.pickFile(e.target.files?.[0] ?? null)} /></label>
         <p className="small muted">작품을 고르고 권리 3가지를 확인하면 파일을 고를 수 있어요. TXT 10MB·EPUB 50MB 이하, 한 번에 300회차까지 가져와요. DRM이 걸린 EPUB은 읽을 수 없고, 지원하지 않는 형식의 이미지는 빠져요(빠지는 개수는 미리보기 경고로 알려 줘요).</p>
-        <div className="rowend"><button type="button" className="btn pri" disabled={!vm.canPreview} onClick={() => void vm.preview()}>{vm.busy === 'preview' ? '미리보기를 만드는 중이에요…' : '미리보기'}</button></div>
+        <div className="rowend"><button type="button" className="btn pri" data-tour="import-preview" disabled={!vm.canPreview} onClick={() => void vm.preview()}>{vm.busy === 'preview' ? '미리보기를 만드는 중이에요…' : '미리보기'}</button></div>
       </fieldset>
       {/* 미리보기가 열려 있으면 진행·오류 표시는 확정 버튼 가까운 미리보기 패널이 맡는다. */}
       {!vm.plan && vm.busy && <button type="button" className="btn sm" onClick={vm.cancel}>요청 취소</button>}

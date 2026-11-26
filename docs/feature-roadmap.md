@@ -710,7 +710,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="70">Frontend</td><td rowspan="60">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8">—</td></tr>
+<tr><td rowspan="71">Frontend</td><td rowspan="61">웹 화면</td><td rowspan="8">92 정본 읽기 전환</td><td>런타임 샘플 주입을 제거하고 명시적 테스트 fixture로 격리</td><td>❌</td><td rowspan="8">—</td></tr>
 <tr><td>서버 slug 메타데이터로 기존 경로의 UUID 집필실 연결</td><td>❌</td></tr>
 <tr><td>조회 실패 시 샘플 fallback 없이 오류·재시도 제공</td><td>❌</td></tr>
 <tr><td>인증·작품·회차 범위 변경 후 오래된 비동기 결과 차단</td><td>❌</td></tr>
@@ -734,7 +734,7 @@
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
 <tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 본문 편집기(Toast UI Editor, 아래 행)·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 플롯 패널(#374 소스 구현, CI 대기). 채팅은 집필 AI에 연결(#331), 이미지·텍스트 파일 첨부는 #617(+ 메뉴·끌어다 놓기·칩, 소스 구현·로컬 단위 테스트 통과, 로컬 스택 실제 OpenAI 호출·브라우저 e2e(이미지 글자·메모 내용이 기획 답변에 반영, 거절 이유·× 제거·20,000자 초과 알림, 첨부 없는 채팅 유지) 확인, hosted CI 통과(PR #652 병합)), 설정 수집은 준비 중 잠금, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>집필실 본문 Toast UI 편집기와 원고 기본 서식 <small>(툴바 굵게·기울임·소제목·인용·구분선·이미지와 쓰기·미리보기, 저장은 문자열 그대로, 독자 화면·저장 버전 보기·EPUB 내보내기가 같은 문법으로 표시, DEC-48)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/330">PR #330</a></td></tr>
-<tr><td rowspan="26">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="26"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
+<tr><td rowspan="27">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="27"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
 <tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>홈 Hero 자동 넘김을 이름 있는 정지·재생 제어로 조작</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>홈 Hero 포커스·수동 전환 후 명시적 재생 전까지 자동 넘김 정지</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
@@ -760,6 +760,7 @@
 <tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>첫 방문 안내(U46): 홈 첫 진입 시 핵심 흐름 4단계(작품 읽기 → Fork → 집필실 → AI 집필·피드백) 시트, 건너뛰기(이번만)·다시 보지 않기(브라우저 localStorage, 서버 저장 없음) <small>(<a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/884">#884</a>, 홈의 옛 안내 띠 대체. 첫 로그인·계정별 기억과 홈 밖 진입은 제외)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/897">PR #897</a></td></tr>
 <tr><td>첫 방문 안내 바로가기·버튼 위계: 작품 읽기·Fork·집필실 단계 바로가기(홈 목록·포크 소설 목록·서재 내가 쓰는 소설), 주 버튼 작품 둘러보기·건너뛰기 보조, 다시 보지 않기 설명 <small>(<a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/930">#930</a>, PR 컨테이너 브라우저 E2E 확인(바로가기 3개 이동·이번 방문만 닫힘·작품 둘러보기·건너뛰기·다시 보지 않기, 1440·390px). 바로가기로 떠나면 이번 방문만 닫음, 서재는 로그인 필요)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/961">PR #961</a></td></tr>
+<tr><td>화면별 사용법 투어: 집필실·작품 관리·세계관 관리·Fork 생성·새 작품 만들기·원고 가져오기·독서·작가 피드백함·소설 상세 9곳에서 처음 들어오면 실제 버튼·영역을 짚는 코치마크 투어(react-joyride)를 한 번 자동 시작, 완료·건너뛰기·닫기·Esc는 모두 브라우저 localStorage에 기억(서버 저장 없음), 화면마다 <code>사용법</code> 버튼으로 다시 시작 <small>(<a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/971">#971</a>, 로컬 구현: 투어 공용 부품과 대상 화면의 기존 단위·렌더 테스트 통과, 브라우저 동작·CI 확인 대기. 계정별·서버 저장, 관리자 화면, 서재, 홈 첫 방문 안내(U46) 변경은 제외)</small></td><td>❌</td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/511">PR #511</a></td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
 <tr><td rowspan="4">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/305">PR #305</a></td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
 <tr><td>데모 집필실에서 동작별 저장 표시 제어</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>

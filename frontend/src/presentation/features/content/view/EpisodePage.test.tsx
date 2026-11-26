@@ -105,6 +105,25 @@ const stubPreviewUrl = () => {
 /** 표지 업로드(PUT .../cover)에 대한 서버 응답. url은 요청 경로의 콘텐츠 경로여야 한다. */
 const coverReply = (path: string) => Response.json({ id: '33333333-3333-4333-8333-333333333333', filename: 'cover.png', mediaType: 'image/png', kind: 'IMAGE', byteSize: 3, createdAt: '2026-11-03T00:00:00Z', url: `${path}/content` })
 
+// ── 사용법 투어(#971) ─────────────────────────────────────────────
+
+it('새 작품 만들기의 사용법 버튼은 폼 순서(제목 → 표지 → 유형 → 장르 → 만들기)대로 투어를 시작한다', async () => {
+  openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
+  fireEvent.click(await screen.findByRole('button', { name: '사용법' }))
+  const tip = await screen.findByRole('dialog', { name: '제목과 소개' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 5')
+})
+
+it('작품 관리의 사용법 버튼은 탭에 묶이지 않고 사이드바 메뉴(개요 → 공개 회차 → … → 운영 설정)를 짚는다', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  await screen.findByRole('button', { name: '집필 방식 저장' })
+  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
+  const tip = await screen.findByRole('dialog', { name: '개요' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 6')
+})
+
 // ── 작품 만들기 (/content) ─────────────────────────────────────────────
 
 it('개요 탭 히어로에는 통계 줄이 없고 공개 회차·작성 중인 초안은 지표 카드에만 보인다', async () => {

@@ -10,6 +10,7 @@ import { ManuscriptBody } from '../../../shared/media/MediaPanel'
 import { paginate } from '../../../shared/paginate'
 import { Pager } from '../../../shared/Pager'
 import { ManageMenu } from '../../../shared/shell/ManageMenu'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { EditSuggestionInbox } from '../../inbox/view/EditSuggestionInbox'
 import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
 import { MyCommentsReports } from '../../library/view/MyCommentsReports'
@@ -31,6 +32,16 @@ import { WorkBrief } from './WorkBrief'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
 import { WorldReleaseWarning } from './WorldReleaseWarning'
+
+// 사용법 투어(#971): 사이드바 메뉴 버튼(data-tour="manage-<탭>")을 짚는다. 어느 탭에 있어도 메뉴는 보이므로 투어가 탭에 묶이지 않는다.
+const tour: TourStep[] = [
+  { target: 'manage-overview', title: '개요', text: '작품 정보·표지를 고치고, 공개 회차·작성 중인 초안·받은 피드백·조회 같은 현황을 봐요.' },
+  { target: 'manage-read', title: '공개 회차', text: '공개한 회차를 보고 집필실로 가요. 원고 쓰기·버전 저장·공개는 집필실에서 해요. 회차가 없어도 집필실의 새 회차 버튼으로 1화를 만들 수 있어요.' },
+  { target: 'manage-world', title: '세계관·설정집', text: '이 작품에 세계관을 연결하고 설정집을 관리해요. 원고로 세계관을 만들 수도 있어요.' },
+  { target: 'manage-fork', title: '이야기 분기', text: '분기를 허용한 공개 원작이면 고른 회차에서 갈라지는 작품을 만들어요.' },
+  { target: 'manage-feedback', title: '받은 피드백', text: '독자가 이 작품에 보낸 문장 제보와 수정 제안을 받아 처리해요.' },
+  { target: 'manage-settings', title: '운영 설정', text: '집필 방식과 분기 정책을 정하고, 작품을 삭제해요.' },
+]
 
 type Props = {
   vm: ReturnType<typeof useEpisodeViewModel>
@@ -134,10 +145,13 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   return (
     <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
       <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }}>
+        {/* 사용법 버튼은 돌아가기 링크 아래·메뉴 위에 둔다: 사이드바 본문의 마지막은 메뉴다. */}
+        <ScreenTour screen='manage' steps={tour} className='btn sm weak tour-side' />
         <nav aria-label='작품 메뉴'>
           {tabs.map(([value, label]) => (
             <button
               key={value}
+              data-tour={`manage-${value}`}
               // 요청 중이거나 편집 폼이 열려 있는 동안(작품 정보·표지는 개요 탭, 분기 정책은 운영 설정 탭 안에 있어 탭을 떠나면 입력이 사라진다)에는 다른 탭으로 옮기지 못하게 잠그되, 지금 탭은 두어 방금 누른 버튼에서 키보드 초점이 사라지지 않게 한다(이력 탭은 누르면 곧 요청이 시작된다).
               disabled={(locked || editing !== null) && tab !== value}
               aria-current={tab === value ? 'page' : undefined}

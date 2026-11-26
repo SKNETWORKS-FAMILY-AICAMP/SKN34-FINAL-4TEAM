@@ -1,0 +1,15 @@
+/* 화면별 사용법 투어(#971). 말풍선 색·글꼴·모서리는 전역 토큰(--surface·--ink·--sub·--line2·--muted-bg)만 쓰고, 위치와 스포트라이트는 react-joyride가 정한다. */
+.tour-tip{position:relative;box-sizing:border-box;width:min(340px,calc(100vw - 32px));padding:20px 20px 16px;border:1px solid var(--line2);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:var(--sh-up);font-family:var(--ui);text-align:left}
+.tour-tip h3{margin:0 40px 8px 0;font-size:16px;font-weight:800;line-height:1.4}
+.tour-tip p{margin:0;color:var(--ink2);font-size:14px;line-height:1.65}
+.tour-foot{display:flex;align-items:center;gap:8px;margin-top:16px}
+.tour-count{margin-right:auto;font-variant-numeric:tabular-nums}
+.tour-x{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:var(--muted-bg);color:var(--ink)}
+@media (pointer:coarse){.tour-x{width:44px;height:44px;top:6px;right:6px}}
+/* 투어 중 스크롤 대상은 고정 상단바(상단바 64px·독서 막대 61px) 밑에서 시작한다. 모바일의 두 줄 상단바(약 127px)는 따로. */
+body:has(#react-joyride-portal) [data-tour]{scroll-margin-top:80px}
+@media (max-width:600px){body:has(#react-joyride-portal) [data-tour]{scroll-margin-top:140px}}
+/* 버튼 줄의 오른쪽 끝에 두는 사용법 버튼 */
+.tour-end{margin-left:auto}
+/* 관리 화면 사이드바(세로 flex·grid)에서 칸 폭으로 늘어나지 않게 한다. */
+.tour-side{width:fit-content}

@@ -8,6 +8,7 @@ import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
 import { ManuscriptText, StoredImage } from '../../../shared/media/MediaPanel'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useFeedbackViewModel } from '../viewmodel/useFeedbackViewModel'
 import { POP_GUTTER, popLeft } from '../viewmodel/sentencePop'
@@ -22,6 +23,15 @@ import { CommentSheet, EpisodeReportSheet, FeedbackSheet, LookSheet } from './Sh
 const NUM = ['一', '二', '三', '四', '五', '六', '七', '八']
 const chapLabel = (t: Theme, n: number) => t === 'hanji' ? '第 ' + NUM[n - 1] + ' 回' : t === 'neon' ? 'CHANNEL ' + String(n).padStart(2, '0') : 'CHAPTER ' + n
 const ORN: Record<Theme, string> = { hanji: '● ─────', star: '✦ ✧ ✦', neon: '// SIGNAL 72% · 7구역' }
+// 사용법 투어(#971): 위쪽 막대 → 본문 → 회차 끝 순서. 설정 위키·포크는 서버 작품·포크할 수 있는 회차에만 있어 없으면 단계에서 빠진다.
+// 아래로 스크롤하면 위·아래 막대가 숨으므로(inert) 막대를 짚는 단계는 스크롤이 일어나기 전인 앞쪽에 둔다.
+// 문장 팝업의 수정 제안은 서버 작품(canonical)에만 있어 문장 단계 글이 작품에 따라 다르다.
+const tour = (canonical: boolean): TourStep[] => [
+  { target: 'read-look', title: '보기 설정', text: '배경·배경 움직임·글자 크기를 내게 맞게 바꿔요.' },
+  { target: 'read-wiki', title: '설정 위키', text: '이 회차까지 공개된 설정만 모아 본 설정 위키를 열어요.' },
+  { target: 'read-sentence', title: '문장 누르기', text: `문장을 누르면 그 문장에 댓글을 남기거나 피드백${canonical ? '·수정 제안' : ''}을 보낼 수 있어요. 로그인한 회원만 보낼 수 있어요.` },
+  { target: 'read-fork', title: '여기서 포크', text: '회차 끝에서 이 회차를 기준으로 이야기를 갈라 나만의 작품을 이어 쓸 수 있어요. 원작은 바뀌지 않아요.' },
+]
 /** 문장 사이 이동 방향키 */
 const STEP: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }
 /** 문장이 있는 본문 블록의 요소(원고 기본 서식) */
@@ -149,17 +159,17 @@ export function ReaderPage() {
           <Go to={`/work/${id}`} className="back rback" aria-label="소설 목록으로"><BackChev /><span>목록</span></Go>
           <div className="t"><b>{w.title}</b><small>{r.n}화 · {e.t}{w.parent && r.n <= (w.forkAt ?? 0) ? ' · 원작 스냅샷' : ''}</small></div>
           <button type="button" className="rib" aria-label="공유" onClick={vm.share}>↗</button>
-          {w.canonical && <Go to={`/work/${id}/wiki?upto=${r.n}`} className="rib" aria-label="설정 위키 보기" title="이 회차까지 공개된 설정 위키">설정</Go>}
+          {w.canonical && <Go to={`/work/${id}/wiki?upto=${r.n}`} className="rib" data-tour="read-wiki" aria-label="설정 위키 보기" title="이 회차까지 공개된 설정 위키">설정</Go>}
           {/* 회차 신고(결정 D)는 서버 작품만 운영 신고 API에 연결돼 있어 데모 작품에는 두지 않는다. */}
           {w.canonical && <button type="button" className="rib" aria-label="회차 신고" onClick={() => vm.openSheet({ kind: 'report' })}>신고</button>}
-          <button type="button" className="rib" aria-label="보기 설정" onClick={() => vm.openSheet({ kind: 'look' })}>Aa</button>
+          <button type="button" className="rib" data-tour="read-look" aria-label="보기 설정" onClick={() => vm.openSheet({ kind: 'look' })}>Aa</button>
         </div>
         <div className="prog"><i id="prog" ref={refs.prog} /></div>
       </div>
       <main className="page" id="main" tabIndex={-1}>
         <h1 className="sr-only">{w.title} {r.n}화</h1>
         <div className="chap"><small>{chapLabel(w.theme, r.n)}</small><h2>{e.t}</h2><div className="orn">{ORN[w.theme]}</div>{!w.canonical && <div className="reading"><i />지금 {30 + ((r.n * 37) % 90)}명이 함께 읽는 중 <span className="demo">데모</span></div>}</div>
-        <div className="hint">{w.canonical?'☝ 문장을 누르면 댓글을 남길 수 있어요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
+        <div className="hint"><span data-tour="read-sentence">{w.canonical?'☝ 문장을 누르면 댓글을 남길 수 있어요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</span><ScreenTour screen="read" steps={tour(!!w.canonical)} className="btn sm tour-end" /></div>
         <span id="sentence-help" className="sr-only">{w.canonical?'댓글 달기 열기':'댓글·피드백 열기'}</span>
         <div className="text" id="text">
           {hiddenSourceEpisode(w, r.n, e.p) && <p className="muted">원작이 삭제돼 분기 전 회차 본문은 볼 수 없어요. {(w.forkAt ?? 0) + 1}화부터 이 포크 소설이 이어져요.</p>}
@@ -189,7 +199,7 @@ export function ReaderPage() {
             <Go to={`/read/${id}/${r.next}`} className="tcard nextc"><div><small>다음 화</small><b>{r.next}화 {eps[r.next - 1].t}</b></div><span style={{ fontSize: 22 }}>›</span></Go>
           ) : <div className="tcard nextc"><div><small>마지막 회차예요</small><b>다음 화를 기다려 주세요</b></div></div>}
           {r.canFork && (
-            <div className="tcard ifend">
+            <div className="tcard ifend" data-tour="read-fork">
               <h3>여기서 포크해 볼까요?</h3>
               <p>{w.canonical ? `${r.n}화의 공개된 원고·설정을 기준으로 분기해요.` : `${r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요.`} 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
               <div className="acts">

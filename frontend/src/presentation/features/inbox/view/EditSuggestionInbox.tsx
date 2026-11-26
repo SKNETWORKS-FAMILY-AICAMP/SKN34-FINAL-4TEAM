@@ -1,4 +1,4 @@
-import { Activity, useEffect, useRef, useState } from 'react'
+import { Activity, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { BASE_CHANGED_MESSAGE, SUGGESTION_MAX, type EditSuggestion } from '../../../../domain/entities/editSuggestion'
 import './inbox.css'
@@ -8,7 +8,10 @@ import { useEditSuggestionInboxViewModel } from '../viewmodel/useEditSuggestionI
 
 type Vm = ReturnType<typeof useEditSuggestionInboxViewModel>
 
-function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
+/** 아직 결정하지 않은(보류 포함) 제안이다. 편집안·승인·거절 버튼이 있다. */
+const undecided = (s: EditSuggestion) => s.status === 'pending' || s.status === 'held'
+
+function SuggestionCard({ s, vm, tour }: { s: EditSuggestion; vm: Vm; tour: boolean }) {
   const shown = s.editedText ?? s.afterText
   const [edited, setEdited] = useState(shown)
   const [reason, setReason] = useState('')
@@ -20,7 +23,6 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
   const mine = vm.notice?.id === s.id ? vm.notice : null
   // 처리한 버튼이 사라지거나 잠겨 초점을 잃어도 결과 안내에서 이어 가게 합니다.
   useEffect(() => { if (mine) note.current?.focus() }, [mine])
-  const undecided = s.status === 'pending' || s.status === 'held'
   const retryable = s.status === 'approved' && s.applyResult === 'failed'
   const studioHref = `/studio/${s.workId}?ep=${s.episodeNumber}`
   const locked = vm.pending !== null
@@ -35,11 +37,11 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
       {s.editedText && <p className="small muted">제안자가 처음 올린 수정: {s.afterText}</p>}
       <p className="small">범위 검사 <span className={`chip ${s.scope === 'auto' ? 'ok' : 'wait'}`}>{s.scope === 'auto' ? '표기 교정 수준' : '내용 변경 포함'}</span> {s.scopeReasons.join(' ')}</p>
       <p className="small muted">검사는 표시만 해요. 승인해야만 초안에 반영돼요.</p>
-      {undecided && (
+      {undecided(s) && (
         <>
           <label className="field">편집안<textarea className="ta" maxLength={SUGGESTION_MAX} readOnly={locked} value={edited} onChange={(e) => setEdited(e.target.value)} /></label>
           <div className="rowend"><button type="button" className="btn sm" disabled={locked} onClick={() => void vm.saveEditedText(s, edited)}>편집안 저장</button></div>
-          <div className="rowend">
+          <div className="rowend" data-tour={tour ? 'inbox-suggestion-actions' : undefined}>
             {s.status === 'pending' && <button type="button" className="btn" disabled={locked} onClick={() => void vm.hold(s)}>보류</button>}
             <button type="button" className="btn" disabled={locked} aria-expanded={rejecting} onClick={() => setRejecting((open) => !open)}>거절</button>
             <button type="button" className="btn pri" disabled={locked || unsaved} aria-describedby={unsaved ? hint : undefined} onClick={() => void vm.approve(s)}>승인하고 초안에 반영</button>
@@ -82,16 +84,21 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
  * 승인은 새 초안 버전으로만 반영하며 발행은 집필실에서 따로 합니다. 데모 작품의 수정 제안은 위의 데모 피드백함이 계속 맡습니다.
  * workId를 주면 그 작품의 제안만 보입니다(작품 관리 화면의 '받은 피드백' 탭). 주지 않으면 내 모든 작품입니다.
  */
-export function EditSuggestionInbox({ workId }: { workId?: string }) {
+export function EditSuggestionInbox({ workId, onLoaded }: { workId?: string; onLoaded?: () => void }) {
   const vm = useEditSuggestionInboxViewModel(workId)
+  // 첫 읽기가 성공으로 끝나면 호출 측에 알린다(작가 피드백함의 사용법 투어). 읽기에 실패하면 알리지 않는다.
+  const loaded = useEffectEvent(() => onLoaded?.())
+  useEffect(() => { if (vm.items) loaded() }, [vm.items])
   const [status, setStatus] = useState('')
   // 작품 관리의 '받은 피드백' 탭(workId가 있다)에서는 탭 제목(h2) 아래 묶음 제목이라 h3다. 피드백함 화면에서는 쪽 제목(h1) 아래 구획이라 h2다.
   const Heading = workId ? 'h3' : 'h2'
   // 방금 처리한 제안은 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
   // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
   const visible = (item: EditSuggestion) => !status || item.status === status || item.id === vm.notice?.id
+  // 사용법 투어는 필터에 가려지지 않은, 결정을 기다리는 첫 제안의 버튼 줄만 짚는다.
+  const first = vm.items?.find((item) => visible(item) && undecided(item))?.id
   return (
-    <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
+    <section className="sec" data-tour="inbox-suggestions" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><Heading id="edit-suggestions-h">독자 수정 제안</Heading><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
       {vm.isError && (
         <div className="panel" role="alert">
@@ -110,7 +117,7 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
         </label>
       </div>}
       {!!vm.items?.length && !vm.items.some(visible) && <p role="status">조건에 맞는 수정 제안이 없어요.</p>}
-      {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={visible(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} /></Activity>)}</div>}
+      {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={visible(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} tour={s.id === first} /></Activity>)}</div>}
     </section>
   )
 }
