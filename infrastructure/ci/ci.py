@@ -51,7 +51,8 @@ def select(paths, full=False):
             infra = True
             continue
         # 에이전트 지침·훅·스킬은 런타임과 무관하다(훅 테스트는 .agent-hooks에서 로컬 실행).
-        if path.endswith(".md") or path.startswith(("docs/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
+        # ponytail: 모바일 테스트 job은 mobile 단위 테스트가 생길 때 추가.
+        if path.endswith(".md") or path.startswith(("docs/", "mobile/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
                 or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
             continue
         if path.startswith("frontend/"):
