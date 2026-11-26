@@ -132,6 +132,20 @@ class ManuscriptBuildServiceTest {
         verify(execution).fail(job.id,owner,token,"WORLD_CHANGED")
     }
 
+    @Test fun `an execution that expires while reserving load steps fails as EXECUTION_EXPIRED`() {
+        val (job,token)=readyToLoad()
+        val action:() -> Any={ 0 }
+        doAnswer { call ->
+            job.deadline=Instant.EPOCH
+            call.getArgument<() -> Any>(3).invoke()
+        }.`when`(studio).prepareManuscript(eq(worldId) ?: worldId,eq(owner) ?: owner,any(WorldDraftResponse::class.java) ?: emptyDraft,
+            any(Function0::class.java) as? (() -> Any) ?: action)
+
+        assertThrows(WorldConflict::class.java) { service.load(job.id,token) }
+        verify(execution).fail(job.id,owner,token,"EXECUTION_EXPIRED")
+        verifyNoInteractions(steps)
+    }
+
     // ---- 접수: 거절 사유와 세계관 이름 ----
 
     private fun unlinkedWork(title:String) {
@@ -163,13 +177,35 @@ class ManuscriptBuildServiceTest {
     @Test fun `status sums the items the AI left out over the extraction results only`() {
         val job=job("failed")
         `when`(results.findAllByJobIdOrderByEpisode(job.id)).thenReturn(listOf(
-            saved(job,"extraction",1,mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 2,"SEMANTIC_TYPE_CONFLICT" to 1))),
-            saved(job,"extraction",2,mapOf("skipped" to emptyMap<String,Int>())),
-            saved(job,"extraction",3,mapOf("number" to 3)),
-            saved(job,"identity",0,mapOf("skipped" to mapOf("IGNORED" to 9)))))
+            saved(job,"extraction",1,mapOf("extraction" to mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 2,"SEMANTIC_TYPE_CONFLICT" to 1)))),
+            saved(job,"extraction",2,mapOf("extraction" to mapOf("skipped" to emptyMap<String,Int>()))),
+            saved(job,"extraction",3,mapOf("extraction" to mapOf("number" to 3))),
+            saved(job,"identity",0,mapOf("extraction" to mapOf("skipped" to mapOf("IGNORED" to 9))))))
         val response=service.status(job.id,owner)!!
         assertEquals(3,response.skippedItems)
         assertEquals(3,response.completedEpisodes)
+    }
+
+    @Test fun `completed status includes rejected identity links and relationships omitted from reserved steps`() {
+        val token=UUID.randomUUID()
+        val job=job("completed",token)
+        val found=listOf(
+            saved(job,"extraction",1,mapOf("extraction" to mapOf("skipped" to mapOf("INVALID_OR_AMBIGUOUS_QUOTE" to 3)))),
+            saved(job,"identity",0,mapOf("skippedLinks" to 1)),
+            saved(job,"payload",0,mapOf("relations" to List(5) { emptyMap<String,Any?>() })),
+        )
+        val reserved=listOf(1,2).map { count ->
+            val step=ManuscriptBuildLoadStep(jobId=job.id,sequence=count,
+                requestPayload=mapOf("relationships" to List(count) { emptyMap<String,Any?>() }),requestHash="a".repeat(64))
+            step.status="applied"
+            step.receipt=json(ManuscriptLoadReceipt(job.id,step.id,worldId,1,1,emptyList(),emptyList()))
+            step
+        }
+        `when`(results.findAllByJobIdOrderByEpisode(job.id)).thenReturn(found)
+        `when`(steps.findAllByJobIdOrderBySequence(job.id)).thenReturn(reserved)
+
+        assertEquals(6,service.status(job.id,owner)!!.skippedItems)
+        assertEquals(6,service.load(job.id,token).skippedItems)
     }
 
     @Test fun `status carries the request key so another browser can resume the same job`() {

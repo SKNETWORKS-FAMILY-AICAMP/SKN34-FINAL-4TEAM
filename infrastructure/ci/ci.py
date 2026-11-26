@@ -38,6 +38,7 @@ def select(paths, full=False):
     scopes = {service: set() for service in SERVICES}
     scenarios = set()
     infra = full
+    mobile = full
 
     def core(*features):
         scopes["core"].update(features)
@@ -49,6 +50,10 @@ def select(paths, full=False):
             samples + 'build_traditions.py', samples + 'test_traditions.py'
         }:
             infra = True
+            continue
+        # 모바일(Expo) 앱은 자기 job(타입 검사·Node 단위 테스트)만 선택한다. 서비스·시스템 job은 돌리지 않고 문서는 건너뛴다.
+        if path.startswith("mobile/"):
+            mobile |= not path.endswith(".md")
             continue
         # 에이전트 지침·훅·스킬은 런타임과 무관하다(훅 테스트는 .agent-hooks에서 로컬 실행).
         if path.endswith(".md") or path.startswith(("docs/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
@@ -106,11 +111,12 @@ def select(paths, full=False):
         for scope in scopes.values():
             scope.add("all")
         scenarios.update(SCENARIOS)
+        mobile = True
     rows = [{"service": service, "scope": "all" if "all" in scope else ",".join(sorted(scope))}
             for service, scope in scopes.items() if scope]
     # 모든 선택 서비스가 실제 통합 테스트를 가진다(Operations는 독립 CRUD/auth).
     integration = list(rows)
-    return {"unit": rows, "integration": integration, "system": [s for s in SCENARIOS if s in scenarios], "infra": infra}
+    return {"unit": rows, "integration": integration, "system": [s for s in SCENARIOS if s in scenarios], "infra": infra, "mobile": mobile}
 
 
 def check_results(results, expected):
@@ -153,6 +159,7 @@ def main():
             # 서비스 job 하나가 단위·통합을 모두 실행한다. select가 두 목록을 같게 만들므로 행렬은 하나만 내보낸다.
             output.write(f"service={json.dumps({'include': plan['unit']})}\nservice_needed={str(bool(plan['unit'])).lower()}\n")
             output.write(f"system={','.join(plan['system'])}\nsystem_needed={str(bool(plan['system'])).lower()}\ninfra={str(plan['infra']).lower()}\n")
+            output.write(f"mobile={str(plan['mobile']).lower()}\n")
         check_base = base
         if check_base is None:
             # 테스트 선택은 전체로 확장해도 공백 검사는 직전 변경만 확인한다.
@@ -171,7 +178,7 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(redact(file.read_text(errors="replace")))
     elif args.action == "required":
-        expected = {tier for tier in ("service", "system", "configuration") if os.environ[tier.upper() + "_NEEDED"] == "true"}
+        expected = {tier for tier in ("service", "system", "configuration", "mobile") if os.environ[tier.upper() + "_NEEDED"] == "true"}
         expected.add("changes")
         check_results({job: value["result"] for job, value in json.loads(os.environ["NEEDS"]).items()}, expected)
 

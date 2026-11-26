@@ -42,6 +42,8 @@ object ManuscriptStructureVerifier {
         }
         val rows=all.sortedBy { it.basis.number }.associate { it.basis.number to mapper.valueToTree<JsonNode>(it.extraction) }
         require(rows.size==all.size && rows.isNotEmpty())
+        val skippedLinks=identity.path("skippedLinks")
+        require(skippedLinks.isMissingNode || (skippedLinks.isIntegralNumber && skippedLinks.canConvertToInt() && skippedLinks.asInt()>=0))
         val hashes=mapper.convertValue(identity.path("inputHashes"),Map::class.java)
         require(hashes.size==rows.size)
         all.forEach { result ->

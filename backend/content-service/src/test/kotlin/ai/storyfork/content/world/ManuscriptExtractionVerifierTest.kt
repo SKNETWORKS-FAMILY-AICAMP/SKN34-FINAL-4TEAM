@@ -51,7 +51,9 @@ class ManuscriptExtractionVerifierTest {
     @Test fun `a memory from before the story needs no fixed phrase in the quote`() {
         val prestory=statement("s1","fact","s","s","서하는 어릴 때부터 열쇠를 기억하고 있었다.",0,0)
         ManuscriptExtractionVerifier.verify(naturalSource,natural(listOf(seoha),listOf(prestory)),mapper)
-        // 시작 전 기억은 fact이면서 일어난 때가 0일 때만이다. 그 밖의 0은 계속 거절한다.
+        // 시작 전 기억은 memory 문서의 fact이면서 일어난 때가 0일 때만이다.
+        assertThrows(IllegalArgumentException::class.java) { ManuscriptExtractionVerifier.verify(naturalSource,natural(listOf(seoha),listOf(prestory+("document" to "identity"))),mapper) }
+        assertThrows(IllegalArgumentException::class.java) { ManuscriptExtractionVerifier.verify(naturalSource,natural(listOf(seoha),listOf(prestory+("occurredEpisode" to null))),mapper) }
         assertThrows(IllegalArgumentException::class.java) { ManuscriptExtractionVerifier.verify(naturalSource,natural(listOf(seoha),listOf(prestory+("occurredEpisode" to 1))),mapper) }
         assertThrows(IllegalArgumentException::class.java) { ManuscriptExtractionVerifier.verify(naturalSource,natural(listOf(seoha),listOf(prestory+("kind" to "description"))),mapper) }
     }

@@ -214,8 +214,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     sceneAction: (action: SceneAction) => stream(turns.at(-1)?.request ?? '', { resume: { approved: true, scene: action } }),
     deleteFrom: (index: number) => change(async () => {
       await useCase!.truncate(workId!, threadId!, index)
-      if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
+      // 지운 턴의 진행 목록은 이력을 다시 읽는 결과와 상관없이 지운다(읽기가 늦거나 실패해도 같은 번호의 다음 턴에 되살아나지 않게).
       setActivityLog((log) => Object.fromEntries(Object.entries(log).filter(([turn]) => Number(turn) < index)))
+      if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
       await refreshSessions()
     }, '메시지를 지우지 못했어요.'),
     /** index번 턴 답변의 좋아요·싫어요(#560). 저장에 성공한 뒤에만 눌린 상태를 바꾼다. null이면 취소다. */

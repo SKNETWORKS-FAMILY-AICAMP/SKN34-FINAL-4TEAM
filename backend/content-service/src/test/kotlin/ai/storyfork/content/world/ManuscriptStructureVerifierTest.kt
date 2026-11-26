@@ -21,6 +21,14 @@ class ManuscriptStructureVerifierTest {
     @Test fun `four episodes preserve identity documents knowledge and relation changes`() {
         ManuscriptStructureVerifier.verify(all,fixture.path("identity"),payload,mapper)
     }
+    @Test fun `identity skip count is optional and accepts only nonnegative integers`() {
+        val identity=fixture.path("identity") as ObjectNode
+        ManuscriptStructureVerifier.verify(all,identity.put("skippedLinks",2),payload,mapper)
+        for (invalid in listOf("-1","1.5","2147483648","\"2\"","null")) {
+            identity.set("skippedLinks",mapper.readTree(invalid))
+            assertThrows(IllegalArgumentException::class.java) { ManuscriptStructureVerifier.verify(all,identity,payload,mapper) }
+        }
+    }
     @Test fun `missing forged and repeated identity suggestions cannot be loaded`() {
         val original=payload.identityCandidates.single()
         for (candidates in listOf(emptyList(),listOf(original,original),listOf(original.copy(quote="근거 없음")),

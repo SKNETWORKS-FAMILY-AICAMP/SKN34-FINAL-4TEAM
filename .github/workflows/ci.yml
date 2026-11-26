@@ -44,6 +44,7 @@ jobs:
       system: ${{ steps.plan.outputs.system }}
       system_needed: ${{ steps.plan.outputs.system_needed }}
       infra: ${{ steps.plan.outputs.infra }}
+      mobile: ${{ steps.plan.outputs.mobile }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -379,6 +380,30 @@ jobs:
           if-no-files-found: ignore
       # Actions service containers/volumes는 job 종료 시 runner가 정리한다.
 
+  # 모바일(Expo) 앱: 타입 검사와 Node 내장 테스트 러너(node --test)만 실행한다. 네이티브 빌드·시뮬레이터 검증은 하지 않는다.
+  mobile:
+    name: Mobile / typecheck and unit tests
+    needs: changes
+    if: ${{ needs.changes.outputs.mobile == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+        working-directory: mobile
+      - run: npx tsc --noEmit
+        working-directory: mobile
+      - run: npm test
+        working-directory: mobile
+
   system:
     name: Selected HTTP system scenarios
     needs: [changes, service, configuration]
@@ -447,7 +472,7 @@ jobs:
   required:
     name: Required CI
     if: ${{ always() }}
-    needs: [changes, configuration, service, system]
+    needs: [changes, configuration, service, mobile, system]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -461,4 +486,5 @@ jobs:
           SERVICE_NEEDED: ${{ needs.changes.outputs.service_needed }}
           SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
           CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
+          MOBILE_NEEDED: ${{ needs.changes.outputs.mobile }}
         run: python3 infrastructure/ci/ci.py required

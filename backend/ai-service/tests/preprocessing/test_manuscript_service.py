@@ -270,6 +270,7 @@ def test_unconfirmed_alias_keeps_both_cards_without_suggestion(four):
     rows = extract_four(four)
     identity = service.resolve(rows)
     assert identity.mapping['1:m1'] != identity.mapping['1:m2']
+    assert identity.skippedLinks == 0
     assert service.organize(identity, rows).identityCandidates == []
 
 
@@ -278,6 +279,7 @@ def test_a_link_whose_quote_lacks_both_names_is_dropped_alone(four):
     rows = extract_four(four); identity = service.resolve(rows)
     assert all(d.link.basis != 'explicit_alias' for d in identity.decisions)
     assert identity.mapping['1:m1'] == identity.mapping['4:m1']  # 나머지 링크는 그대로 적용된다
+    assert identity.skippedLinks == 1
     assert service.organize(identity, rows).identityCandidates == []
 
 
@@ -346,6 +348,16 @@ def test_a_model_distinct_pair_is_never_joined_through_the_default_merge(monkeyp
     _, identity, payload = build(monkeypatch, episodes, links=[distinct])
     assert identity.mapping['1:m1'] == identity.mapping['2:m1'] != identity.mapping['3:m1']  # 1·2화는 같은 이름이라 묶이고 3화는 가른 쌍이라 따로다
     assert len(payload.cards) == 2
+
+
+def test_a_link_that_would_rejoin_a_model_distinct_pair_is_dropped_and_counted(monkeypatch):
+    quotes = {1: '철수는 문을 열었다.', 2: '철수는 창을 닫았다.', 3: '이 철수는 어제의 철수와 다른 사람이다.'}
+    episodes = {n: (quote, {'mentions': [person('m1', '철수', quote)], 'statements': [], 'relationships': []}) for n, quote in quotes.items()}
+    rejoin = {'left': '2:m1', 'right': '3:m1', 'basis': 'explicit_alias', 'confirmedAt': 3, 'evidenceEpisode': 3, 'quote': quotes[3]}
+    links = [rejoin, {**rejoin, 'basis': 'distinct'}]  # 같은 쌍은 정렬 키가 같아 제안 순서대로 처리되므로 합치는 링크가 먼저 온다
+    _, identity, _ = build(monkeypatch, episodes, links=links)
+    assert identity.skippedLinks == 1 and all(d.link.basis != 'explicit_alias' for d in identity.decisions)
+    assert identity.mapping['2:m1'] != identity.mapping['3:m1']  # 합치는 링크는 버려지고 모델이 가른 쌍은 그대로 따로다
 
 
 def test_a_knower_whose_name_is_not_in_the_quote_is_dropped_not_the_statement(four):
