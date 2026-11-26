@@ -174,7 +174,8 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(redact(file.read_text(errors="replace")))
     elif args.action == "required":
-        expected = {tier for tier in ("service", "system", "configuration", "mobile") if os.environ.get(tier.upper() + "_NEEDED") == "true"}
+        expected = {tier for tier in ("service", "system", "configuration", "mobile", "android-demo")
+                    if os.environ.get(tier.upper().replace("-", "_") + "_NEEDED") == "true"}
         expected.add("changes")
         check_results({job: value["result"] for job, value in json.loads(os.environ["NEEDS"]).items()}, expected)
 

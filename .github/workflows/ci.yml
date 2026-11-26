@@ -556,7 +556,7 @@ jobs:
   required:
     name: Required CI
     if: ${{ always() }}
-    needs: [changes, configuration, service, system, mobile]
+    needs: [changes, configuration, service, system, mobile, android-demo]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -571,4 +571,5 @@ jobs:
           SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
           CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
           MOBILE_NEEDED: ${{ needs.changes.outputs.mobile }}
+          ANDROID_DEMO_NEEDED: ${{ github.event_name == 'workflow_dispatch' && inputs.record_android }}
         run: python3 infrastructure/ci/ci.py required

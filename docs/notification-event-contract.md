@@ -73,6 +73,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
   같은 사건이 두 번 나가도 위 `eventId` 규칙으로 알림은 한 건만 생긴다. 1차는 Core 한 대 기준이다.
   Core 사건은 `core.` 접두사를 쓴다(`core.credit.expiring`, `core.member.withdrawal-requested`). 정기 작업처럼 같은 사건을 여러 번 만들 수 있으면 `enqueueOnce`로 사건 id를 직접 정해 한 번만 기록한다.
 - Content는 `content_event_outbox`(`id`=`eventId`)에 쓰고, 단일 인스턴스의 스케줄 발행기가 5초마다 `published_at`이 빈 행을 오래된 순으로 `storyfork.events`(routing key=`type`)에 보낸다. 보낸 행만 `published_at`을 채우고, 실패하면 그 주기를 멈춰 다음 주기에 같은 `eventId`로 다시 보낸다. Content는 교환기·큐를 선언하지 않는다. 교환기·큐·바인딩은 Core가 처음 연결할 때 선언하므로, Core가 한 번도 연결하지 않은 브로커로 보낸 사건은 어디에도 보관되지 않는다(발행기는 보낸 것으로 기록한다).
+
 ## 모바일 알림 (#943)
 
 - 앱 안의 STORYFORK WebView에서 로그인·알림함·수신 설정을 그대로 사용합니다. 인증은 기존 웹 세션을 따르고 SecureStore에는 Android 설치 UUID만 저장합니다.
