@@ -48,10 +48,17 @@ class NoticeSummaryTest {
     }
 
     @Test
-    fun `a title cut at an emoji keeps the whole code point instead of half a surrogate pair`() {
+    fun `a title cut in the middle of an emoji drops the whole emoji instead of keeping half a surrogate pair`() {
         val text = summary(MCP_WORK_CHANGED, title = "가".repeat(39) + "😀" + "나무")
         assertTrue(text.indices.all { !text[it].isHighSurrogate() || text[it + 1].isLowSurrogate() }, text)
-        assertEquals("AI가 MCP로 「${"가".repeat(39)}😀…」을(를) 수정했어요", text)
+        assertEquals("AI가 MCP로 「${"가".repeat(39)}…」를 수정했어요", text)
+    }
+
+    @Test
+    fun `emoji-only title and reason are clipped by UTF-16 length so the summary stays within the notice limit`() {
+        val text = summary(OPERATOR_WORK_RESTRICTED, title = "😀".repeat(500), ep = 999_999, reason = "😀".repeat(500))
+        assertTrue(text.length <= 300, "${text.length}")
+        assertTrue(text.indices.all { !text[it].isHighSurrogate() || text[it + 1].isLowSurrogate() }, text)
     }
 
     @Test

@@ -40,12 +40,12 @@ object NoticeSummary {
     /** 묶인 ai-tool 알림의 요약이다. [subject]는 마지막 사건의 대상 구절, [more]는 그 밖에 합쳐진 사건 수다. 예: AI가 MCP로 「작품명」 3화 원고 외 2건을 수정했어요 */
     fun bundled(subject: String, more: Int) = "AI가 MCP로 $subject 외 ${more}건을 수정했어요"
 
-    /** 공백·줄바꿈을 한 칸으로 접고 코드 포인트 기준 [max]자를 넘으면 자른다(이모지를 반으로 쪼개지 않는다). 비면 null이다. */
+    /** 공백·줄바꿈을 한 칸으로 접고 UTF-16 [max]자를 넘으면 자른다(이모지를 반으로 쪼개지 않는다). 비면 null이다. */
     private fun clip(text: String, max: Int): String? {
         val folded = text.replace(Regex("\\s+"), " ").trim()
         return when {
             folded.isEmpty() -> null
-            folded.codePointCount(0, folded.length) > max -> folded.substring(0, folded.offsetByCodePoints(0, max)) + "…"
+            folded.length > max -> folded.take(max).let { if (it.last().isHighSurrogate()) it.dropLast(1) else it } + "…"
             else -> folded
         }
     }
