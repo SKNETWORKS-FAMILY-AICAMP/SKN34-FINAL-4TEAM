@@ -44,6 +44,14 @@ it('건너뛰기는 이번만 닫고, 저장하지 않으며 같은 방문 중 �
   expect(sheet()).toBeNull()
 })
 
+it('Esc로 닫아도 다시 보지 않기로 저장하지 않는다', () => {
+  renderAt('/')
+  expect(sheet()).toBeTruthy()
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(sheet()).toBeNull()
+  expect(localStorage.getItem(onboardingKey)).toBeNull()
+})
+
 it('건너뛰기 뒤 다음 방문(새로 연 앱)에서는 다시 안내한다', () => {
   renderAt('/')
   fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }))
