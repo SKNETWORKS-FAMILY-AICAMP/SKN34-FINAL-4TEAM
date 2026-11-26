@@ -537,7 +537,7 @@ describe('세계관 없는 작품의 AI 채팅 빈 화면 안내(#910)', () => {
   const guide = { name: '세계관 탭에서 만들기·연결하기' }
   afterEach(() => { vi.restoreAllMocks() })
   const stub = (list: () => Promise<unknown[]>, inherited: unknown) => {
-    vi.spyOn(appContainer.resolve('writingChatUseCase'), 'sessions').mockResolvedValue([])
+    vi.spyOn(appContainer.resolve('writingChatUseCase')!, 'sessions').mockResolvedValue([] as never)
     vi.spyOn(appContainer.resolve('worldStudioUseCase'), 'list').mockImplementation(list as never)
     return vi.spyOn(appContainer.resolve('episodeUseCase'), 'inheritedWorld').mockResolvedValue(inherited as never)
   }
