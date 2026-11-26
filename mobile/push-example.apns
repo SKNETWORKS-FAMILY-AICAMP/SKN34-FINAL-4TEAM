@@ -1,0 +1,12 @@
+{
+  "Simulator Target Bundle": "com.storyfork.app",
+  "aps": {
+    "alert": { "title": "작가 소식", "body": "관심 작품에 새 회차가 올라왔어요" },
+    "sound": "default"
+  },
+  "body": {
+    "kind": "creation",
+    "targetType": "work",
+    "targetId": "00000000-0000-4000-8000-000000000943"
+  }
+}

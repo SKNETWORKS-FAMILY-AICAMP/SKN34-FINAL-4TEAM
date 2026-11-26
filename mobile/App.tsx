@@ -1,24 +1,18 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar'
+import { StyleSheet } from 'react-native'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+
+import { WebShell } from './src/WebShell.tsx'
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>STORYFORK</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      <SafeAreaView style={styles.root}>
+        <WebShell />
+      </SafeAreaView>
+    </SafeAreaProvider>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-  },
-});
+const styles = StyleSheet.create({ root: { flex: 1, backgroundColor: '#ffffff' } })
