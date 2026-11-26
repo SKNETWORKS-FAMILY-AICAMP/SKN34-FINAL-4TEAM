@@ -21,7 +21,7 @@ function Column({ column }: { column: ProposalColumn }) {
  * 집필실 원고 영역의 집필 AI 제안 화면(#909, 모달 아님: 열려 있는 동안 편집기를 대신한다). 원고 반영 승인·후보 검수·계획 수정안을
  * 지금 초안(계획)과 나란히 보이고, 반영·다시 쓰기·반영하지 않기는 채팅 승인 카드(ApprovalCard)와 같은 요청을 보낸다.
  * 결과(반영함·반영 안 함·실패)와 오류는 채팅이 보이는 것과 같은 값(chat)을 그대로 보인다.
- * unsaved면 반영을 잠그고, 반영 회차가 열린 회차와 다르면 그 회차를 열어 비교하라고 안내한다(열린 회차로 대신하지 않는다).
+ * 열린 회차가 반영 회차이고 그 회차에 저장하지 않은 편집(unsaved)이 있으면 반영을 잠그고(다른 회차의 편집은 aiApplied가 지키므로 잠그지 않는다), 반영 회차가 열린 회차와 다르면 그 회차를 열어 비교하라고 안내한다(열린 회차로 대신하지 않는다).
  */
 export function ProposalStage({ proposal, chat, unsaved, canOpenEpisode, onOpenEpisode, headingRef, onClose }: {
   proposal: ProposalStageViewModel; chat: ChatViewModel; unsaved: boolean; canOpenEpisode: boolean; onOpenEpisode: (episode: number) => void
@@ -43,7 +43,7 @@ export function ProposalStage({ proposal, chat, unsaved, canOpenEpisode, onOpenE
         <p className="chat-note" role="status">{view.notice}</p>
         {view.openEpisode !== null && canOpenEpisode && <button type="button" className="btn sm" onClick={() => onOpenEpisode(view.openEpisode!)}>{view.openEpisode}화 열기</button>}
       </div>}
-      <ApprovalCard reply={reply} pending={chat.pending} unsaved={unsaved && view.kind !== 'plan'} onRefreshProposal={() => void chat.refreshProposal()}
+      <ApprovalCard reply={reply} pending={chat.pending} unsaved={unsaved && view.kind !== 'plan' && view.episode !== null && view.openEpisode === null} onRefreshProposal={() => void chat.refreshProposal()}
         onResume={(approved, inputs, pick) => void chat.resume(approved, inputs, pick)}
         compare={<div className="stage-compare">{view.current && <Column column={view.current} />}<Column column={view.proposal} /></div>} />
     </> : chat.live ? <p className="chat-note" role="status">요청을 처리하고 있어요…</p>

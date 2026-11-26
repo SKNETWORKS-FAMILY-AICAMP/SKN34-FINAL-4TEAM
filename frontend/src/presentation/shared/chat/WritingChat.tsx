@@ -10,7 +10,7 @@ import { CardMarkdown } from '../CardMarkdown'
 import { ChatPanel } from './ChatPanel'
 import { keepFiles } from './keepFiles'
 import { PendingActionCard, SAVE_FIRST } from './PendingActionCard'
-import { proposalLine, proposalStageView, type ProposalView } from './proposalView'
+import { pendingStep, proposalLine, proposalStageView, type ProposalView } from './proposalView'
 import { useEpisodeDraft } from './useEpisodeDraft'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
 
@@ -156,7 +156,8 @@ export function ApprovalCard({ reply, pending, unsaved = false, compare, onResum
   const world = reply.awaitingApproval === 'world'
   // 계획 수정안(#578, task=revise_plan)도 회차 원고가 아니라 저장된 계획에 저장한다. 읽지 못한 제안은 world와 같이 저장 버튼을 잠근다.
   const revising = !world && reply.awaitingApproval === 'writing_editing' && reply.steps.some((s) => s.task === 'revise_plan')
-  const draft = reply.steps.find((s) => s.feature === (world ? 'world' : 'writing_editing') && s.status === 'completed')
+  // 서버가 기다리는 단계(_pending과 같은 규칙): 이미 답한 결과·기획 결과·World 검사는 건너뛴다.
+  const draft = pendingStep(reply, world ? 'world' : 'writing_editing')
   const planLine = draft ? usedPlan(draft) : ''
   const notice = draft ? draftNotice(draft) : ''
   // 같은 턴에 끝난 다른 단계(심의 등급 등). 승인을 기다리는 동안 대기 응답은 메시지 목록에 없어 여기서만 보인다(#493).
@@ -183,7 +184,7 @@ export function ApprovalCard({ reply, pending, unsaved = false, compare, onResum
     {notice && <p className="chat-plan" tabIndex={0}>{notice}</p>}
     <FinishedSteps steps={others} />
     <p className="chat-note">{world ? '반영하면 설정집 초안만 바뀌고 확정 버전은 남지 않아요.' : revising ? '저장하면 이 계획의 제목·내용만 바뀌고 원고 초안은 바뀌지 않아요.' : '반영하면 작업 중인 초안만 바뀌고 발행되지 않아요.'} {revising ? '저장하지' : '반영하지'} 않아도 제안은 대화에 남아요.</p>
-    {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 작성 중인 변경을 저장한 뒤 제안을 확인해 주세요.</p>}
+    {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 저장하지 않은 편집이 덮이지 않게 반영을 잠갔어요. 자동 저장이 끝나면 풀리고, 닫기를 눌러 편집기에서 저장 상태를 확인할 수 있어요.</p>}
     <div className="chat-hitl-actions">
       <button type="button" className="btn sm pri" disabled={pending || unsaved || ((world || revising) && !draft) || (partial && !picked.length)}
         onClick={() => onResume(true, undefined, partial ? { selected: picked } : undefined)}>{world ? `${partial ? `고른 ${picked.length}개 ` : ''}설정집 초안에 반영` : revising ? '계획에 저장' : '초안에 반영'}</button>

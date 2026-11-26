@@ -177,7 +177,9 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied,undefined,getPage,plans.reloadAfterAi)
   const stage=useSimulationStageViewModel(chat)
   // 집필 AI 제안(원고 반영 승인·계획 수정안)은 편집기 자리에 지금 초안과 나란히 연다(#909). 반영 회차가 열린 회차와 다르면 본문을 대신 비교하지 않는다.
-  const proposal=useProposalStageViewModel(chat,active?{number:active.number,body:vm.draft.body}:null)
+  // 작가가 편집기에 쓰는 중이면 저절로 열지 않는다(편집기를 가리면 초점과 입력을 잃는다). 채팅의 링크로는 연다.
+  const editorArea=useRef<HTMLDivElement>(null)
+  const proposal=useProposalStageViewModel(chat,active?{number:active.number,body:vm.draft.body}:null,()=>!editorArea.current?.contains(document.activeElement))
   const [setupVersion,setSetupVersion]=useState(0)
   const [stageVisited,setStageVisited]=useState(false)
   useEffect(()=>{if(stage.open)setStageVisited(true)},[stage.open])
@@ -327,7 +329,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
       {showProposal&&<ProposalStage proposal={proposal} chat={chat} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
-      <div className="editor writing-editor" hidden={stage.open||showProposal}>
+      <div ref={editorArea} className="editor writing-editor" hidden={stage.open||showProposal}>
         {active?<>
           {active.hasDraft===false&&!viewOnly&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked||frozen||viewOnly} onChange={e=>vm.edit({title:e.target.value})}/>

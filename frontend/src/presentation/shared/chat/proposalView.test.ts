@@ -28,7 +28,25 @@ describe('proposalStageView', () => {
     const view = proposalStageView(waiting(draftStep), open)
     expect(view).toMatchObject({ kind: 'draft', episode: 3, openEpisode: null, notice: '' })
     expect(view?.current).toEqual({ label: '지금 초안 · 3화', pre: open.body, mark: '', post: '' })
-    expect(view?.proposal).toEqual({ label: '제안', pre: '새로 쓴 장면', mark: '', post: '' })
+    // 새 원고는 초안 끝에 이어 붙는다(서버 render_writing): 바꿔치기로 보이지 않게 반영 후 모습을 보이고 붙는 글만 강조한다.
+    expect(view?.proposal).toEqual({ label: '반영 후', pre: `${open.body}
+
+`, mark: '새로 쓴 장면', post: '' })
+  })
+
+  it('빈 초안이면 새 원고가 그대로 초안이 된다', () => {
+    expect(proposalStageView(waiting(draftStep), { number: 3, body: '  ' })?.proposal).toEqual({ label: '반영 후', pre: '', mark: '새로 쓴 장면', post: '' })
+  })
+
+  it('서버가 기다리는 단계와 같은 단계를 고른다: 이미 답한 결과와 기획 결과는 건너뛴다(_pending)', () => {
+    const applied: ChatStep = { ...draftStep, result: { text: '앞서 반영한 글' }, approval: 'approved' }
+    const plans = { ...draftStep, task: 'plan', result: { plans: [] } } as unknown as ChatStep
+    const view = proposalStageView({ ...waiting(draftStep), steps: [applied, plans, draftStep] }, open)
+    expect(view?.proposal.mark).toBe('새로 쓴 장면')
+  })
+
+  it('계획 수정안인데 읽은 결과가 없으면 원고 영역으로 옮기지 않는다(채팅 카드가 저장을 잠근다)', () => {
+    expect(proposalStageView(waiting({ ...planStep, planRevision: undefined }), open)).toBeNull()
   })
 
   it('반영 회차가 열린 회차와 다르면 열린 회차로 대신하지 않고 그 회차를 열도록 안내한다(#635)', () => {
@@ -36,7 +54,7 @@ describe('proposalStageView', () => {
     expect(view?.current).toBeNull()
     expect(view?.openEpisode).toBe(5)
     expect(view?.notice).toBe('5화 초안에 반영하는 제안이에요. 5화를 열어 비교해 주세요.')
-    expect(view?.proposal.pre).toBe('새로 쓴 장면')
+    expect(view?.proposal).toEqual({ label: '제안 · 초안 끝에 이어 붙여요', pre: '새로 쓴 장면', mark: '', post: '' })
   })
 
   it('반영 회차를 모르면 비교하지 않고 열 회차도 정하지 않는다', () => {
@@ -63,6 +81,12 @@ describe('proposalStageView', () => {
     expect(view?.current).toEqual({ label: '수정 전', pre: '', mark: '웃었다.', post: '' })
     expect(view?.proposal).toEqual({ label: '수정 후', pre: '', mark: '차갑게 웃었다.', post: '' })
     expect(view?.notice).toBe('수정 전 글을 지금 초안에서 찾지 못해 바뀌는 구간만 보여요.')
+  })
+
+  it('수정 전 글이 초안 여러 곳에 있으면 위치를 정하지 않는다(서버도 유일한 구간만 바꾼다)', () => {
+    const view = proposalStageView(waiting(patchStep), { number: 3, body: '그는 웃었다. 그녀도 웃었다.' })
+    expect(view?.current?.label).toBe('수정 전')
+    expect(view?.notice).toBe('수정 전 글이 지금 초안 여러 곳에 있어 바뀌는 구간만 보여요.')
   })
 
   it('다른 회차의 부분 수정은 수정 전·후를 보이되 회차를 열도록 안내한다', () => {

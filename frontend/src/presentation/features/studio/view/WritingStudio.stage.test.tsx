@@ -385,7 +385,8 @@ it('승인 제안이 오면 편집기 자리에 비교 화면이 열리고 지�
   expect(editor().hasAttribute('hidden')).toBe(true)
   expect(document.activeElement).not.toBe(within(stage).getByRole('heading', { name: '집필 AI 제안' }))
   expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('원고')).toBeTruthy()
-  expect(within(within(stage).getByRole('region', { name: '제안' })).getByText('새로 쓴 장면')).toBeTruthy()
+  // 새 원고는 초안 끝에 이어 붙으므로 오른쪽은 반영 후 모습이고 붙는 글만 강조한다(서버 render_writing)
+  expect(within(within(stage).getByRole('region', { name: '반영 후' })).getByText('새로 쓴 장면').tagName).toBe('MARK')
   expect(within(stage).getByRole('heading', { name: '3화 초안에 반영할까요?' })).toBeTruthy()
   const chat = chatPanel()
   expect(within(chat).getByText('3화 초안 반영 제안 · 반영 여부를 기다려요')).toBeTruthy()
@@ -488,6 +489,18 @@ it('저장하지 않은 편집이 있으면 반영 전에 먼저 저장하라고
     expect(within(stage).getByRole('alert').textContent).toContain('먼저 저장해 주세요')
     expect((within(stage).getByRole('button', { name: '초안에 반영' }) as HTMLButtonElement).disabled).toBe(true)
     expect((within(stage).getByRole('button', { name: '반영하지 않기' }) as HTMLButtonElement).disabled).toBe(false)
+  } finally { model.dirty = false }
+})
+
+it('저장하지 않은 편집이 다른 회차에 있으면 반영을 잠그지 않는다(반영 회차의 초안만 바뀐다)', async () => {
+  model.dirty = true
+  model.episodes = [...model.episodes, fourth]
+  try {
+    stored(proposalReply({ approvalEpisode: 4 }))
+    renderStudio()
+    const stage = await proposalStage()
+    expect(within(stage).queryByText(/먼저 저장해 주세요/)).toBeNull()
+    expect((within(stage).getByRole('button', { name: '초안에 반영' }) as HTMLButtonElement).disabled).toBe(false)
   } finally { model.dirty = false }
 })
 
