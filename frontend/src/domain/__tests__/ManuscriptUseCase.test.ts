@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { BulkImportResponse, BulkUploadRow, ImportWorldBuild, ManuscriptPreview } from '../entities/manuscript'
 import type { ManuscriptRepository } from '../repositories/ManuscriptRepository'
-import { adjustableEpisodes, ManuscriptUseCase, mergeWithNext, toImportItems } from '../usecases/ManuscriptUseCase'
+import { adjustableEpisodes, ManuscriptUseCase, mergeDropsEditedTitle, mergeWithNext, toImportItems } from '../usecases/ManuscriptUseCase'
 
 const workId = 'b142427a-cd9d-4fdc-a40d-c9e553d87d30'
 const episode = (title: string, from: number, to: number, extra = {}) => ({ title, from, to, charCount: to - from, excerpt: `${title} 발췌`, imageCount: 0, warnings: [] as string[], ...extra })
@@ -80,6 +80,36 @@ describe('회차 경계 조정', () => {
     const excluded = list.map((e, i) => i === 1 ? { ...e, excluded: true } : e)
     expect(mergeWithNext(excluded, 0)).toBe(excluded)
     expect(mergeWithNext(excluded, 1)).toBe(excluded)
+  })
+
+  it('뒤 회차 제목이 원래 제목과 달라졌을 때만 합치면 고친 제목이 사라진다고 본다(앞뒤 공백은 무시)', () => {
+    const originals = new Map(preview.episodes.map((e) => [e.from, e.title]))
+    const list = adjustableEpisodes(preview)
+    const retitle = (index: number, title: string) => list.map((e, i) => i === index ? { ...e, title } : e)
+    expect(mergeDropsEditedTitle(list, 0, originals)).toBe(false)
+    expect(mergeDropsEditedTitle(retitle(1, '  2화 '), 0, originals)).toBe(false)
+    expect(mergeDropsEditedTitle(list, 0, new Map([[10, ' 2화 ']]))).toBe(false)
+    expect(mergeDropsEditedTitle(retitle(1, '고친 제목'), 0, originals)).toBe(true)
+    expect(mergeDropsEditedTitle(retitle(1, ''), 0, originals)).toBe(true)
+    // 앞 회차 제목은 합쳐도 남으므로 보지 않는다.
+    expect(mergeDropsEditedTitle(retitle(0, '고친 앞 제목'), 0, originals)).toBe(false)
+  })
+
+  it('이미 합친 뒤 회차는 첫 구간(from)의 원래 제목과 비교한다', () => {
+    const originals = new Map(preview.episodes.map((e) => [e.from, e.title]))
+    const merged = mergeWithNext(adjustableEpisodes(preview), 1)
+    expect(merged[1]).toMatchObject({ title: '2화', from: 10, to: 30 })
+    expect(mergeDropsEditedTitle(merged, 0, originals)).toBe(false)
+    expect(mergeDropsEditedTitle(merged.map((e, i) => i === 1 ? { ...e, title: '고친 제목' } : e), 0, originals)).toBe(true)
+  })
+
+  it('합칠 수 없으면(범위 밖·제외한 회차) 제목이 달라도 사라진다고 보지 않는다', () => {
+    const originals = new Map(preview.episodes.map((e) => [e.from, e.title]))
+    const edited = adjustableEpisodes(preview).map((e) => ({ ...e, title: `고침 ${e.title}` }))
+    const exclude = (index: number) => edited.map((e, i) => i === index ? { ...e, excluded: true } : e)
+    for (const index of [-1, 2, 3]) expect(mergeDropsEditedTitle(edited, index, originals)).toBe(false)
+    expect(mergeDropsEditedTitle(exclude(0), 0, originals)).toBe(false)
+    expect(mergeDropsEditedTitle(exclude(1), 0, originals)).toBe(false)
   })
 
   it('확정 번호는 조정 목록의 순서이고 제외한 회차도 번호를 차지한다', () => {

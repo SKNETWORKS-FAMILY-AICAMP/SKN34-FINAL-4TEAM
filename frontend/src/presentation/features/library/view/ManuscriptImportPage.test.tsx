@@ -183,7 +183,7 @@ it('제목 수정·제외·합치기가 목록과 확정 버튼에 바로 반영
   expect((screen.getByRole('button', { name: '2개 회차 등록' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
-it('수정한 뒤 회차 제목이 있으면 확인하고, 취소하면 두 회차와 고친 제목을 유지한다', async () => {
+it('수정한 뒤 회차 제목이 있으면 확인하고, 취소하거나 Esc로 닫으면 두 회차와 고친 제목을 유지한다', async () => {
   await toPreview()
   fireEvent.change(screen.getByLabelText('2번째 회차 제목'), { target: { value: '고친 뒤 제목' } })
   const merge = screen.getByRole('button', { name: '1번째 회차를 다음 회차와 합치기' })
@@ -192,6 +192,11 @@ it('수정한 뒤 회차 제목이 있으면 확인하고, 취소하면 두 회�
   expect(dialog().getByText(/고친 뒤 제목/)).toBeTruthy()
   expect(document.activeElement).toBe(dialog().getByRole('button', { name: '취소' }))
   fireEvent.click(dialog().getByRole('button', { name: '취소' }))
+  expect(screen.getByLabelText<HTMLInputElement>('2번째 회차 제목').value).toBe('고친 뒤 제목')
+  expect(screen.getByRole('button', { name: '3개 회차 등록' })).toBeTruthy()
+  fireEvent.click(merge)
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(screen.queryByRole('alertdialog')).toBeNull()
   expect(screen.getByLabelText<HTMLInputElement>('2번째 회차 제목').value).toBe('고친 뒤 제목')
   expect(screen.getByRole('button', { name: '3개 회차 등록' })).toBeTruthy()
   fireEvent.click(merge)

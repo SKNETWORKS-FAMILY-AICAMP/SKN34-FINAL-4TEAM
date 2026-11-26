@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import type { AdjustableEpisode, ManuscriptImportSummary } from '../../../../domain/entities/manuscript'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
-import { adjustableEpisodes, mergeWithNext, type ManuscriptUseCase } from '../../../../domain/usecases/ManuscriptUseCase'
+import { adjustableEpisodes, mergeDropsEditedTitle, mergeWithNext, type ManuscriptUseCase } from '../../../../domain/usecases/ManuscriptUseCase'
 import { useServerWorks } from './useServerWorks'
 
 type ManuscriptApi = Pick<ManuscriptUseCase, 'preview' | 'confirm'>
@@ -25,6 +25,7 @@ export function useManuscriptImportViewModel(
   const [rights, setRights] = useState(noRights)
   const [file, setFile] = useState<File | null>(null)
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [pendingMerge, setPendingMerge] = useState<number | null>(null)
   const [result, setResult] = useState<ManuscriptImportSummary | null>(null)
   const [busy, setBusy] = useState<Busy>(null)
   const [error, setError] = useState('')
@@ -38,6 +39,8 @@ export function useManuscriptImportViewModel(
   const included = plan?.episodes.filter((episode) => !episode.excluded).length ?? 0
   const canPreview = !!workId && allRights && !!file && !busy
   const canConfirm = !!plan && !!file && !!workId && !busy && allRights && included > 0 && plan.episodes.every(titleOk)
+  // 확인 중인 합치기의 뒤 회차 제목(앞뒤 공백 제외). null이면 확인할 합치기가 없다.
+  const mergeWarningTitle = pendingMerge === null ? null : plan?.episodes[pendingMerge + 1]?.title.trim() ?? null
 
   const run = async (kind: Exclude<Busy, null>, action: (signal: AbortSignal) => Promise<void>) => {
     if (pending.current) return false
@@ -58,8 +61,9 @@ export function useManuscriptImportViewModel(
       }
     }
   }
-  const forget = () => { setPlan(null); setResult(null); setError('') }
+  const forget = () => { setPlan(null); setPendingMerge(null); setResult(null); setError('') }
   const edit = (change: (episodes: AdjustableEpisode[]) => AdjustableEpisode[]) => setPlan((current) => current && { ...current, episodes: change(current.episodes) })
+  const mergeNext = (index: number) => edit((list) => mergeWithNext(list, index))
 
   return {
     works, worksLoading, worksError, reloadWorks,
@@ -80,14 +84,24 @@ export function useManuscriptImportViewModel(
           format: value.format,
           existingEpisodeCount: value.existingEpisodeCount,
           episodes: adjustableEpisodes(value),
-          originalTitles: new Map(value.episodes.map(({ from, title }) => [from, title.trim()])),
+          originalTitles: new Map(value.episodes.map(({ from, title }) => [from, title])),
         })
       })
     },
     plan, included,
     setTitle: (index: number, title: string) => edit((list) => list.map((episode, i) => i === index ? { ...episode, title } : episode)),
     setExcluded: (index: number, excluded: boolean) => edit((list) => list.map((episode, i) => i === index ? { ...episode, excluded } : episode)),
-    mergeNext: (index: number) => edit((list) => mergeWithNext(list, index)),
+    mergeNext,
+    requestMerge: (index: number) => {
+      if (plan && mergeDropsEditedTitle(plan.episodes, index, plan.originalTitles)) setPendingMerge(index)
+      else mergeNext(index)
+    },
+    mergeWarningTitle,
+    confirmMerge: () => {
+      if (pendingMerge !== null) mergeNext(pendingMerge)
+      setPendingMerge(null)
+    },
+    cancelMerge: () => setPendingMerge(null),
     canConfirm,
     confirm: async () => {
       if (!canConfirm || !plan || !file) return false
