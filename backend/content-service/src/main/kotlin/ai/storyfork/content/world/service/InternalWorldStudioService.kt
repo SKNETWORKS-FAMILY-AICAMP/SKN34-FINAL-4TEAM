@@ -44,19 +44,20 @@ class InternalWorldStudioService(
      */
     fun restrict(worldId: UUID, restricted: Boolean): OperationsWorldResponse {
         var changed = false
-        val view = withLinks(transaction.execute {
+        val view = transaction.execute {
             val world = worlds.lockLive(worldId) ?: throw ContentFailure(404, "세계관을 찾을 수 없어요.")
             changed = world.restricted != restricted
             world.restricted = restricted
             views(listOf(world))
-        }!!).single()
+        }!!.single()
+        // 알림 기록은 연결 작품 조회(withLinks)보다 먼저 한다. 조회가 실패해 요청이 500이 되어도 제한은 이미 반영돼, 재시도는 changed=false라 알림이 영영 빠진다.
         if (changed) try {
             outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (restricted) WORLD_RESTRICTED else WORLD_UNRESTRICTED, view.ownerId.toString(), "world",
                 worldId.toString(), detailTitle = view.name.ifBlank { null }))
         } catch (e: Exception) {
             log.error("세계관 제한 알림 기록 실패(제한은 이미 반영됨): world={} cause={}", worldId, e.javaClass.name)
         }
-        return view
+        return withLinks(listOf(view)).single()
     }
 
     private fun views(rows: List<StudioWorld>): List<OperationsWorldResponse> {

@@ -31,6 +31,8 @@ export function noticeTarget(n: Pick<AppNotification, 'kind' | 'targetType' | 't
     if (n.targetType === 'world') return `/worldstudio/${id}`
     if (n.targetType === 'work') return `/studio/${id}`
   }
+  // 운영자 세계관 제한·해제(content.operator.world-*)는 처리 결과 분류라 위 ai-tool 분기를 타지 않는다(#941). 세계관 소유자를 세계관 관리로 보낸다.
+  if (n.kind === 'result' && n.targetType === 'world' && n.targetId) return `/worldstudio/${encodeURIComponent(n.targetId)}`
   if (n.targetType === 'work' && n.targetId) return `/work/${encodeURIComponent(n.targetId)}`
   // Core 사건(docs/notification-event-contract.md): 대상 id(소멸 날짜·탈퇴 요청 id)는 화면 주소에 쓰지 않고 본인 계정 화면으로 보냅니다.
   if (n.targetType === 'credit-expiry') return '/me/pay'

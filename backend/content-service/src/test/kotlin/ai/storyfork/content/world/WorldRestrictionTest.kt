@@ -116,6 +116,18 @@ class WorldRestrictionTest {
         assertTrue(row.restricted)
     }
 
+    @Test fun `the event is recorded even when the linked-work lookup fails after the commit, so a retry cannot lose it`() {
+        val row = world()
+        `when`(worlds.lockLive(row.id)).thenReturn(row)
+        `when`(drafts.findAllById(listOf(row.id))).thenReturn(listOf(WorldDraft(row.id, "용의 땅")))
+        `when`(links.linkedWorkIds(listOf(row.id))).thenThrow(IllegalStateException("content db down"))
+
+        assertThrows(IllegalStateException::class.java) { service.restrict(row.id, true) }
+
+        assertTrue(row.restricted)
+        assertEquals(listOf("content.operator.world-restricted"), saved().map { it.type })
+    }
+
     @Test fun `the public list queries leave out restricted worlds and the live lookup leaves out deleted ones`() {
         for (name in listOf("listed", "listedByGenre")) {
             val query = StudioWorldRepository::class.java.methods.single { it.name == name }.getAnnotation(Query::class.java).value
