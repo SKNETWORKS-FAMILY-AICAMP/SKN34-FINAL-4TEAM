@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter, useNavigate } from 'react-router'
+import { MemoryRouter, useLocation, useNavigate } from 'react-router'
 import { useState } from 'react'
 import { afterEach, expect, it } from 'vitest'
 
@@ -13,7 +13,8 @@ import { onboardingKey } from './onboardingPrefs'
 afterEach(() => { cleanup(); localStorage.clear() })
 
 let go: (path: string) => void = () => {}
-function Nav() { go = useNavigate(); return null }
+let here = ''
+function Nav() { go = useNavigate(); const l = useLocation(); here = l.pathname + l.search; return null }
 
 const renderAt = (path: string, extra?: React.ReactNode, store = createAppStore()) => render(
   <Provider store={store}>
@@ -109,4 +110,44 @@ it('다른 시트가 열린 채로 홈에 오면 안내를 띄우지 않고 그 
   act(() => go('/'))
   expect(sheet()).toBeNull()
   expect(screen.getByRole('dialog', { name: '정책 시트' })).toBeTruthy()
+})
+
+// #930: 단계별 바로가기와 버튼 위계
+it('단계마다 바로가기를 두고, AI 단계에는 두지 않는다', () => {
+  renderAt('/')
+  const items = screen.getAllByRole('listitem')
+  const hrefs = items.map((li) => li.querySelector('a')?.getAttribute('href') ?? null)
+  expect(hrefs).toEqual(['/', '/rank?t=if', '/lib?tab=write', null])
+})
+
+it.each([
+  ['홈 목록 보기', '/'],
+  ['포크 소설 둘러보기', '/rank?t=if'],
+  ['내가 쓰는 소설로 가기', '/lib?tab=write'],
+])('바로가기 %s는 그 화면으로 이동하며 안내를 이번 방문만 닫는다', (name, to) => {
+  renderAt('/')
+  fireEvent.click(screen.getByRole('link', { name }))
+  expect(here).toBe(to)
+  expect(sheet()).toBeNull()
+  expect(localStorage.getItem(onboardingKey)).toBeNull()
+  act(() => go('/rank'))
+  act(() => go('/'))
+  expect(sheet()).toBeNull()
+})
+
+it('주 버튼은 작품 둘러보기이고 건너뛰기는 보조 버튼이다', () => {
+  renderAt('/')
+  const browse = screen.getByRole('button', { name: '작품 둘러보기' })
+  expect(browse.classList.contains('pri')).toBe(true)
+  expect(screen.getByRole('button', { name: '건너뛰기' }).classList.contains('pri')).toBe(false)
+  fireEvent.click(browse)
+  expect(sheet()).toBeNull()
+  expect(here).toBe('/')
+  expect(localStorage.getItem(onboardingKey)).toBeNull()
+})
+
+it('다시 보지 않기에 다음 방문에도 보이지 않는다는 설명을 잇는다', () => {
+  renderAt('/')
+  const id = screen.getByRole('button', { name: '다시 보지 않기' }).getAttribute('aria-describedby')
+  expect(id && document.getElementById(id)?.textContent).toBe('다음 방문에도 보이지 않아요')
 })
