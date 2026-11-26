@@ -20,17 +20,26 @@ import org.xml.sax.InputSource
  * ZIP 항목은 디스크에 쓰지 않고 메모리에서만 읽으며, 외부 자원은 어떤 것도 불러오지 않는다.
  */
 class EpubManuscript private constructor(private val chapters: List<Chapter>) : Manuscript {
-    private class Chapter(val title: String, val text: String, val images: List<ParsedImage>, val missingImages: Int, val error: String?)
+    private class Chapter(
+        val title: String, val text: String, val images: List<ParsedImage>, val missingImages: Int, val error: String?,
+        val retainsLeadingHeading: Boolean = false,
+    )
 
     override val format = "epub"
     override val unit = "chapter"
     override val unitCount get() = chapters.size
     override val episodes: List<ParsedEpisode> by lazy { chapters.indices.map { episode(it, it + 1) } }
 
-    /** 합친 뒤쪽 장의 제목은 본문 첫 줄로 남긴다. 한 장이라도 읽지 못했으면 그 오류를 가진다. */
+    /** 뒤쪽 장의 본문 첫 머리글을 우선 보존하고, 없으면 장 제목을 한 줄 붙인다. 읽지 못한 장의 오류도 보존한다. */
     override fun episode(from: Int, to: Int): ParsedEpisode {
         val range = chapters.subList(from, to)
-        val text = (listOf(range.first().text) + range.drop(1).flatMap { listOf(it.title, it.text) }).filter { it.isNotEmpty() }.joinToString("\n")
+        val text = buildList {
+            add(range.first().text)
+            range.drop(1).forEach { chapter ->
+                if (!chapter.retainsLeadingHeading) add(chapter.title)
+                add(chapter.text)
+            }
+        }.filter { it.isNotEmpty() }.joinToString("\n")
         return ParsedEpisode(range.first().title, from, to, text, range.flatMap { it.images }, range.sumOf { it.missingImages }, range.firstNotNullOfOrNull { it.error })
     }
 
@@ -291,8 +300,9 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
             walk(doc.getElementsByTagNameNS("*", "body").item(0) ?: doc.documentElement, 0)
             val title = listOf(label, heading, doc.getElementsByTagNameNS("*", "title").item(0)?.textContent)
                 .firstNotNullOfOrNull { text -> text?.let { collapse(it) }?.takeIf { it.isNotEmpty() } }?.take(MAX_TITLE) ?: "${number}화"
-            if (!textOnly && headingLine == 0 && heading == title) lines.removeAt(0)
-            return Chapter(title, lines.joinToString("\n"), images, missing, null)
+            val hasLeadingHeading = headingLine == 0 && heading != null
+            if (!textOnly && hasLeadingHeading && heading == title) lines.removeAt(0)
+            return Chapter(title, lines.joinToString("\n"), images, missing, null, hasLeadingHeading && heading != title)
         }
 
         // 저장소(content_image)가 받는 형식이 PNG·JPEG뿐이라 WebP·GIF·SVG는 지원하지 않는 이미지로 센다.
