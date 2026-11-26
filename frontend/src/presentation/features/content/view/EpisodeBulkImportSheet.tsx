@@ -30,16 +30,17 @@ function FilePicker({ children, onSelect, multiple = false, disabled = false, la
   )
 }
 
-export function EpisodeBulkImportSheet({ workId, firstUnsavedEpisode, onClose }: {
+export function EpisodeBulkImportSheet({ workId, firstUnsavedEpisode, initialBuildCompleted, onClose }: {
   workId: string
   firstUnsavedEpisode: number | null
+  initialBuildCompleted: boolean
   onClose: (refresh: boolean) => void
 }) {
   const vm = useEpisodeBulkImport(workId)
   const [page, setPage] = useState(1)
   const heading = useRef<HTMLHeadingElement>(null)
   const startNoticeId = useId()
-  const showStartNotice = vm.editable && firstUnsavedEpisode !== null && (vm.rows[0]?.number ?? 0) > firstUnsavedEpisode
+  const showStartNotice = !initialBuildCompleted && vm.editable && firstUnsavedEpisode !== null && (vm.rows[0]?.number ?? 0) > firstUnsavedEpisode
   const visible = paginate(vm.rows, page)
   const close = () => { if (!vm.busy) onClose(vm.savedCount > 0 || vm.stopReason !== null) }
 

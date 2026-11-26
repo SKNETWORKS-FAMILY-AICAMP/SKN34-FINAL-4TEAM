@@ -31,18 +31,21 @@ vi.mock('./WorldPanel', () => ({ WorldPanel: () => <p>세계관 설정집 패널
 vi.mock('./LinkedWorldPanel', () => ({ LinkedWorldPanel: () => <p>세계관 연결 패널</p> }))
 vi.mock('./ManuscriptBuildPanel', () => ({ ManuscriptBuildPanel: () => <p>원고로 세계관 만들기 패널</p> }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
-// 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
-const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
+// 배지와 업로드 시트의 상태를 정하고, 공개 회차 탭에서 실제 조회가 시작되는 횟수를 센다.
+const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; worldId?: string; update?: { status: string } } | null; error: string }, reads: 0 }))
 vi.mock('../viewmodel/useManuscriptBuild', async () => {
   const { useEffect } = await import('react')
-  return { useManuscriptBuild: () => { useEffect(() => { build.mounts += 1 }, []); return build.current } }
+  return { useManuscriptBuild: (_work: unknown, _world: unknown, _useCase: unknown, { enabled, refreshKey }: { enabled: boolean; refreshKey: number }) => {
+    useEffect(() => { if (enabled) build.reads += 1 }, [enabled, refreshKey])
+    return build.current
+  } }
 })
 // 시트는 첫 회차의 저장본 유무 전달과 닫기 동작만 확인한다. 안내 표시는 EpisodeBulkImportSheet.test가 본다.
 vi.mock('./EpisodeBulkImportSheet', async () => {
   const { createElement } = await import('react')
   return {
-    EpisodeBulkImportSheet: (props: { firstUnsavedEpisode: number | null; onClose: (refresh: boolean) => void }) =>
-      createElement('div', { role: 'dialog', 'data-first-unsaved-episode': props.firstUnsavedEpisode },
+    EpisodeBulkImportSheet: (props: { firstUnsavedEpisode: number | null; initialBuildCompleted: boolean; onClose: (refresh: boolean) => void }) =>
+      createElement('div', { role: 'dialog', 'data-first-unsaved-episode': props.firstUnsavedEpisode, 'data-build-completed': props.initialBuildCompleted },
       createElement('button', { onClick: () => props.onClose(true) }, '저장하고 닫기'),
       createElement('button', { onClick: () => props.onClose(false) }, '저장 없이 닫기')),
   }
@@ -584,7 +587,7 @@ it('이력 조회가 실패하면 이력 구획 안에 오류 상자(.ep-alert, 
 })
 
 // ── 세계관 추출 배지(공개 회차 머리)·일괄 업로드 시트를 닫을 때의 재조회 ──────────────────────────────
-beforeEach(() => { build.current = { job: null, error: '' }; build.mounts = 0 })
+beforeEach(() => { build.current = { job: null, error: '' }; build.reads = 0 })
 afterEach(() => { vi.unstubAllEnvs() })
 const showBuild = (status: string | null, error = '', update?: string) => {
   build.current = { job: status ? { status, ...(update ? { update: { status: update } } : {}) } : null, error }
@@ -612,7 +615,7 @@ it('목업 빌드는 서버 조회가 없어 배지를 그리지도 조회하지
   vi.stubEnv('MODE', 'mockup')
   showBuild('running')
   expect(screen.queryByText(BADGE)).toBeNull()
-  expect(build.mounts).toBe(0)
+  expect(build.reads).toBe(0)
 })
 
 it.each([
@@ -627,15 +630,29 @@ it.each([
   expect(screen.getByRole('dialog').getAttribute('data-first-unsaved-episode')).toBe(expected)
 })
 
+it.each([
+  ['completed', 'linked', '', 'true'],
+  ['completed', 'previous', '', 'false'],
+  ['completed', 'linked', '조회 실패', 'false'],
+  ['running', 'linked', '', 'false'],
+])('현재 연결과 일치하는 최초 구축 완료만 업로드 시트에 전달한다 (%s, %s, %s)', (status, worldId, error, completed) => {
+  build.current = { job: { status, worldId }, error }
+  render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={{ ...work(1), worldStudioId: 'linked' }} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  toRead()
+  fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
+  expect(screen.getByRole('dialog').getAttribute('data-build-completed')).toBe(completed)
+  expect(build.reads).toBe(1)
+})
+
 it('일괄 업로드가 회차를 저장하고 닫히면 작품을 다시 읽고 배지도 상태를 다시 읽는다', () => {
   const reload = vi.fn()
   openWith({ reload }, 1)
-  expect(build.mounts).toBe(1)
+  expect(build.reads).toBe(1)
   fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
   fireEvent.click(screen.getByRole('button', { name: '저장하고 닫기' }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(reload).toHaveBeenCalledTimes(1)
-  expect(build.mounts).toBe(2)
+  expect(build.reads).toBe(2)
 })
 
 it('저장한 회차 없이 일괄 업로드 시트를 닫으면 아무것도 다시 읽지 않는다', () => {
@@ -645,7 +662,7 @@ it('저장한 회차 없이 일괄 업로드 시트를 닫으면 아무것도 �
   fireEvent.click(screen.getByRole('button', { name: '저장 없이 닫기' }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(reload).not.toHaveBeenCalled()
-  expect(build.mounts).toBe(1)
+  expect(build.reads).toBe(1)
 })
 
 // ── 발행 회차로 세계관 업데이트: 같은 조회의 `update`가 진행 중이면 '세계관 업데이트 중' 배지(initial-build-storage-contract) ──
