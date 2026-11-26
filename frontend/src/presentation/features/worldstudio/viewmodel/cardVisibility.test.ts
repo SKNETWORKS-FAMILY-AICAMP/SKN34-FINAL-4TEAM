@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest'
 
 import { putRelation } from '../../../../domain/entities/studioRelations'
-import { newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
-import { publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, visibleSelection } from './cardVisibility'
+import { beyondNovel, missingEpisodeNote, newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
+import { publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, shownPublicly, visibleSelection } from './cardVisibility'
 
 /** 카드 하나. `reveal`은 저장된 공개 회차, `visibility`는 옛 공개 값이다(둘 다 없으면 작가 전용). */
 const card = (title: string, reveal?: number, visibility?: StudioSetting['visibility']): StudioSetting => {
@@ -92,14 +92,34 @@ it('전체 공개는 설정집의 카드 모두에 같은 회차를 정하고 �
   expect(publishAllCards(all, 4).map((row) => row.revealFromEpisode)).toEqual([4, 4, undefined, undefined])
 })
 
-it('공개 설정을 글자로: 작가 전용, 미연결 세계관의 1화는 공개, 그 밖은 N화부터', () => {
-  expect([revealLabel(undefined, true), revealLabel(undefined, false)]).toEqual(['작가 전용', '작가 전용'])
-  expect([revealLabel(1, false), revealLabel(1, true)]).toEqual(['공개', '1화부터'])
-  expect([revealLabel(3, false), revealLabel(3, true)]).toEqual(['3화부터', '3화부터'])
+it('소설에 없는 회차인지는 소설의 마지막 회차를 읽었을 때만 판단한다(읽는 중·실패는 판단하지 않는다)', () => {
+  expect([beyondNovel(4, 3), beyondNovel(3, 3), beyondNovel(1, 0), beyondNovel(193, 0)]).toEqual([true, false, true, true])
+  expect([beyondNovel(undefined, 3), beyondNovel(193, undefined), beyondNovel(undefined, undefined)]).toEqual([false, false, false])
+  expect(missingEpisodeNote(193)).toBe('193화는 아직 없어요')
 })
 
-it('공개 배지는 작가 전용·공개(소설이 연결되지 않은 1화)·N화부터 공개로 읽힌다: 편집 화면과 게시판 미리보기가 같은 글을 쓴다', () => {
-  expect([revealBadge(undefined, true), revealBadge(undefined, false)]).toEqual(['작가 전용', '작가 전용'])
-  expect([revealBadge(1, false), revealBadge(1, true)]).toEqual(['공개', '1화부터 공개'])
-  expect([revealBadge(17, false), revealBadge(17, true)]).toEqual(['17화부터 공개', '17화부터 공개'])
+it('공개 설정을 글자로: 연결되지 않은 세계관은 저장값과 상관없이 공개, 연결된 세계관은 작가 전용·N화부터, 소설에 없는 회차는 작가 전용', () => {
+  // 연결되지 않은 세계관은 지우지 않은 카드가 모두 공개다: 저장된 작가 전용·1화·193화는 무시하고, 소설의 회차 수도 보지 않는다.
+  for (const episode of [undefined, 1, 3, 193]) expect([revealLabel(episode, false), revealLabel(episode, false, 0)]).toEqual(['공개', '공개'])
+  expect([revealLabel(undefined, true), revealLabel(1, true), revealLabel(3, true)]).toEqual(['작가 전용', '1화부터', '3화부터'])
+  // 연결된 소설의 마지막 회차 안이면 N화부터, 넘으면(소설 0화의 193화 같은 값) 표에는 짧게 작가 전용이다. 자세한 이유는 배지가 쓴다.
+  expect([revealLabel(3, true, 3), revealLabel(4, true, 3), revealLabel(1, true, 0), revealLabel(193, true, 0)]).toEqual(['3화부터', '작가 전용', '작가 전용', '작가 전용'])
+  expect(revealLabel(193, true, undefined)).toBe('193화부터') // 회차 수를 읽는 중·실패면 판단하지 않고 지어내지 않는다
+})
+
+it('공개 배지: 연결되지 않은 세계관은 공개, 연결된 세계관은 작가 전용·N화부터 공개이고 소설에 없는 회차는 작가 전용 · N화는 아직 없어요다: 편집 화면·게시판 미리보기·순서 점검이 같은 글을 쓴다', () => {
+  for (const episode of [undefined, 1, 17, 193]) expect([revealBadge(episode, false), revealBadge(episode, false, 0)]).toEqual(['공개', '공개'])
+  expect([revealBadge(undefined, true), revealBadge(1, true), revealBadge(17, true)]).toEqual(['작가 전용', '1화부터 공개', '17화부터 공개'])
+  expect([revealBadge(17, true, 17), revealBadge(18, true, 17)]).toEqual(['17화부터 공개', '작가 전용 · 18화는 아직 없어요'])
+  expect([revealBadge(193, true, 0), revealBadge(1, true, 0)]).toEqual(['작가 전용 · 193화는 아직 없어요', '작가 전용 · 1화는 아직 없어요'])
+  expect(revealBadge(undefined, true, 0)).toBe('작가 전용') // 값이 없으면 없는 회차 이야기를 하지 않는다
+  expect(revealBadge(193, true, undefined)).toBe('193화부터 공개') // 회차 수를 모르면 기존 글 그대로
+})
+
+it('공개 화면에 나올 수 있는 카드: 연결되지 않은 세계관은 모두, 연결된 세계관은 공개 회차가 있고 소설의 마지막 회차 안인 카드만이다(소설에 없는 회차·작가 전용은 아니다)', () => {
+  for (const episode of [undefined, 1, 193]) expect([shownPublicly(episode, false), shownPublicly(episode, false, 0)]).toEqual([true, true]) // 저장값·소설의 회차 수와 상관없다
+  expect([shownPublicly(undefined, true), shownPublicly(undefined, true, 5)]).toEqual([false, false]) // 작가 전용
+  expect([shownPublicly(3, true, 3), shownPublicly(1, true, 5)]).toEqual([true, true]) // 마지막 회차 안
+  expect([shownPublicly(4, true, 3), shownPublicly(193, true, 0), shownPublicly(1, true, 0)]).toEqual([false, false, false]) // 소설에 없는 회차(배지는 작가 전용 · N화는 아직 없어요)
+  expect(shownPublicly(193, true)).toBe(true) // 소설의 회차 수를 모르면(읽는 중·실패) 판단하지 않고 기존처럼 둔다
 })

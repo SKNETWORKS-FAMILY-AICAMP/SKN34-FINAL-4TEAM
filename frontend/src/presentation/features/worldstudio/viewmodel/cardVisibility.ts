@@ -1,4 +1,4 @@
-import { cardRevealEpisode, type StudioSetting } from '../../../../domain/entities/studioWorld'
+import { beyondNovel, cardRevealEpisode, missingEpisodeNote, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 
 /*
@@ -11,10 +11,22 @@ import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 export const publicCardCount = (settings: readonly StudioSetting[]) => settings.filter((s) => s.item.kind !== 'relation' && cardRevealEpisode(s) !== undefined).length
 export const visibleSelection = (rows: readonly { cardId: string }[], selected: ReadonlySet<string>) => rows.filter((row) => selected.has(row.cardId)).map((row) => row.cardId)
 
-/** 공개 설정을 보이는 글: 작가 전용 / 소설이 연결되지 않은 세계관의 1화는 `공개` / 그 밖은 `N화부터`. */
-export const revealLabel = (episode: number | undefined, linked: boolean) => (episode === undefined ? '작가 전용' : !linked && episode === 1 ? '공개' : `${episode}화부터`)
-/** 같은 공개 설정을 한 칸 밖에서 풀어 쓴 배지 글(편집 화면의 공개 범위·관계도 중심, 게시판 미리보기 정보 상자): `작가 전용` / `공개` / `N화부터 공개`. */
-export const revealBadge = (episode: number | undefined, linked: boolean) => (episode === undefined ? '작가 전용' : !linked && episode === 1 ? '공개' : `${episode}화부터 공개`)
+/**
+ * 공개 화면에 나올 수 있는 카드인가(게시판 표의 공개 칸 표시·미리보기의 `공개 화면 보기` 링크): 소설이 연결되지 않은 세계관은 모든 카드, 연결된 세계관은 공개 회차가 있고 연결된 소설의 마지막 회차(`limit`, 알 때만) 안인 카드다.
+ * 연결된 소설에 없는 회차로 정해진 카드는 아니다(배지는 `작가 전용 · N화는 아직 없어요`). 소설의 회차 수를 모르면(읽는 중·실패) 판단하지 않고 기존처럼 둔다.
+ */
+export const shownPublicly = (episode: number | undefined, linked: boolean, limit?: number) => !linked || (episode !== undefined && !beyondNovel(episode, limit))
+
+/**
+ * 공개 설정을 보이는 글(게시판 표): 소설이 연결되지 않은 세계관은 저장값과 상관없이 `공개`(지우지 않은 카드는 모두 공개, DEC-53 보완)다. 연결된 세계관은 `작가 전용` / `N화부터`이고,
+ * 연결된 소설에 없는 회차(`limit`: 소설의 마지막 회차, 알 때만)로 정해진 카드는 `N화부터`로 보이지 않고 `작가 전용`이다(표가 좁아 이유는 배지가 쓴다).
+ */
+export const revealLabel = (episode: number | undefined, linked: boolean, limit?: number) => (!linked ? '공개' : episode === undefined || beyondNovel(episode, limit) ? '작가 전용' : `${episode}화부터`)
+/**
+ * 같은 공개 설정을 한 칸 밖에서 풀어 쓴 배지 글(편집 화면의 공개 범위·관계도 중심, 게시판 미리보기 정보 상자, 공개 순서 점검 줄): `공개`(연결되지 않은 세계관) / `작가 전용` / `N화부터 공개` /
+ * 소설에 없는 회차면 `작가 전용 · N화는 아직 없어요`. 이 한 곳이 글을 정한다. 소설의 회차 수를 모르면(`limit` 없음) 없는 회차 이야기를 지어내지 않는다.
+ */
+export const revealBadge = (episode: number | undefined, linked: boolean, limit?: number) => (!linked ? '공개' : episode === undefined ? '작가 전용' : beyondNovel(episode, limit) ? `작가 전용 · ${missingEpisodeNote(episode)}` : `${episode}화부터 공개`)
 
 /**
  * 고른 카드 모두의 공개 회차를 [episode]로 바꾼 설정 목록이다(undefined면 작가 전용). 회차가 있으면 `visibility`를 공개로, 없으면 회차와 `visibility`를 모두 지운다.

@@ -52,10 +52,14 @@ fun cardImageId(metadata: Map<String, Any?>): UUID? {
  * 비작가(독자·공개 세계관·가져오기·Fork)에게 기준 회차 [basis]화에 보이는 카드면 그 유효 공개 회차를, 아니면 null(작가 전용)을 돌려준다(DEC-53). 모든 비작가 출구가 이 함수 하나를 쓴다.
  * 유효 공개 회차는 `revealFromEpisode` 키가 있으면 그 값이고, 키가 없고 `visibility`가 public이면 1(옛 공개 카드는 읽을 때 계산한다, 저장은 다시 쓰지 않는다), 그 밖은 작가 전용이다.
  * 키가 있는데 읽을 수 없으면(JSON null·문자열·소수·0·음수 등, [revealFromEpisode]가 null) 공개 1화로 되돌리지 않고 작가 전용으로 닫는다. 보이려면 삭제되지 않았고 유효 공개 회차가 [basis] 이하여야 한다.
+ * 연결된 소설이 없는 세계관([linked]가 false)은 카드의 공개 설정을 보지 않는다(2026-11-25 보완): 지우지 않은 카드는 모두 1화부터 보이고 저장된 `revealFromEpisode`·`visibility`는 읽지도 고치지도 않는다(소설을 연결하면 다시 쓰인다).
+ * 독자 설정 위키·Fork 이어받기는 늘 연결된 소설 기준이라 [linked] 기본값이 true다.
  */
-fun shownCardEpisode(lifecycle: String, visibility: String, metadata: Map<String, Any?>, basis: Int): Int? =
-    (if ("revealFromEpisode" in metadata) revealFromEpisode(metadata) else 1.takeIf { visibility == "public" })
-        ?.takeIf { lifecycle == "active" && it <= basis }
+fun shownCardEpisode(lifecycle: String, visibility: String, metadata: Map<String, Any?>, basis: Int, linked: Boolean = true): Int? = when {
+    lifecycle != "active" -> null
+    !linked -> 1
+    else -> (if ("revealFromEpisode" in metadata) revealFromEpisode(metadata) else 1.takeIf { visibility == "public" })?.takeIf { it <= basis }
+}
 
 /** 독자 설정 위키의 `upto` 쿼리(기준 회차, 1 이상의 정수)다. 없으면 null(마지막 발행 회차 기준)이고 값 오류는 422다. */
 fun readerUpto(code: String?): Int? = code?.let { queryInt(it, 1, 1..Int.MAX_VALUE, "upto") }

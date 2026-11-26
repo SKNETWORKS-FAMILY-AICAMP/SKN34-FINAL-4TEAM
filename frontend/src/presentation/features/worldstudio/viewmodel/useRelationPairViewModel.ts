@@ -30,6 +30,8 @@ type PairEditor = {
   identityEpisode: number | null
   /** 관계마다 'N화부터'를 정하는 세계관인지(DEC-54 2단계): 소설을 연결한 서버 세계관이다. 아니면 칸이 없고 1화로 저장한다. */
   relationFrom: boolean
+  /** 이 세계관에 연결된 소설 id(없으면 null). 연결되지 않은 세계관은 모든 카드가 공개라 본체가 작가 전용이라는 경고를 하지 않는다. */
+  linkedWorkId: string | null
   editing: { settings: StudioSetting[] } | null
   applyRelations: (changes: RelationInput[], removed: string[]) => boolean
   setRelationDirty: (value: boolean) => void
@@ -85,8 +87,8 @@ export function useRelationPairViewModel(
     fromInvalid: (row: RelationDraftRow) => studio.relationFrom && relationFromInvalid(row),
     /** 'N화부터'를 이미 기록된 시작 회차보다 늦췄으면 그 기록된 회차(기존 연결이 남아 독자에게는 그 회차부터 보인다), 아니면 undefined다. */
     fromDelayed: (row: RelationDraftRow) => (studio.relationFrom ? delayedRelationFrom(row.value) : undefined),
-    /** 이 「동일 인물」의 본체 카드가 '작가 전용'인지(다른 인물이 본체를 알 수 있다고 경고한다). */
-    bodyAuthorOnly: (row: RelationDraftRow) => isAuthorOnly(studio.editing!.settings.find((s) => s.item.id === row.value.targetId)),
+    /** 이 「동일 인물」의 본체 카드가 '작가 전용'인지(다른 인물이 본체를 알 수 있다고 경고한다). 소설이 연결되지 않은 세계관은 모든 카드가 공개라 아니다. */
+    bodyAuthorOnly: (row: RelationDraftRow) => isAuthorOnly(studio.editing!.settings.find((s) => s.item.id === row.value.targetId), !!studio.linkedWorkId),
     reverse: (row: RelationDraftRow) =>
       change(row.key, { subjectId: row.value.targetId, targetId: row.value.subjectId }),
     add: (group: RelationGroup, from: string, to: string) => {

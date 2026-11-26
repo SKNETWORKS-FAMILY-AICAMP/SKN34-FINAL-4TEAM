@@ -318,6 +318,16 @@ class WorkWorldServiceTest {
         verifyNoInteractions(publicWorlds)
     }
 
+    @Test fun `inheritsWorld is the same decision as inheritedWorld without reading the inherited world`() {
+        forking()
+        assertTrue(service.inheritsWorld("fork", owner))
+        forking("independent") // 나머지 경우(자기 세계관·추종 기록 없음·Fork 아님·삭제된 원작·세계관 없는 원작)는 같은 inheritance()라 inheritedWorld 시험이 덮는다
+        assertFalse(service.inheritsWorld("fork", owner))
+        verifyNoInteractions(publicWorlds)
+        `when`(access.own("fork", owner)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        assertEquals(404, failure { service.inheritsWorld("fork", owner) }.status)
+    }
+
     @Test fun `someone else's fork is a 404 and nothing is read, and a bad upto is a 422 before any lookup`() {
         `when`(access.own("fork", owner)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
         assertEquals(404, failure { service.inheritedWorld("fork", owner, null) }.status)

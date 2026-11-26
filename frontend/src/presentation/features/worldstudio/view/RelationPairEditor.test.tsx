@@ -18,7 +18,7 @@ const card = (section: 'people' | 'places', title: string) => { const setting = 
 const open = (settings: StudioSetting[], episode: number | null, linked = true) => {
   const applied: RelationInput[][] = []
   const studio = {
-    episode, identityEpisode: episode ?? (linked ? null : 1), relationFrom: linked, editing: { settings }, error: '', setRelationDirty: vi.fn(), confirmRelationDiscard: () => true,
+    episode, identityEpisode: episode ?? (linked ? null : 1), relationFrom: linked, linkedWorkId: linked ? 'work-1' : null, editing: { settings }, error: '', setRelationDirty: vi.fn(), confirmRelationDiscard: () => true,
     applyRelations: (changes: RelationInput[]) => { applied.push(changes); return true },
   }
   const [source, target] = settings
@@ -101,6 +101,13 @@ describe('「동일 인물」 입력', () => {
     screen.getByText(/작가 전용/)
     cleanup()
     open([mask, { ...body, revealFromEpisode: 2 }], 4)
+    fireEvent.click(screen.getByRole('button', { name: '동일 인물 추가' }))
+    expect(screen.queryByText(/작가 전용/)).toBeNull()
+  })
+
+  it('소설이 연결되지 않은 세계관은 모든 카드가 공개라 본체가 작가 전용이라는 경고를 하지 않는다(저장된 값은 무시한다)', () => {
+    const [mask, body] = [card('people', '승상'), card('people', '홍길동')]
+    open([mask, body], null, false) // 공개 회차도 공개 카드도 없는 카드
     fireEvent.click(screen.getByRole('button', { name: '동일 인물 추가' }))
     expect(screen.queryByText(/작가 전용/)).toBeNull()
   })

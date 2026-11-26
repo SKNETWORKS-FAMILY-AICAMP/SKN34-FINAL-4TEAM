@@ -162,14 +162,15 @@ class PublicationService(
 
     /**
      * 첫 발행(수동·예약 공통)이 커밋된 뒤 — 롤백이면 하지 않는다 — 발행 회차로 세계관 초안을 업데이트하는 작업의 접수를 시도한다(계약 '발행 회차로 세계관 업데이트').
+     * 작품에 연결된 세계관이 없으면(원작 세계관을 이어받는 Fork 제외) 같은 자리에서 비공개 세계관 최초 구축을 접수한다(DEC-53 보완).
      * 조건 검사와 접수는 [ai.storyfork.content.preprocessing.service.PreprocessingService.startUpdate]가 하고 접수하지 않거나 실패해도 발행은 그대로 성공이라
      * 커밋 뒤 콜백에서 예외가 번지지 않게 막고 결과 코드만 로그에 남긴다(원고 금지). 트랜잭션이 없으면(단위 시험) 바로 시도한다.
      * ponytail: AI 접수 호출(읽기 제한 10초)을 발행 요청 스레드에서 한다. 발행 응답이 느려지면 별도 실행기로 넘긴다.
      */
     private fun updateWorldAfterCommit(id: String, owner: String, versionId: String) {
         val attempt = {
-            try { log.info("세계관 업데이트 접수: work={} result={}", id, preprocessing.startUpdate(id, owner, versionId)) }
-            catch (e: RuntimeException) { log.warn("세계관 업데이트 접수 실패: work={} reason={}", id, e.javaClass.simpleName) }
+            try { log.info("세계관 자동 접수: work={} result={}", id, preprocessing.startUpdate(id, owner, versionId)) }
+            catch (e: RuntimeException) { log.warn("세계관 자동 접수 실패: work={} reason={}", id, e.javaClass.simpleName) }
         }
         if (TransactionSynchronizationManager.isSynchronizationActive())
             TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization { override fun afterCommit() = attempt() })

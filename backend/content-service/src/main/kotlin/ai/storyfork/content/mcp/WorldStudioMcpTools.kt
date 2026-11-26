@@ -90,7 +90,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_update_publication",
-        description = "세계관의 공개 범위(private|public)와 장르를 바꾼다(PUT /api/v1/world-studios/{id}/publication). 소유자만 가능하며 확정한 버전이 없으면 설정만 되고 listed=false이고, 남의 세계관은 404·값 오류는 422다. 공개해도 작가 전용 카드(revealFromEpisode가 없고 visibility도 private)는 독자에게 보이지 않는다.",
+        description = "세계관의 공개 범위(private|public)와 장르를 바꾼다(PUT /api/v1/world-studios/{id}/publication). 소유자만 가능하며 확정한 버전이 없으면 설정만 되고 listed=false이고, 남의 세계관은 404·값 오류는 422다. 공개해도 연결된 소설이 있는 세계관에서는 작가 전용 카드(revealFromEpisode가 없고 visibility도 private)가 독자에게 보이지 않지만, 연결된 소설이 없는 동안은 지우지 않은 카드가 모두 공개된다.",
     )
     fun updatePublication(
         context: McpTransportContext,
@@ -130,7 +130,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_public_read",
-        description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전에서 기준 회차(연결된 공개 소설의 발행된 마지막 회차, 연결이 없으면 1화) 이하로 공개된 카드와 그 카드끼리의 그 시점 관계(관계마다 기준 회차까지의 변화 history 포함)만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
+        description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전에서 연결된 소설이 없으면 지우지 않은 카드 모두를, 연결됐으면 기준 회차(연결된 공개 소설의 발행된 마지막 회차) 이하로 공개된 카드를 보이는 카드로 하고, 그 카드끼리의 그 시점(연결이 없으면 최신) 관계(관계마다 기준 회차까지의 변화 history 포함)만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun publicRead(@McpToolParam(description = "세계관 ID(UUID)") id: String): PublicWorldResponse = mcpTool { publicWorlds.detail(uuidArg(id)).forAi() }
@@ -302,7 +302,7 @@ private const val EDIT_DRAFT_INPUT =
         "episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)·" +
         "relationshipEpisodes(선택, 관계 id → 그 관계의 'N화부터' 1 이상의 정수 JSON 값. 이 요청에서 삭제하지 않는 관계에만 줄 수 있고 모르는 id·삭제 관계·1 미만이거나 정수가 아닌 값(소수·문자열)은 422이며, 준 관계는 episode가 아니라 그 회차에 기록하고 안 준 관계와 삭제는 episode를 따른다)·" +
         "semanticMetadata(카드·관계, 선택, 기본 {})의 최상위 키는 아래만 허용하고 다른 키나 모양이 틀린 값은 422다(detail에 카드/관계 id와 키 이름이 나온다). " +
-        "카드: revealFromEpisode(1 이상의 정수. 연결된 소설의 그 회차부터 독자에게 공개, 없으면 작가 전용)·" +
+        "카드: revealFromEpisode(1 이상의 정수. 연결된 소설의 그 회차부터 독자에게 공개, 없으면 작가 전용. 연결된 소설이 없는 동안은 이 값과 무관하게 모두 공개이고 저장된 값은 그대로 두며 소설을 연결하면 다시 쓰인다)·" +
         "characterDocs(cardType=character만. soul·goal·episodes 세 키뿐이며 soul·goal은 문자열, episodes는 \"0\"(이야기 시작 전)·\"1\"… 회차 번호 문자열 → 그 회차의 기억 글. 문서마다 3,000자 이하. 인물의 IDENTITY는 카드 body이고 옛 memory 키는 episodes의 \"0\"으로 옮겨 보낸다)·" +
         "imageId(이 세계관에 올린 카드 이미지의 UUID, null이면 이미지 없음)·importedFrom(가져온 출처 {worldId, worldName, authorNickname, revisionNo, cardId}). " +
         "카드·관계의 studio·preprocessing·manuscriptBuild와 관계의 evidence는 화면·분석·원고 구축·템플릿이 쓰는 값이다: 새 카드·관계에는 넣지 말고, 기존 것을 고칠 때는 world_studio_read로 읽은 값을 고치지 말고 그대로 돌려보낸다(빼면 화면의 시간 표기·순서·관계 종류와 원고 구축의 출처·확인 필요 표시가 지워진다). 관계의 허용 키는 studio·preprocessing·manuscriptBuild·evidence뿐이다. " +
