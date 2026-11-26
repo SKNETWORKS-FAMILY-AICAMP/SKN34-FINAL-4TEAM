@@ -446,11 +446,11 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
         if 'draft' in data:
             draft, gaps = DraftRequest.model_validate(data['draft']), []
             if target and not draft.context:
-                draft.context, gaps = _allowed_context(target, draft.plan)
+                draft.context, gaps = _allowed_context(target, draft.plan, fork_draft=bool(target.get("fork")))
             return _recorded(recipe, 'draft', draft, gaps)
         if not target:
             raise WritingFailure(422, NO_WRITING_TARGET)
-        context, gaps = _allowed_context(target, request)
+        context, gaps = _allowed_context(target, request, fork_draft=task != "plan" and bool(target.get("fork")))
         planned = PlanRequest(episodeNumber=target['episode'], request=request, context=context, previousPlans=_previous_plans(turn))
         if task == 'plan':  # 기획은 원고가 아니라 반영·다시 쓰기가 없다
             return writing.plan(planned).model_copy(update={'gaps': gaps})
@@ -571,20 +571,24 @@ def _previous_plans(turn: dict) -> list[dict]:
     return []
 
 
-def _read_context(target: dict, query: str, include_settings: bool = True) -> dict:
+def _read_context(target: dict, query: str, include_settings: bool = True, fork_draft: bool = False) -> dict:
     """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한, work_context_read). Retrieval이 아니라 Content가 고른 문맥이다.
     include_settings=False면 Content가 옛 설정 문서를 빼고 그 길이를 예산에서도 뺀다(#602)."""
     args = {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]}
+    if fork_draft:
+        args['draftEpisode'] = target['episode']
+        if target.get('episodeVersionId'):
+            args['basisVersionId'] = target['episodeVersionId']
     return content_mcp.call('work_context_read', args if include_settings else {**args, 'includeSettings': False})
 
 
-def _allowed_context(target: dict, query: str) -> tuple[str, list[str]]:
+def _allowed_context(target: dict, query: str, *, fork_draft: bool = False) -> tuple[str, list[str]]:
     """writing에 보내는 허용 문맥 글과 작가에게 알릴 gaps. 원고 문맥은 Content가 근거 회차까지 허용한 것을 그대로 쓰고,
     설정(settings)만 Q&A·Review와 같은 WorldStudio(연결 → Fork 상속 세계관)로 바꾼다(#523). 세계관이 없으면 빈 설정과 알림이다.
 
     옛 설정 문서는 Content에서 빼고 읽어 예산을 깎지 않는다(#602). 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다.
     """
-    if not isinstance(context := _read_context(target, query, include_settings=False), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
+    if not isinstance(context := _read_context(target, query, include_settings=False, fork_draft=fork_draft), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
         raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
     episode = target.get('baseEpisode') or target['episode']
     gaps = []

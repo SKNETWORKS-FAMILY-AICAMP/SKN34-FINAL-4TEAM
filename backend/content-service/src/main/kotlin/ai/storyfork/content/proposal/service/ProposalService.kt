@@ -73,7 +73,8 @@ class ProposalService(
         val prepared=transaction.execute {
             val w=access.own(id,owner);access.requireRevision(w,data.revision)
             val target=publication.nextEpisodeNumber(id)
-            val selected=context.read(id,owner,ContextRequest(data.episode ?: target,data.prompt,data.character))
+            val query=ContextRequest(data.episode ?: target,data.prompt,data.character)
+            val selected=if (data.kind=="draft") context.readForDraft(id,owner,query) else context.read(id,owner,query)
             val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")
             val body=drafts.findById(row.id).orElseThrow().content
             val selection=data.span?.let {WritingSelection.of(body,it.first,it.second)}
@@ -93,7 +94,9 @@ class ProposalService(
             return transaction.execute {
                 val w=access.own(id,owner);access.requireRevision(w,data.revision)
                 checkContent(publication.nextEpisodeNumber(id)==prepared.target,409,"생성 중 대상 회차가 변경됐어요.")
-                checkContent(context.read(id,owner,ContextRequest(prepared.selected.basisEpisode,data.prompt,data.character))==prepared.selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
+                val query=ContextRequest(prepared.selected.basisEpisode,data.prompt,data.character)
+                val current=if (data.kind=="draft") context.readForDraft(id,owner,query) else context.read(id,owner,query)
+                checkContent(current==prepared.selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
                 val now=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);val inputId=contentKey("input",prepared.jobId)
                 val row=episodes.findByWorkIdAndSequence(id,prepared.target) ?: throw ContentFailure(409,"작성 회차가 변경됐어요.")
                 inputs.saveAndFlush(AiInputSnapshotEntity(id=inputId,jobId=prepared.jobId,episodeId=row.id,sourceKind="draft",position=prepared.selection?.position,contentSnapshot=prepared.body,draftRevision=data.revision,capturedAt=now))
@@ -138,7 +141,9 @@ class ProposalService(
             ?: throw ContentFailure(409,"만료되었거나 이미 적용한 제안이에요.")
         val target=publication.nextEpisodeNumber(id)
         checkContent(p.targetEpisode==target,409,"제안의 대상 회차가 변경됐어요. 다시 생성해 주세요.")
-        checkContent(context.read(id,owner,ContextRequest(p.context.basisEpisode,p.prompt,p.context.character))==p.context,409,"설정 문맥이 변경됐어요. 최신 문맥으로 검토해 주세요.")
+        val query=ContextRequest(p.context.basisEpisode,p.prompt,p.context.character)
+        val current=if (p.context.recentSource!=null) context.readForDraft(id,owner,query) else context.read(id,owner,query)
+        checkContent(current==p.context,409,"설정 문맥이 변경됐어요. 최신 문맥으로 검토해 주세요.")
         val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")
         val draft=drafts.findById(row.id).orElseThrow()
         ProposalTextPolicy.validate(p.text)

@@ -3529,3 +3529,20 @@ def test_a_summary_that_breaks_outside_the_failure_handling_does_not_leave_the_c
         chats(thread, TURNS[5])
     conversation('rename', thread, ME, '새 제목')  # 턴은 저장됐고 도는 실행은 없다
     assert conversation('history', thread, ME).title == '새 제목'
+
+
+def test_fork_writer_requests_checkpoint_context_for_draft(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('draft')))
+    recent = {'branch': 'original', 'episode': 2, 'versionId': 'v2', 'text': '등불을 껐다.'}
+    def read(tool, args):
+        calls.append(('mcp', (tool, args), {}))
+        if tool == 'work_context_read':
+            assert args == {'id': 'work', 'episode': 2, 'query': DRAFT['draft']['plan'], 'includeSettings': False,
+                            'draftEpisode': TARGET['episode'], 'basisVersionId': 'v2'}
+            return {**CONTEXT, 'recentSource': recent}
+        return NO_WORLD[tool]
+    monkeypatch.setattr(tools.content_mcp, 'call', read)
+    run('써줘', target={**TARGET, 'fork': True, 'baseEpisode': 2, 'episodeVersionId': 'v2'},
+        inputs={'writing_editing': {'draft': {**DRAFT['draft'], 'episodeNumber': TARGET['episode']}}})
+    payload = next(args[0] for name, args, _ in calls if name == 'draft')
+    assert json.loads(payload.context) == {**CONTEXT, 'settings': [], 'recentSource': recent}
