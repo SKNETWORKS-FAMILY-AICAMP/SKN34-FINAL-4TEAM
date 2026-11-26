@@ -159,11 +159,15 @@ class NoticeService(
         if (request.kind != NoticeKind.AI_TOOL || request.targetType == null || request.targetId == null) return null
         if (notices.bumpUnread(request.recipientId, request.kind.code, request.targetType, request.targetId, now) == 0) return null
         // 방금 올린 행이 가장 최근이고, 이 트랜잭션이 그 행을 잠그고 있어 그사이 지워지지 않는다.
-        // 묶음 수·회차·요약은 관리 중인 엔티티를 바꿔 커밋 때 반영한다(#941): 이동 회차는 마지막 사건을 따르고, 요약은 "마지막 대상 외 n건"이다.
+        // 묶음 수·회차·요약은 관리 중인 엔티티를 바꿔 커밋 때 반영한다(#941). 요약은 "마지막 대상 외 n건"이고, 이동 회차는 요약이 가리키는
+        // 사건을 따른다. 대상 구절이 없는(detail 없는) 사건은 수만 세고 요약·회차를 그대로 둔다(누르면 문구 속 회차가 열린다).
+        // ponytail: 그런 사건이 마지막이면 문구의 "외 n건"이 실제 수보다 적다. 모든 발행자가 detail을 보내면 생기지 않는다(#941 PR 2).
         return notices.groupItems(request.recipientId, request.kind.code, request.targetType, request.targetId, PageRequest.of(0, 1)).first().also { row ->
             row.bundledCount += 1
-            row.targetEpisode = request.targetEpisode
-            request.bundleSubject?.let { row.summary = NoticeSummary.bundled(it, row.bundledCount) }
+            request.bundleSubject?.let {
+                row.summary = NoticeSummary.bundled(it, row.bundledCount)
+                row.targetEpisode = request.targetEpisode
+            }
         }
     }
 

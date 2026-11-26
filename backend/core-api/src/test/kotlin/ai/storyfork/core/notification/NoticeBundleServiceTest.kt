@@ -163,15 +163,16 @@ class NoticeBundleServiceTest {
     }
 
     @Test
-    fun `an event without a phrase still counts in the bundle but keeps the summary`() {
-        val existing = unread()
+    fun `an event without a phrase still counts in the bundle but keeps the summary and the episode it names`() {
+        val existing = unread().apply { summary = "AI가 MCP로 「별의 숲」 3화 원고를 수정했어요"; targetEpisode = 3 }
         givenUnread(existing)
 
         val response = service.create(request())
 
         assertEquals(1, existing.bundledCount)
-        assertEquals("AI가 MCP로 작품을 수정했어요", existing.summary)
-        assertEquals("AI가 MCP로 작품을 수정했어요", response?.summary)
+        assertEquals("AI가 MCP로 「별의 숲」 3화 원고를 수정했어요", response?.summary)
+        assertEquals(3, existing.targetEpisode, "the notice still opens the episode its summary names")
+        assertEquals(3, response?.targetEpisode)
     }
 
     @Test

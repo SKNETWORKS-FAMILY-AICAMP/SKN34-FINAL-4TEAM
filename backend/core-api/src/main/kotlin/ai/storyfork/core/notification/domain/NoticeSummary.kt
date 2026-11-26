@@ -50,9 +50,9 @@ object NoticeSummary {
         }
     }
 
-    /** 목적격 조사를 붙인다. 마지막 글자(닫는 괄호 제외)가 한글이면 받침, 숫자면 읽는 소리로 고르고, 그 밖에는 "을(를)"이다. */
+    /** 목적격 조사를 붙인다. 마지막 글자(닫는 괄호·말줄임표 제외)가 한글이면 받침, 숫자면 읽는 소리로 고르고, 그 밖에는 "을(를)"이다. */
     private fun withObject(phrase: String): String {
-        val last = phrase.trimEnd('」', ' ').lastOrNull()
+        val last = phrase.trimEnd('」', ' ', '…').lastOrNull()
         val batchim = when {
             last == null -> null
             last in '가'..'힣' -> (last - '가') % 28 != 0

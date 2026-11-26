@@ -42,6 +42,12 @@ class NoticeSummaryTest {
     }
 
     @Test
+    fun `a clipped title or phrase picks the particle from the last kept letter`() {
+        assertEquals("AI가 MCP로 「${"가".repeat(39)}숲…」을 수정했어요", summary(MCP_WORK_CHANGED, title = "가".repeat(39) + "숲나무"))
+        assertEquals("AI가 MCP로 「별의 숲」 ${"다".repeat(60)}…를 수정했어요", summary(MCP_WORK_CHANGED, subject = "다".repeat(70)))
+    }
+
+    @Test
     fun `ai changes keep the object phrase so a bundle can say how many more changes it holds`() {
         assertEquals("「별의 숲」 3화 원고", NoticeSummary.of(MCP_WORK_CHANGED, NoticeDetail("별의 숲", 3, "원고")).subject)
         assertEquals("AI가 MCP로 「별의 숲」 3화 원고 외 2건을 수정했어요", NoticeSummary.bundled("「별의 숲」 3화 원고", 2))
