@@ -262,6 +262,29 @@ class EpubManuscriptTest {
         assertEquals("b1\nC\nc1", manuscript.episode(1, 3).text)
     }
 
+    @Test fun `merged chapters keep an existing leading heading without adding a differing navigation label`() {
+        val manuscript = EpubManuscript.parse(epub(listOf(
+            "a.xhtml" to xhtml("<p>앞 본문</p>"),
+            "b.xhtml" to xhtml("<h1>나루에서</h1><p>뒤 본문</p>"),
+            "c.xhtml" to xhtml("<h2>제3장</h2><p>셋째 본문</p>"),
+            "d.xhtml" to xhtml("<p>넷째 본문</p><h2>중간 소제목</h2>"),
+        ), nav = listOf("b.xhtml" to "제2장", "c.xhtml" to "제3장", "d.xhtml" to "제4장")))
+        assertEquals("제2장", manuscript.episodes[1].title)
+        assertEquals("나루에서\n뒤 본문", manuscript.episodes[1].text)
+        assertEquals("앞 본문\n나루에서\n뒤 본문\n제3장\n셋째 본문\n제4장\n넷째 본문\n중간 소제목", manuscript.episode(0, 4).text)
+    }
+
+    @Test fun `merged chapters keep a leading heading longer than the title limit without adding its cut title`() {
+        val heading = "가".repeat(120) + "끝"
+        val manuscript = EpubManuscript.parse(epub(listOf(
+            "a.xhtml" to xhtml("<p>앞 본문</p>"),
+            "b.xhtml" to xhtml("<h1>$heading</h1><p>뒤 본문</p>"),
+        )))
+        // 목차 라벨이 없으면 장 제목은 머리글 앞 120자라 머리글과 달라 본문에 남고, 합칠 때 잘린 제목 줄을 더 붙이지 않는다.
+        assertEquals(heading.take(120), manuscript.episodes[1].title)
+        assertEquals("앞 본문\n$heading\n뒤 본문", manuscript.episode(0, 2).text)
+    }
+
     @Test fun `more than 300 chapters are refused before any chapter is read`() {
         fun book(count: Int) = epub((1..count).map { "c$it.xhtml" to xhtml("<p>$it</p>") })
         assertEquals(300, EpubManuscript.parse(book(300)).unitCount)

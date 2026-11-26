@@ -55,6 +55,47 @@ it('연결 해제는 확인을 받은 뒤에만 보내고 끝나면 미연결로
 /** 공개 세계관의 해제(결정 4): 경고 대화 상자가 확인을 받아 release를 넘긴다. */
 const published = () => ({ list: vi.fn().mockResolvedValue([{ ...work, worldStudioId: WORLD }]), linkWorldStudio: vi.fn().mockResolvedValue({ workId: 'w1', worldId: null }) })
 
+it('비공개 전환이 실패하면 작품을 삭제하지 않고 서버 사유를 알린다', async () => {
+  const api = { ...published(), deleteWork: vi.fn() }
+  const worlds = { setPublication: vi.fn().mockRejectedValue(new Error('세계관 공개 설정을 저장하지 못했어요.')) }
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const result = await open(api, worlds)
+  await act(async () => {
+    expect(await result.current.deleteWork({ makePrivate: { genre: 'fantasy' } })).toBe(false)
+  })
+  expect(confirm).not.toHaveBeenCalled()
+  expect(worlds.setPublication).toHaveBeenCalledWith(WORLD, { visibility: 'private', genre: 'fantasy' }, expect.any(AbortSignal))
+  expect(api.deleteWork).not.toHaveBeenCalled()
+  expect(api.linkWorldStudio).not.toHaveBeenCalled()
+  expect(result.current.error).toBe('세계관 공개 설정을 저장하지 못했어요.')
+})
+
+it('비공개 전환이 끝난 뒤 삭제하고, 삭제 실패 시 비공개 전환 결과와 삭제 오류를 함께 알린다', async () => {
+  const api = { ...published(), deleteWork: vi.fn().mockRejectedValue(new Error('작품 삭제 요청이 실패했어요.')) }
+  const worlds = { setPublication: vi.fn().mockResolvedValue({}) }
+  const result = await open(api, worlds)
+  await act(async () => {
+    expect(await result.current.deleteWork({ makePrivate: { genre: null } })).toBe(false)
+  })
+  expect(worlds.setPublication).toHaveBeenCalledWith(WORLD, { visibility: 'private', genre: null }, expect.any(AbortSignal))
+  expect(worlds.setPublication.mock.invocationCallOrder[0]).toBeLessThan(api.deleteWork.mock.invocationCallOrder[0])
+  expect(api.linkWorldStudio).not.toHaveBeenCalled()
+  expect(result.current.error).toBe('세계관은 비공개로 바뀌었지만 작품을 삭제하지 못했어요. 작품 삭제 요청이 실패했어요.')
+})
+
+it('비공개 전환이 성공하면 이어서 작품을 삭제하고 true를 돌려주며, 확인을 다시 묻지 않는다', async () => {
+  const api = { ...published(), deleteWork: vi.fn().mockResolvedValue(undefined) }
+  const worlds = { setPublication: vi.fn().mockResolvedValue({}) }
+  const confirm = vi.spyOn(window, 'confirm')
+  const result = await open(api, worlds)
+  let ok = false
+  await act(async () => { ok = await result.current.deleteWork({ makePrivate: { genre: 'fantasy' } }) })
+  expect(ok).toBe(true)
+  expect(confirm).not.toHaveBeenCalled()
+  expect(api.deleteWork).toHaveBeenCalledWith('w1', expect.any(AbortSignal))
+  expect(worlds.setPublication.mock.invocationCallOrder[0]).toBeLessThan(api.deleteWork.mock.invocationCallOrder[0])
+})
+
 it('공개 세계관을 비공개로 바꾸고 해제하면 공개 설정(장르는 현재 값 그대로)을 먼저 보내고 성공한 뒤에 해제하며, 확인을 다시 묻지 않는다', async () => {
   const api = published()
   const worlds = { setPublication: vi.fn().mockResolvedValue({}) }

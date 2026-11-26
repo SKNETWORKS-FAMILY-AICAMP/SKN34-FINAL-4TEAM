@@ -11,9 +11,9 @@ import { useWritingChatViewModel } from './useWritingChatViewModel'
 import { NO_BEFORE, WORK_CHANGED_NOTE } from './PendingActionCard'
 import { WritingChat } from './WritingChat'
 
-const { sessions, history, send, open, writingEpisode, feedback } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn(), feedback: vi.fn() }))
+const { sessions, history, send, open, writingEpisode, feedback, truncate } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn(), feedback: vi.fn(), truncate: vi.fn() }))
 vi.mock('../../../app/appContainer', () => ({ appContainer: { resolve: () => useCase } }))
-const useCase = { sessions, history, send, open, writingEpisode, feedback }
+const useCase = { sessions, history, send, open, writingEpisode, feedback, truncate }
 
 // useAsyncData는 effect를 정리한 뒤에도 대기 중이던 읽기를 한 번 부른다(취소된 신호로). 다음 테스트의 호출 기록에 섞이지 않게 먼저 비운다.
 afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
@@ -1387,6 +1387,127 @@ it('고쳐 보낸 요청이 도착하기 전에 실패하면 원래 진행 목�
   expect(screen.getByText('원래 답')).toBeTruthy()
 })
 
+it('고친 요청 판정 실패 → 원래 목록 유지(#890)', async () => {
+  openThread([])
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '원래 답' }
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '원래 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'b', label: '웹 검색', status: 'failed' } })
+    onEvent({ type: 'activity', activity: { id: 'c', label: '세계관 읽기', status: 'done' } })
+    onEvent({ type: 'error', message: '판정에 실패했어요.' })
+  })
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '원래 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  await screen.findByText('판정에 실패했어요.')
+  await waitFor(() => expect(screen.getByRole('button', { name: '이 메시지 고치기' })).toBeTruthy())
+  expect(screen.getByText('작업 1개')).toBeTruthy()
+  expect(screen.queryByText('작업 2개')).toBeNull()
+})
+
+it('턴을 지우면 그 번호 이상의 진행 목록도 지워 같은 번호의 실패한 다음 턴에 옛 목록이 되살아나지 않는다(#890)', async () => {
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const first = { request: '첫 질문', reply }
+  const second = { request: '둘째 질문', reply }
+  openThread([first])
+  truncate.mockResolvedValue(undefined)
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, second] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('첫 질문')
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '둘째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first] })
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지부터 지우기' })[1])
+  await waitFor(() => expect(truncate).toHaveBeenCalledWith('w', 'a', 1))
+  await waitFor(() => expect(screen.queryByText('둘째 질문')).toBeNull())
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '셋째 질문', reply }] })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '셋째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '이 메시지 고치기' })).toHaveLength(2))
+  expect(screen.queryByText('작업 1개')).toBeNull()
+})
+
+it('턴을 지우면 이력을 다시 읽는 동안에도, 다시 읽기가 실패해도 그 번호 이상의 진행 목록은 지워져 같은 번호의 실패한 다음 턴에 되살아나지 않는다(#890)', async () => {
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const first = { request: '첫 질문', reply }
+  openThread([first])
+  truncate.mockResolvedValue(undefined)
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '둘째 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('첫 질문')
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '둘째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  let failRead!: (error: Error) => void
+  history.mockReturnValue(new Promise((_resolve, reject) => { failRead = reject }))
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지부터 지우기' })[1])
+  await waitFor(() => expect(truncate).toHaveBeenCalledWith('w', 'a', 1))
+  await waitFor(() => expect(screen.queryByText('작업 1개')).toBeNull()) // 이력을 다시 읽는 중에도 지운 턴의 목록은 이미 지웠다
+  await act(async () => { failRead(new Error('이력 읽기 실패')) })
+  await screen.findByText('이력 읽기 실패')
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first] })
+  fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+  await screen.findByText('첫 질문')
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '셋째 질문', reply }] })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '셋째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '이 메시지 고치기' })).toHaveLength(2))
+  expect(screen.queryByText('작업 1개')).toBeNull()
+})
+
+it('앞 턴을 고쳐 다시 보내면 그 뒤 턴의 진행 목록도 지워 같은 번호의 실패한 다음 턴에 옛 목록이 되살아나지 않는다(#890)', async () => {
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const first = { request: '첫 질문', reply }
+  openThread([first])
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '둘째 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '고친 첫 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('첫 질문')
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '둘째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지 고치기' })[0])
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 첫 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  await waitFor(() => expect(screen.queryByText('둘째 질문')).toBeNull())
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '고친 첫 질문', reply }, { request: '셋째 질문', reply }] })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '셋째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '이 메시지 고치기' })).toHaveLength(2))
+  expect(screen.queryByText('작업 1개')).toBeNull()
+})
+
 describe('되묻기 선택지(#794)', () => {
   const clarify = (choices: unknown[]) => ({ status: 'clarify', message: '어느 회차 결말을 고칠까요?', steps: [], missingInputs: [], choices })
   const two = [{ label: '3화', message: '3화 결말을 고쳐줘' }, { label: '4화', message: '4화 결말을 고쳐줘' }]
@@ -1400,6 +1521,17 @@ describe('되묻기 선택지(#794)', () => {
     await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
     expect(send.mock.calls[0][2]).toMatchObject({ request: '4화 결말을 고쳐줘' })
     expect(screen.getByRole('textbox', { name: /메시지/ })).toBeTruthy()
+  })
+
+  it('선택지를 누르면 전송 중 선택지 버튼은 비활성이 되고 키보드 초점은 메시지 입력창으로 옮겨 간다(#892)', async () => {
+    openThread([{ request: '결말 고쳐줘', reply: clarify(two) }])
+    send.mockImplementation(() => new Promise<void>(() => {}))
+    renderChat()
+    const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
+    fireEvent.click(within(group).getByRole('button', { name: '4화' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(within(screen.getByRole('group', { name: '고를 수 있는 답' })).getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true))
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '메시지' }))
   })
 
   it('지난 턴의 선택지는 비활성으로 보인다', async () => {
@@ -1507,6 +1639,16 @@ it('고치는 중에 저장한 초안이 바뀌면 고치기 폼 대신 제안 �
   view.rerender(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 5 }} />)
   expect(screen.queryByRole('button', { name: '고친 내용으로 실행' })).toBeNull()
   expect(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' })).toBeTruthy()
+})
+
+it('고쳐서 승인을 누르면 첫 입력으로, 고치지 않기를 누르면 고쳐서 승인 버튼으로 키보드 초점이 옮겨 간다(#889)', async () => {
+  openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+    pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 3 } } } } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '고쳐서 승인' }))
+  expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '작품 제목' }))
+  fireEvent.click(screen.getByRole('button', { name: '고치지 않기' }))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '고쳐서 승인' }))
 })
 
 it('작품 정보 수정은 제목·소개를 고칠 수 있고, 빈 제목으로는 실행할 수 없으며 고치기를 닫으면 원래 카드로 돌아간다(#795)', async () => {

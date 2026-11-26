@@ -1,0 +1,161 @@
+{
+  "extractions": [
+    {
+      "mentions": [
+        {
+          "id": "m1",
+          "name": "김치삼",
+          "kind": "character",
+          "quote": "김치삼, 곧 치삼은 장터로 나갔다."
+        },
+        {
+          "id": "m2",
+          "name": "박서방",
+          "kind": "character",
+          "quote": "박서방은 영희를 닮은 사람을 보았다."
+        },
+        {
+          "id": "m3",
+          "name": "장터",
+          "kind": "location",
+          "quote": "김치삼, 곧 치삼은 장터로 나갔다."
+        }
+      ],
+      "statements": [
+        {
+          "id": "s1",
+          "kind": "event",
+          "certainty": "asserted",
+          "subjects": [
+            "m1"
+          ],
+          "knowers": [
+            "m1"
+          ],
+          "document": "memory",
+          "occurredEpisode": 2,
+          "knownFromEpisode": 2,
+          "quote": "김치삼, 곧 치삼은 장터로 나갔다."
+        }
+      ],
+      "relationships": [],
+      "schemaVersion": "manuscript-extraction.v1",
+      "number": 2,
+      "title": "2화",
+      "source": "김치삼, 곧 치삼은 장터로 나갔다.\n박서방은 영희를 닮은 사람을 보았다.\n장터는 늦도록 붐볐다.",
+      "sourceHash": "a2e8ecae572aea3f1bd356fe750cfce46476e7730214df0c936b620c59dbfe95",
+      "evidence": [
+        {
+          "quote": "김치삼, 곧 치삼은 장터로 나갔다.",
+          "start": 0,
+          "end": 19,
+          "quoteHash": "b0a57c97dae072bc25a356fabf37bffeb4c9b2b21015662bf1d82e364126a8e3"
+        },
+        {
+          "quote": "박서방은 영희를 닮은 사람을 보았다.",
+          "start": 20,
+          "end": 40,
+          "quoteHash": "b2f0efe317d4777925459e3d978e02641e29c50bf5eee93416ccb0196cce326b"
+        }
+      ],
+      "skipped": {}
+    }
+  ],
+  "identity": {
+    "schemaVersion": "manuscript-identity.v1",
+    "inputHashes": {
+      "2": "89fd954bbf90bf7a0543ba87e7eb693682ad099f6d512b666290b63de0820d2f"
+    },
+    "mapping": {
+      "2:m1": "entity-b777d45c-085c-5cb2-8f76-47042107e5da",
+      "2:m2": "entity-d2ec0e04-59d3-503a-a50d-9829c2ea7d7f",
+      "2:m3": "entity-6a7c6334-9211-50c0-8736-2ec1fd9dd54e"
+    },
+    "decisions": [],
+    "skippedLinks": 0,
+    "knownLinks": [
+      {
+        "left": "0:k1",
+        "right": "2:m1",
+        "basis": "explicit_alias",
+        "confirmedAt": 2,
+        "evidenceEpisode": 2,
+        "quote": "김치삼, 곧 치삼은 장터로 나갔다."
+      },
+      {
+        "left": "0:k2",
+        "right": "2:m2",
+        "basis": "uncertain",
+        "confirmedAt": 2,
+        "evidenceEpisode": 2,
+        "quote": "박서방은 영희를 닮은 사람을 보았다."
+      }
+    ]
+  },
+  "payload": {
+    "cards": [
+      {
+        "key": "entity-6a7c6334-9211-50c0-8736-2ec1fd9dd54e",
+        "cardType": "location",
+        "title": "장터",
+        "aliases": [],
+        "body": "장터",
+        "firstEpisode": 2,
+        "characterDocs": null
+      },
+      {
+        "key": "entity-b777d45c-085c-5cb2-8f76-47042107e5da",
+        "cardType": "character",
+        "title": "김치삼",
+        "aliases": [],
+        "body": "",
+        "firstEpisode": 2,
+        "characterDocs": {
+          "soul": "",
+          "goal": "",
+          "episodes": {
+            "02": "[사건] 김치삼, 곧 치삼은 장터로 나갔다."
+          }
+        }
+      },
+      {
+        "key": "entity-d2ec0e04-59d3-503a-a50d-9829c2ea7d7f",
+        "cardType": "character",
+        "title": "박서방",
+        "aliases": [],
+        "body": "",
+        "firstEpisode": 2,
+        "characterDocs": {
+          "soul": "",
+          "goal": "",
+          "episodes": {}
+        }
+      },
+      {
+        "key": "event-31bfdf45-3ab6-5685-87f8-9dbd70f508b5",
+        "cardType": "event",
+        "title": "2화 · 김치삼, 곧 치삼은 장터로 나갔다.",
+        "aliases": [],
+        "body": "발생: 2화 / 참여: 김치삼\n[사건] 김치삼, 곧 치삼은 장터로 나갔다.",
+        "firstEpisode": 2,
+        "characterDocs": null
+      }
+    ],
+    "relations": [],
+    "identityCandidates": []
+  },
+  "known": [
+    {
+      "ref": "0:k1",
+      "name": "치삼",
+      "aliases": [
+        "황 노인"
+      ]
+    },
+    {
+      "ref": "0:k2",
+      "name": "영희",
+      "aliases": []
+    }
+  ]
+}

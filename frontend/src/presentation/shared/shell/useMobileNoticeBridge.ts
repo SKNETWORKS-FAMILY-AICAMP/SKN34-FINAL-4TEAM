@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { appContainer } from '../../../app/appContainer'
 import { useAppSelector } from '../../../app/store'
 import { getMobileNotice, syncMobileDevice } from '../../../data/api/mobilePush'
+import { readyMessage } from '../../../domain/entities/nativeBridge'
 import { noticeTarget } from '../../../domain/entities/notification'
 import { RestoreContext } from '../session/restoreContext'
 
@@ -20,7 +21,6 @@ export function useMobileNoticeBridge() {
   const navigate = useNavigate()
   const open = useEffectEvent((target: string) => navigate(target))
   const account = useAppSelector(s => s.session.memberId)
-  const noticeVersion = useAppSelector(s => s.session.noticeVersion)
 
   useEffect(() => {
     const bridge = (window as MobileWindow).ReactNativeWebView
@@ -55,25 +55,10 @@ export function useMobileNoticeBridge() {
     }
 
     window.addEventListener('storyfork:mobile', receive)
-    bridge.postMessage(JSON.stringify({ type: 'storyfork.ready', account }))
+    bridge.postMessage(JSON.stringify(readyMessage(account)))
     return () => {
       controller.abort()
       window.removeEventListener('storyfork:mobile', receive)
     }
   }, [account, restoring])
-
-  useEffect(() => {
-    const bridge = (window as MobileWindow).ReactNativeWebView
-    if (!bridge || restoring || !account) return
-    const controller = new AbortController()
-    const notices = appContainer.resolve('notificationRepository')
-    void notices.list(null, controller.signal).then(({ items }) => {
-      if (controller.signal.aborted) return
-      bridge.postMessage(JSON.stringify({
-        type: 'storyfork.notices',
-        items: items.map(({ id, summary, createdAt, read }) => ({ id, summary, createdAt, read })),
-      }))
-    }).catch(() => {})
-    return () => controller.abort()
-  }, [account, noticeVersion, restoring])
 }

@@ -102,8 +102,11 @@ def run(request: JobRequest) -> None:
             if not inputs["prepared"]:
                 try:
                     rows = {row.number: row for row in map(EpisodeExtraction.model_validate, inputs["results"])}
-                    identity = service.resolve(rows)
-                    payload = service.organize(identity, rows)
+                    # 업데이트 작업이면 Content가 기존 인물의 이름·별칭을 준다(최초 구축에는 없다, #952). 없으면 호출 모양이 이전과 같다.
+                    known = inputs.get("knownCharacters")
+                    extra = (known,) if known else ()
+                    identity = service.resolve(rows, *extra)
+                    payload = service.organize(identity, rows, *extra)
                 except Exception as error:
                     fail([], reason_of(job, error))
                     return

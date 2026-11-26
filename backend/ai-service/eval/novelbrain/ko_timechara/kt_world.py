@@ -130,9 +130,9 @@ def build_world(work_id: str, episodes: dict[int, dict], canon: dict[str, str]) 
 
 def save_world(path, world: dict) -> None:
     path.write_text(json.dumps({**world, 'cards': [c.model_dump() for c in world['cards']],
-                                'relations': [r.model_dump() for r in world['relations']]}, ensure_ascii=False), encoding='utf-8')
+                                'relations': [r.model_dump() for r in world['relations']]}, ensure_ascii=False))
 
 
 def load_world(path) -> dict:
-    data = json.loads(path.read_text(encoding='utf-8'))
+    data = json.loads(path.read_text())
     return {**data, 'cards': [Card(**c) for c in data['cards']], 'relations': [Relation(**r) for r in data['relations']]}

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
@@ -11,11 +11,36 @@ vi.mock('../../../shared/shell/Gnb', () => ({ Gnb: () => null, Footer: () => nul
 
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })
 
-const renderPolicy = (method: 'fork' | 'import') => render(
+function CurrentPath() {
+  const { pathname, search } = useLocation()
+  return <p>{pathname + search}</p>
+}
+
+const renderPolicy = (method: 'fork' | 'import', query = '') => render(
   <Provider store={createAppStore({ role: 'user' })}>
-    <MemoryRouter initialEntries={[`/writing-policy?method=${method}`]}><WritingPolicyPage /></MemoryRouter>
+    <MemoryRouter initialEntries={[`/writing-policy?method=${method}${query}`]}>
+      <Routes>
+        <Route path="/writing-policy" element={<WritingPolicyPage />} />
+        <Route path="*" element={<CurrentPath />} />
+      </Routes>
+    </MemoryRouter>
   </Provider>,
 )
+
+it.each([
+  ['fork', '&work=guunmong&at=4', '/fork/guunmong?at=4'],
+  ['fork', '&work=guunmong', '/fork/guunmong'],
+  ['fork', '', '/rank?t=orig'],
+  ['fork', '&work=%2E%2E%2Fadmin&at=4', '/rank?t=orig'],
+  ['fork', '&work=guunmong&at=1.5', '/fork/guunmong'],
+  ['import', '&work=guunmong&at=4', '/import'],
+] as const)('복귀 URL의 집필 방식 %s와 선택값 %s로 동의 후 이동한다', async (method, query, target) => {
+  renderPolicy(method, query)
+  fireEvent.click(screen.getByRole('checkbox', { name: /집필 방식의 정책/ }))
+  fireEvent.click(screen.getByRole('checkbox', { name: /저작권과 이용 권한/ }))
+  fireEvent.click(screen.getByRole('button', { name: '동의하고 계속' }))
+  expect(await screen.findByText(target)).toBeTruthy()
+})
 
 it.each([['fork', '다른 소설 포크 전 확인'], ['import', '내 소설 가져오기 전 확인']] as const)('%s 안내는 h1 하나와 건너뛰기 링크가 닿는 main을 가진다', (method, heading) => {
   renderPolicy(method)

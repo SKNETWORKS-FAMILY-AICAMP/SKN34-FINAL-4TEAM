@@ -51,13 +51,14 @@ class EpisodeUpdateResponse(BaseModel):
 
 
 class PlanItem(BaseModel):
-    """계획 목록(story_plan_list)의 한 항목에서 대상을 고르는 데 쓰는 칸."""
+    """계획 목록(story_plan_list)의 한 항목에서 대상을 고르는 데 쓰는 칸. episodeMissing(연결 회차가 삭제됨)은 장면 수를 셀 때 그 장면을 빼는 데 쓴다."""
     model_config = ConfigDict(strict=True)
     id: str
     kind: Literal['plot', 'scene']
     title: str
     parentId: str | None = None
     episodeNumber: int | None = None
+    episodeMissing: bool = False
 
 
 class StoryPlan(PlanItem):

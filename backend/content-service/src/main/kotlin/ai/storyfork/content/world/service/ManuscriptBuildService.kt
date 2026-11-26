@@ -193,14 +193,27 @@ class ManuscriptBuildService(
         resultStore.record(id,owner,token,ManuscriptExtractionVerifier.verify(source,node,mapper))
     }
 
+    /**
+     * 정체 정리 입력이다. 업데이트 작업은 기준 초안의 활성 인물 카드의 이름·별칭만 `knownCharacters`로 더해(AI에 줄 ref는 "0:k1"부터) 정체 정리 호출이
+     * 새 회차의 인물과 기존 인물이 같은 사람인지도 판단하게 한다. 본문·기억·UUID는 보내지 않는다(#952).
+     */
     fun structureInput(id:UUID,token:UUID):Map<String,Any> {
         val owner=actor(id)
         val job=active(id,owner,token)
         val all=resultStore.read(id,owner)
         input(job).requireResults(all)
+        val known=if(job.kind=="update") ManuscriptBuildMapper.knownCharacters(basisOf(job)).mapIndexed { i,card ->
+            val title=card.title.trim()
+            mapOf("ref" to "0:k${i+1}","name" to title,"aliases" to (ManuscriptBuildMapper.names(card.title,card.aliases)-title).toList())
+        } else null
         return mapOf("prepared" to (results.findByJobIdAndKindAndEpisode(id,"payload",0)!=null),
-            "results" to all.map { it.extraction })
+            "results" to all.map { it.extraction })+(if(known!=null) mapOf("knownCharacters" to known) else emptyMap())
     }
+
+    /** 업데이트 작업이면 AI의 기존 인물 링크를 검증한 요청 카드별 결정이다. 최초 구축에는 기존 인물이 없어 링크가 있으면 거절한다(#952). */
+    private fun knownMatches(job:ManuscriptBuildJob,basis:WorldDraftResponse,all:List<ManuscriptEpisodeResult>,identity:tools.jackson.databind.JsonNode)=
+        ManuscriptStructureVerifier.knownMatches(all,identity,
+            if(job.kind=="update") ManuscriptBuildMapper.knownCharacters(basis).map { ManuscriptBuildMapper.names(it.title,it.aliases) } else emptyList(),mapper)
 
     fun structure(id:UUID,token:UUID,structured:tools.jackson.databind.JsonNode) {
         val owner=actor(id)
@@ -210,7 +223,8 @@ class ManuscriptBuildService(
         require(structured.path("identity").isObject && structured.path("payload").isObject)
         val payload=mapper.convertValue(structured.path("payload"),ManuscriptLoadPayload::class.java)
         ManuscriptStructureVerifier.verify(all,structured.path("identity"),payload,mapper)
-        ManuscriptBuildMapper.build(id,basisOf(job),payload,emptyMap(),all,update=job.kind=="update")
+        val basis=basisOf(job)
+        ManuscriptBuildMapper.build(id,basis,payload,emptyMap(),all,update=job.kind=="update",known=knownMatches(job,basis,all,structured.path("identity")))
         tx {
             val current=owned(id,owner)
             if(current.executionToken!=token || current.status!="running" || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
@@ -239,9 +253,10 @@ class ManuscriptBuildService(
             if(works.findById(job.workId).orElseThrow().worldStudioId!=job.worldId) stale(id,owner,token,"WORLD_LINK_CHANGED")
             val payload=mapper.convertValue(checkNotNull(artifact).content,ManuscriptLoadPayload::class.java)
             val identity=results.findByJobIdAndKindAndEpisode(id,"identity",0) ?: throw WorldConflict()
-            ManuscriptStructureVerifier.verify(all,mapper.valueToTree(identity.content),payload,mapper)
+            val identityNode:tools.jackson.databind.JsonNode=mapper.valueToTree(identity.content)
+            ManuscriptStructureVerifier.verify(all,identityNode,payload,mapper)
             val evidence=sourceEvidence(id,payload,all)
-            val requests=ManuscriptBuildMapper.build(id,basis,payload,evidence,all,update=job.kind=="update")
+            val requests=ManuscriptBuildMapper.build(id,basis,payload,evidence,all,update=job.kind=="update",known=knownMatches(job,basis,all,identityNode))
             val prepared=try {
                 studio.prepareManuscript(job.worldId,owner,basis) {
                     val current=owned(id,owner)

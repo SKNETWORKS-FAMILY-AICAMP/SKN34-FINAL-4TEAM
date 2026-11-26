@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import type { Work } from '../../../../domain/entities/content'
+import { createAppStore } from '../../../../app/store'
 import type { ManuscriptImportSummary, ManuscriptPreview } from '../../../../domain/entities/manuscript'
 
 const fakes = vi.hoisted(() => ({ manuscriptUseCase: { preview: vi.fn(), confirm: vi.fn() }, episodeUseCase: { list: vi.fn() } }))
@@ -39,13 +41,13 @@ function renderPage(search = `?work=${A}`) {
   fakes.manuscriptUseCase.preview.mockResolvedValue(preview)
   fakes.manuscriptUseCase.confirm.mockResolvedValue(mixed)
   return render(
-    <MemoryRouter initialEntries={[`/import${search}`]}>
+    <Provider store={createAppStore()}><MemoryRouter initialEntries={[`/import${search}`]}>
       <Routes>
         <Route path="/import" element={<ManuscriptImportPage />} />
         <Route path="/worldstudio" element={<h1>세계관 작업실</h1>} />
         <Route path="/content" element={<h1>작품 만들기</h1>} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter></Provider>,
   )
 }
 const isLocked = (element: HTMLElement) => element.closest('fieldset')?.disabled
@@ -179,6 +181,28 @@ it('제목 수정·제외·합치기가 목록과 확정 버튼에 바로 반영
   expect(screen.getByRole('button', { name: '2개 회차 등록' })).toBeTruthy()
   fireEvent.change(screen.getByLabelText('2번째 회차 제목'), { target: { value: '  ' } })
   expect((screen.getByRole('button', { name: '2개 회차 등록' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('수정한 뒤 회차 제목이 있으면 확인하고, 취소하거나 Esc로 닫으면 두 회차와 고친 제목을 유지한다', async () => {
+  await toPreview()
+  fireEvent.change(screen.getByLabelText('2번째 회차 제목'), { target: { value: '고친 뒤 제목' } })
+  const merge = screen.getByRole('button', { name: '1번째 회차를 다음 회차와 합치기' })
+  fireEvent.click(merge)
+  const dialog = () => within(screen.getByRole('alertdialog', { name: '회차를 합칠까요?' }))
+  expect(dialog().getByText(/고친 뒤 제목/)).toBeTruthy()
+  expect(document.activeElement).toBe(dialog().getByRole('button', { name: '취소' }))
+  fireEvent.click(dialog().getByRole('button', { name: '취소' }))
+  expect(screen.getByLabelText<HTMLInputElement>('2번째 회차 제목').value).toBe('고친 뒤 제목')
+  expect(screen.getByRole('button', { name: '3개 회차 등록' })).toBeTruthy()
+  fireEvent.click(merge)
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  expect(screen.getByLabelText<HTMLInputElement>('2번째 회차 제목').value).toBe('고친 뒤 제목')
+  expect(screen.getByRole('button', { name: '3개 회차 등록' })).toBeTruthy()
+  fireEvent.click(merge)
+  fireEvent.click(dialog().getByRole('button', { name: '회차 합치기' }))
+  expect(screen.getByLabelText<HTMLInputElement>('1번째 회차 제목').value).toBe('1화 시작')
+  expect(screen.getByRole('button', { name: '2개 회차 등록' })).toBeTruthy()
 })
 
 it('합칠 수 있는 회차에만 뒤 회차 제목이 본문에 남는다고 안내한다', async () => {

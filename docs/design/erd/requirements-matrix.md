@@ -129,8 +129,8 @@
 | [F-LLM-03](../../requirements.md#f-llm-03) | 변경 전 회귀 평가 | 업무 테이블 추가 없음 | 운영 영역 LLMOps. Langfuse 별도 제품 도입 방향; 자체 UI/API 통합·평가 실행·통과기준 미정, 제품 테이블 복제 안 함. |
 | [F-LLM-04](../../requirements.md#f-llm-04) | AI 품질·비용 지표와 경고 | [`AI_MODEL_CALL`](tables.md#ai-model-call) · [`PROPOSAL_DECISION`](tables.md#proposal-decision) · [`FEEDBACK_MODERATION`](tables.md#feedback-moderation) · [`OPERATION_ALERT`](tables.md#operation-alert) | 기존 기록에서 지표 계산. 지표별 저장테이블 없음; 임계값·외부연동 미정. |
 | [F-LLM-05](../../requirements.md#f-llm-05) | 정보 누설 표본 검사 | [`OPERATION_ALERT`](tables.md#operation-alert) | 운영 영역 검사·평가 실행 계약은 미설계. 운영 경고 참조만 연결하며 완전검증 아님. |
-| [F-MOB-01](../../requirements.md#f-mob-01) | Android 앱 지원 | 업무 테이블 추가 없음 | 클라이언트 요구. 플랫폼별 테이블 없음; 모바일 기능/인증·출시 계약 미정. |
-| [F-MOB-02](../../requirements.md#f-mob-02) | iOS 앱 지원 | 업무 테이블 추가 없음 | 클라이언트 요구. 소유 서비스의 기존 데이터 재사용; 모바일 기능/인증·출시 계약 미정. |
+| [F-MOB-01](../../requirements.md#f-mob-01) | Android 앱 지원 | 업무 테이블 추가 없음 | 클라이언트 요구. 플랫폼별 테이블 없음; 앱은 웹을 WebView로 보이고 알림과 하단 탭만 맡아(#943) 모바일 전용 인증·데이터가 없다. 지원 버전·출시 시점 미정. |
+| [F-MOB-02](../../requirements.md#f-mob-02) | iOS 앱 지원 | 업무 테이블 추가 없음 | 클라이언트 요구. 소유 서비스의 기존 데이터 재사용; 앱은 웹을 WebView로 보이고 웹이 읽은 알림을 로컬 알림으로 띄우며 하단 탭을 그려(#943) 모바일 전용 인증·데이터가 없다. 지원 버전·출시 시점 미정. |
 
 ## UC-01~28 전체 대조
 

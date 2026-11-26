@@ -129,7 +129,21 @@ def _run(name: str, args: dict, turn: dict):
         linked = content_mcp.call('work_read', {'id': work}).get('worldStudioId') if work else None
         if not linked or args.get('id') != linked:
             raise ContentMcpFailure(422, NOT_THIS_WORLD)
+    if name == 'story_plan_create':
+        args = _append_scene_if_beyond(args)
     return content_mcp.edit_world(args) if name == 'world_studio_edit_draft' else content_mcp.call(name, args)
+
+
+def _append_scene_if_beyond(args: dict) -> dict:
+    """새 장면의 끼울 위치가 그 회차의 장면 수보다 크면 position을 뺀다(#917). Content는 0..장면 수가 아니면 422이고, 빼면 맨 뒤에 붙인다.
+    0 이하는 읽지 않고 그대로 둔다(0은 늘 유효하고 음수는 Content가 거절한다). 장면 수는 Content의 같은 회차(회차 없는 장면은 그런 장면끼리) 읽을 수 있는 장면(연결 회차가 삭제된 장면 제외)이다."""
+    data = args.get('data')
+    position = data.get('position') if isinstance(data, dict) else None
+    if not (isinstance(data, dict) and data.get('kind') == 'scene' and isinstance(position, int) and not isinstance(position, bool) and position > 0):
+        return args
+    peers = sum(1 for p in content_mcp.list_plans(args['workId'])
+                if p.kind == 'scene' and p.episodeNumber == data.get('episodeNumber') and not p.episodeMissing)
+    return args if position <= peers else {**args, 'data': {k: v for k, v in data.items() if k != 'position'}}
 
 
 async def execute(request) -> Command:
@@ -184,4 +198,12 @@ async def execute(request) -> Command:
             'applied': {'episode': (turn.get('target') or {}).get('episode', 0), 'revision': revision}}
     # HITL edit는 원래 호출을 남기고 영어 안내만 붙여 모델이 작가 수정으로 알아듣지 못한다. 그대로면 원 요청과 달라졌다고 안내한다(#875).
     edited = get_config()['configurable'].get(AUTHOR_EDITED)
-    return _result(step, call, json.dumps({'tool': name, 'status': 'applied', 'revision': revision, **({'authorEdited': edited} if edited else {})}))
+    told = {'tool': name, 'status': 'applied', 'revision': revision, **({'authorEdited': edited} if edited else {})}
+    if name == 'story_plan_create' and isinstance(done, dict) and isinstance(done.get('position'), int) and args['data'].get('kind') == 'scene':
+        # 장면 생성 결과에만 알린다(플롯은 순서가 없고 Content가 기본값 0을 돌려줄 뿐이다). 모델은 자기가 준 순서로 답하므로 실제 저장 순서를 알린다. 다르면 _append_scene_if_beyond가 빼서 맨 뒤에 붙인 경우다(#917).
+        # position은 Content가 0부터 센 값이라 그대로 말하면 작가가 보는 순서보다 하나 앞서므로, 사람이 읽는 순서(1부터)는 order로 따로 알린다.
+        told['position'] = done['position']
+        told['order'] = done['position'] + 1
+        if args['data'].get('position') not in (None, done['position']):
+            told['appended'] = '요청한 순서가 그 회차 장면 수를 넘어 맨 뒤에 붙였어요.'
+    return _result(step, call, json.dumps(told, ensure_ascii=False))

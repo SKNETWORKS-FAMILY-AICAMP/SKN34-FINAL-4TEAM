@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 import { editableTexts, editedArgs, pendingChanges, worldProposalIsStale, type PendingAction, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 
@@ -30,11 +30,18 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
   const id = useId()
   const [edits, setEdits] = useState<Record<string, string> | null>(null)
   const stale = worldProposalIsStale(action, worldDraft)
+  const form = useRef<HTMLFormElement>(null)
+  const editButton = useRef<HTMLButtonElement>(null)
+  const moved = useRef(false) // 작가가 열거나 닫은 뒤에만 초점을 옮긴다(처음 그릴 때는 건드리지 않는다)
+  const editing = !!edits && !stale
+  useEffect(() => { // 누른 버튼이 사라져 초점이 body로 떨어지지 않게 폼을 열면 첫 입력으로, 닫으면 '고쳐서 승인' 버튼으로 옮긴다
+    if (moved.current) (editing ? form.current?.querySelector<HTMLElement>('input, textarea') : editButton.current)?.focus()
+  }, [editing])
   const changes = stale ? [] : pendingChanges(action, cardOf)
   const texts = stale ? [] : editableTexts(action, cardOf)
   if (edits && !stale) { // 고치는 사이 저장한 초안이 바뀌면 옛 revision으로 실행하지 않고 제안 다시 받기로 돌아간다
     const blank = texts.some((t) => t.title && !(edits[t.key] ?? t.value).trim())
-    return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (!blank) onEdit(editedArgs(action, edits)) }}>
+    return <form ref={form} className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (!blank) onEdit(editedArgs(action, edits)) }}>
       <h3 id={`${id}-t`}>{action.label} 내용을 고쳐서 실행할까요?</h3>
       {children}
       {texts.map((t) => <label key={t.key} className="chat-field">{t.label}
@@ -47,7 +54,7 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
       {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 작성 중인 변경을 저장한 뒤 제안을 확인해 주세요.</p>}
       <div className="chat-hitl-actions">
         <button type="submit" className="btn sm pri" disabled={pending || unsaved || blank}>고친 내용으로 실행</button>
-        <button type="button" className="btn sm" disabled={pending} onClick={() => setEdits(null)}>고치지 않기</button>
+        <button type="button" className="btn sm" disabled={pending} onClick={() => { moved.current = true; setEdits(null) }}>고치지 않기</button>
       </div>
     </form>
   }
@@ -72,7 +79,7 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
       {stale
         ? <button type="button" className="btn sm pri" disabled={pending || unsaved} onClick={onRefresh}>저장한 초안으로 제안 다시 받기</button>
         : <button type="button" className="btn sm pri" disabled={pending || unsaved} onClick={() => onResume(true)}>실행</button>}
-      {!!texts.length && <button type="button" className="btn sm" disabled={pending} onClick={() => setEdits({})}>고쳐서 승인</button>}
+      {!!texts.length && <button ref={editButton} type="button" className="btn sm" disabled={pending} onClick={() => { moved.current = true; setEdits({}) }}>고쳐서 승인</button>}
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>실행하지 않기</button>
     </div>
   </section>

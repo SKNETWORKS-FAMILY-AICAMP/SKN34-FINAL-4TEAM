@@ -528,13 +528,13 @@ def test_an_alias_link_between_variants_merges_them_instead_of_suggesting_a_char
     assert len(payload.cards) == 1 and payload.identityCandidates == [] and [d.status for d in identity.decisions] == ['merged']
 
 
-@pytest.mark.parametrize('name', ['ai-result.json', 'ai-result-variants.json'])  # 두 번째는 호칭 변형·뒤 회차 SOUL·빈 인물 본문(#839)
+@pytest.mark.parametrize('name', ['ai-result.json', 'ai-result-variants.json', 'ai-result-known.json'])  # 둘째는 호칭 변형·뒤 회차 SOUL·빈 인물 본문(#839), 셋째는 업데이트의 기존 인물 링크(#952)
 def test_content_fixture_matches_python_output(name):
     """Content 단위 테스트가 읽는 ai-result*.json은 파이썬 organize 출력과 글자 단위로 같다. 표기 규칙을 한쪽만 고치면 이 테스트가 깨진다."""
     path = Path(__file__).parents[4] / 'backend/content-service/src/test/resources/initial-build' / name
     data = json.loads(path.read_text(encoding='utf-8'))
     rows = {row['number']: row for row in data['extractions']}
-    assert service.organize(data['identity'], rows) == LoadPayload.model_validate(data['payload'])
+    assert service.organize(data['identity'], rows, data.get('known')) == LoadPayload.model_validate(data['payload'])
 
 
 def test_extract_passes_a_regression_evaluations_instructions_and_model_to_the_agent_and_still_verifies(monkeypatch):
@@ -548,3 +548,54 @@ def test_extract_passes_a_regression_evaluations_instructions_and_model_to_the_a
 
     assert seen == [('평가할 버전 본문', 'gpt-evaluated'), (None, None)]
     assert evaluated.statements[0].kind == 'plan' and evaluated.evidence[0].quote == '길동은 산을 넘을 계획이었다.'
+
+
+# ── 업데이트: 기존 인물과의 같은 인물 판단(#952). 기존 인물은 이름·별칭만 정체 정리에 실려 가고, AI는 구조만 걸러 링크를 Content로 돌려준다. ──
+KNOWN = [{'ref': '0:k1', 'name': '치삼', 'aliases': ['황 노인']}, {'ref': '0:k2', 'name': '영희', 'aliases': []}]
+
+
+def known_link(left, right, quote, basis='explicit_alias', n=2):
+    return {'left': left, 'right': right, 'basis': basis, 'confirmedAt': n, 'evidenceEpisode': n, 'quote': quote}
+
+
+def build_known(monkeypatch, episodes, links, known=KNOWN):
+    """업데이트 작업: 기존 인물(known)이 정체 정리 호출에 실려 간다(모델 대역은 (rows, known)을 받는다). (rows, identity, payload, 모델이 받은 known)."""
+    monkeypatch.setattr(service.agent, 'extract', lambda ep: episodes[ep.number][1])
+    sent = []
+    monkeypatch.setattr(service.agent, 'resolve', lambda rows, known: sent.append(known) or {'links': list(links)})
+    rows = {n: service.extract(EpisodeText(number=n, title=f'{n}화', body=body)) for n, (body, _) in episodes.items()}
+    identity = service.resolve(rows, known)
+    return rows, identity, service.organize(identity, rows, known), sent
+
+
+def test_a_link_to_an_existing_character_is_carried_to_content_and_decides_nothing(monkeypatch):
+    quote = '김치삼은 장터로 나갔다.'
+    link = known_link('0:k1', '2:m1', quote)
+    rows, identity, payload, sent = build_known(monkeypatch, {2: (quote, episode([person('m1', '김치삼', quote)]))}, [link])
+    assert [(k.ref, k.name, k.aliases) for k in sent[0]] == [('0:k1', '치삼', ['황 노인']), ('0:k2', '영희', [])]  # 모델에는 이름·별칭만 간다
+    assert [l.model_dump() for l in identity.knownLinks] == [link]
+    assert identity.decisions == [] and set(identity.mapping) == {'2:m1'}  # 병합은 Content가 정한다: 기존 인물로 카드도 후보도 만들지 않는다
+    assert [c.title for c in payload.cards] == ['김치삼'] and payload.identityCandidates == []
+
+
+def test_only_well_formed_links_to_existing_characters_are_kept_and_the_rest_are_counted(monkeypatch):
+    quote = '김치삼은 영희 앞에서 장터로 나갔다.'
+    episodes = {2: (quote, episode([person('m1', '김치삼', quote), person('m2', '장터', quote, 'location'), person('m3', '영희', quote)]))}
+    links = [known_link('0:k1', '2:m1', quote), known_link('0:k1', '2:m1', quote, 'uncertain'), known_link('0:k2', '2:m3', quote, 'uncertain'),  # 같은 쌍은 먼저 온 것만
+             known_link('2:m3', '0:k2', quote, 'uncertain'), known_link('0:k9', '2:m1', quote),  # 기존 인물이 right로 온 링크, 목록에 없는 기존 인물
+             known_link('0:k1', '2:m2', quote), known_link('0:k1', '0:k2', quote),  # 인물이 아닌 대상, 기존 인물끼리
+             known_link('0:k2', '2:m1', quote, 'same_name')]  # 이 용도로 쓰지 않는 basis
+    _, identity, _, _ = build_known(monkeypatch, episodes, links)
+    assert [(l.left, l.right, l.basis) for l in identity.knownLinks] == [('0:k1', '2:m1', 'explicit_alias'), ('0:k2', '2:m3', 'uncertain')]
+    assert identity.skippedLinks == 5
+
+
+def test_organize_rebuilds_the_known_links_and_rejects_a_stored_identity_that_differs(monkeypatch):
+    quote = '김치삼은 장터로 나갔다.'
+    rows, identity, payload, _ = build_known(monkeypatch, {2: (quote, episode([person('m1', '김치삼', quote)]))}, [known_link('0:k1', '2:m1', quote)])
+    stored = identity.model_dump(mode='json')
+    assert service.organize(stored, rows, KNOWN) == payload
+    with pytest.raises(PreprocessingFailure, match='IDENTITY_INPUT_MISMATCH'):  # 구조가 어긋난 링크가 저장 결과에 끼면
+        service.organize(stored | {'knownLinks': [known_link('0:k9', '2:m1', quote)]}, rows, KNOWN)
+    with pytest.raises(PreprocessingFailure, match='IDENTITY_INPUT_MISMATCH'):  # 기존 인물 없이 만든 구성에 기존 인물 링크가 끼면
+        service.organize(stored, rows)

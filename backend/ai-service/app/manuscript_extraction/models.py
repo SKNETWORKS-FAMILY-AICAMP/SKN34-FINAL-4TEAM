@@ -133,6 +133,13 @@ class IdentityLink(Model):
     quote: Quote
 
 
+class KnownCharacter(Model):
+    """발행 회차 업데이트가 정체 정리에 싣는 기존 세계관의 인물. 이름·별칭만 AI로 가고 본문·기억은 보내지 않는다(#952). ref는 회차 0의 대상 꼴이다."""
+    ref: Annotated[str, Field(pattern=r'^0:k[0-9]+$')]
+    name: str
+    aliases: list[str]
+
+
 class ProposedResolution(Model):
     links: list[IdentityLink]
 
@@ -149,3 +156,5 @@ class IdentityResolution(Model):
     mapping: dict[str, str]
     decisions: list[IdentityDecision]
     skippedLinks: Annotated[int, Field(strict=True, ge=0)] = 0
+    # 업데이트: 새 회차의 인물을 기존 인물과 이은 링크(left = 기존 인물 ref). 구조만 걸렀고 병합 여부는 Content가 근거를 검증해 정한다(#952).
+    knownLinks: list[IdentityLink] = Field(default_factory=list)

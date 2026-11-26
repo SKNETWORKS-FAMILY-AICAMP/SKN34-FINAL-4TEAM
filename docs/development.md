@@ -86,7 +86,9 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 
 ### 모바일 앱
 
-모바일 앱(`mobile/`, Expo·React Native)은 Compose에 포함되지 않으며 Android Studio 또는 macOS의 Xcode에서 개발 빌드를 실행합니다. [모바일 README](../mobile/README.md)에 로컬 웹 주소, Android 설정·검증 방법과 시연 CI를 정리했습니다.
+Android는 [모바일 README](../mobile/README.md)의 Firebase·SNS 설정으로 원격 알림을 검증합니다. `record_android=true`로 CI를 수동 실행하면 별도 Android 에뮬레이터 작업에서 실제 Core SSE와 로컬 알림을 검증하고 시연 영상을 저장합니다.
+
+모바일 앱(`mobile/`, Expo·React Native)은 Compose에 포함되지 않고 로컬에서 직접 실행합니다. Node 22.13+·24.3+·26+(React Native 0.88의 `engines`)와 npm이 필요하며 iOS는 Xcode(시뮬레이터)·CocoaPods, Android는 Android Studio를 씁니다. `mobile/`에서 `npm install`을 실행한 뒤 같은 디렉터리에서 `npx expo run:ios` 또는 `npx expo run:android`로 개발 빌드를 만들어 실행합니다. `ios/`·`android/`는 Expo가 생성하는 폴더라 커밋하지 않고 `google-services.json`·`GoogleService-Info.plist`·`.env*`도 커밋하지 않습니다. 앱은 STORYFORK 웹을 WebView로 보이고 알림(웹이 읽은 알림 → 로컬 알림, iOS는 APNs 제외)만 맡습니다.  웹 주소(`EXPO_PUBLIC_API_BASE_URL`)·`xcrun simctl push` 방법·결정은 [모바일 README](../mobile/README.md)를 따릅니다. 로컬 단위 검증은 `(cd mobile && npx tsc --noEmit && npm test)`이며 `npm test`는 별도 러너 없이 `node --test`(`--experimental-strip-types`, Node 22.13+)입니다.
 
 ## 검증
 
@@ -103,6 +105,7 @@ python3 -m unittest infrastructure.ci.test_ci.SelectionTest infrastructure.ci.te
 pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
 ./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
 uv run --locked --extra dev python -m pytest -m 'not integration' tests/generation/test_agent.py -k missing_key
+(cd mobile && npx tsc --noEmit && npm test)
 ```
 
 자세한 선택 명령은 [Frontend 지침](../frontend/AGENTS.md#검증), [Core 지침](../backend/core-api/AGENTS.md#검증),
@@ -121,6 +124,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 | 선택·정적 검사 | 변경 diff 공백·선택기 회귀(`changes`), Compose 설정·샘플 데이터 계약(`configuration`) |
 | 서비스 | 선택된 서비스마다 job 하나(`Service / <서비스>`)가 한 러너에서 **빌드 → 단위 → 통합**을 순서대로 실행합니다. 빌드: web lint·build, Core/Content/Operations `bootJar`(이미지 빌드와 같은 작업), AI lock. 단위: web Domain/Data/HTML, Core/Content/Operations `unitTest`(Spring·HTTP·DB 제외), AI `-m 'not integration'`. 통합: 나머지 web React/Hook/App, Core/Content/Operations `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
 | 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
+| 모바일 | `mobile/`(문서 제외)가 바뀌면 `Mobile / typecheck and unit tests` job이 `npm ci`·`npx tsc --noEmit`·`npm test`(Node 내장 `node --test`)를 실행합니다. 네이티브 빌드·시뮬레이터 검증은 CI에 없습니다 |
 | 집계 | `Required CI`: 실패·취소·필요한 job의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
 
 변경 선택 후 서비스 job 행렬과 설정 검사는 서로 독립적으로 병렬 실행하고, 서비스끼리도 병렬입니다. 한 서비스 안에서는 단계가 순서대로이며 앞 단계가 실패하면 뒤 단계(특히 통합)를 실행하지 않습니다. 시스템은 필요한 서비스 job·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
@@ -137,7 +141,7 @@ Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통�
 - web·Content·Operations·AI는 서비스 수준, Core는 auth/health 또는 보수적 전체로 선택합니다. Operations 변경은 독립 단위·통합을 함께 선택하고 다른 서비스나 HTTP 시스템 시나리오를 추가하지 않습니다. 시스템 `content`는 실제 Core 로그인 뒤 Content API·DB 소유권을 확인합니다.
 - 공유·설정·의존성·미등록 runtime은 확대 선택합니다. Core Auth는 Content/web 소비자, Content/AI 계약은 연결된 소비자와 시스템을 선택합니다. 삭제된 구 Core 콘텐츠 경로도 새 소유 서비스 회귀를 선택합니다.
 - 삭제·이름 변경은 `git diff --no-renames`로 이전 경로까지 포함합니다. 정확한 소스별 의존 그래프 분석은 아닙니다.
-  테스트만 변경하면 해당 서비스/기능 회귀를 실행하고 시스템은 생략합니다. 모바일 소스 변경은 Node 타입 검사와 단위 테스트를 실행하고, 수동 CI의 `record_android` 입력은 Android 에뮬레이터 시연을 추가합니다.
+  테스트만 변경하면 해당 서비스/기능 회귀만 실행하고 시스템은 생략합니다. 문서만 변경하면 runtime job은 생략하고, `mobile/`(문서 제외)만 변경하면 서비스·시스템 job 없이 모바일 job만 실행합니다. 수동 실행·미등록 경로의 전체 선택에는 모바일 job도 포함합니다.
   영향받는 runtime 범위에서 테스트가 하나도 발견되지 않으면 성공으로 숨기지 않습니다.
 
 #### HTTP 시스템 시나리오와 경계
@@ -155,6 +159,7 @@ DB를 tmpfs로 바꾸며 AI 키·모델은 빈 값으로 고정합니다. 서비
 
 로컬 선택 단위 결과와 hosted runtime 결과를 구분합니다. **최신 커밋의 GitHub `Required CI` 실제 성공을 확인하기 전에는 검증 대기**입니다.
 CI 성공 뒤 별도 CD 워크플로(`workflow_run`)의 게시 → 배포 흐름은 [인프라 안내](../infrastructure/README.md#ci--cd-publish--deploy)를 참고하세요.
+마지막 릴리스(태그 `mobile-ios-latest`)와 비교해 `mobile/`이 달라진 develop 커밋은 별도 `Mobile CD`(`mobile-cd.yml`)가 서명 없는 iOS 시뮬레이터용 `.app`을 prerelease `mobile-ios-latest`에 올립니다([받는 법](../mobile/README.md#시뮬레이터용-빌드-받기-mobile-cd)).
 
 ## 에이전트 훅·스킬
 

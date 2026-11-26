@@ -4,7 +4,7 @@ import base64
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
@@ -34,6 +34,14 @@ CurrentFeature = Annotated[Feature, BeforeValidator(current_feature)]
 
 
 Index = Annotated[int, Field(ge=0)]
+
+# 요청 한도는 Content WritingAi.kt의 @Size(max=2000) request(Kotlin String.length = UTF-16 단위)와 같다. 되묻기 선택지 수 상한(#794)은 응답·도구 인자·`_clarify`가 함께 쓴다(#892).
+REQUEST_MAX, CHOICES_MAX = 2000, 4
+
+
+def utf16_len(text: str) -> int:
+    """Content(Kotlin String.length)와 같은 UTF-16 코드 단위 길이. 이모지 같은 보충 문자는 2단위, 짝 없는 서로게이트는 1단위다."""
+    return len(text.encode('utf-16-le', 'surrogatepass')) // 2
 
 
 def _distinct(numbers: list[int] | None) -> list[int] | None:
@@ -190,7 +198,7 @@ class OrchestrationRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     conversation: Conversation | None = None
     scope: RetrievalScope | None = None  # 있으면 Q&A가 inputs 없이 Retrieval 도구로 근거를 받는다.
-    request: str | None = Field(default=None, min_length=1, max_length=2000)
+    request: str | None = Field(default=None, min_length=1, max_length=REQUEST_MAX)
     resume: Resume | None = None
     target: WritingTarget | None = None  # 있고 대화 안이면 Writing 결과를 승인받아 Content MCP로 초안에 반영한다.
     operation: CurrentFeature | None = None
@@ -270,7 +278,14 @@ class Choice(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     label: str = Field(min_length=1, max_length=20)
-    message: str = Field(min_length=1, max_length=2000)
+    message: str = Field(min_length=1, max_length=REQUEST_MAX)  # 도구 스키마로 모델에게 한도를 알린다. 정확한 검사는 아래 UTF-16 검증이다
+
+    @field_validator('message')
+    @classmethod
+    def _within_request_limit(cls, message: str) -> str:
+        if utf16_len(message) > REQUEST_MAX:
+            raise ValueError(f'message는 {REQUEST_MAX}자(UTF-16) 이하여야 합니다.')
+        return message
 
 
 class ReplyChoice(Choice):
@@ -296,7 +311,7 @@ class OrchestrationResponse(BaseModel):
     pendingAction: PendingAction | None = None  # awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     basis: Basis | None = None  # waiting에만 있다. 판본을 저장하기 전(#668)에 멈춘 턴에는 없다
-    choices: list[ReplyChoice] = Field(default=[], max_length=4)  # clarify의 선택지(#794). 작가는 고르거나 입력창에 직접 답한다
+    choices: list[ReplyChoice] = Field(default=[], max_length=CHOICES_MAX)  # clarify의 선택지(#794). 작가는 고르거나 입력창에 직접 답한다
     rewritesLeft: int | None = None  # 원고 반영 대기에서 남은 다시 쓰기 횟수(#795). 다시 쓸 수 없는 대기(계획 수정·옛 체크포인트)에는 없다
     approvalEpisode: int | None = None  # 승인 질문·장면 대기·입력 대기(#635)에서 결과를 반영할 회차(target.episode). 편집기 회차 맞춤은 입력 대기를 빼고, 구간 카드는 이 회차에 고정한다
 

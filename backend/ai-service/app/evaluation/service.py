@@ -4,7 +4,7 @@
 평가 세트 이름이 qa.로 시작하면 Ragas(faithfulness·context precision), simulation.act·simulation.narrate면 원문 평가 루브릭(voice·intent·pov_ok / style·info·pov_ok), 그 밖은
 DeepEval GEval(항목 metadata.criteria)로 채점한다. 항목 input은 객체이며 프롬프트 본문(지시문)과 함께 업무 Agent와 같은 실행 틀(app/agent_runtime.py)로 모델에 보낸다.
 시뮬레이션 세트만 업무 Agent 틀 대신 실제 서비스 호출(app/simulation/agent의 act·narrate에 그 버전 본문)로 만든다(app/evaluation/simulation.py).
-라우팅 세트(decision_guard.routing, #783)는 실제 Decision Guard 판정에 그 버전 본문을 주고 정답과 견줘 모델 없이 guard·precision·recall로 채점한다(app/evaluation/routing.py).
+라우팅 세트(decision_guard.routing, #783)는 실제 Decision Guard 판정에 그 버전 본문을 주고 정답과 견줘 모델 없이 guard·precision·recall·rejected(정답이 거절인 항목만)로 채점한다(app/evaluation/routing.py).
 추출 세트(extraction.extract)도 실제 서비스 호출(manuscript_extraction.service.extract에 그 버전 본문)로 만들고 채점 모델 없이 정답표와 코드로 대조한다(recall·quote_ok, app/evaluation/extraction.py).
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
 기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이고, 그 평가 세트의 **마지막 문항이 만들어지거나 바뀐 뒤에 시작한** Run만
@@ -186,9 +186,11 @@ def _make_baseline(plan: Plan) -> Baseline:
 def _record(client, plan: Plan, result, metrics: tuple[str, ...]) -> dict[str, float]:
     """Run 수준 점수를 남기고 지표 평균을 돌려준다. 지표를 모두 채점받은 항목만 평균에 넣고 나머지는 실패로 센다."""
     run_id = _run_id(client, plan, result)
-    done = [r for r in result.item_results if set(metrics) <= {e.name for e in r.evaluations}]
+    required = set(metrics) - set(routing.OPTIONAL)  # 라우팅의 rejected처럼 항목에 따라 내지 않는 지표는 낸 항목끼리만 평균한다
+    done = [r for r in result.item_results if required <= {e.name for e in r.evaluations}]
     total = len(plan.dataset.items)
-    averages = {m: fmean(e.value for r in done for e in r.evaluations if e.name == m) for m in metrics} if done else {}
+    values = {m: [e.value for r in done for e in r.evaluations if e.name == m] for m in metrics}
+    averages = {m: fmean(v) for m, v in values.items() if v}
     baseline = plan.baseline
     passed, deltas = judge(averages, baseline.metrics if baseline else None, plan.tolerance, total - len(done))
     for name, average in averages.items():
@@ -240,7 +242,7 @@ async def _extraction_evaluator(*, input, output, expected_output=None, **_):
 
 
 def _metrics(dataset: str) -> tuple[str, ...]:
-    """평가 세트가 Run 수준 점수로 남기는 지표 이름: qa.는 Ragas 둘, 시뮬레이션 세트는 루브릭 셋, 라우팅 세트는 guard·precision·recall, 추출 세트는 recall·quote_ok, 그 밖은 GEval 하나다."""
+    """평가 세트가 Run 수준 점수로 남기는 지표 이름: qa.는 Ragas 둘, 시뮬레이션 세트는 루브릭 셋, 라우팅 세트는 guard·precision·recall·rejected, 추출 세트는 recall·quote_ok, 그 밖은 GEval 하나다."""
     if dataset == routing.DATASET:
         return routing.METRICS
     kind = simulation.KINDS.get(dataset)

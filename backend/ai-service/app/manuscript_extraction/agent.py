@@ -62,9 +62,14 @@ def extract(episode, instructions=None, model=None):
     return _call('manuscript_extraction.extract', prompt.EXTRACT, episode.model_dump(), ProposedExtraction, instructions, model, read_timeout=120)
 
 
-def resolve(extractions):
-    """회차별 대상 목록과 검증된 인용만 보내 동명이인·별칭 링크를 제안받는다. 원문 전체·evidence는 보내지 않는다(입력 상한)."""
+def resolve(extractions, known=None):
+    """회차별 대상 목록과 검증된 인용만 보내 동명이인·별칭 링크를 제안받는다. 원문 전체·evidence는 보내지 않는다(입력 상한).
+
+    known(업데이트의 기존 세계관 인물)은 이름·별칭만 본문·인용 없는 회차 0의 인물로 앞에 싣는다(#952).
+    """
     data = [{'number': e.number,
              'mentions': [{'ref': f'{e.number}:{m.id}', 'name': m.name, 'kind': m.kind, 'quote': m.quote} for m in e.mentions],
              'quotes': sorted({s.quote for s in e.statements} | {r.quote for r in e.relationships})} for e in extractions]
+    if known:
+        data.insert(0, {'number': 0, 'mentions': [{'ref': k.ref, 'name': k.name, 'aliases': k.aliases, 'kind': 'character'} for k in known], 'quotes': []})
     return _call('manuscript_extraction.resolve', prompt.RESOLVE, data, ProposedResolution, read_timeout=70)

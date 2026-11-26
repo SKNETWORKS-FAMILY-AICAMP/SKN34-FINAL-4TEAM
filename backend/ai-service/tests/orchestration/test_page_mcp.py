@@ -363,6 +363,67 @@ def test_only_a_new_scene_plan_keeps_the_position_the_model_gave(monkeypatch, na
     assert args['data'].get('position') == sent and args['data']['title'] == '첫 장면'
 
 
+SCENES = [{'id': 's1', 'title': '재회', 'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False},
+          {'id': 's2', 'title': '대치', 'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False},
+          {'id': 's3', 'title': '이별', 'kind': 'scene', 'episodeNumber': 4, 'episodeMissing': False},
+          {'id': 's4', 'title': '지워진 회차의 장면', 'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': True},
+          {'id': 's5', 'title': '회차 없는 장면', 'kind': 'scene', 'episodeNumber': None, 'episodeMissing': False},
+          {'id': 'p1', 'title': '1막', 'kind': 'plot', 'episodeNumber': None, 'episodeMissing': False}]
+# 3회차의 읽을 수 있는 장면은 2개, 회차를 연결하지 않은 장면은 1개뿐이다(플롯과 지워진 회차의 장면은 세지 않는다)
+
+
+@pytest.mark.parametrize('episode, position, sent', [(3, 3, None), (3, 9, None), (3, 2, 2), (3, 1, 1), (3, 0, 0), (None, 2, None), (None, 1, 1)])
+def test_a_new_scene_position_beyond_the_scenes_of_its_episode_is_left_out_so_content_appends_it(monkeypatch, episode, position, sent):
+    """Content는 장면 순서가 0..그 회차 장면 수가 아니면 422다(#917). 수보다 크면 position을 빼 맨 뒤에 붙게 하고 범위 안은 그대로 둔다.
+    회차를 연결하지 않은 장면(episodeNumber 없음)은 그런 장면끼리 센다."""
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'position': position, **({'episodeNumber': episode} if episode else {})}
+    fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    log = content(monkeypatch, story_plan_list=SCENES)
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    [(_, args)] = writes(log)
+    assert args['data'].get('position') == sent
+    assert [t for t, _ in log].count('story_plan_list') == (1 if position > 0 else 0)  # 장면 수는 필요할 때만 읽는다
+
+
+@pytest.mark.parametrize('position, saved, appended', [(9, 2, True), (1, 1, False)])
+def test_the_model_is_told_where_the_new_scene_was_really_put(monkeypatch, position, saved, appended):
+    """E2E에서 position을 빼 맨 뒤에 붙였는데 답은 '10번째로 추가했다'였다(#917). 모델이 실제 저장된 순서를 보고 답하게 한다."""
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': position}
+    calls = fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    content(monkeypatch, story_plan_list=SCENES, story_plan_create={'revision': 1, 'position': saved})
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    done = json.loads(next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'story_plan_create').content)
+    assert done['position'] == saved and ('appended' in done) == appended
+    assert done['order'] == saved + 1  # Content의 position은 0부터라 작가가 보는 순서(1부터)는 하나 더 크다. 모델이 그 순서로 답하게 한다
+
+
+@pytest.mark.parametrize('kind', ['plot', None])
+def test_a_new_plot_result_carries_no_position_or_order(monkeypatch, kind):
+    """플롯은 순서가 없다. Content는 기본값 0을 돌려줄 뿐이라 그대로 알리면 모델이 '1번째 플롯'처럼 답한다(#917). 순서는 장면 생성 결과에만 알린다."""
+    data = {'title': '1막', 'content': '', **({'kind': kind} if kind else {})}  # kind가 없으면 장면이 아니다(Content 규칙)
+    calls = fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    content(monkeypatch, story_plan_create={'revision': 1, 'position': 0})
+    thread = str(uuid4())
+    turn(thread)
+    assert resume(thread, True).status == 'completed'
+    done = json.loads(next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'story_plan_create').content)
+    assert done['revision'] == 1 and not {'position', 'order', 'appended'} & done.keys()
+
+
+def test_a_new_scene_whose_scene_count_cannot_be_read_fails_the_step_without_writing(monkeypatch):
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': 5}
+    fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
+    log = content(monkeypatch, fail={'story_plan_list': ContentMcpFailure(503, '읽을 수 없어요.')})
+    thread = str(uuid4())
+    turn(thread)
+    done = resume(thread, True)
+    assert done.status == 'failed' and writes(log) == []
+
+
 def test_a_write_for_another_work_is_refused_before_any_approval_is_asked(monkeypatch):
     calls = fake_agents(monkeypatch, only_content(('work_update', {'id': 'someone-elses', 'data': {'title': 'x', 'revision': 1}})))
     log = content(monkeypatch)

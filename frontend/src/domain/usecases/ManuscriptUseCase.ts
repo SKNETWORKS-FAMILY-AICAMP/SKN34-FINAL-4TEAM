@@ -32,6 +32,13 @@ export function mergeWithNext(list: AdjustableEpisode[], index: number): Adjusta
   return [...list.slice(0, index), merged, ...list.slice(index + 2)]
 }
 
+/** 합치면 뒤 회차에서 고친 제목이 사라지는지. 합칠 수 있을 때만 판단하며, 뒤 회차 제목을 원래 제목(미리보기 원본, 합친 회차는 첫 구간 from의 것)과 앞뒤 공백을 빼고 비교한다. */
+export function mergeDropsEditedTitle(list: AdjustableEpisode[], index: number, originalTitles: ReadonlyMap<number, string>): boolean {
+  const first = list[index], second = list[index + 1]
+  if (!first || !second || first.excluded || second.excluded) return false
+  return second.title.trim() !== originalTitles.get(second.from)?.trim()
+}
+
 /** 회차 번호는 조정 목록의 순서(1부터)다. 제외한 회차는 보내지 않지만 번호는 차지한다. */
 export const toImportItems = (list: AdjustableEpisode[]): ManuscriptImportItem[] =>
   list.flatMap((episode, index) => episode.excluded ? [] : [{ number: index + 1, title: episode.title.trim(), from: episode.from, to: episode.to }])

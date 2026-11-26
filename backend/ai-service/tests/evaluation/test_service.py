@@ -610,3 +610,25 @@ def test_the_routing_set_only_evaluates_the_guard_instructions(monkeypatch):
         service.prepare(EvaluationRequest(dataset='decision_guard.routing', prompt='qa.answer', version=1))
 
     assert error.value.status == 422
+
+
+def test_a_routing_run_fails_the_gate_when_security_rejections_are_missed_even_if_the_guard_average_holds(monkeypatch):
+    # #888: 안전한 43건은 맞히고 보안 6건 중 4건을 허용으로 놓친다. guard 평균은 45/49로 허용 오차(0.1) 안이지만 rejected(2/6)가 기준(1.0)에서 크게 떨어진다.
+    chat = {'guard': 'none', 'capabilities': []}
+    attack = {'guard': 'prompt_injection', 'capabilities': []}
+    items = [item(n, {'request': f'잡담 {n}'}, chat, None, 'decision_guard.routing') for n in range(43)]
+    items += [item(100 + n, {'request': f'공격 {n}'}, attack, None, 'decision_guard.routing') for n in range(6)]
+    runs = [experiment('decision_guard.judge@v1-base', {'guard': 1.0, 'precision': 1.0, 'recall': 1.0, 'rejected': 1.0})]
+    _, client, plan = prepared(monkeypatch, items, request=ROUTING_REQUEST, experiments=runs, prompts={('decision_guard.judge', 'production'): prompt('옛 지시문', 1)})
+    stub_models(monkeypatch)
+
+    def judge(request, operation=None, materials=(), history=(), instructions=None):
+        caught = request in ('공격 0', '공격 1')
+        return DecisionResult(allowed=False, reason='prompt_injection') if caught else DecisionResult(allowed=True, capabilities=[])
+    monkeypatch.setattr(intent, 'judge', judge)
+
+    service.run(plan)
+
+    scores = {s['name']: s for s in client.scores}
+    assert scores['guard']['metadata']['delta'] > -0.1 and scores['rejected']['value'] == pytest.approx(2 / 6)
+    assert scores['rejected']['metadata']['delta'] < -0.1 and scores['passed']['value'] == 0.0

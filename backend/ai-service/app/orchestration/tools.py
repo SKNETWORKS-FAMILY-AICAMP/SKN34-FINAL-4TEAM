@@ -15,6 +15,7 @@ resume마다 계획 모델 호출이 interrupt 앞에서 다시 일어나기 때
 import json
 from collections.abc import Callable
 from typing import Annotated, Literal
+from uuid import uuid4
 
 from langchain.tools import ToolRuntime
 from langchain_core.messages import ToolMessage
@@ -46,14 +47,14 @@ from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import Choice, QaStepResult, current_feature
+from app.orchestration.models import CHOICES_MAX, REQUEST_MAX, Choice, QaStepResult, current_feature, utf16_len
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest, PlanBrief, PlanPickRequest, PlanRequest, PlanReviseRequest
 
-Request = Annotated[str, Field(max_length=2000, description='서브 에이전트에게 줄 작업 지시. 작가 요청과 이번 턴 앞선 결과의 요약을 담을 수 있다.')]
+Request = Annotated[str, Field(max_length=REQUEST_MAX, description='서브 에이전트에게 줄 작업 지시. 작가 요청과 이번 턴 앞선 결과의 요약을 담을 수 있다.')]
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
 GUARD_TURNS, GUARD_REPLY = 3, 300  # Decision Guard가 받는 이전 턴 수와 답변 앞부분 글자 수(#781). 판정 입력을 짧게 두어 끌려감·지연을 줄인다
@@ -81,7 +82,6 @@ NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요
 NO_PLAN_CHANGE = '요청대로 바꿀 내용이 없어요. 고칠 방향을 더 구체적으로 알려 주세요.'
 PLAN_EPISODE_MISSING = '연결한 회차가 삭제됐어요. 계획 패널에서 회차 연결을 해제한 뒤 다시 요청해 주세요.'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
-CHOICES = 4  # 되묻기 선택지 수 상한(#794, OrchestrationResponse.choices)
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
               'research': 'ask_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
@@ -131,8 +131,8 @@ class Clarify(Exception):
 
 
 def _clarify(message: str, choices: list[dict] = ()) -> dict:
-    """남은 호출을 막고 되묻기로 끝내는 stopped. 요청 한도(2,000자)를 넘는 선택지는 자르면 다른 요청이 되므로 빼고 작가가 입력창으로 답한다."""
-    return {'stopped': {'status': 'clarify', 'message': message, 'choices': [c for c in choices if len(c['message']) <= 2000][:CHOICES]}}
+    """남은 호출을 막고 되묻기로 끝내는 stopped. 요청 한도(2,000자, UTF-16 단위로 Content와 같다)를 넘는 선택지는 자르면 다른 요청이 되므로 빼고 작가가 입력창으로 답한다."""
+    return {'stopped': {'status': 'clarify', 'message': message, 'choices': [c for c in choices if utf16_len(c['message']) <= REQUEST_MAX][:CHOICES_MAX]}}
 
 
 def previous(turn: dict) -> list[dict]:
@@ -149,8 +149,8 @@ def last_review(turn: dict, steps: list[dict]) -> dict | None:
 
 
 def history(turn: dict) -> list[str]:
-    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다."""
-    return [t['request'] for t in previous(turn)][-HISTORY_TURNS:]
+    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다. 가드가 거절한 턴(reply.status == 'rejected')은 뺀 뒤 최근 HISTORY_TURNS개를 센다(#887, guard_history와 같은 규칙)."""
+    return [t['request'] for t in previous(turn) if (t.get('reply') or {}).get('status') != 'rejected'][-HISTORY_TURNS:]
 
 
 def guard_history(turn: dict) -> list[dict]:
@@ -256,6 +256,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
     step = {'feature': feature, 'when': when, 'status': 'not_started', **({'task': task_kind} if task_kind else {})}
     read, scope = inputs(runtime.state), runtime.state.get('retrievalScope')
     name, answered, ran = _name(step), {}, False
+    line = uuid4().hex  # 진행 목록 줄 id. 모델의 tool_call_id 같은 내부 id는 싣지 않는다
     try:
         while needs(read, scope):
             if not turn.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
@@ -269,19 +270,23 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             scope = answer.get('scope') or scope
             answered = {'inputs': read, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
-        agent_runtime.report(runtime.tool_call_id, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
         ran = True
+        agent_runtime.report(line, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
         with tracing.observe(f'step.{feature}', as_type='agent'):
             step.update(status='completed', result=call(read, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
-        agent_runtime.report(runtime.tool_call_id, name, 'done', feature=feature)
+        agent_runtime.report(line, name, 'done', feature=feature)
         return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', _clarify(str(ask), ask.choices), failed=True)
     except FAILURES as error:
         step.update(status='failed', error=str(error))
+    except Exception:  # 예상 밖 예외도 줄이 running으로 남아 멈춘 것처럼 보이지 않게 한다
+        if ran:
+            agent_runtime.report(line, name, 'failed', feature=feature)
+        raise
     if ran:  # 실패는 failed로 보이고, 조건이 거짓이라 건너뛴 단계(skipped)는 끝난 작업이다
-        agent_runtime.report(runtime.tool_call_id, name, 'failed' if step['status'] == 'failed' else 'done', feature=feature)
+        agent_runtime.report(line, name, 'failed' if step['status'] == 'failed' else 'done', feature=feature)
     return _reply(runtime, feature, _summary(step), {'steps': [*shown, step], **answered}, failed=step['status'] == 'failed',
                   artifact=step.get('result'))
 
@@ -487,7 +492,8 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
             shown = ', '.join(f"'{b.title}'" for b in briefs[:PLAN_CANDIDATES])
             more = f' 외 {len(briefs) - PLAN_CANDIDATES}개' if len(briefs) > PLAN_CANDIDATES else ''
             raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}',
-                          [{'label': f"'{b.title[:13]}' 고치기", 'message': f"'{b.title}' 계획을 고쳐줘: {task(turn)}"} for b in briefs[:CHOICES]])
+                          [{'label': f"'{b.title[:13]}{'…' if len(b.title) > 13 else ''}' 고치기", 'message': f"'{b.title}' 계획을 고쳐줘: {task(turn)}"}
+                           for b in briefs[:CHOICES_MAX]])
         current = content_mcp.read_plan(work, picked)
         if current.episodeMissing:  # 그대로 저장하면 Content가 승인 순간 거절하므로 제안 전에 알린다(#641)
             raise WritingFailure(422, PLAN_EPISODE_MISSING)
@@ -602,6 +608,8 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     """
     turn = runtime.context
     step = {'feature': 'character_simulation', 'when': 'always', 'status': 'not_started'}
+    line, name = uuid4().hex, CAPABILITY_NAMES['character_simulation']
+    agent_runtime.report(line, name, 'running', feature='character_simulation')
     try:
         with tracing.observe('step.character_simulation.plan', as_type='agent'):
             if form := turn.get('simulationForm'):  # 버튼 진입: 모델에게 묻지 않고 작가가 양식에 적은 값을 세계관으로 확인해 쓴다
@@ -610,7 +618,12 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
                 drafted = simulation.plan(request, history(turn), turn.get('target'))
     except FAILURES as error:
         step.update(status='failed', error=str(error))
+        agent_runtime.report(line, name, 'failed', feature='character_simulation')
         return _reply(runtime, 'character_simulation', _summary(step), {'steps': [step]}, failed=True)
+    except Exception:
+        agent_runtime.report(line, name, 'failed', feature='character_simulation')
+        raise
+    agent_runtime.report(line, name, 'done', feature='character_simulation')  # 되묻기도 끝난 작업이다
     if gaps := drafted.gaps():
         asked = ', '.join(GAP_LABELS[g] for g in gaps)
         message = f'시뮬레이션을 시작하려면 {asked}을(를) 알려 주세요.'
@@ -628,7 +641,7 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
 
 @tool
 def ask_author(question: Annotated[str, Field(min_length=1, max_length=500, description='작가에게 보일 확인 질문 한 문장')],
-               options: Annotated[list[Choice], Field(min_length=2, max_length=4, description='고를 수 있는 답 2~4개. label은 버튼 글(20자 이하), '
+               options: Annotated[list[Choice], Field(min_length=2, max_length=CHOICES_MAX, description='고를 수 있는 답 2~4개. label은 버튼 글(20자 이하), '
                                                       'message는 누르면 작가 이름으로 보낼 요청 문장(그것만 읽어도 할 일이 분명하게)')],
                runtime: ToolRuntime) -> Command:
     """작가에게 선택지로 되묻는다(#794): 대상·작업을 정할 수 없고 고를 후보(회차·인물·계획·작업 등)가 있을 때만 부른다. 부르면 이번 턴은 이 질문으로 끝난다.

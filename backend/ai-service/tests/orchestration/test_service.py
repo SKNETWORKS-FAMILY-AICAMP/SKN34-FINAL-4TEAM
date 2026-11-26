@@ -2,8 +2,10 @@ import asyncio
 import base64
 import contextlib
 import json
+import re
 import threading
 import time
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -15,7 +17,7 @@ from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import prompt, service, tools
-from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest
+from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest, QaStepResult
 from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
 
@@ -1400,6 +1402,22 @@ def test_the_author_answers_a_clarify_in_the_next_chat_message(monkeypatch):
     answered = write_turn(thread, request='카엘과 리나로 해 줘', scope=SCOPE, target=TARGET)
     assert answered.status == 'waiting' and answered.awaitingScene == 'character_simulation'
     assert [c[1][:2] for c in calls if c[0] == 'sim_plan'] == [('카엘과 리나로 해 줘', ['장면 시뮬레이션'])]  # 앞 요청이 history로 간다
+
+
+def test_the_simulation_plan_history_counts_the_last_five_turns_without_the_ones_the_guard_rejected(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청1', '요청2')
+    fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
+    chat(thread, request='내 키는 sk-비밀')
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+    assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).status == 'clarify'
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청5', '요청6')
+    calls = fake_agents(monkeypatch, plan('character_simulation'))
+    fake_scene(monkeypatch)
+    write_turn(thread, request='카엘과 리나로 해 줘', scope=SCOPE, target=TARGET)
+    assert [c[1][1] for c in calls if c[0] == 'sim_plan'] == [['요청1', '요청2', '장면 시뮬레이션', '요청5', '요청6']]  # 막은 원문(sk-비밀)은 계획 모델에 다시 가지 않고(#887) 거절 턴을 뺀 최근 5턴이다. 되묻기 턴 요청은 남는다
 
 
 def test_planning_failure_fails_the_step_without_running_anything(monkeypatch):
@@ -2931,6 +2949,24 @@ def test_only_the_main_agent_gets_the_summary_block_before_the_last_five_turns(m
     assert '요청1' not in str(guard[0][1]) and '요청1' not in str(qa[0][1])  # 가드·Q&A에는 요약도 창 밖 턴도 없다
 
 
+def test_the_main_agent_gets_the_last_five_turns_without_the_rejected_ones(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청1')
+    fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
+    chat(thread, request='내 키는 sk-비밀')
+    fake_agents(monkeypatch, plan(status='clarify'))
+    assert chat(thread, request='요청3').status == 'clarify'
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청4', '요청5', '요청6')
+    calls.main.clear()
+    chats(thread, '요청7')
+    sent = [m for m in calls.main[0]['messages'] if isinstance(m, (HumanMessage, AIMessage))]
+    asked = [m.text for m in sent if isinstance(m, HumanMessage) and not m.text.startswith(prompt.SUMMARY_HEADER)]
+    assert asked == ['요청1', '요청3', '요청4', '요청5', '요청6', '요청7']  # 거절 턴을 빼고 5턴을 센다. 되묻기(clarify) 턴 요청3은 남는다
+    assert 'sk-비밀' not in str([m.text for m in sent])
+
+
 def test_a_failed_summary_keeps_the_turn_and_the_next_turn_merges_the_missed_turns_again(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
@@ -3040,6 +3076,25 @@ def test_revise_plan_choice_labels_are_cut_to_twenty_characters_but_the_message_
     plan_tools(monkeypatch, listed=[{**PLAN_READ, 'title': '가' * 30}])
     [choice] = revise_turn().choices
     assert len(choice.label) <= 20 and choice.message.startswith(f"'{'가' * 30}' 계획을")
+
+
+def test_revise_plan_choice_label_marks_a_cut_title_with_an_ellipsis_only_when_cut(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'pick_plan', lambda data: None)
+    plan_tools(monkeypatch, listed=[{**PLAN_READ, 'id': 'a', 'title': '가' * 13}, {**PLAN_READ, 'id': 'b', 'title': '나' * 14}])
+    assert [c.label for c in revise_turn().choices] == [f"'{'가' * 13}' 고치기", f"'{'나' * 13}…' 고치기"]
+
+
+def test_a_choice_over_the_request_limit_in_utf16_units_is_dropped_not_cut():
+    kept = {'label': '고르기', 'message': '😀' * 1000}  # 2,000단위: Content의 @Size(max=2000)를 통과한다
+    over = {'label': '넘침', 'message': '😀' * 1000 + 'x'}  # 코드 포인트는 1,001개지만 2,001단위
+    assert tools._clarify('질문', [over, kept])['stopped']['choices'] == [kept]
+
+
+def test_a_choice_with_lone_surrogates_counts_each_as_one_unit_instead_of_failing_the_turn():
+    kept = {'label': '고르기', 'message': '\ud800' * 2000}  # JSON "\ud800"처럼 짝 없는 서로게이트는 Kotlin String.length처럼 1단위다(encode 예외로 턴이 깨지면 안 된다)
+    over = {'label': '넘침', 'message': '\ud800' * 2001}
+    assert tools._clarify('질문', [over, kept])['stopped']['choices'] == [kept]
 
 
 def test_a_clarify_without_candidates_has_no_choices(monkeypatch):
@@ -3194,6 +3249,79 @@ def test_rewriting_also_reruns_the_same_turns_candidate_review_on_the_new_result
     assert third.steps[1].result.providerResponseId == 'r3'
 
 
+def test_rewriting_also_runs_a_candidate_review_that_failed_the_first_time(monkeypatch):
+    from app.manuscript_review.errors import ReviewFailure
+
+    fake_agents(monkeypatch, plan('writing_editing', 'manuscript_review'))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data, written['after']))
+        if len(reviewed) == 1:  # 첫 실행의 후보 검수 실패: 단계에 result가 없다
+            raise ReviewFailure(503, '검수 실패')
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId='r2', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH, 'manuscript_review': REVIEW})
+    assert (first.steps[1].status, first.steps[1].result) == ('failed', None)
+    again = rewrite(thread)
+    assert [(d.workId, d.episode, d.check, after) for d, after in reviewed] == [('work', 3, 'mechanical', '버전1'), ('work', 3, 'mechanical', '버전2')]
+    assert (again.steps[1].status, again.steps[1].error, again.steps[1].result.providerResponseId) == ('completed', None, 'r2')
+
+
+def test_rewriting_reruns_the_review_with_the_check_the_model_chose_when_the_author_sent_none(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing', Step('manuscript_review', check='semantic')))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data.check, written['after']))
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId=f'r{len(reviewed)}', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH})  # 작가가 manuscript_review 입력을 보내지 않았다
+    assert (first.steps[1].status, first.steps[1].result.check) == ('completed', 'semantic')
+    again = rewrite(thread)
+    assert reviewed == [('semantic', '버전1'), ('semantic', '버전2')]  # 다시 쓴 뒤에도 첫 검수 결과의 check로 돈다
+    assert (again.steps[1].status, again.steps[1].result.check, again.steps[1].result.providerResponseId) == ('completed', 'semantic', 'r2')
+
+
+def test_rewriting_is_observed_as_the_pipeline_node_step_writing_editing(monkeypatch, spans):
+    fake_agents(monkeypatch, plan('writing_editing'))
+    versions(monkeypatch)
+    thread = str(uuid4())
+    write_turn(thread, request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
+    rewrite(thread)
+    names = [s.name for s in spans()]
+    assert names.count('step.writing_editing') == 2 and 'step.writing_editing.rewrite' not in names  # 운영 파이프라인 노드 이름(DEC-58)
+
+
+def test_the_main_agent_seed_clears_the_previous_turns_writing_call_like_the_writing_base(monkeypatch):
+    from types import SimpleNamespace
+
+    fake_agents(monkeypatch, plan('story_context'))
+    seeds, build = [], service.agent.build
+
+    def recording(found):
+        agent = build(found)
+        invoke = agent.ainvoke
+
+        async def ainvoke(seed, *args, **kwargs):
+            seeds.append(seed)
+            return await invoke(seed, *args, **kwargs)
+
+        return SimpleNamespace(ainvoke=ainvoke)
+
+    monkeypatch.setattr(service.agent, 'build', recording)
+    write_turn(str(uuid4()), request='카이의 목표는?', inputs={'story_context': QA})
+    assert seeds[0]['writingBase'] is None and 'writingCall' in seeds[0] and seeds[0]['writingCall'] is None
+
+
 def test_a_failed_rewrite_keeps_the_last_result_and_fails_the_step(monkeypatch):
     fake_agents(monkeypatch, plan('writing_editing'))
     applied = writer(monkeypatch)
@@ -3289,6 +3417,65 @@ def test_a_conversation_whose_summary_was_cut_off_can_still_be_renamed_and_rated
     conversation('feedback', thread, ME, 0, 'up')
     history = conversation('history', thread, ME)
     assert (history.title, history.turns[0].feedback) == ('새 제목', 'up')
+
+
+# 진행 목록(activity) 리뷰 후속(#890)
+
+
+def lines(events, label=None):
+    """(라벨, 상태) 목록. label을 주면 그 줄만."""
+    return [(d['label'], d['status']) for n, d in events if n == 'activity' and label in (None, d['label'])]
+
+
+@pytest.mark.parametrize('drafted, fail, last', [
+    (None, None, 'done'),
+    (SimulationPlan(characterIds=['k']), None, 'done'),  # 되묻기는 실패가 아니라 끝난 작업이다
+    (None, SimulationFailure(503, '시뮬레이션 계획에 실패했습니다.'), 'failed'),
+])
+def test_character_simulation_reports_its_own_activity_line(monkeypatch, drafted, fail, last):
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=drafted, fail={'sim_plan': fail} if fail else None)
+    fake_scene(monkeypatch)
+    assert lines(stream(REQUEST, target=TARGET, scope=SCOPE, activities=True), '인물 시뮬레이션') == [('인물 시뮬레이션', 'running'), ('인물 시뮬레이션', last)]
+
+
+def test_an_unexpected_error_in_the_character_simulation_plan_marks_its_line_failed_and_is_raised_again(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), fail={'sim_plan': RuntimeError('boom')})
+    events = stream(REQUEST, target=TARGET, scope=SCOPE, activities=True)
+    assert lines(events, '인물 시뮬레이션') == [('인물 시뮬레이션', 'running'), ('인물 시뮬레이션', 'failed')]
+    assert events[-1][0] == 'error'  # 예외를 삼키지 않고 올려 스트림이 오류로 끝난다
+
+
+def ask_lines(monkeypatch, call):
+    """_ask를 직접 실행해 진행 목록 보고 (id, 상태)와 결과를 돌려준다. 예외는 그대로 올라오므로 호출한 쪽이 본다."""
+    seen = []
+    monkeypatch.setattr(tools.agent_runtime, 'report', lambda id, label, status, target=None, feature=None: seen.append((id, label, status)))
+    runtime = SimpleNamespace(context={}, state={}, tool_call_id='call-9', stream_writer=lambda event: None)
+    return seen, lambda: tools._ask(runtime, 'story_context', call)
+
+
+def test_an_unexpected_error_in_a_sub_agent_marks_its_line_failed_and_is_raised_again(monkeypatch):
+    def boom(inputs, scope):
+        raise RuntimeError('boom')
+    seen, run_ask = ask_lines(monkeypatch, boom)
+    with pytest.raises(RuntimeError):
+        run_ask()
+    assert [(label, status) for _, label, status in seen] == [('작품 질문', 'running'), ('작품 질문', 'failed')]
+
+
+@pytest.mark.parametrize('error', [tools.Skipped('건너뜀'), tools.Clarify('어느 회차인가요?')])
+def test_a_skipped_or_clarifying_sub_agent_ends_its_line_as_done(monkeypatch, error):
+    def call(inputs, scope):
+        raise error
+    seen, run_ask = ask_lines(monkeypatch, call)
+    run_ask()
+    assert [(label, status) for _, label, status in seen] == [('작품 질문', 'running'), ('작품 질문', 'done')]
+
+
+def test_activity_ids_are_fresh_per_call_not_the_model_tool_call_id(monkeypatch):
+    seen, run_ask = ask_lines(monkeypatch, lambda inputs, scope: QaStepResult(claims=[], gaps=[]))
+    run_ask()
+    (first, _, _), (second, _, _) = seen
+    assert first == second and first != 'call-9' and re.fullmatch(r'[0-9a-f]{32}', first)
 
 
 @pytest.mark.parametrize('how', ['run', 'stream'])

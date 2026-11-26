@@ -1357,6 +1357,39 @@ it('keeps the original management page open and displays the server reason after
   expect(button.disabled).toBe(false)
 })
 
+it('공개 세계관이 연결된 작품은 취소할 수 있고, 공개를 유지해 삭제하면 세계관 설정을 바꾸지 않는다', async () => {
+  stubCover()
+  const worldId = '0b0f6f0e-3a51-4d6b-9a39-1f4f2b6d0a01'
+  const worlds = appContainer.resolve('worldStudioUseCase')
+  const list = vi.spyOn(worlds, 'list').mockResolvedValue([{
+    id: worldId, name: '공개 세계', description: '', version: 1, settings: [], analysis: null,
+    visibility: 'public', genre: 'genre-03',
+  }])
+  const publication = vi.spyOn(worlds, 'setPublication')
+  const remove = vi.fn(() => new Response(null, { status: 204 }))
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: worldId }]),
+    'DELETE /api/v1/works/w': remove,
+  }))
+  await openSettings()
+  const confirm = vi.spyOn(window, 'confirm')
+  const button = screen.getByRole('button', { name: '작품 삭제' })
+  fireEvent.click(button)
+  const dialog = () => screen.findByRole('alertdialog', { name: '「옛 제목」 작품을 삭제할까요?' })
+  const warning = within(await dialog())
+  expect(warning.getByText(/작가 전용이던 설정 카드까지/)).toBeTruthy()
+  expect(document.activeElement).toBe(warning.getByRole('button', { name: '세계관을 비공개로 바꾸고 삭제' }))
+  fireEvent.click(warning.getByRole('button', { name: '취소' }))
+  expect(remove).not.toHaveBeenCalled()
+  fireEvent.click(button)
+  fireEvent.click(within(await dialog()).getByRole('button', { name: '공개 그대로 삭제' }))
+  expect(await screen.findByText('위치 /lib?tab=write')).toBeTruthy()
+  expect(list).toHaveBeenCalledTimes(2)
+  expect(remove).toHaveBeenCalledTimes(1)
+  expect(publication).not.toHaveBeenCalled()
+  expect(confirm).not.toHaveBeenCalled()
+})
+
 // ── 분기 작품: 포크 정보와 만들기 ────────────────────────────────────
 
 it('labels a fork as 분기 작품 and shows its pinned basis and direction instead of the original-work chip', async () => {

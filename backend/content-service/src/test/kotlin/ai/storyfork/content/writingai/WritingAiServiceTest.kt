@@ -445,6 +445,22 @@ class WritingAiServiceTest {
         }
     }
 
+    @Test
+    fun `request validation bounds the selected fix numbers to one to five and the service rejects negative numbers`() {
+        jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
+            fun problems(selected: List<Int>) = factory.validator.validate(ask.copy(request = null, resume = WritingAiResume(true, selected = selected)))
+                .map { it.propertyPath.toString() }
+            assertTrue(problems(listOf(0, 1, 2, 3, 4)).isEmpty())
+            assertEquals(listOf("resume.selected"), problems(listOf(0, 1, 2, 3, 4, 5)))
+            assertEquals(listOf("resume.selected"), problems(emptyList()))
+            assertTrue(problems(listOf(-1)).isEmpty())  // 음수는 validator가 잡지 못한다(타입 인자 @Min은 Kotlin에서 검증되지 않아 DTO에 없다)
+        }
+        // 음수는 타입 인자 @Min이 검증되지 않아 서비스가 422로 거절한다
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, selected = listOf(1, -1)))) }.status)
+        assertEquals(listOf(0, 1), (service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, selected = listOf(0, 1))))["resume"] as Map<*, *>)["selected"])
+    }
+
     // [시뮬레이션] 버튼의 시작 양식(simulation): operation이 character_simulation인 새 요청에서만 받아 AI로 그대로 넘긴다.
     private val button = ask.copy(request = "흐름 모드 시뮬레이션: 장면 계획 3개", operation = "character_simulation",
         simulation = WritingAiSimulation("flow", beats = listOf("성문 대면", "숨긴 정체"), characterIds = listOf("k", "l")))

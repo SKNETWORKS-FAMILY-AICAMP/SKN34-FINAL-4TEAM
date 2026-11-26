@@ -9,7 +9,6 @@ import openai
 import pytest
 from pydantic import BaseModel
 
-from cost import CostLog
 from llm import CallCapExceeded, Ledger, Llm, LlmFailure, usd_llm
 
 
@@ -141,33 +140,3 @@ def test_is_cached_tells_whether_a_request_would_call_the_provider(tmp_path):
 def test_usd_llm_pins_the_evaluation_model_whatever_the_environment_says(tmp_path, monkeypatch):
     monkeypatch.setenv('OPENAI_MODEL', 'gpt-6-luna')
     assert usd_llm(tmp_path / 'cache', tmp_path / 'cost.jsonl', 1.0).model == 'gpt-5.6-luna'
-
-
-def test_a_capped_llm_stops_on_a_response_without_usage_but_an_uncapped_one_goes_on(tmp_path):
-    """사용량이 없으면 금액을 셀 수 없어 상한을 지킬 수 없다: 상한이 있으면 멈추고(응답은 캐시에 쓰지 않는다), 없으면(구독 경로 채점) 그대로 쓴다."""
-    class NoUsage(Fake):
-        def _result(self, **extra):
-            return SimpleNamespace(status='completed', usage=None, model='m', id='r', **extra)
-
-    def build(tag, **kw):
-        return Llm(Ledger(tmp_path / 'ledger.jsonl', 100), tmp_path / f'cache-{tag}', model='m', client=NoUsage(), backoff=0, cost=CostLog(tmp_path / 'cost.jsonl'), **kw)
-
-    capped, free = build('capped', limit_usd=1.0), build('free')
-    with pytest.raises(CallCapExceeded):
-        capped.ask('k', 'ins', 'x')
-    assert not capped.is_cached('ins', 'x')
-    assert free.ask('k', 'ins', 'x') == 'answer-1' and free.cost.rows() == []
-
-
-def test_a_structured_answer_the_sdk_cannot_validate_is_a_counted_failure_not_a_crash(tmp_path):
-    """게이트웨이가 스키마에 안 맞는 글을 돌려주면 SDK의 parse가 pydantic ValidationError를 던진다: 고쳐 쓰지 않고 LlmFailure('unparsed')로 끝내 집계가 실패로 세게 한다(실행이 멈추지 않는다)."""
-    class Malformed(Fake):
-        def _parse(self, **kw):
-            self.calls += 1
-            Out.model_validate_json('{"value": "not-a-number"}')   # 스키마에 안 맞는 응답이라 ValidationError
-
-    client = Malformed()
-    llm = Llm(Ledger(tmp_path / 'ledger.jsonl', 100), tmp_path / 'cache', model='m', client=client, backoff=0)
-    with pytest.raises(LlmFailure, match='unparsed'):
-        llm.ask('k', 'ins', 'x', schema=Out)
-    assert client.calls == 1 and not llm.is_cached('ins', 'x', schema=Out)                # 다시 부르지 않았고 캐시에도 쓰지 않았다

@@ -80,6 +80,7 @@ if (socket.readyState !== WebSocket.OPEN) {
   })
 }
 const run = expression => evaluate(socket, expression)
+await run("location.assign('/notifications')")
 await waitFor('로그인 폼이 표시되지 않았어요.', () => run("Boolean(document.querySelector('input[type=password]'))"))
 const capture = spawn('adb', ['shell', 'screenrecord', '--time-limit', '175', recording], { stdio: 'ignore' })
 const captureDone = new Promise(resolve => capture.once('close', resolve))

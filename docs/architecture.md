@@ -59,7 +59,7 @@ Browser → React Web → /api
 두 공개 API의 상태·서비스명을 검증하며 AI는 항상 Core를 경유합니다.
 Hook이 로딩·성공·실패·재시도, 요청 취소와 늦은 응답 무시를 담당하고, Health Fetch는 Data Layer에서 20초 제한과 안전한 화면 오류를 사용합니다.
 
-모바일 앱(`mobile/`, Expo·React Native)은 기존 웹을 WebView로 표시하고 같은 공개 `/api`를 사용합니다. 로그인은 기존 웹 세션을 쓰며 앱의 SecureStore에는 Android 설치 UUID만 보관합니다. 전면 알림은 웹의 SSE와 연결하고, Android 원격 푸시는 Core가 커밋 뒤 AWS SNS → FCM V1으로 보냅니다. [모바일 실행과 설정](../mobile/README.md)
+모바일 앱(`mobile/`, Expo·React Native, Android·iOS 한 코드)은 STORYFORK 웹을 전체 화면 WebView(`react-native-webview`)로 보이는 셸이고, 앱이 직접 하는 일은 알림과 하단 탭(홈·탐색·내 서재·알림·내 정보를 누르면 웹 라우터로 이동하고 상태바 쪽은 웹 배경색으로 칠한 띠)뿐입니다. 로그인·회원가입·알림함·알림 설정·독서·집필은 모두 웹 화면 그대로이고(로그인은 웹에서 한 번, 갱신 토큰 쿠키는 WebView 저장소가 보관해 앱을 다시 켜도 유지됩니다) 웹과 같은 공개 `/api`는 웹이 부르므로 앱에는 네이티브 인증·API 클라이언트가 없고 AI·DB도 직접 호출하지 않습니다(웹 주소는 `EXPO_PUBLIC_API_BASE_URL`, 기본은 로컬 Compose web의 `http://localhost:5173`). 웹은 앱 안에서만(`window.ReactNativeWebView`가 있을 때) 알림 목록 첫 쪽을 읽을 때마다 `postMessage`로 앱에 알리고(로그아웃·계정 전환 때는 로그아웃을 알림), 앱은 zod로 검증한 뒤 기준선 이후 새로 생긴 읽지 않은 알림만 `expo-notifications` 로컬 알림으로 띄웁니다. 알림을 누르면 WebView가 웹 `noticeTarget`과 같은 규칙의 같은 origin 경로로 이동하고 다른 origin 링크는 시스템 브라우저로 엽니다. iOS는 APNs 원격 푸시 없이 앱을 켜 둔 동안만 알림이 옵니다([브리지 메시지 형식](notification-event-contract.md#모바일-앱-webview-브리지-메시지)). Android는 SecureStore에 설치 UUID만 보관하고, FCM 기기 토큰을 웹 인증 세션으로 Core에 등록합니다. Core는 저장을 커밋한 뒤 AWS SNS → FCM V1으로 발송합니다([모바일 README](../mobile/README.md)).
 
 ## Core Service (현재 모듈: `core-api`)
 
@@ -77,7 +77,7 @@ Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼�
 
 회원 탈퇴 요청은 `auth/controller → WithdrawalService → JpaRepository`가 `auth_withdrawal`(Flyway V7, `db/migration/auth`)에 요청·30일 유예·복구 상태만 기록하고 refresh 세션을 폐기합니다. 콘텐츠 소프트 삭제(DEC-42)·익명화와 유예 만료 후 최종 처리는 콘텐츠 서비스와의 계약이 확정된 뒤 후속으로 연결합니다.
 
-알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ 사건 소비자(`NoticeEventListener`)와 Core Outbox·발행기(`notification_outbox` V11, `NoticeOutboxRelay`)는 구현돼 있으나 Core가 직접 만드는 사건은 아직 연결하지 않았고(계약은 [알림 사건 계약](notification-event-contract.md)), Android 푸시는 #943에서 알림 저장 후 선택적으로 AWS SNS에 전달합니다.
+알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. 웹은 숨긴 탭에서 이 SSE 연결을 닫고, 다시 보이면 재연결하며 숨긴 동안 온 알림을 다시 조회합니다(#738). RabbitMQ 사건 소비자(`NoticeEventListener`)와 Core Outbox·발행기(`notification_outbox` V11, `NoticeOutboxRelay`)는 구현돼 있으나 Core가 직접 만드는 사건은 아직 연결하지 않았고(계약은 [알림 사건 계약](notification-event-contract.md)), 모바일 푸시는 후속 범위입니다.
 
 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
