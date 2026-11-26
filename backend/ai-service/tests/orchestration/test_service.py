@@ -3,6 +3,7 @@ import base64
 import contextlib
 import json
 import re
+import threading
 import time
 from types import SimpleNamespace
 from uuid import uuid4
@@ -1401,6 +1402,22 @@ def test_the_author_answers_a_clarify_in_the_next_chat_message(monkeypatch):
     answered = write_turn(thread, request='카엘과 리나로 해 줘', scope=SCOPE, target=TARGET)
     assert answered.status == 'waiting' and answered.awaitingScene == 'character_simulation'
     assert [c[1][:2] for c in calls if c[0] == 'sim_plan'] == [('카엘과 리나로 해 줘', ['장면 시뮬레이션'])]  # 앞 요청이 history로 간다
+
+
+def test_the_simulation_plan_history_counts_the_last_five_turns_without_the_ones_the_guard_rejected(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청1', '요청2')
+    fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
+    chat(thread, request='내 키는 sk-비밀')
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+    assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).status == 'clarify'
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청5', '요청6')
+    calls = fake_agents(monkeypatch, plan('character_simulation'))
+    fake_scene(monkeypatch)
+    write_turn(thread, request='카엘과 리나로 해 줘', scope=SCOPE, target=TARGET)
+    assert [c[1][1] for c in calls if c[0] == 'sim_plan'] == [['요청1', '요청2', '장면 시뮬레이션', '요청5', '요청6']]  # 막은 원문(sk-비밀)은 계획 모델에 다시 가지 않고(#887) 거절 턴을 뺀 최근 5턴이다. 되묻기 턴 요청은 남는다
 
 
 def test_planning_failure_fails_the_step_without_running_anything(monkeypatch):
@@ -2938,13 +2955,15 @@ def test_the_main_agent_gets_the_last_five_turns_without_the_rejected_ones(monke
     chats(thread, '요청1')
     fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
     chat(thread, request='내 키는 sk-비밀')
+    fake_agents(monkeypatch, plan(status='clarify'))
+    assert chat(thread, request='요청3').status == 'clarify'
     calls = fake_agents(monkeypatch, plan('story_context'))
-    chats(thread, '요청3', '요청4', '요청5', '요청6')
+    chats(thread, '요청4', '요청5', '요청6')
     calls.main.clear()
     chats(thread, '요청7')
     sent = [m for m in calls.main[0]['messages'] if isinstance(m, (HumanMessage, AIMessage))]
     asked = [m.text for m in sent if isinstance(m, HumanMessage) and not m.text.startswith(prompt.SUMMARY_HEADER)]
-    assert asked == ['요청1', '요청3', '요청4', '요청5', '요청6', '요청7']  # 거절 턴을 빼고 5턴을 센다
+    assert asked == ['요청1', '요청3', '요청4', '요청5', '요청6', '요청7']  # 거절 턴을 빼고 5턴을 센다. 되묻기(clarify) 턴 요청3은 남는다
     assert 'sk-비밀' not in str([m.text for m in sent])
 
 
@@ -3234,6 +3253,25 @@ def test_rewriting_also_runs_a_candidate_review_that_failed_the_first_time(monke
     assert (again.steps[1].status, again.steps[1].error, again.steps[1].result.providerResponseId) == ('completed', None, 'r2')
 
 
+def test_rewriting_reruns_the_review_with_the_check_the_model_chose_when_the_author_sent_none(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing', Step('manuscript_review', check='semantic')))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data.check, written['after']))
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId=f'r{len(reviewed)}', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH})  # 작가가 manuscript_review 입력을 보내지 않았다
+    assert (first.steps[1].status, first.steps[1].result.check) == ('completed', 'semantic')
+    again = rewrite(thread)
+    assert reviewed == [('semantic', '버전1'), ('semantic', '버전2')]  # 다시 쓴 뒤에도 첫 검수 결과의 check로 돈다
+    assert (again.steps[1].status, again.steps[1].result.check, again.steps[1].result.providerResponseId) == ('completed', 'semantic', 'r2')
+
+
 def test_rewriting_is_observed_as_the_pipeline_node_step_writing_editing(monkeypatch, spans):
     fake_agents(monkeypatch, plan('writing_editing'))
     versions(monkeypatch)
@@ -3419,3 +3457,56 @@ def test_activity_ids_are_fresh_per_call_not_the_model_tool_call_id(monkeypatch)
     run_ask()
     (first, _, _), (second, _, _) = seen
     assert first == second and first != 'call-9' and re.fullmatch(r'[0-9a-f]{32}', first)
+
+
+@pytest.mark.parametrize('how', ['run', 'stream'])
+@pytest.mark.parametrize('fn, args', [('rename', ('새 제목',)), ('feedback', (0, 'up'))])
+def test_rename_and_rating_are_refused_while_this_process_runs_the_summary_and_work_again_after_it(monkeypatch, how, fn, args):
+    # 요약이 도는 중(next=('summarize',))에 쓴 값은 곧 끝나는 요약 checkpoint가 부모로 삼은 옛 checkpoint의 다른 가지에 남아 사라진다(#891 리뷰)
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:5])
+    started, release = threading.Event(), threading.Event()
+
+    def slow_summary(text, turns):  # 동기 노드는 실행기 스레드에서 돌아 그사이 이벤트 루프는 다른 요청을 받는다
+        started.set()
+        release.wait(5)
+        return '요약'
+
+    monkeypatch.setattr(service, 'summarize', slow_summary)
+    sixth = OrchestrationRequest(request=TURNS[5], conversation={'threadId': thread, 'scope': ME}, inputs={'story_context': QA})
+
+    async def drain():
+        return [event async for event in service.stream(sixth)]
+
+    async def meanwhile():
+        turn = asyncio.create_task(service.run(sixth) if how == 'run' else drain())
+        try:
+            await asyncio.to_thread(started.wait, 5)
+            assert (await service.CHAT.aget_state(service._config(thread, ME))).next == ('summarize',)  # 끊겨 남은 대화와 checkpoint만으로는 구분되지 않는다
+            with pytest.raises(service.ConversationBusy):
+                await getattr(service, fn)(thread, ME, *args)
+        finally:
+            release.set()
+        await turn
+
+    asyncio.run(meanwhile())
+    conversation('rename', thread, ME, '새 제목')  # 요약이 끝나면 다시 된다
+    conversation('feedback', thread, ME, 0, 'up')
+    history = conversation('history', thread, ME)
+    assert (history.title, history.turns[0].feedback, summary_of(thread)) == ('새 제목', 'up', {'text': '요약', 'upTo': 1})
+
+
+def test_a_summary_that_breaks_outside_the_failure_handling_does_not_leave_the_conversation_busy(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:5])
+
+    def broken(text, turns):
+        raise RuntimeError('예상 밖 오류')  # SummaryFailure만 노드 안에서 삼킨다
+
+    monkeypatch.setattr(service, 'summarize', broken)
+    with pytest.raises(RuntimeError):
+        chats(thread, TURNS[5])
+    conversation('rename', thread, ME, '새 제목')  # 턴은 저장됐고 도는 실행은 없다
+    assert conversation('history', thread, ME).title == '새 제목'

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react'
+import {render,screen,fireEvent,waitFor,cleanup,within} from '@testing-library/react'
 import {MemoryRouter} from 'react-router'
 import {afterEach,it,expect,vi} from 'vitest'
 import {ManuscriptBuildPanel} from './ManuscriptBuildPanel'
@@ -117,19 +117,20 @@ it.each([
  ['CONTENT_REJECTED',/서버가 분석 결과를 받아들이지 않았어요/],
  ['NO_SETTINGS_FOUND',/설정을 찾지 못했어요/],
  ['WORLD_CHANGED',/세계관이 바뀌어 초안을 넣지 않았어요/],
+ ['EXECUTION_EXPIRED',/실행 기한이 지났어요/],
 ])('%s 실패 사유를 정해진 한국어 문구로 알린다',async(code,text)=>{
  show({read:vi.fn().mockResolvedValue({...job,status:'failed',failureCode:code}),start:vi.fn(),resume:vi.fn()})
- await screen.findByText(text)
+ await waitFor(()=>within(screen.getByRole('status')).getByText(text))
  expect(screen.queryByText(/원고와 작업 상태를 확인해 주세요/)).toBeNull()
 })
-it('완료 화면에 근거를 확인하지 못해 초안에 넣지 않은 항목 수를 알린다',async()=>{
+it('완료 화면에 초안에 넣지 않은 항목 수를 알린다',async()=>{
  show({read:vi.fn().mockResolvedValue({...job,status:'completed',completedEpisodes:4,receipts:[{}],skippedItems:3}),start:vi.fn(),resume:vi.fn()})
- await screen.findByText('근거를 확인하지 못한 항목 3개는 초안에 넣지 않았어요.')
+ await screen.findByText('항목 3개를 초안에 넣지 않았어요.')
 })
 it('넣지 않은 항목이 없으면 그 안내를 보이지 않는다',async()=>{
  show({read:vi.fn().mockResolvedValue({...job,status:'completed',completedEpisodes:4,receipts:[{}]}),start:vi.fn(),resume:vi.fn()})
  await screen.findByRole('link',{name:'세계관 초안 열기'})
- expect(screen.queryByText(/근거를 확인하지 못한 항목/)).toBeNull()
+ expect(screen.queryByText(/항목 \d+개를 초안에 넣지 않았어요/)).toBeNull()
 })
 it('자동 상태 조회는 상태 문구를 깜빡이거나 버튼을 잠그지 않는다',async()=>{
  const api={read:vi.fn().mockResolvedValueOnce({...job,status:'queued'}).mockImplementation(()=>new Promise(()=>{})),start:vi.fn(),resume:vi.fn()}

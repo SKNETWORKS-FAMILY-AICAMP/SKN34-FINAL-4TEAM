@@ -59,6 +59,8 @@ Browser → React Web → /api
 두 공개 API의 상태·서비스명을 검증하며 AI는 항상 Core를 경유합니다.
 Hook이 로딩·성공·실패·재시도, 요청 취소와 늦은 응답 무시를 담당하고, Health Fetch는 Data Layer에서 20초 제한과 안전한 화면 오류를 사용합니다.
 
+모바일 앱(`mobile/`, Expo·React Native, Android·iOS 한 코드)도 웹과 같은 공개 `/api`만 호출하고 AI·DB를 직접 호출하지 않습니다. 지금은 첫 화면만 있는 골격이며 로그인·알림함·푸시는 [#943](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/943) 후속입니다([모바일 README](../mobile/README.md)).
+
 ## Core Service (현재 모듈: `core-api`)
 
 Gradle group은 `ai.storyfork`, 애플리케이션은 `storyfork-core-api`, namespace는 `ai.storyfork.core`입니다.
