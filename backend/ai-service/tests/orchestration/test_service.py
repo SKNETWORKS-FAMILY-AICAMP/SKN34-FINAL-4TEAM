@@ -3091,6 +3091,12 @@ def test_a_choice_over_the_request_limit_in_utf16_units_is_dropped_not_cut():
     assert tools._clarify('질문', [over, kept])['stopped']['choices'] == [kept]
 
 
+def test_a_choice_with_lone_surrogates_counts_each_as_one_unit_instead_of_failing_the_turn():
+    kept = {'label': '고르기', 'message': '\ud800' * 2000}  # JSON "\ud800"처럼 짝 없는 서로게이트는 Kotlin String.length처럼 1단위다(encode 예외로 턴이 깨지면 안 된다)
+    over = {'label': '넘침', 'message': '\ud800' * 2001}
+    assert tools._clarify('질문', [over, kept])['stopped']['choices'] == [kept]
+
+
 def test_a_clarify_without_candidates_has_no_choices(monkeypatch):
     fake_agents(monkeypatch, REVISE)
     plan_tools(monkeypatch, listed=[])
