@@ -1443,6 +1443,40 @@ it('턴을 지우면 그 번호 이상의 진행 목록도 지워 같은 번호�
   expect(screen.queryByText('작업 1개')).toBeNull()
 })
 
+it('턴을 지우면 이력을 다시 읽는 동안에도, 다시 읽기가 실패해도 그 번호 이상의 진행 목록은 지워져 같은 번호의 실패한 다음 턴에 되살아나지 않는다(#890)', async () => {
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const first = { request: '첫 질문', reply }
+  openThread([first])
+  truncate.mockResolvedValue(undefined)
+  send.mockImplementationOnce(async (_work, _thread, _input, onEvent) => {
+    onEvent({ type: 'activity', activity: { id: 'a', label: '회차 읽기', status: 'done' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '둘째 질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  send.mockRejectedValueOnce(new Error('연결 실패'))
+  renderChat()
+  await screen.findByText('첫 질문')
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '둘째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('작업 1개')
+  let failRead!: (error: Error) => void
+  history.mockReturnValue(new Promise((_resolve, reject) => { failRead = reject }))
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지부터 지우기' })[1])
+  await waitFor(() => expect(truncate).toHaveBeenCalledWith('w', 'a', 1))
+  await waitFor(() => expect(screen.queryByText('작업 1개')).toBeNull()) // 이력을 다시 읽는 중에도 지운 턴의 목록은 이미 지웠다
+  await act(async () => { failRead(new Error('이력 읽기 실패')) })
+  await screen.findByText('이력 읽기 실패')
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first] })
+  fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+  await screen.findByText('첫 질문')
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [first, { request: '셋째 질문', reply }] })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '셋째 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await screen.findByText('연결 실패')
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '이 메시지 고치기' })).toHaveLength(2))
+  expect(screen.queryByText('작업 1개')).toBeNull()
+})
+
 it('앞 턴을 고쳐 다시 보내면 그 뒤 턴의 진행 목록도 지워 같은 번호의 실패한 다음 턴에 옛 목록이 되살아나지 않는다(#890)', async () => {
   const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
   const first = { request: '첫 질문', reply }

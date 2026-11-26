@@ -251,13 +251,14 @@ docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 
 ## CI → CD (publish → deploy)
 
-[CI](../.github/workflows/ci.yml)와 [CD](../.github/workflows/publish-images.yml) 두 workflow를 사용합니다. CD는 CI 성공 뒤 `workflow_run`으로 시작합니다. 별도 deploy workflow는 없습니다.
+[CI](../.github/workflows/ci.yml)와 [CD](../.github/workflows/publish-images.yml) 두 workflow에 모바일 빌드용 [Mobile CD](../.github/workflows/mobile-cd.yml)를 더해 세 workflow를 사용합니다. CD와 Mobile CD는 CI 성공 뒤 `workflow_run`으로 시작합니다. 별도 deploy workflow는 없습니다.
 
 - CI는 변경 선택 → 서비스별 job(빌드 → 단위 → 통합)·설정 병렬 → 선택 HTTP 시스템 → `Required CI`입니다. 서비스마다 job 하나(`Service / <서비스>`)가 한 러너에서 순서대로 실행하고, 단위가 실패하면 통합을 돌리지 않습니다.
 - 자동 CD publish는 신뢰된 같은 저장소 develop의 성공한 push/수동 CI만 받습니다. PR·fork·main·실패·취소 CI는 게시/배포 권한이 없습니다.
 - 수동 **CD → Run workflow → develop**은 해당 커밋의 이미지를 게시합니다(이미 게시된 빌드 tree는 건너뜁니다). 이 수동 경로가 CI 재검증을 대신하지는 않습니다. 다른 ref는 생략합니다.
 - deploy는 publish 성공만 요구하며 별도 활성화·승인 변수는 없습니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
 - packages write는 publish, packages read/id-token write는 deploy에만 부여합니다. `storyfork-develop-cd` concurrency로 직렬화하고 실행 중 취소하지 않습니다.
+- 모바일은 별도 [Mobile CD](../.github/workflows/mobile-cd.yml)가 같은 조건(같은 저장소 develop의 성공한 push/수동 CI, 수동은 develop ref)에서 시작합니다. 마지막 릴리스(태그 `mobile-ios-latest`의 커밋, 태그가 없으면 대상 커밋의 첫 부모)와 비교해 `mobile/`이 달라졌을 때만(수동은 항상) macOS 러너에서 서명 없는 iOS 시뮬레이터용 `.app`을 만들어 prerelease `mobile-ios-latest`의 `STORYFORK-ios-simulator.zip`을 교체한 뒤 태그를 그 커밋으로 옮깁니다(중간에 실패하면 태그가 옛 커밋에 남아 다음 실행이 다시 싣습니다. 릴리스가 아직 없을 때만 태그를 먼저 만듭니다). 이미지·서버 배포와 무관하고, `contents: write`는 release job에만 부여하며 `storyfork-mobile-ios-cd` concurrency로 직렬화하고 취소하지 않습니다. 서버 주소는 선택 저장소 변수 `MOBILE_API_BASE_URL`(없으면 앱 기본값)이고 받는 법은 [모바일 README](../mobile/README.md#시뮬레이터용-빌드-받기-mobile-cd)입니다.
 
 자동 `workflow_run`은 기본 브랜치 main, 수동은 develop ref를 사용하므로 `develop-cd` environment의 allowed deployment branches에 둘을 허용하고 승인 정책을 유지해야 합니다. 소스 파일만으로 실제 GitHub 설정·branch protection·게시·배포가 완료되지 않습니다.
 

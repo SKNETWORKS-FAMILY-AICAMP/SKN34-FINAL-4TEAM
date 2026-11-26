@@ -62,7 +62,26 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 - 없는 회원 대상 사건은 버리고 정상 처리한다.
 - 형식·계약 위반은 재시도 없이 DLQ로 보낸다. DB 등 일시 오류는 3회 재시도 후 DLQ로 간다.
 - 알림이 DB에 저장된 뒤에만 열려 있는 알림 스트림(SSE)에 변경 신호가 간다.
+- 모바일 앱(`mobile/`, #943)은 웹을 WebView로 보이므로 이 SSE도 웹이 그대로 받는다(앱이 따로 연결하지 않는다). 앱 안에서 웹이 알림 목록을 읽을 때마다 앱에 알리는 방식은 아래 '모바일 앱 WebView 브리지 메시지'를 본다.
 - 웹은 `ready`·`changed`를 받으면 알림을 다시 조회한다. 스트림 종료·유휴 타임아웃·연결 오류는 지수 백오프로 재연결하며, `ready` 뒤 20초 이상 지난 시점에도 데이터를 받으면 재시도 횟수를 초기화한다(#419).
+
+## 모바일 앱 WebView 브리지 메시지
+
+모바일 앱(`mobile/`, #943)은 웹을 WebView로 보이고 알림만 맡는다. 앱은 SSE에 연결하거나 Core API를 부르지 않고, 웹이 `window.ReactNativeWebView.postMessage(JSON 문자열)`로 보낸 메시지만 받는다. 웹은 앱 안에서만(`window.ReactNativeWebView`가 있을 때) 보내며 브라우저에서는 아무것도 바뀌지 않는다. 형식은 웹 `frontend/src/domain/entities/nativeBridge.ts`가 만들고 앱 `mobile/src/bridge.ts`가 zod로 검증하며 두 쪽의 시험이 같은 JSON을 쓴다. 형식을 바꾸면 이 표와 두 파일을 함께 고친다.
+
+| type | 보내는 때 | 필드 |
+| --- | --- | --- |
+| `storyfork.notifications` | 로그인한 회원의 알림 목록 첫 쪽(`GET /api/v1/me/notifications`, 20개)을 읽은 직후: 로그인·세션 복구 직후와 알림 스트림 신호(`ready`·`changed`)마다. 새 요청 종류는 없고 웹의 기존 목록 조회(`ShellUseCase.listNotifications`)다 | `userId`(Core 회원 id), `items[]`: `id`·`kind`·`targetType`·`targetId`(없으면 `null`)·`summary`·`read`·`createdAt`(ISO 8601). 알림 API 응답의 항목과 같은 값이다 |
+| `storyfork.logout` | 로그아웃하거나 로그인한 회원이 바뀔 때(계정 전환) | 없음 |
+
+```json
+{"type":"storyfork.notifications","userId":"00000000-0000-4000-8000-000000000001","items":[{"id":"…","kind":"credit","targetType":"credit-expiry","targetId":"2026-12-01","summary":"곧 소멸되는 크레딧이 있어요","read":false,"createdAt":"2026-11-26T04:14:26.947303Z"}]}
+```
+
+- 항목은 알림함의 `summary`뿐이고 비공개 원고 본문·개인정보는 싣지 않는다(알림 문구 규칙은 위와 같다). 앱은 정해진 필드만 쓰고 모르는 필드는 버리며, 형식이 다른 메시지나 `kind`를 모르는 항목이 든 메시지는 통째로 무시한다.
+- 앱은 회원별 기준선(`id`+`createdAt`)을 메모리에만 둔다. 앱을 켠 뒤·로그아웃 뒤·다른 회원으로 바뀐 뒤 처음 받은 목록은 기준선만 만들고 알리지 않으며, 그다음 목록에서 기준선에 없던 읽지 않은 알림만 `expo-notifications` 로컬 알림(제목은 분류 이름, 본문은 `summary`)으로 띄운다. `ai-tool`은 같은 알림의 시각만 올라가므로 `createdAt`이 바뀌면 새 알림으로 본다. 알림 권한은 처음 알림 목록을 받을 때(로그인한 걸 안 뒤) 한 번 묻는다.
+- 알림(로컬 알림·`xcrun simctl push` 알림)을 누르면 앱은 알림 데이터(`kind`·`targetType`·`targetId`)에서 웹 `noticeTarget`과 같은 규칙의 경로를 만들어 WebView를 같은 origin의 그 경로로 옮긴다(이동 대상이 없으면 옮기지 않는다). 원격 알림 payload는 expo-notifications 규칙대로 최상위 `body` 객체에 이 값들을 둔다.
+- 앱을 내려 두면(백그라운드) 웹의 SSE도 멈춰 그동안은 알림이 오지 않는다. 돌아오면 웹이 SSE를 다시 연결하고(`ready`) 목록을 다시 읽어 보내므로 그동안 생긴 알림이 그때 로컬 알림이 된다(iOS 시뮬레이터에서 확인, 재연결은 웹의 유휴 감시 시간만큼 걸릴 수 있다). 앱을 완전히 종료했다가 다시 켠 경우에는 처음 받은 목록이 기준선이라 그동안 생긴 알림은 띄우지 않는다(웹 알림함·배지에는 그대로 있다). iOS APNs 원격 푸시는 이번 범위 밖이다(Android FCM은 별도).
 
 ## 발행 쪽 약속
 

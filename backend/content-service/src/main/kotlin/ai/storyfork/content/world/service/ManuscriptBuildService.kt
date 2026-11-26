@@ -50,15 +50,25 @@ class ManuscriptBuildService(
         val expired=job.status in listOf("running","loading") && job.deadline?.isAfter(Instant.now())==false
         val saved=steps.findAllByJobIdOrderBySequence(job.id)
         check(job.status!="completed" || (saved.isNotEmpty() && saved.all { it.receipt!=null && it.status=="applied" }))
-        val extractions=results.findAllByJobIdOrderByEpisode(job.id).filter { it.kind=="extraction" }
+        val artifacts=results.findAllByJobIdOrderByEpisode(job.id)
+        val extractions=artifacts.filter { it.kind=="extraction" }
+        val identity=artifacts.firstOrNull { it.kind=="identity" }
+        val skippedLinks=(identity?.content?.get("skippedLinks") as? Number)?.toInt()?.coerceAtLeast(0) ?: 0
+        // Mapper가 제외한 관계는 검증된 payload에는 있고 예약 요청에는 없다. 재개해도 같은 요청을 사용한다.
+        val skippedRelations=if(job.status=="completed") {
+            val payload=artifacts.firstOrNull { it.kind=="payload" }
+            val proposed=(payload?.content?.get("relations") as? List<*>)?.size ?: 0
+            val reserved=saved.sumOf { (it.requestPayload["relationships"] as? List<*>)?.size ?: 0 }
+            (proposed-reserved).coerceAtLeast(0)
+        } else 0
         return ManuscriptBuildResponse(job.id,job.worldId,if(expired) "unknown" else job.status,
             extractions.size,input(job).episodes.size,
             job.executionToken,if(expired && job.status=="running") "EXECUTION_EXPIRED" else job.failureCode,
             saved.mapNotNull { it.receipt?.let { receipt -> mapper.convertValue(receipt,ManuscriptLoadReceipt::class.java) } },
-            extractions.sumOf { skippedItems(it.content) },job.requestKey)
+            extractions.sumOf { skippedItems(it.content) }+skippedLinks+skippedRelations,job.requestKey)
     }
-    /** 추출 결과의 skipped(코드별 건수)를 더한다. 이 필드가 없던 옛 결과는 0이다. */
-    private fun skippedItems(extraction:Map<String,Any?>)=(extraction["skipped"] as? Map<*,*>)?.values?.sumOf { (it as? Number)?.toInt() ?: 0 } ?: 0
+    /** 저장된 추출 결과({basis,evidence,extraction})에서 extraction의 skipped(코드별 건수)를 더한다. 이 필드가 없던 옛 결과는 0이다. */
+    private fun skippedItems(content:Map<String,Any?>)=((content["extraction"] as? Map<*,*>)?.get("skipped") as? Map<*,*>)?.values?.sumOf { (it as? Number)?.toInt() ?: 0 } ?: 0
     /**
      * 지금 원고가 고정한 입력과 다르다. 회차가 지워지거나 미저장이 돼 고정할 수 없는 경우도 바뀐 것으로 본다.
      * 업데이트 작업은 고정한 회차의 발행본만 보고(다른 회차의 새 발행은 다음 업데이트 몫이다) 발행이 중단되거나 다른 버전으로 바뀌어도 바뀐 것이다.
@@ -232,10 +242,11 @@ class ManuscriptBuildService(
             ManuscriptStructureVerifier.verify(all,mapper.valueToTree(identity.content),payload,mapper)
             val evidence=sourceEvidence(id,payload,all)
             val requests=ManuscriptBuildMapper.build(id,basis,payload,evidence,all,update=job.kind=="update")
-            try {
+            val prepared=try {
                 studio.prepareManuscript(job.worldId,owner,basis) {
                     val current=owned(id,owner)
-                    if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
+                    if(current.status!="running" || current.executionToken!=token) throw WorldConflict()
+                    if(current.deadline?.isAfter(Instant.now())!=true) return@prepareManuscript false
                     require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
                     requests.forEachIndexed { index,request ->
                         studio.validateEditRequest(request,basis.cards,basis.relationships)
@@ -250,6 +261,7 @@ class ManuscriptBuildService(
                 // 만든 적재 요청이 초안 편집 검사(허용 키·형식·한도)를 통과하지 못했다. 재개해도 같은 입력이라 같은 거절이니 사유를 남겨 실패로 끝낸다(running으로 남기지 않는다).
                 stale(id,owner,token,"CONTENT_REJECTED")
             }
+            if(!prepared) stale(id,owner,token,"EXECUTION_EXPIRED")
         }
         if(job.status!="running" && job.status !in listOf("loading","unknown")) throw WorldConflict()
         try {
