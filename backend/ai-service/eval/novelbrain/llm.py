@@ -14,7 +14,6 @@ from pathlib import Path
 
 import openai
 from openai import OpenAI, OpenAIError
-from pydantic import ValidationError
 
 from cost import MODEL, CostLog
 
@@ -54,10 +53,9 @@ class Ledger:
 
 class Llm:
     def __init__(self, ledger: Ledger, cache_dir, model: str | None = None, client=None, attempts: int = 3,
-                 backoff: float = 2.0, cost: CostLog | None = None, limit_usd: float | None = None, judge: 'Llm | None' = None):
+                 backoff: float = 2.0, cost: CostLog | None = None, limit_usd: float | None = None):
         self.ledger, self.cache_dir = ledger, Path(cache_dir)
         self.cost, self.limit_usd = cost, limit_usd
-        self.judge = judge   # 채점('judge' 호출)을 따로 보낼 Llm(응답 모델과 채점 모델을 나눌 때). 없으면 이 Llm이 모두 부른다. Batch 실행기는 이 분리를 지원하지 않는다
         self.model = model or os.environ['OPENAI_MODEL']
         self._client, self.attempts, self.backoff = client, attempts, backoff
         self._locks: dict[str, threading.Lock] = {}
@@ -75,10 +73,6 @@ class Llm:
             [self.model, instructions, input, schema.__name__ if schema else None, max_output_tokens],
             ensure_ascii=False).encode()).hexdigest()
         return self.cache_dir / f'{key}.json'
-
-    def for_kind(self, kind: str) -> 'Llm':
-        """이 종류의 호출을 받는 Llm: 'judge'는 judge Llm이 있으면 그쪽, 그 밖은 자기 자신. Planner·SyncExecutor가 요청마다 고른다."""
-        return self.judge if kind == 'judge' and self.judge is not None else self
 
     def is_cached(self, instructions: str, input: str, *, schema=None, max_output_tokens: int = 4000) -> bool:
         """이 요청이 캐시에 있어 호출 없이 끝나는가(실행 전 예상 호출 수 계산용)."""
@@ -101,8 +95,6 @@ class Llm:
         if self.cost is not None and usage is not None:
             cached = getattr(getattr(usage, 'input_tokens_details', None), 'cached_tokens', 0) or 0
             self.cost.record(kind, usage.input_tokens, usage.output_tokens, cached, failed=failed, chars=chars)
-        elif self.cost is not None and self.limit_usd is not None:   # 사용량이 없으면 금액을 셀 수 없다: 상한이 조용히 뚫리지 않게 멈춘다
-            raise CallCapExceeded('응답에 사용량이 없어 비용 상한을 지킬 수 없다.')
 
     def write_cache(self, key: str, result, model: str | None, usage: dict | None) -> None:
         """Batch 회수처럼 밖에서 얻은 응답을 동기 호출과 같은 형식으로 캐시에 쓴다."""
@@ -126,8 +118,6 @@ class Llm:
             except TRANSIENT:
                 time.sleep(self.backoff * 2 ** attempt)
                 continue
-            except ValidationError:   # 구조화 출력이 스키마에 안 맞으면 SDK의 parse가 던진다: 고쳐 쓰지 않고 실패로 끝내 집계가 센다(실행은 계속된다)
-                raise LlmFailure('unparsed') from None
             except OpenAIError as error:
                 raise LlmFailure(type(error).__name__) from None
             chars = len(instructions) + len(input)

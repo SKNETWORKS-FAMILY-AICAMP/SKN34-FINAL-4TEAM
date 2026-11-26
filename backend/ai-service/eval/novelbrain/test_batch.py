@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 from pydantic import BaseModel
 
-from batch import BatchExecutor, Pending, Planner, Round, SyncExecutor, cost_report, estimate, parse_body, run_rounds, strict_schema
+from batch import BatchExecutor, Pending, Planner, Round, SyncExecutor, estimate, parse_body, run_rounds, strict_schema
 from cost import CostLog
 from llm import Ledger, Llm, LlmFailure
 
@@ -277,34 +277,3 @@ def test_round_reports_permanent_failures_without_stopping():
     step = Round()
     assert step.get(fail) == (None, True)
     step.done()
-
-
-def test_an_llm_with_a_judge_llm_sends_only_judge_requests_there(tmp_path):
-    """응답 모델과 채점 모델을 나눈다: 'judge' 요청은 judge Llm의 캐시·클라이언트로, 그 밖은 자기 것으로 간다."""
-    gen_client, judge_client = SyncFake(), SyncFake()
-    judge = Llm(Ledger(tmp_path / 'judge-ledger.jsonl', 10 ** 6), tmp_path / 'judge-cache', model='judge-m', client=judge_client, backoff=0)
-    llm = make_llm(tmp_path, gen_client, judge=judge)
-    assert llm.for_kind('gen') is llm and llm.for_kind('judge') is judge and judge.for_kind('judge') is judge and make_llm(tmp_path / 'x').for_kind('judge').judge is None
-    planner = Planner(llm)
-    for kind, text in (('gen', 'g'), ('judge', 'j')):
-        with pytest.raises(Pending):
-            planner.ask(kind, 'ins', text)
-    assert SyncExecutor(llm, workers=2)(planner.requests) == set()
-    assert gen_client.calls == ['g'] and judge_client.calls == ['j']              # 서로 다른 Llm으로 갔다
-    assert len(list((tmp_path / 'cache').glob('*.json'))) == 1 and len(list((tmp_path / 'judge-cache').glob('*.json'))) == 1
-    again = Planner(llm)
-    assert again.ask('gen', 'ins', 'g') == 'g' and again.ask('judge', 'ins', 'j') == 'j'   # 둘 다 자기 캐시에서 읽는다
-    assert gen_client.calls == ['g'] and judge_client.calls == ['j']
-
-
-def test_cost_report_prints_a_ledger_without_a_cap(tmp_path, capsys):
-    """상한이 없는 Llm(구독 경로 채점)도 장부를 출력한다."""
-    llm = make_llm(tmp_path)
-    llm.ask('judge', 'ins', 'x')
-    cost_report(llm)
-    out = capsys.readouterr().out
-    assert 'judge' in out and '장부 합계' in out and '상한' not in out
-    capped = make_llm(tmp_path / 'capped', limit_usd=3.0)
-    capped.ask('gen', 'ins', 'x')
-    cost_report(capped)
-    assert '상한 $3.00' in capsys.readouterr().out
