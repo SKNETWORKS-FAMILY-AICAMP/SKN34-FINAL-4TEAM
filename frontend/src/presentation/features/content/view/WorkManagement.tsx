@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { SERIAL_LOCK_NOTICE, serialEpisodeLocked } from '../../../../domain/entities/aiSerial'
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
-import { worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
+import { initialBuildCompletedOn, worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -64,7 +64,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   const [editing, setEditing] = useState<WorkEditing>(null)
   const [mediaBusy, setMediaBusy] = useState(false)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
-  // 일괄 업로드가 회차를 저장하면 서버가 같은 요청에서 세계관 추출을 접수하므로, 시트를 닫을 때 key를 바꿔 배지가 상태를 다시 읽게 한다.
   const [buildCheck, setBuildCheck] = useState(0)
   const [forkTitle, setForkTitle] = useState('')
   const [direction, setDirection] = useState('')
@@ -102,6 +101,10 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   const deleteError = vm.origin === 'delete' ? vm.error : ''
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다(InboxPage와 같다). 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
+  // 공개 회차의 진행 배지와 업로드 안내가 같은 최초 구축 조회를 사용한다.
+  const build = useManuscriptBuild(w.id, w.worldStudioId, undefined, { enabled: tab === 'read' && !mockup, refreshKey: buildCheck })
+  const buildLabel = !mockup && !build.error ? worldBuildBadge(build.job) : null
+  const initialBuildCompleted = !build.error && initialBuildCompletedOn(build.job, w.worldStudioId)
   // 상속 회차가 있으면 '1~2화'처럼 줄여, 그 회차들은 수정할 수 없다고 따로 알린다.
   const inherited = inheritedRangeLabel(w.episodes)
   // 회차별로 갈라진 공개 포크 수(소설 상세와 같은 목록). 불러오는 중이거나 읽지 못하면 undefined라 수를 감춘다(0편으로 채우지 않는다).
@@ -263,7 +266,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           )}
           {tab === 'read' && (
             <>
-              {!mockup && <WorldBuildBadge key={buildCheck} work={w} />}
+              {buildLabel && <div className='ep-notes'><p><span className='chip wait'>{buildLabel}</span></p></div>}
               {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. 이 탭의 주 행동이라 채운 버튼이다(아래 가져오기 계열은 작은 보조 버튼). */}
               <p className='ep-list-head'><Go to={`/studio/${w.id}`} className='btn pri'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
@@ -328,6 +331,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {bulkImportOpen && <EpisodeBulkImportSheet
                 workId={w.id}
                 firstUnsavedEpisode={vm.writing?.rows?.find(e => !e.inherited && e.versions.length === 0)?.number ?? null}
+                initialBuildCompleted={initialBuildCompleted}
                 onClose={(refresh) => {
                   setBulkImportOpen(false)
                   if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }
@@ -415,18 +419,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
       </div>
     </div>
   )
-}
-
-/**
- * 공개 회차 머리의 '세계관 추출 중'·'세계관 업데이트 중' 배지다(initial-build-storage-contract). 세계관 탭 패널과 같은 `useManuscriptBuild`의 조회·2초 갱신을 그대로 쓰되 진행 중(queued·running·loading)일 때만 보인다.
- * 최초 구축이 먼저이고(둘 다 진행 중이면 '세계관 추출 중'), 발행 회차 업데이트(`job.update`)는 그다음이다(판정은 `worldBuildBadge`).
- * 작업 없음(404)·끝난 작업·조회 실패는 그리지 않는다: 실패를 완료나 진행 중으로 보이지 않고 오류는 패널이 보인다.
- * ponytail: 진행 중 조회가 한 번 실패하면 배지는 사라지고 탭을 옮기거나 새로 고칠 때까지 다시 읽지 않는다. 재시도·알림 연동은 후속.
- */
-function WorldBuildBadge({ work }: { work: Pick<Work, 'id' | 'worldStudioId'> }) {
-  const { job, error } = useManuscriptBuild(work.id, work.worldStudioId)
-  const label = error ? null : worldBuildBadge(job)
-  return label ? <div className='ep-notes'><p><span className='chip wait'>{label}</span></p></div> : null
 }
 
 /** 이력 탭의 한 묶음(발행 이력·원고 저장본·AI 요청·제안): 제목(h3)이 이름인 카드 구획이다(세계관·설정집 탭의 카드와 같은 `tcard ep-card`). */

@@ -1,5 +1,6 @@
 package ai.storyfork.core.notification
 
+import ai.storyfork.core.notification.domain.NoticeDetail
 import ai.storyfork.core.notification.service.InvalidNoticeEventException
 import ai.storyfork.core.notification.service.NoticeEventService
 import ai.storyfork.core.notification.service.NoticeService
@@ -111,6 +112,19 @@ class NoticeEventIntegrationTest {
         assertTrue(items[0].createdAt > firstAt)
         assertEquals(2L, notices.unreadCount(me).count)
         assertEquals(1, rows(first)); assertEquals(0, rows(second))
+    }
+
+    @Test
+    fun `detail is stored as a specific summary and episode and a bundle sums up the latest change`() {
+        val me = member()
+        events.handle(mcpWork(me).copy(detail = NoticeDetail("별의 숲", 3, "원고")))
+        assertEquals(listOf("AI가 MCP로 「별의 숲」 3화 원고를 수정했어요", 3), inbox(me).single().let { listOf(it.summary, it.targetEpisode) })
+        events.handle(mcpWork(me).copy(detail = NoticeDetail("별의 숲", 5, "원고")))
+        events.handle(mcpWork(me).copy(detail = NoticeDetail("별의 숲", 5, "원고")))
+        val item = inbox(me).single()
+        assertEquals("AI가 MCP로 「별의 숲」 5화 원고 외 2건을 수정했어요", item.summary)
+        assertEquals(5, item.targetEpisode)
+        assertEquals(2, jdbc.queryForObject("select bundled_count from notification where id = ?::uuid", Int::class.java, item.id))
     }
 
     @Test

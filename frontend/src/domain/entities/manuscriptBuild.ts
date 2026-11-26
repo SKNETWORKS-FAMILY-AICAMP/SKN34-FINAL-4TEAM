@@ -11,3 +11,8 @@ export function worldBuildBadge(job?: { status: string; update?: { status: strin
   if (inProgress(job?.update?.status)) return '세계관 업데이트 중'
   return null
 }
+
+/** 최초 구축이 지금 연결된 세계관에서 완료됐는지 본다(initial-build-storage-contract '업로드 자동 시작'): 다른 세계관의 완료나 연결 없음은 false다. */
+export function initialBuildCompletedOn(job: { status: string; worldId: string } | null | undefined, worldId: string | null | undefined) {
+  return job?.status === 'completed' && job.worldId === worldId
+}

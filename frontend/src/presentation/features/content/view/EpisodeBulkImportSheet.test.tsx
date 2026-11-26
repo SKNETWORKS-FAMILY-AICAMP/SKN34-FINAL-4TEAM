@@ -16,7 +16,7 @@ import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 const NOTICE = '세계관을 처음 만들 때는 업로드한 원고가 자동 추출을 위해 OpenAI로 전송돼요.'
 const started: ImportWorldBuild = { status: 'started', jobId: 'job-1', code: null, message: null }
 const rejected: ImportWorldBuild = { status: 'rejected', jobId: null, code: null, message: '1화에 저장한 원고가 없어요. 모든 회차의 원고를 저장한 뒤 다시 시작해 주세요.' }
-const show = (extra: Record<string, unknown> = {}, firstUnsavedEpisode: number | null = null) => {
+const show = (extra: Record<string, unknown> = {}, firstUnsavedEpisode: number | null = null, initialBuildCompleted = false) => {
   hook.vm = {
     basis: { lastNumber: 2, workRevision: 5 }, rows: [], start: '3', setStart: vi.fn(), rightsConfirmed: false, setRightsConfirmed: vi.fn(),
     editable: true, busy: false, error: '', stopReason: null, progress: null, results: new Map(), savedCount: 0, failedCount: 0, worldBuild: null,
@@ -24,7 +24,7 @@ const show = (extra: Record<string, unknown> = {}, firstUnsavedEpisode: number |
     ...extra,
   }
   const store = createAppStore()
-  const sheet = () => <Provider store={store}><MemoryRouter><EpisodeBulkImportSheet workId="w" firstUnsavedEpisode={firstUnsavedEpisode} onClose={vi.fn()} /></MemoryRouter></Provider>
+  const sheet = () => <Provider store={store}><MemoryRouter><EpisodeBulkImportSheet workId="w" firstUnsavedEpisode={firstUnsavedEpisode} initialBuildCompleted={initialBuildCompleted} onClose={vi.fn()} /></MemoryRouter></Provider>
   const view = render(sheet())
   return () => view.rerender(sheet())
 }
@@ -93,6 +93,19 @@ it.each([3, 2])('미저장 3화를 건너뛰면 안내하고 시작 회차를 %i
   expect(screen.queryByText(/3화에 저장한 원고가 없어서/)).toBeNull()
   expect(start.hasAttribute('aria-describedby')).toBe(false)
   expect(save.hasAttribute('aria-describedby')).toBe(false)
+})
+
+it('최초 구축 완료를 확인했으면 미저장 회차를 건너뛰어도 사전 안내를 숨긴다', () => {
+  show({
+    basis: { lastNumber: 4, workRevision: 5 },
+    rows: [{ id: 0, file: new File(['원고'], '5화.txt'), number: 5, title: '새 회차' }],
+    start: '5', canStart: true,
+  }, 3, true)
+  expect(screen.queryByText(/3화에 저장한 원고가 없어서/)).toBeNull()
+  expect(screen.getByRole('spinbutton', { name: '시작 회차' }).hasAttribute('aria-describedby')).toBe(false)
+  const save = screen.getByRole<HTMLButtonElement>('button', { name: '회차 저장' })
+  expect(save.hasAttribute('aria-describedby')).toBe(false)
+  expect(save.disabled).toBe(false)
 })
 
 it('접수하지 않았으면(null) 세계관 추출 문구를 그리지 않는다', () => {
