@@ -20,6 +20,7 @@ import { RequireGuest } from './presentation/shared/session/RequireGuest'
 import { RequireRole } from './presentation/shared/session/RequireRole'
 import { Footer } from './presentation/shared/shell/Gnb'
 import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
+import { OnboardingSheet } from './presentation/shared/shell/OnboardingSheet'
 import { PolicySheet } from './presentation/shared/shell/PolicySheet'
 import { QuickJump } from './presentation/shared/shell/QuickJump'
 
@@ -155,7 +156,7 @@ function App() {
           </Routes>
         </Suspense>
       </RouteErrorBoundary>
-      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
+      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /><OnboardingSheet /></>}
     </RestoreContext.Provider>
   )
 }
