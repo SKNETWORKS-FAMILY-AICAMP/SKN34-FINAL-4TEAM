@@ -47,14 +47,24 @@ class ForkCreationPolicyServiceTest {
     @Mock lateinit var applications: ForkChangeApplicationRepository
     @InjectMocks lateinit var service: ForkService
 
+    // Fork는 세계관이 연결된 원작에서만 만든다(FORK_WORLD_REQUIRED). 아래 시나리오의 원작은 연결돼 있고, 연결 없는 원작은 전용 테스트가 다룬다.
     private fun original() {
-        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null))
+        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null,worldLinked=true))
         `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(
             PublishedEpisodeResponse(1,1,"v1","1화","원문",false),
             PublishedEpisodeResponse(2,1,"v2","2화","원문",false)
         )))
     }
     private fun noWrites() = verifyNoInteractions(members,workService,world,checkpoints,works,workWorlds,visibility,policies,episodes,drafts,versions,references,changes,decisions,applications)
+
+    @Test fun `an original without a linked world is 409 FORK_WORLD_REQUIRED before any episode check or write`() {
+        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null))
+        val failure=assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(1,"포크"))}
+        assertEquals(409 to "FORK_WORLD_REQUIRED",failure.status to failure.code)
+        assertEquals("세계관이 연결된 작품만 분기할 수 있어요.",failure.message)
+        noWrites()
+        verifyNoInteractions(forks,publication)
+    }
 
     @Test fun `unpublished basis is rejected before member or checkpoint writes`() {
         original()
@@ -129,7 +139,7 @@ class ForkCreationPolicyServiceTest {
     }
 
     @Test fun `fork copies the original published author note into its pinned version`() {
-        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null))
+        `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null,worldLinked=true))
         `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1,1,"v1","제목","본문",false,"원작 후기"))))
         `when`(access.forkable("original",listOf(1))).thenReturn(listOf(1))
         `when`(world.historyForContext("original")).thenReturn(ai.storyfork.content.world.service.dto.SettingListResponse(emptyList()))

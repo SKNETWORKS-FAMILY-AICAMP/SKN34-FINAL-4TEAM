@@ -36,6 +36,10 @@ describe('canonical WorkRepository', () => {
     expect(work.forkEps).toEqual([2])
     expect(work.wiki?.docs).toEqual([])
   })
+  it('carries only whether a world is linked (worldLinked) so the Fork button can be locked; a missing value stays unknown', async () => {
+    const { repository } = setup([record({ id: 'linked', worldLinked: true }), record({ id: 'unlinked', worldLinked: false }), record({ id: 'unknown' })])
+    expect((await repository.listWorks()).map((w) => [w.id, w.worldLinked])).toEqual([['linked', true], ['unlinked', false], ['unknown', undefined]])
+  })
   it('merges only verified owned API records and propagates failures without a fixture fallback', async () => {
     const { api, repository } = setup([record()], [record({ ownerId: 'verified-member' })], true)
     expect((await repository.listWorks()).filter(isMine)).toHaveLength(1)

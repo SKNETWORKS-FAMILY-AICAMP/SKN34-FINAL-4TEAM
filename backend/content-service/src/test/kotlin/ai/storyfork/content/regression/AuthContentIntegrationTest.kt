@@ -113,6 +113,8 @@ class AuthContentIntegrationTest {
         val work=works.create(owner,CreateWorkRequest("원작 점검"))
         val saved=versions.saveCurrent(work.id,owner,DraftRequest("1화","기준 원고",work.revision,"기준 작가의 말"))
         publication.publishCurrent(work.id,owner,PublishRequest(saved.draft.revision,true,true,true,saved.version.id))
+        // Fork는 세계관이 연결된 원작에서만 만들 수 있다(409 FORK_WORLD_REQUIRED). 이 시험은 무결성 점검이 관심사라 임의 세계관 id만 건다.
+        jdbc.update("UPDATE work SET world_studio_id=? WHERE id=?",UUID.randomUUID(),work.id)
         val created=send(mutation("/api/v1/works/${work.id}/forks","""{"episode":1,"title":"포크"}""").header("Authorization","Bearer $reader"))
         assertEquals(201,created.statusCode(),created.body())
         val id=json.readTree(created.body()).path("id").asString()
