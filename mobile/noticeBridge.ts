@@ -6,6 +6,10 @@ type WebMessage =
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const noticeId = (value: unknown): value is string => typeof value === 'string' && uuid.test(value)
 
+export function shouldRequestNotificationPermission(permission: { granted: boolean; canAskAgain: boolean }, requested: boolean) {
+  return !requested && !permission.granted && permission.canAskAgain
+}
+
 export function trustedPage(origin: string, address: string) {
   try { return new URL(address).origin === origin } catch { return false }
 }

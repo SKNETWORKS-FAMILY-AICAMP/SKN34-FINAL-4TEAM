@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState, BackHandler, Button, Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { clearInbox, newNotices, noticeId, parseWebMessage, trustedPage } from './noticeBridge';
+import { clearInbox, newNotices, noticeId, parseWebMessage, shouldRequestNotificationPermission, trustedPage } from './noticeBridge';
 
 const channel = 'storyfork';
 const installationKey = 'storyfork.push-installation';
@@ -70,6 +70,7 @@ function StoryforkWeb({ source, origin }: { source: string; origin: string }) {
   const pending = useRef<string | null>(null);
   const accountRef = useRef<string | null>(null);
   const pageReady = useRef(false);
+  const permissionRequested = useRef(false);
   const [account, setAccount] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState(AppState.currentState === 'active');
@@ -122,7 +123,11 @@ function StoryforkWeb({ source, origin }: { source: string; origin: string }) {
         await Notifications.setNotificationChannelAsync(channel, { name: 'STORYFORK 알림', importance: Notifications.AndroidImportance.DEFAULT });
       }
       let permission = await Notifications.getPermissionsAsync();
-      if (permission.status === 'undetermined' && !cancelled) permission = await Notifications.requestPermissionsAsync();
+      // Android는 첫 요청 전에도 denied를 반환할 수 있다. 권한 창에서 앱으로 돌아올 때 중복 요청하지 않는다.
+      if (!cancelled && shouldRequestNotificationPermission(permission, permissionRequested.current)) {
+        permissionRequested.current = true;
+        permission = await Notifications.requestPermissionsAsync();
+      }
       if (cancelled || !remoteEnabled) return;
       if (!permission.granted) return sendDevice(null, rotation);
       listener = Notifications.addPushTokenListener(token => {

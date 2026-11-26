@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { clearInbox, newNotices, parseWebMessage, trustedPage } from '../noticeBridge.ts'
+import { clearInbox, newNotices, parseWebMessage, shouldRequestNotificationPermission, trustedPage } from '../noticeBridge.ts'
 
 const first = { id: 'f91943a2-8b52-4a6b-a4d1-73734229aeab', summary: '새 회차', createdAt: '2026-11-26T04:00:00Z', read: false }
 const second = { ...first, id: '4d13471f-6e9b-4d45-b00a-4bf94d95fb19', createdAt: '2026-11-26T04:00:01Z' }
+
+test('Android 첫 진입에서 denied여도 다시 물을 수 있으면 권한을 한 번 요청한다', () => {
+  const initial = { status: 'denied', granted: false, canAskAgain: true }
+  assert.equal(shouldRequestNotificationPermission(initial, false), true)
+  assert.equal(shouldRequestNotificationPermission(initial, true), false)
+  assert.equal(shouldRequestNotificationPermission({ ...initial, canAskAgain: false }, false), false)
+  assert.equal(shouldRequestNotificationPermission({ ...initial, status: 'granted', granted: true }, false), false)
+})
 
 test('첫 목록은 기준으로 삼고 새 알림과 같은 ID로 갱신된 알림만 띄운다', () => {
   const inbox = clearInbox()
