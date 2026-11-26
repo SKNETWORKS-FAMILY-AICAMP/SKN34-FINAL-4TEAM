@@ -19,7 +19,7 @@ object ManuscriptStructureVerifier {
     /** 호칭 변형(치삼·치삼이·치삼아·치삼은)을 한 이름으로 보는 접미사·조사. 값은 앞 글자의 받침 조건(true 있음·false 없음·null 상관없음)이며 파이썬 `_SUFFIXES`와 같다. */
     private val SUFFIXES=mapOf('이' to true,'아' to true,'야' to false,'은' to true,'을' to true,'는' to false,'를' to false,'가' to false,'의' to null)
 
-    /** 호칭 변형의 기본형: 끝의 접미사·조사를 떼되 두 글자 이상이 남을 때만 뗀다(순이는 그대로). 파이썬 `_base`와 글자까지 같아야 한다. */
+    /** 호칭 변형의 기본형: 끝의 접미사·조사를 떼되 두 글자 이상이 남을 때만 뗀다(순이는 그대로). 파이썬 `_base`와 글자까지 같아야 한다. 발행 회차 업데이트의 기존 카드 맞춤([ManuscriptBuildMapper])도 이 함수를 쓴다(#848). */
     internal fun nameKey(name:String):String {
         var base=name
         while(base.length>2 && base.last() in SUFFIXES && base[base.length-2] in '가'..'힣' &&

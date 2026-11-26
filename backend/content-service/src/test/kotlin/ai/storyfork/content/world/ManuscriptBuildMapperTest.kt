@@ -139,6 +139,57 @@ class ManuscriptBuildMapperTest {
         assertTrue(cards.none { it.id==heroId })
         assertTrue(cards.all { review(it)==true })
     }
+    // ---- 호칭 변형(#848): 최초 구축의 같은 이름 병합(#839)과 같은 규칙(nameKey)으로 기존 카드를 맞춘다 ----
+
+    @Test fun `a name variant of an existing card matches it instead of adding a new card`() {
+        // 대표 사례는 기존 카드 '치삼'에 새 회차가 '치삼이'만 쓰는 경우다(반대 방향·조사 한 쌍 포함). 접미사·조사 전체 표는 nameKey 시험(ManuscriptStructureVerifierTest)이 맡는다.
+        listOf("치삼" to "치삼이","치삼이" to "치삼","영희" to "영희는").forEach { (old,seen) ->
+            val card=update(basisOf(existing(heroId,old,episodes=mapOf("1" to "첫 만남"))),listOf(hero(mapOf("12" to "12화"),title=seen))).single().cards.single()
+            assertEquals(heroId,card.id,"$old ← $seen")
+            assertEquals(old,card.title,"$old ← $seen")
+            assertEquals(mapOf("1" to "첫 만남","12" to "12화"),(card.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"],"$old ← $seen")
+        }
+    }
+    @Test fun `a name that only looks like a variant stays a new card`() {
+        // 받침 규칙에 어긋난 접미사(영희이), 뗀 뒤 한 글자만 남는 꼴(순이), 아는 접미사가 아닌 끝(치삼과)은 같은 이름이 아니다(#839의 가드 그대로).
+        listOf("영희" to "영희이","순" to "순이","치삼" to "치삼과").forEach { (old,seen) ->
+            val card=update(basisOf(existing(heroId,old,episodes=mapOf("1" to "첫 만남"))),listOf(hero(mapOf("12" to "12화"),title=seen))).single().cards.single()
+            assertNotEquals(heroId,card.id,"$old ← $seen")
+            assertNull(review(card),"$old ← $seen")
+        }
+    }
+    @Test fun `an exact name is matched before a variant and two variant candidates are not merged`() {
+        val plain=existing(heroId,"치삼",episodes=mapOf("1" to "a"));val suffixed=existing(title="치삼이",episodes=mapOf("1" to "b"))
+        listOf("치삼" to heroId,"치삼이" to suffixed.id).forEach { (seen,id) ->
+            assertEquals(id,update(basisOf(plain,suffixed),listOf(hero(mapOf("12" to "12화"),title=seen))).single().cards.single().id,"변형 카드가 있어도 이름이 같은 카드가 먼저다: $seen")
+        }
+        val twins=basisOf(existing(title="치삼이",episodes=mapOf("1" to "a")),existing(title="치삼아",episodes=mapOf("1" to "b")))
+        val card=update(twins,listOf(hero(mapOf("12" to "12화"),title="치삼"))).single().cards.single()
+        assertTrue(card.id !in twins.cards.map { it.id },"변형 후보가 둘이면 어느 쪽인지 알 수 없어 새 카드다")
+        assertEquals(true,review(card))
+        assertEquals("private",card.visibility)
+    }
+    @Test fun `a variant never takes a card that another new card names exactly and two new variants do not merge`() {
+        // 같은 회차에 '치삼'과 '치삼이'가 따로 나오면(AI가 일부러 가른 것) 이름이 같은 쪽이 기존 카드를 맞추고 변형 쪽은 새 카드+확인 필요다(#839의 같은 회차 쌍둥이와 같다).
+        val old=existing(heroId,"치삼",episodes=mapOf("1" to "a"))
+        fun other(key:String,title:String)=ManuscriptCard(key,"character",title,emptyList(),"본문",12,ManuscriptCharacterDocs("","",mapOf("12" to "b")))
+        val pair=update(basisOf(old),listOf(other("exact","치삼"),other("variant","치삼이"))).single().cards
+        assertEquals(heroId,pair.first { it.title=="치삼" }.id)
+        pair.first { it.title=="치삼이" }.let { assertNotEquals(heroId,it.id);assertEquals(true,review(it)) }
+        val twins=update(basisOf(old),listOf(other("a","치삼이"),other("b","치삼아"))).single().cards
+        assertTrue(twins.none { it.id==heroId },"변형이 둘이면 어느 쪽인지 알 수 없다")
+        assertTrue(twins.all { review(it)==true })
+    }
+    @Test fun `a name variant also matches a card that is not a character`() {
+        val group=existing(title="활빈당",type="organization")
+        val variant=ManuscriptCard("group","organization","활빈당은",emptyList(),"새 본문",11)
+        assertTrue(update(basisOf(group),listOf(variant)).single().cards.isEmpty(),"인물이 아닌 카드도 #839와 같은 규칙이라 새 카드가 생기지 않는다")
+    }
+    @Test fun `a title or an alias on either side takes part in the variant match`() {
+        val old=existing(heroId,"의적",aliases=listOf("치삼"),episodes=mapOf("1" to "a"))
+        assertEquals(heroId,update(basisOf(old),listOf(hero(mapOf("12" to "12화"),title="치삼이"))).single().cards.single().id,"기존 카드의 별칭")
+        assertEquals(heroId,update(basisOf(old),listOf(hero(mapOf("12" to "12화"),aliases=listOf("치삼아")))).single().cards.single().id,"요청 카드의 별칭")
+    }
     @Test fun `an event card is always new`() {
         val old=existing(title="11화 · 사건",type="event")
         val event=ManuscriptCard("event","event","11화 · 사건",emptyList(),"발생: 11화",11)

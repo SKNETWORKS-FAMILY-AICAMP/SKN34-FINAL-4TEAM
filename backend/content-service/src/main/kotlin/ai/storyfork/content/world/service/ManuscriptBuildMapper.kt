@@ -84,17 +84,23 @@ object ManuscriptBuildMapper {
 
     /**
      * 종류가 같고 이름(제목·별칭)이 하나라도 같은 활성 카드가 **정확히 하나**일 때만 같은 대상이다(사건 카드는 늘 새 카드).
-     * 둘 이상이거나 한 기존 카드를 요청 카드 여럿이 노리면 자동으로 합치지 않고 새 카드로 더하며 확인 필요로 표시한다.
+     * 이름이 같은 카드가 없는 요청 카드만 호칭 변형(치삼·치삼이)도 같은 이름으로 본다(#848): 최초 구축의 같은 이름 병합(#839)과 같은 [ManuscriptStructureVerifier.nameKey]다.
+     * 둘 이상(변형 후보 포함)이거나 한 기존 카드를 요청 카드 여럿이 노리면 자동으로 합치지 않고 새 카드로 더하며 확인 필요로 표시한다.
+     * 단 이름이 같은 요청 카드끼리만 겨루고, 변형으로 노리는 요청 카드는 같은 카드를 후보로 보는 다른 요청 카드가 있으면 물러난다(같은 회차의 '치삼'과 '치삼이'는 AI가 일부러 가른 것이다).
      */
     private fun match(draft:WorldDraftResponse,cards:List<ManuscriptCard>):Matching {
         fun names(title:String,aliases:List<String>)=(listOf(title)+aliases).map { it.trim() }.filter { it.isNotEmpty() }.toSet()
         val active=draft.cards.filter { it.lifecycle=="active" }
-        val found=cards.filter { it.cardType!="event" }.associate { c ->
-            val wanted=names(c.title,c.aliases)
-            c.key to active.filter { it.cardType==c.cardType && names(it.title,it.aliases).any(wanted::contains) }
+        fun candidates(c:ManuscriptCard,normalize:(String)->String):List<CardPayload> {
+            val wanted=names(c.title,c.aliases).map(normalize)
+            return active.filter { it.cardType==c.cardType && names(it.title,it.aliases).any { name -> normalize(name) in wanted } }
         }
-        val claimed=found.values.mapNotNull { it.singleOrNull()?.id }.groupingBy { it }.eachCount()
-        val unique=found.filter { (_,hits)->hits.size==1 && claimed.getValue(hits.single().id)==1 }
+        val requests=cards.filter { it.cardType!="event" }
+        val exact=requests.associate { it.key to candidates(it) { name -> name } }
+        val found=requests.associate { it.key to exact.getValue(it.key).ifEmpty { candidates(it,ManuscriptStructureVerifier::nameKey) } }
+        val claimed=exact.values.mapNotNull { it.singleOrNull()?.id }.groupingBy { it }.eachCount()
+        val seen=found.values.flatten().groupingBy { it.id }.eachCount()
+        val unique=found.filter { (key,hits)->hits.size==1 && (if(exact.getValue(key).isEmpty()) seen else claimed).getValue(hits.single().id)==1 }
         return Matching(unique.mapValues { it.value.single() },found.filter { it.key !in unique && it.value.isNotEmpty() }.keys)
     }
 
