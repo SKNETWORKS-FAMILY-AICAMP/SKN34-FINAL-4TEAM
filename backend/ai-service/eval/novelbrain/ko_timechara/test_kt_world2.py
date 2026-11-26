@@ -184,34 +184,34 @@ def test_presence_input_numbers_the_events_from_one_with_their_plain_text():
 
 # ---- 뒤 회차에 전해 들음 ----
 
-def test_earlier_events_are_numbered_like_the_world_cards_and_list_who_already_knew_them():
+def test_earlier_events_are_numbered_like_the_world_cards():
     records = [rec(1, {}, [ev('칼의 전달', '@철수는 @영희에게 @칼을 건넸다.', 'q', ('철수', 'character', 'experienced'), ('영희', 'character', 'heard'), ('민수', 'character', 'mentioned'), ('칼', 'object', 'none'))]),
                rec(3, {}, [ev('이별', '@철수가 떠났다.', 'q', ('철수', 'character', 'experienced')), ev('다툼', '@치삼이가 싸웠다.', 'q', ('치삼이', 'character', 'experienced'))])]
     got = w2.earlier_events(records)
     assert [(e['id'], e['episode'], e['title']) for e in got] == [('e01-1', 1, '칼의 전달'), ('e03-1', 3, '이별'), ('e03-2', 3, '다툼')]
-    assert got[0]['detail'] == '철수는 영희에게 칼을 건넸다.' and got[0]['known'] == {'철수', '영희'}                 # 이름만 나온 민수와 인물이 아닌 칼은 아는 사람이 아니다
-    assert got[2]['known'] == {'치삼'}                                                                              # 호칭 변형은 기본 이름(_base)으로
+    assert got[0]['detail'] == '철수는 영희에게 칼을 건넸다.' and 'known' not in got[0]                              # 이미 아는 사람은 카드가 정해진 뒤(build_world2)에 가린다: 이름이 같은 다른 사람일 수 있다
 
 
 def test_learn_input_lists_earlier_events_with_ids_then_the_people_and_the_text():
-    earlier = [{'id': 'e01-1', 'episode': 1, 'title': '칼의 전달', 'detail': '철수는 영희에게 칼을 건넸다.', 'known': set()}]
+    earlier = [{'id': 'e01-1', 'episode': 1, 'title': '칼의 전달', 'detail': '철수는 영희에게 칼을 건넸다.'}]
     assert w2.learn_input(earlier, {'철수': '검객', '민수': ''}, '본문') == '[앞 회차의 사건]\ne01-1 (1화) 칼의 전달: 철수는 영희에게 칼을 건넸다.\n\n[이 회차의 인물]\n- 철수: 검객\n- 민수\n\n[본문]\n본문'
 
 
 def test_verify_learned_keeps_a_new_listener_of_an_earlier_event_with_a_quote_from_this_episode():
-    earlier = [{'id': 'e01-1', 'episode': 1, 'title': 't', 'detail': 'd', 'known': {'철수', '영희'}}]
+    earlier = [{'id': 'e01-1', 'episode': 1, 'title': 't', 'detail': 'd'}]
     people = {'철수': '', '영희': '', '민수': '', '순이': '', '치삼': ''}
     text = '민수는 장터에서 철수가 영희에게 칼을 건넸다는 소문을 들었다. 철수는 웃었다. 치삼이도 그 소문을 들었다.'
     said = '민수는 장터에서 철수가 영희에게 칼을 건넸다는 소문을 들었다.'
     out = w2.Learned(learned=[w2.Learn(event='e01-1', learner='민수', quote=said), w2.Learn(event='e01-1', learner='민수', quote=said),                      # 같은 항목은 한 번
-                              w2.Learn(event='e01-1', learner='철수', quote='철수는 웃었다.'),                                                                   # 이미 아는 사람
+                              w2.Learn(event='e01-1', learner='철수', quote='철수는 웃었다.'),                                                                   # 이미 아는 이름이어도 여기서는 거르지 않는다(동명이인일 수 있다)
                               w2.Learn(event='e09-9', learner='민수', quote=said), w2.Learn(event='e01-1', learner='길동', quote=said),                         # 없는 사건·목록에 없는 인물
                               w2.Learn(event='e01-1', learner='순이', quote='원문에 없는 문장이다 정말로.'),                                                       # 근거 없음
                               w2.Learn(event='e01-1', learner='치삼이', quote='치삼이도 그 소문을 들었다.')])                                                       # 호칭 변형은 목록의 이름으로
     kept, stats = w2.verify_learned(text, out, earlier, people, 3)
-    assert kept == [{'episode': 3, 'event': 'e01-1', 'learner': '민수', 'quote': said}, {'episode': 3, 'event': 'e01-1', 'learner': '치삼', 'quote': '치삼이도 그 소문을 들었다.'}]
-    assert (stats['learned_proposed'], stats['learned_kept'], stats['learn_dup'], stats['learn_known'], stats['learn_event'], stats['learn_name'], stats['learn_quote']) == (7, 2, 1, 1, 1, 1, 1)
-    assert (stats['learn_quote_checked'], stats['learn_quote_ok']) == (4, 3)
+    assert kept == [{'episode': 3, 'event': 'e01-1', 'learner': '민수', 'quote': said}, {'episode': 3, 'event': 'e01-1', 'learner': '철수', 'quote': '철수는 웃었다.'},
+                    {'episode': 3, 'event': 'e01-1', 'learner': '치삼', 'quote': '치삼이도 그 소문을 들었다.'}]
+    assert (stats['learned_proposed'], stats['learned_kept'], stats['learn_dup'], stats['learn_event'], stats['learn_name'], stats['learn_quote']) == (7, 3, 1, 1, 1, 1) and 'learn_known' not in stats
+    assert (stats['learn_quote_checked'], stats['learn_quote_ok']) == (5, 4)
 
 
 # ---- 인물 사이 관계 ----
@@ -567,19 +567,21 @@ def test_merger_asks_once_per_work_and_does_not_ask_for_a_work_with_fewer_than_t
     assert not alone['called'] and alone['links'] == [] and fake.calls == ['Links']                                  # 인물이 하나뿐이면 부르지 않는다
 
 
+HEARD = '민수는 장터에서 철수가 영희에게 칼을 건넸다는 소문을 들었다.'
+
+
 def test_learner_asks_once_per_later_episode_and_never_for_the_first_episode(tmp_path):
     class Answer(Fake):
         def _parse(self, **options):
             if options['text_format'].__name__ == 'Learned':
                 self.calls.append('Learned')
                 usage = SimpleNamespace(input_tokens=10, output_tokens=5, input_tokens_details=None)
-                said = '철수는 영희에게 칼을 건넸다.'
-                return SimpleNamespace(status='completed', usage=usage, model='m', output_parsed=w2.Learned(learned=[w2.Learn(event='e01-1', learner='민수', quote=said)]))
+                return SimpleNamespace(status='completed', usage=usage, model='m', output_parsed=w2.Learned(learned=[w2.Learn(event='e01-1', learner='민수', quote=HEARD)]))
             return super()._parse(**options)
 
     fake = Answer()
     llm = Llm(Ledger(tmp_path / 'calls.jsonl'), tmp_path / 'cache', model='m', client=fake)
-    works = {'w00': {'id': 'w00', 'episodes': [{'number': 1, 'text': TEXT}, {'number': 2, 'text': TEXT}]}}
+    works = {'w00': {'id': 'w00', 'episodes': [{'number': 1, 'text': TEXT}, {'number': 2, 'text': f'{TEXT} {HEARD}'}]}}                     # 2화에서 민수가 그 사건의 소식을 전해 듣는 장면이 있어야 근거가 된다
     results = run_rounds([('w00', 1), ('w00', 2)], w2.learner(works, {'w00': RECORDS}), llm, SyncExecutor(llm))
     assert fake.calls == ['Learned'] and results[0]['called'] is False and results[0]['learned'] == []                  # 1화는 앞 회차가 없다
     assert results[1]['called'] and [(l['event'], l['learner'], l['episode']) for l in results[1]['learned']] == [('e01-1', '민수', 2)]
@@ -1064,3 +1066,80 @@ def test_settle_replaces_a_merged_identity_only_when_the_verified_rewrite_is_not
     assert updates[card.id] == {'text': '치삼(치삼이)은 마을에서 약을 파는 떠돌이 약장수다.'} and stats['identity_rewritten'] == 1 and stats['merged_cards'] == 1
     updates, stats = w2.settle(built, plan, {('identity', card.id): short})
     assert card.id not in updates and stats['identity_shorter'] == 1 and 'identity_rewritten' not in stats                 # 짧아지면 지금 것을 둔다
+
+
+# ---- PR #945 리뷰 후속(#948) ----
+
+def test_a_namesake_who_first_hears_an_event_another_person_of_the_same_name_lived_is_linked_but_the_same_person_hearing_it_again_is_not():
+    records = [rec(1, {'민수': person('')}, [ev('칼의 전달', '@민수가 @칼을 건넸다.', '민수가 칼을 건넸다.', ('민수', 'character', 'experienced'), ('칼', 'object', 'none'))]),
+               rec(3, {'민수': person(''), '순이': person('')})]
+    text = '민수는 장터에서 칼 이야기를 들었다.'
+    out = w2.Learned(learned=[w2.Learn(event='e01-1', learner='민수', quote=text)])
+    kept, stats = w2.verify_learned(text, out, w2.earlier_events(records[:1]), {'민수': '', '순이': ''}, 3)
+    assert [k['learner'] for k in kept] == ['민수'] and 'learn_known' not in stats                         # 이름이 같다고 카드가 정해지기 전에 버리지 않는다
+    distinct = {'left': '1:1', 'right': '3:1', 'verdict': 'distinct', 'hidden': False, 'episode': 3, 'quote': 'q'}   # 3화의 민수는 1화의 민수와 다른 사람
+    built, stats = w2.build_world2('w00', records, [distinct], '민수 순이 칼 장터', kept)
+    cards = sorted(c.id for c in built['cards'] if c.title == '민수')
+    assert len(cards) == 2 and built['events']['e01-1']['heard'] == {cards[1]: 3}                          # 3화의 민수(둘째 카드)가 처음 들었다
+    same, stats = w2.build_world2('w00', records, [], '민수 순이 칼 장터', kept)                           # 한 사람이면 이미 겪은 사건을 다시 듣는 것이라 잇지 않고 센다
+    assert same['events']['e01-1']['heard'] == {} and stats['merge']['learn_known'] == 1
+
+
+def hidden_link(body, mask, episode=4):
+    return {'left': body, 'right': mask, 'verdict': 'same', 'hidden': True, 'episode': episode, 'quote': 'q'}
+
+
+def test_a_hidden_identity_ignores_apart_evidence_because_a_possessed_or_reborn_person_shares_events_with_the_old_name():
+    people = {'1:1': (1, 1, '검은사내'), '3:1': (3, 1, '도윤')}
+    group, identity, stats = w2.resolve_groups(people, [hidden_link('3:1', '1:1')], {frozenset({'1:1', '3:1'})})        # 두 이름이 같은 사건에 함께 나온다(빙의·환생에서는 정체가 밝혀진 뒤에도 늘 그렇다)
+    assert [(link['alias'], link['main']) for link in identity] == [(group['1:1'], group['3:1'])] and 'merge_conflict' not in stats
+
+
+def test_a_hidden_identity_is_refused_when_the_merge_call_itself_called_a_pair_of_the_two_cards_distinct():
+    people = {'1:1': (1, 1, '검은사내'), '4:1': (4, 1, '검은사내'), '3:1': (3, 1, '도윤')}                              # 앞의 둘은 이름이 같아 한 카드
+    different = {'left': '4:1', 'right': '3:1', 'verdict': 'distinct', 'hidden': False, 'episode': 4, 'quote': 'q'}
+    group, identity, stats = w2.resolve_groups(people, [different, hidden_link('3:1', '1:1')])
+    assert group['1:1'] == group['4:1'] and identity == [] and stats['merge_conflict'] == 1               # 같은 카드의 다른 기록이 도윤과 다른 사람이라 판정됐다
+    group, identity, stats = w2.resolve_groups(people, [hidden_link('3:1', '1:1')])
+    assert len(identity) == 1 and 'merge_conflict' not in stats                                            # 충돌이 없는 가면 관계는 그대로
+
+
+def refine_base(tmp_path, monkeypatch, longer=False):
+    """refine_from이 읽을 앞 단계 결과 'base'를 쓰고(longer면 1~3화를 쓴 뒤 같은 이름으로 1~2화만 다시 쓴다) 실행 함수를 대역으로 바꾼다. 세계관 폴더(works/w00)를 돌려준다."""
+    records, works, merged, fake, llm = refine_setup(tmp_path)
+    steps = dict(stats={}, calls={'chars': 1, 'doc': 1, 'events': 1, 'rels': 1}, failed={'chars': False, 'doc': 0, 'events': False, 'rels': False})
+    records = [dict(r, **steps) for r in records]
+    if longer:
+        w2.finish(works, records + [dict(rec(3, {'철수': person('검객')}), work='w00', **steps)], merged, 'base', tmp_path / 'works', tmp_path / 'base_stats.json')
+    w2.finish(works, records, merged, 'base', tmp_path / 'works', tmp_path / 'base_stats.json')
+    monkeypatch.setattr(w2, 'KT', tmp_path)
+    monkeypatch.setattr(w2, 'load_works', lambda ids: works)
+    llm.cost = SimpleNamespace(spent=lambda: 0.0, record=lambda *args, **kwargs: None)
+    monkeypatch.setattr(w2, 'setup', lambda *args: (llm, SyncExecutor(llm)))
+    monkeypatch.setattr(w2, 'cost_report', lambda llm: None)
+    return tmp_path / 'works' / 'w00'
+
+
+def test_refine_from_ignores_an_episode_file_left_by_a_longer_earlier_run_of_the_same_name(tmp_path, monkeypatch):
+    folder = refine_base(tmp_path, monkeypatch, longer=True)
+    assert (folder / 'base' / 'episodes' / '03.json').exists()                                             # 옛 파일은 지우지 않는다
+    assert [r['episode'] for r in w2.episode_records(folder / 'base')] == [1, 2]                          # 이번 실행의 회차 목록(episodes.json)에 든 것만 읽는다
+    w2.refine_from([], base='base', gen_model='m', gen_effort=None, name='plain', limit_usd=1.0, refine=False)
+    assert sorted(p.name for p in (folder / 'plain' / 'episodes').iterdir()) == ['01.json', '02.json']    # 새 세계관에 3화가 되살아나지 않는다
+    (folder / 'base' / 'episodes.json').unlink()                                                           # 회차 목록이 없는 옛 결과는 폴더의 회차 파일 전부(기존 동작)
+    assert [r['episode'] for r in w2.episode_records(folder / 'base')] == [1, 2, 3]
+
+
+@pytest.mark.parametrize('base, name', [('./base', 'base'), ('base/', 'base'), ('../w00/base', 'base'), ('Base', 'base'), ('base', 'BASE')])
+def test_refine_from_refuses_a_name_that_points_at_the_directory_it_reads(tmp_path, monkeypatch, base, name):
+    folder = refine_base(tmp_path, monkeypatch)
+    before = (folder / 'base.json').read_bytes()
+    with pytest.raises(SystemExit):
+        w2.refine_from([], base=base, gen_model='m', gen_effort=None, name=name, limit_usd=1.0, refine=False)   # 같은 디렉터리를 읽고 쓰지 않는다
+    assert (folder / 'base.json').read_bytes() == before
+
+
+def test_verify_section_restores_an_event_line_whose_title_is_only_part_of_a_kept_title():
+    original = '[겪은 일] 문 열기: 철수가 문을 열었다.\n[겪은 일] 뒷문 열기: 철수가 뒷문을 열었다.\n[성격] 수다스럽다 수다스럽다 수다스럽다'
+    got, stats = w2.verify_section(original, w2.Tightened(text='[겪은 일] 뒷문 열기: 철수가 뒷문을 열었다.\n[성격] 수다스럽다'))
+    assert '[겪은 일] 문 열기: 철수가 문을 열었다.' in got.splitlines() and stats['restored'] == 1               # '뒷문 열기'가 남았다고 '문 열기'를 남은 것으로 보지 않는다(표지와 제목 전체로 견준다)

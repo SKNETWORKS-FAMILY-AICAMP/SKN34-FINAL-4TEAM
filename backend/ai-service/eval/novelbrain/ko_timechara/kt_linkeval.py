@@ -19,6 +19,7 @@ world.json(기존 평가용 세계관)·world2.json(시제품, kt_world2)·world
 text 규칙으로 맞으면(서술 하나는 가장 잘 맞는 정답 사건 하나에 속한다) 그 인물이 사건을 안다고 센다(서비스 기준선은 사건 카드와 인물이 이어지지 않아 엄격 판정이 거의 0이라 따로 본다. 세 세계관에 똑같이 적용하고 호출은 없다).
 들음은 같은 회차에 들음(세계관의 들음 기록 회차 = 사건 회차: 정답표에 대응 범주가 없어 그 인물이 사건을 알고 있었는지만)과 뒤 회차에 들음(기록 회차 > 사건 회차: 정답표 learned와 대조, 정확도·재현율)을 따로 센다.
 결과는 results/ko-timechara-linkeval-<name>.json(집계만)과 콘솔 표. --worlds의 이름은 world·world2·world_svc와 자가 개선 판 sv-<이름>이다.
+세계관마다 같은 작품 집합(요청한 작품 중 모든 세계관 파일이 있는 작품, 결과의 common)으로 재고, 세계관별로 빠진 작품은 worlds.<이름>.missing에 남긴다(한 세계관만 일부 작품이 빠지면 작품 구성 차이가 성능 차이로 읽힌다).
 """
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다
@@ -190,8 +191,10 @@ def memory_matches(world: dict, gold: list[dict], drop=()) -> dict[str, dict[str
 
 def gold_classes(names, apart) -> dict[str, str]:
     """정답표 이름 → 같은 인물로 읽는 이름들의 대표 이름(가장 짧은 이름). 호칭 변형(_base)이 같거나 한쪽이 다른 쪽의 끝부분(성을 뗀 이름)인 유일한 짝(gold_matches)을 한 인물로 본다:
-    정답표 추출의 canonical_names는 '철수'·'철수야' 같은 호칭 변형을 합치지 못해 한 인물이 둘로 올라 있다. 같은 사건에 다른 사람으로 오른 쌍(apart)은 합치지 않는다."""
+    정답표 추출의 canonical_names는 '철수'·'철수야' 같은 호칭 변형을 합치지 못해 한 인물이 둘로 올라 있다. 같은 사건에 다른 사람으로 오른 쌍(apart)은 합치지 않는다:
+    합치는 두 묶음의 이름들 사이에 그런 쌍이 하나라도 있으면 합치지 않는다(apart인 '로빈'·'하트'가 긴 이름 '로빈 하트'를 거쳐 한 인물이 되지 않는다. 이름 가나다 순으로 먼저 합친 쪽에 긴 이름이 붙는다)."""
     parent = {n: n for n in names}
+    members = {n: [n] for n in names}   # 대표 → 그 묶음의 이름들
 
     def find(n: str) -> str:
         while parent[n] != n:
@@ -199,10 +202,12 @@ def gold_classes(names, apart) -> dict[str, str]:
         return n
 
     different = {frozenset(pair) for pair in apart}
-    for n in names:
+    for n in sorted(names):
         for m in gold_matches(n, [x for x in names if x != n]):
-            if frozenset((n, m)) not in different:
-                parent[find(n)] = find(m)
+            a, b = find(n), find(m)
+            if a != b and not any(frozenset((x, y)) in different for x in members[a] for y in members[b]):
+                parent[a] = b
+                members[b] += members.pop(a)
     groups: dict[str, list[str]] = {}
     for n in names:
         groups.setdefault(find(n), []).append(n)
@@ -222,10 +227,11 @@ def work_counts(knowledge: list[dict], world: dict, mains: list[str], rule: str)
     for n, r in rep.items():
         members.setdefault(r, []).append(n)
     present = {eid: {rep[n] for n in people} for eid, people in spoken.items()}
-    learned: dict[str, dict[str, int]] = {}
+    learned: dict[str, dict[str, int]] = {}   # 사건 → 정답표 인물(묶음) → 처음 전해 들은 회차(같은 인물의 두 호칭이 올린 기록 중 가장 이른 것)
     for r in knowledge:
         for item in r['learned']:
-            learned.setdefault(item['event'], {})[rep[item['learner']]] = item['episode']
+            who = learned.setdefault(item['event'], {})
+            who[rep[item['learner']]] = min(who.get(rep[item['learner']], item['episode']), item['episode'])
     names = sorted(members)
     cards, gold_of = person_cards(names, world)
     drop = sorted({n for n in rep if len(n) >= 2} | {n for c in world['cards'] if c.cardType == 'character' for n in [c.title, *world.get('aliases', {}).get(c.id, [])] if len(n) >= 2},
@@ -271,7 +277,7 @@ def work_counts(knowledge: list[dict], world: dict, mains: list[str], rule: str)
              main_split=sum(len(cards.get(n, ())) >= 2 for n in mains), cards=len(gold_of), cards_mixed=sum(len(gs) >= 2 for gs in gold_of.values()),
              cards_mixed_apart=sum(any(frozenset(pair) in different for pair in combinations(sorted(gs), 2)) for gs in gold_of.values()),
              cards_unmapped=sum(not gs for gs in gold_of.values()))
-    last = max(r['episode'] for r in knowledge)
+    last = max((r['episode'] for r in knowledge), default=0)   # 빈 정답표(사건 정답 없음)도 빈 지표로 센다
     for name in mains:
         mine_cards = cards.get(name, [])
         for g in gold:
@@ -355,24 +361,35 @@ def load_inputs(wid: str) -> dict:
     return {'knowledge': knowledge, 'kind': work['kind'], 'mains': main_characters(knowledge, load_world(folder / 'world.json')), 'folder': folder}
 
 
+def common_and_missing(wids: list[str], have: dict[str, list[str]]) -> tuple[list[str], dict[str, list[str]]]:
+    """세계관마다 가진 작품(have)에서 (모든 세계관이 가진 작품, 세계관별로 요청한 작품 중 그 세계관에 없는 작품). 둘 다 wids 순이다."""
+    return [wid for wid in wids if all(wid in mine for mine in have.values())], {name: [wid for wid in wids if wid not in mine] for name, mine in have.items()}
+
+
 def evaluate(wids: list[str], worlds: tuple[str, ...]) -> dict:
+    """세계관마다 같은 작품 집합(모든 세계관이 가진 작품)으로 재고, 세계관별로 빠진 작품(요청한 작품 중 그 세계관 파일이 없는 것)을 따로 남긴다:
+    한 세계관만 일부 작품이 빠지면 작품 구성 차이가 성능 차이로 읽히기 때문이다."""
     inputs = {wid: load_inputs(wid) for wid in wids}
-    out = {'works': wids, 'text_min': TEXT_MIN, 'worlds': {}}
+    common, missing = common_and_missing(wids, {name: [wid for wid in wids if (inputs[wid]['folder'] / f'{name}.json').exists()] for name in worlds})
+    out = {'works': wids, 'common': common, 'text_min': TEXT_MIN, 'worlds': {}}
     for name in worlds:
-        loaded = {wid: load_world(i['folder'] / f'{name}.json') for wid, i in inputs.items() if (i['folder'] / f'{name}.json').exists()}
+        loaded = {wid: load_world(inputs[wid]['folder'] / f'{name}.json') for wid in common}
         quoted = any(m['quote'] for world in loaded.values() for m in world.get('events', {}).values())
         rules = {}
         for rule in (('quote', 'text') if quoted else ('text',)):
             rules[rule] = aggregate({wid: (inputs[wid]['kind'], work_counts(inputs[wid]['knowledge'], world, inputs[wid]['mains'], rule))
                                      for wid, world in loaded.items()})
-        stats = [json.loads(p.read_text()) for wid in loaded if (p := inputs[wid]['folder'] / f'{name}_stats.json').exists()]
-        out['worlds'][name] = {'works': sorted(loaded), 'rules': rules, 'prototype': service_stats(stats) if name == 'world_svc' else prototype_stats(stats)}   # world.json(기존)은 통계 파일이 없어 {}
+        stats = [json.loads(p.read_text(encoding='utf-8')) for wid in loaded if (p := inputs[wid]['folder'] / f'{name}_stats.json').exists()]
+        out['worlds'][name] = {'works': sorted(loaded), 'missing': missing[name], 'rules': rules, 'prototype': service_stats(stats) if name == 'world_svc' else prototype_stats(stats)}   # world.json(기존)은 통계 파일이 없어 {}
     return out
 
 
 def show(result: dict) -> None:
     pct = lambda r: '-' if r['rate'] is None else f"{r['rate']:.3f}"  # noqa: E731
+    print(f"공통 작품 {len(result['common'])}편(요청 {len(result['works'])}편): " + ' '.join(result['common']))
     for name, block in result['worlds'].items():
+        if block['missing']:
+            print(f"{name:10s} 세계관이 없어 뺀 작품 {len(block['missing'])}편: " + ' '.join(block['missing']))
         for rule, agg in block['rules'].items():
             m = agg['all']
             print(f"{name:10s} {rule:5s} 사건 재현 {pct(m['event_recall'])}({m['event_recall']['k']}/{m['event_recall']['n']}) · 겪음 정확 {pct(m['experienced_precision'])} 재현 {pct(m['experienced_recall'])} · "
@@ -391,7 +408,7 @@ def main(argv: list[str] | None = None) -> None:
     wids = args.works or sorted(p.parent.name for p in (KT / 'works').glob('*/world2.json'))
     result = evaluate(wids, worlds)
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / f'ko-timechara-linkeval-{args.name}.json').write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    (RESULTS / f'ko-timechara-linkeval-{args.name}.json').write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True), encoding='utf-8')
     show(result)
 
 

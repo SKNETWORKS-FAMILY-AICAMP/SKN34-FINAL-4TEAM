@@ -232,10 +232,13 @@ def run(configs: tuple[str, ...], *, gen_model: str, gen_effort: str | None = No
         raise SystemExit('--configs가 비었다: 구성을 하나 이상 준다(빈 실행이 같은 이름의 기록을 덮지 않게).')
     if bad := [c for c in configs if c not in ALL_CONFIGS]:
         raise SystemExit(f"--configs에 모르는 구성 {','.join(bad)}가 있다: {','.join(ALL_CONFIGS)} 중에서 고른다.")
+    configs = tuple(dict.fromkeys(configs))   # 같은 구성을 두 번 주면 같은 문항이 두 번 기록돼 쌍이 집계에서 빠진다
     llm = make_gen_llm(gen_model, name, limit_usd, gen_effort)   # 금액 상한이 없거나 단가표 밖의 모델이면 폴더·장부를 만들기 전에 여기서 멈춘다
     executor = make_executor(llm, 'sync')
     every = load_pairs()
     rows = pilot([r for r in every if not works or r['work'] in works], limit)
+    if not rows:
+        raise SystemExit(f"고른 문항이 없다: --works {','.join(works)}가 pairs.jsonl에 없다(같은 이름의 기록을 빈 결과로 덮지 않는다).")
     data = build_data(sorted({r['work'] for r in rows}), world=world)
     if world != 'world':   # 정답표 이름 → 그 세계관의 카드(기존 연결 위에 덮는다)
         for wid, d in data.items():

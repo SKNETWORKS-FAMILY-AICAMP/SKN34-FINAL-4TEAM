@@ -280,6 +280,16 @@ def layer_path(version: str, group: str):
     return LAYERS / f'ctx-{version}-{group}.json'
 
 
+def check_layer_rows(version: str, works, questions: list[dict], rows: list[dict]) -> None:
+    """집계 전에 작품들의 문항마다 문맥 행(ctx-<열>-<묶음>.json)이 있는지 본다: 빠지면 검색 지표는 문항 0개로, 응답 정확도는 전체 문항으로 계산돼 서로 다른 모집단이 한 블록에 저장된다.
+    빠진 작품이 있으면 만들 명령을 알리고 멈춘다."""
+    have = {r['id'] for r in rows}
+    lost = sorted({q['work'] for q in questions if q['work'] in works and q['id'] not in have})
+    if lost:
+        groups = ','.join(dict.fromkeys(GROUP_OF[w] for w in lost))
+        raise SystemExit(f"{version} 열의 문맥 행이 없는 작품 {' '.join(lost)}: kt_layers.py contexts --version={version} --groups={groups} 로 만든 뒤 report를 다시 돌린다.")
+
+
 def load_layer_rows(version: str, works) -> list[dict]:
     out = []
     for group in split_by_group(works):
@@ -369,6 +379,16 @@ def nb_records(set_name: str, config: str) -> list[dict]:
     return out
 
 
+def usable_cell(set_name: str, config: str, cell: dict, bins: dict, records: list[dict]) -> dict | None:
+    """응답이 있는 칸 하나의 상관·예측용 값. 쌍·문항 정확도가 없는(응답이 전부 채점 실패한) 칸은 None이다: 합산·뺄셈에 None이 들어가 보고서를 못 저장하지 않게 빼되,
+    실패 수는 칸의 simulation에 남고 미실행('응답 실행 필요') 칸으로 바꾸지 않는다."""
+    sim, ret = cell['simulation'], cell['retrieval']
+    if sim['pairs']['accuracy'] is None or sim['questions']['accuracy'] is None:
+        return None
+    return {'set': set_name, 'config': config, 'bins': bins, 'records': records, 'pairs': sim['pairs']['accuracy'], 'questions': sim['questions']['accuracy'], 'recall50': ret['recall']['50']['rate'],
+            'recall20': ret['recall']['20']['rate'], 'upper50': ret['upper']['50']['rate'], 'exposed20': ret['exposed']['20']['rate'], 'items': cell['items']['items']}
+
+
 def nb_cell(set_name: str, config: str, rows: list[dict]) -> tuple[dict, dict]:
     """(세계관 묶음, 구성) 칸 하나: 검색 지표·문맥 항목·(시점 쌍 응답이 있으면) 응답 지표·재구성 점검. 두 번째 값은 구간별 [맞은 수, 문항 수](튜플 열쇠, 모델 어림용)."""
     records = nb_records(set_name, config)
@@ -396,9 +416,8 @@ def nb_report(name: str) -> dict:
         for config in configs:
             block[config], bins = nb_cell(set_name, config, rows)
             if block[config]['records']:
-                sim, ret = block[config]['simulation'], block[config]['retrieval']
-                cells.append({'set': set_name, 'config': config, 'bins': bins, 'records': nb_records(set_name, config), 'pairs': sim['pairs']['accuracy'], 'questions': sim['questions']['accuracy'], 'recall50': ret['recall']['50']['rate'],
-                              'recall20': ret['recall']['20']['rate'], 'upper50': ret['upper']['50']['rate'], 'exposed20': ret['exposed']['20']['rate'], 'items': block[config]['items']['items']})
+                if (cell := usable_cell(set_name, config, block[config], bins, nb_records(set_name, config))) is not None:
+                    cells.append(cell)
             else:
                 out['missing'].append([set_name, config])
         out['sets'][set_name] = {'works': sorted({r['work'] for r in rows}), 'questions': len(rows), 'configs': block}
@@ -452,6 +471,7 @@ def version_block(version: str, works) -> dict:
     """열 하나의 세 층 지표(작품들 기준)."""
     works = sorted(works)
     rows = load_layer_rows(version, set(works))
+    check_layer_rows(version, set(works), load_pairs(), rows)
     out: dict = {'works': works, 'layer_rows': len(rows), 'preprocess': preprocess_block(version, works), 'retrieval': {}, 'simulation': {}, 'fidelity': {}, 'by_work': {}}
     for config in CONFIGS:
         records = version_records(version, config, set(works))

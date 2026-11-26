@@ -165,3 +165,20 @@ def test_leave_one_out_model_pools_every_other_cells_counts():
     model = ly.loo_model(cells, 1)
     assert model == {('know', 'enough'): pytest.approx(11 / 20)}
     assert ly.loo_model(cells, 0) == {('know', 'enough'): pytest.approx(3 / 20), ('not', 'clean'): pytest.approx(1.0)}
+
+
+def test_a_report_needs_the_context_rows_of_every_question_of_its_works_and_names_the_command_to_make_them():
+    questions = [{'id': 'q1', 'work': 'w01'}, {'id': 'q2', 'work': 'w01'}, {'id': 'q3', 'work': 'c01'}, {'id': 'q4', 'work': 'w99'}]
+    rows = [{'id': 'q1', 'work': 'w01'}, {'id': 'q2', 'work': 'w01'}]
+    ly.check_layer_rows('v04', {'w01'}, questions, rows)                                                             # 요청 작품의 문항이 모두 있으면 통과(다른 작품의 문항은 보지 않는다)
+    with pytest.raises(SystemExit) as stop:
+        ly.check_layer_rows('v04', {'w01', 'c01'}, questions, rows)                                                  # c01의 문맥 행이 없다: 검색 지표가 문항 0개로 나오고 응답은 전체로 나오는 일을 막는다
+    assert 'v04' in str(stop.value) and 'c01' in str(stop.value) and 'contexts' in str(stop.value) and '--groups=dev' in str(stop.value)
+
+
+def test_a_cell_whose_every_response_failed_is_left_out_of_the_correlation_cells_but_keeps_its_failure_count():
+    ok = {'simulation': {'pairs': {'accuracy': 0.5}, 'questions': {'accuracy': 0.6}}, 'retrieval': {'recall': {'50': {'rate': 0.4}, '20': {'rate': 0.8}}, 'upper': {'50': {'rate': 0.5}}, 'exposed': {'20': {'rate': 0.1}}}, 'items': {'items': 3.0}}
+    failed = {**ok, 'simulation': {'pairs': {'accuracy': None, 'failed': 8}, 'questions': {'accuracy': None, 'failed': 16}}}
+    cell = ly.usable_cell('v2', 'link_bm25', ok, {}, [])
+    assert (cell['pairs'], cell['questions'], cell['recall50'], cell['recall20'], cell['upper50'], cell['exposed20'], cell['items']) == (0.5, 0.6, 0.4, 0.8, 0.5, 0.1, 3.0)
+    assert ly.usable_cell('v2', 'link_bm25', failed, {}, []) is None                                               # 상관·예측 계산에서 뺀다(미실행 칸으로 바꾸지는 않는다: 실패 수는 칸에 남는다)

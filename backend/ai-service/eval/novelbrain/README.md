@@ -31,7 +31,7 @@
 ## KoTimeChara 교차 모델 평가 (응답 모델과 채점 모델 분리)
 
 응답 모델은 로컬 OpenCodex 게이트웨이(127.0.0.1:10100, 구독 경로)의 다른 회사 모델로 바꾸고, 채점은 게이트웨이 `gpt-6.2-sol` 하나로 고정해 견준다(채점 금액 0, OpenAI 키를 읽지 않는다).
-결과는 `--name`으로 따로 쌓아 기존 `rows.json`·`cost.jsonl`·`results/ko-timechara.json`은 덮지 않는다(`--gen-model`·`--judge-model`·`--limit`·`--no-personality`는 `--name`이 필수).
+결과는 `--name`으로 따로 쌓아 기존 `rows.json`·`cost.jsonl`·`results/ko-timechara.json`은 덮지 않는다(`--gen-model`·`--judge-model`·`--limit`·`--no-personality`는 `--name`이 필수이고 값이 빈 `--gen-model`·`--judge-model`은 거절한다: 빈 값이 유료 OpenAI 경로가 되지 않게).
 
 ```sh
 cd backend/ai-service
@@ -79,7 +79,7 @@ uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timecha
 uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_pairs.py report --name=pairs-luna             # 호출 없음: results/ko_timechara-pairs-<name>.json
 ```
 
-`run`은 `.data/ko_timechara/runs/pairs-rows-<name>.json`을 쓰고 응답 캐시(`cache-<name>`)·장부(`cost-<name>.jsonl`)는 이름별로 나뉜다(`kt_run`의 --name과 겹치지 않게 준다). 집계는 구성별 문항·쌍 정확도(Wilson 95% 구간·실패 수), 쌍 종류(시간·자리)·side·웹소설/고전별, 고른 키 분포, 문맥 누설 지표(`future`·`foreign`·`unseen`과 같은 회차 사건 노출 `asked_ep`),
+`run`은 `.data/ko_timechara/runs/pairs-rows-<name>.json`을 쓰고 응답 캐시(`cache-<name>`)·장부(`cost-<name>.jsonl`)는 이름별로 나뉜다(`kt_run`의 --name과 겹치지 않게 준다). `--configs`에 같은 구성을 두 번 주면 한 번만 돌리고 `--works`가 고른 문항이 없으면 기록을 쓰기 전에 멈춘다. 집계는 구성별 문항·쌍 정확도(Wilson 95% 구간·실패 수), 쌍 종류(시간·자리)·side·웹소설/고전별, 고른 키 분포, 문맥 누설 지표(`future`·`foreign`·`unseen`과 같은 회차 사건 노출 `asked_ep`),
 문맥 항목 종류 분포(인물 본문·회차 기억·사건 카드·관계·원고 발췌)·평균 항목 수, 구성 사이 쌍 단위 정확 부호 검정(`s3|zero`·`s3|s2`에 더해 나머지 구성 각각 대 zero·대 s3)이다.
 
 **벡터(원고 발췌) 없는 구성**(`--configs`, 같은 `--name`에 구성을 더해 다시 돌리면 문맥이 같은 응답은 캐시에서 읽힌다): `no_vector`(그래프 PPR + 카드 BM25를 RRF로 합쳐 필터),
@@ -96,7 +96,7 @@ uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timecha
 - `ko_timechara/kt_world2.py`(시제품): 회차 원문만 읽는다(정답표·기존 세계관은 읽지 않는다). 회차마다 ① 인물 뽑기 → (③ 사건 정리: 행동·대화 하나가 한 사건, `@이름`·대상 7종·인물 역할 experienced/heard/mentioned ∥ ② 인물 문서: 인물 목록의 모두에게 인물마다, 정체·성격·말투·목표·행적(그 회차에서 한 일·겪은 일),
   말투 대사는 원문 대조, '밝혀지지 않는다'류 문장은 뺌) → (④ 인물 사이 관계 + ④' 사건의 자리: 누가 그 자리에 있었나·소식을 들었나, 이름이 사건 인용 300자 안에 있을 때만 '그 자리에 있던' 인물을 더함).
   작품마다 한 패스로 ⑤ 합치기(같은 카드: 종류·이름·호칭 변형은 서비스 `_base` 규칙으로 코드가 합치고, 이름이 다른 같은 인물·동명이인은 모델 호출 한 번이 코드가 고른 후보 쌍과 증거 문장을 보고 확정·거부만 한다(인용이 입력 인용 중 하나여야 받지만 이름 포함을 코드가 확인한 호칭 변형의 same은 인용이 틀려도 받는다). 같은 사건에 함께 나오거나 관계가 있는 두 인물은 모델이 같다고 해도 합치지 않는다.
-  숨겨진 정체는 카드를 따로 두고 「동일 인물」 관계를 밝혀진 회차부터, DEC-53 저장 규칙대로 가면 하나에 본체 하나·사슬·순환 없음)와 ⑥ 뒤 회차 들음(회차마다 앞 회차 사건 목록 + 이 회차 본문, 앞 사건을 처음 전해 듣는 인물에게 그 회차에 「들음」을 잇는다). 모델 출력은 모두 원문으로 다시 확인하고 어긋난 항목의 코드별 건수를 남긴다.
+  숨겨진 정체는 카드를 따로 두고 「동일 인물」 관계를 밝혀진 회차부터, DEC-53 저장 규칙대로 가면 하나에 본체 하나·사슬·순환 없음, 모델이 distinct로 가른 쌍이 두 카드에 있으면 만들지 않는다 — 같은 사건·관계에 함께 나오는 것은 빙의·환생의 가면에서 정상이라 막지 않는다)와 ⑥ 뒤 회차 들음(회차마다 앞 회차 사건 목록 + 이 회차 본문, 앞 사건을 처음 전해 듣는 인물에게 그 회차에 「들음」을 잇는다. 이미 아는 인물인지는 카드가 정해진 뒤 카드 id로 가려 이름이 같은 다른 사람은 처음 듣는 것으로 센다). 모델 출력은 모두 원문으로 다시 확인하고 어긋난 항목의 코드별 건수를 남긴다.
   `겪음`·`들음` 관계는 사건 회차(뒤 회차 들음은 듣는 회차)로 기록하고 이름만 나온 인물(mentioned)은 잇지 않는다. SOUL·GOAL은 회차 없이 따로 두지 않고 인물 카드의 `episodes[n]`(인물 문서·행적 + 그 회차에 겪은·들은 사건)에 둔다.
   `--step-llm 'kind=모델[@강도]'`로 단계(chars·doc·events·presence·rels·learn·merge)마다 모델·추론 강도를 달리할 수 있다(강도가 높으면 출력 한도를 배수로 늘린다). 들음은 luna@high가 low보다 정확하다.
   마지막으로 ⑦ 카드 다듬기(`--no-refine`으로 끈다): 원문을 보고 모든 카드의 회차 칸을 채운다. 인물이 아닌 카드(장소·조직·능력·사물·규칙·이름 붙은 사건)는 코드가 회차마다 원문에서 카드 이름(합쳐진 호칭 포함)이 글자 그대로 나온 문장과 앞뒤 한 문장(회차당 10곳)과 그 카드가 @로 나온 사건의 인용을 모아 카드 단위로 모델에 준다(카드끼리 병렬, 입력이 길면 회차 묶음으로 나눈다).
@@ -104,10 +104,10 @@ uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timecha
   NovelBrain 필터는 장소·조직·능력·규칙 카드 본문을 모든 인물에게 보여 주고 비인물 카드의 회차 칸은 보여 주지 않는다(서비스 변환·색인도 인물 카드의 회차 문서만 읽는다) — 본문 누설은 분류가 아니라 칸으로 막는다. 사건 카드는 부르지 않고 인물 카드의 회차 칸·IDENTITY도 건드리지 않는다.
   대신 작가용 종합 소개(`world['summary']`, 필터·스냅샷이 읽지 않는다): 병합 인물 또는 전체 3,000자를 넘는 인물의 회차 칸들로 5~8문장, 문장마다 근거 회차 번호가 실제 칸인지만 확인한다. 직전 판의 인물 경로(병합 인물 IDENTITY 다시 쓰기·긴 회차 칸 줄이기)는 `--tighten`일 때만 켠다(알아야 하는 쪽 점수를 깎아 끈다).
   호출 종류는 `refine_card`·`refine_summary`·`refine_identity`·`refine_section`이다.
-- `ko_timechara/kt_world_svc.py`(서비스 기준선): 지금 서비스의 `extract → resolve → organize`를 서비스 코드 수정 없이 같은 작품에 돌려(기존 `eval/simulation/pipe_build`가 `agent.ChatOpenAI`를 로컬 게이트웨이 gpt-6-luna로 바꿔 끼움, Langfuse 키는 지운다) `LoadPayload`를 세계관 모양으로 바꾼다(사건 카드는 인물과 관계가 없다).
+- `ko_timechara/kt_world_svc.py`(서비스 기준선): 지금 서비스의 `extract → resolve → organize`를 서비스 코드 수정 없이 같은 작품에 돌려(기존 `eval/simulation/pipe_build`가 `agent.ChatOpenAI`를 로컬 게이트웨이 gpt-6-luna로 바꿔 끼움, Langfuse 키는 지운다) `LoadPayload`를 세계관 모양으로 바꾼다(사건 카드는 인물과 관계가 없고, 사건의 '겪음'은 사건 회차의 기억에 그 인용이 든 인물로만 읽는다).
 - `ko_timechara/kt_linkeval.py`(전처리 평가, 호출 없음): 세계관 셋(`world.json`·`world2.json`·`world_svc.json`)을 정답표와 같은 잣대로 잰다. 사건 짝짓기(인용이 정답표 근거 문장과 겹침 / 인용이 없으면 요약 2-gram + 참여 인물 겹침의 보조 규칙)·사건 재현율·겪음 정확도와 재현율·들음·인물 병합(쪼개짐·섞임)·
   인물 기준 지식 정확도를 Wilson 95% 구간과 함께 `results/ko-timechara-linkeval-<name>.json`(집계만)에 쓴다. 정답표 인물도 호칭 변형 규칙으로 한 인물씩 묶어 잰다(정답표의 `철수`·`철수야`처럼 갈라진 인물을 올바르게 합친 카드가 섞임으로 읽히지 않게). 지식 F1(2tp/(2tp+fp+fn), 정밀·재현의 조화평균)이 주 지표이고, 인물 회차 기억의 사건이 아닌 서술도 같은 회차 정답 사건과 `text` 규칙으로 맞으면 안다고 세는 '넓힌' 판정(`…_wide`, 세 세계관 모두)과 들음의 '같은 회차에 들음'·'뒤 회차에 들음' 분리를 함께 낸다.
-  `--worlds`는 `world`·`world2`·`world_svc`나 자가 개선 판 `sv-<이름>`이다. 규칙·한계는 모듈 설명.
+  `--worlds`는 `world`·`world2`·`world_svc`나 자가 개선 판 `sv-<이름>`이다. 세계관마다 같은 작품 집합(모든 세계관 파일이 있는 작품)으로 재고 세계관별로 빠진 작품은 `missing`에 남긴다. 규칙·한계는 모듈 설명.
 
 ```sh
 cd backend/ai-service
@@ -119,7 +119,7 @@ uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timecha
 uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_pairs.py run --world=world2 --works=w01,w13,w25,w41,c01 --configs=zero,link_bm25,link_ppr,no_vector --gen-model=gpt-6-luna --gen-effort=low --name=pairs-w2 --limit-usd=5
 ```
 
-`kt_world2.py`의 `--name`은 응답 캐시(`cache-<name>`)·장부(`cost-<name>.jsonl`)·세계관 파일 이름(`works/<id>/<name>.json`)을 정하고 기존 `world.json`·`knowledge.jsonl`과 겹치는 이름(`world`·`world_svc`·`work`·`knowledge`·`vectors`)은 막는다.
+`kt_world2.py`의 `--name`은 응답 캐시(`cache-<name>`)·장부(`cost-<name>.jsonl`)·세계관 파일 이름(`works/<id>/<name>.json`)을 정하고 기존 `world.json`·`knowledge.jsonl`과 겹치는 이름(`world`·`world_svc`·`work`·`knowledge`·`vectors`)은 막는다. `refine`의 `--from`도 같은 이름 규칙이고 `--name`과 같은 디렉터리(대소문자만 달라도)면 막는다. 결과 폴더의 `episodes.json`은 그 실행의 회차 목록이라 `refine`은 목록에 든 회차만 읽는다(목록이 없는 옛 결과는 `episodes/` 전부).
 
 ## 규칙
 

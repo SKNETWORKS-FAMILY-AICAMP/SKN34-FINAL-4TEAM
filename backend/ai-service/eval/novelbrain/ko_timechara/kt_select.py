@@ -138,7 +138,7 @@ def scan(folder: Path) -> None:
             print(f'{number}/{len(files)} 통과 {len(rows)} {dict(reasons)}', flush=True)
     KT.mkdir(parents=True, exist_ok=True)
     (KT / 'candidates.json').write_text(json.dumps({'folder': str(folder), 'scanned': len(files), 'reasons': reasons, 'rows': rows},
-                                                   ensure_ascii=False))
+                                                   ensure_ascii=False), encoding='utf-8')
     print(f'전체 {len(files)}개 중 통과 {len(rows)}개 {dict(reasons)}')
     print('통과 후보의 장르:', dict(Counter(r['genre'] for r in rows)))
 
@@ -167,13 +167,13 @@ def save_work(work_id: str, kind: str, genre: str, source: str, pattern: str, ep
     folder = KT / 'works' / work_id
     folder.mkdir(parents=True, exist_ok=True)
     (folder / 'work.json').write_text(json.dumps({'id': work_id, 'kind': kind, 'genre': genre, 'source': source, 'pattern': pattern,
-                                                  'episodes': episodes}, ensure_ascii=False))
+                                                  'episodes': episodes}, ensure_ascii=False), encoding='utf-8')
 
 
 def prepare(works: int = 12) -> None:
     """후보에서 장르별로 works편을 고르고(앞쪽 25화를 못 나누는 작품은 버리고 다음 후보로 교체), 고전을 받아 회차로 묶어 works/에 저장한다.
     이미 만든 작품의 id는 편수를 늘려도 그대로다: 확대 차수(ROUNDS)마다 그 차수에 새로 들어온 작품에 (장르, 파일) 순으로 이어 번호를 붙인다."""
-    candidates = json.loads((KT / 'candidates.json').read_text())
+    candidates = json.loads((KT / 'candidates.json').read_text(encoding='utf-8'))
     folder, rows, ready = Path(candidates['folder']), [r for r in candidates['rows'] if r['median_chars'] <= MAX_MEDIAN], {}
     quota = quota_for(works)
     while True:
@@ -203,7 +203,7 @@ def prepare(works: int = 12) -> None:
         episodes = prepare_classic((raw_dir / f'{title}.txt').read_text(encoding='utf-8'), count, cap)
         save_work(f'c{number:02d}', 'classic', '고전', f'ko.wikisource.org/{title}', 'paragraph_groups', episodes)
     for path in sorted((KT / 'works').glob('*/work.json')):
-        work = json.loads(path.read_text())
+        work = json.loads(path.read_text(encoding='utf-8'))
         chars = [len(e['text']) for e in work['episodes']]
         print(f"{work['id']} {work['kind']:7s} {work['genre']:8s} 회차 {len(chars):2d} 회차당 글자 중앙값 {int(statistics.median(chars)):6d} 합계 {sum(chars):7d}")
 
@@ -252,9 +252,16 @@ def find_sources(works: dict[str, dict], rows: list[dict], read) -> dict[str, li
     return found
 
 
+def overlapping(a: list[dict], b: list[dict]) -> bool:
+    """두 작품(회차 목록)의 본문이 겹치는가: 한쪽의 본문 조각(snippets)이 다른 쪽 앞쪽 회차 글에 든다. 한쪽이 머리말·다른 분권을 더한 판본이어도 걸리게 양쪽을 본다."""
+    text = lambda episodes: flat(' '.join(e['text'] for e in episodes[:EPISODES]))  # noqa: E731
+    return any(part in text(b) for part in snippets({'episodes': a})) or any(part in text(a) for part in snippets({'episodes': b}))
+
+
 def pick_new(rows: list[dict], seed: int, quota: dict[str, int], load, excluded=frozenset()) -> tuple[list[dict], dict, dict]:
     """add의 고르기: 회차 글자가 긴 후보와 제외한 제목(excluded 열쇠)의 후보를 빼고, 같은 제목 열쇠는 시드 순서로 앞선 하나만 남긴 풀에서 장르별 정원만큼 시드 순서로 고른다.
-    load(row)가 (패턴, 회차 목록) 또는 None(회차를 못 나눔·이미 쓴 작품과 같은 본문)을 돌려주고, None인 후보는 풀에서 빼 다음 후보로 바꾼다(prepare와 같은 교체)."""
+    load(row)가 (패턴, 회차 목록) 또는 None(회차를 못 나눔·이미 쓴 작품과 같은 본문)을 돌려주고, None인 후보는 풀에서 빼 다음 후보로 바꾼다(prepare와 같은 교체).
+    제목이 달라 열쇠로 못 거른 같은 본문의 판본도 같은 식으로 바꾼다: 지금 선택에 든 작품들과 본문이 겹치는 후보를 뺀다(이미 빠진 작품과는 견주지 않아 다음 후보를 막지 않는다)."""
     pool, keys = [], set()
     for row in sorted((r for r in rows if r['median_chars'] <= MAX_MEDIAN), key=lambda r: _order(r, seed)):
         key = normalize_title(row['file'])
@@ -268,6 +275,9 @@ def pick_new(rows: list[dict], seed: int, quota: dict[str, int], load, excluded=
         for row in picked:
             if row['file'] not in ready:
                 loaded = load(row)
+                if loaded is not None and any(overlapping(loaded[1], ready[r['file']][1]) for r in picked if r['file'] in ready):
+                    print('새로 고른 작품끼리 본문이 겹쳐 교체:', row['genre'])
+                    loaded = None
                 if loaded is None:
                     pool = [r for r in pool if r['file'] != row['file']]
                     stats['replaced'] += 1
@@ -286,12 +296,12 @@ def save_new_works(root: Path, works: dict[str, dict]) -> int:
     """root/<id>/work.json을 새로 쓰고 새로 쓴 수를 돌려준다. 같은 내용이 이미 있으면 건너뛰고, 다른 작품이 이미 있으면 아무것도 쓰기 전에 멈춘다(기존 작품 폴더를 덮지 않는다)."""
     paths = {wid: root / wid / 'work.json' for wid in works}
     for wid, path in paths.items():
-        if path.exists() and json.loads(path.read_text()) != works[wid]:
+        if path.exists() and json.loads(path.read_text(encoding='utf-8')) != works[wid]:
             raise SystemExit(f'{wid}에 다른 작품이 이미 있다: 덮어쓰지 않는다.')
     fresh = [wid for wid, path in paths.items() if not path.exists()]
     for wid in fresh:
         paths[wid].parent.mkdir(parents=True, exist_ok=True)
-        paths[wid].write_text(json.dumps(works[wid], ensure_ascii=False))
+        paths[wid].write_text(json.dumps(works[wid], ensure_ascii=False), encoding='utf-8')
     return len(fresh)
 
 
@@ -300,9 +310,9 @@ def add(count: int, prefix: str, seed: int = ADD_SEED) -> None:
     제외: 기존 웹소설의 출처 파일과 같은 제목 열쇠인 후보(다른 판본·분권)·고전 제목·본문 조각이 기존 작품과 겹치는 후보. 정원은 quota_for(count). 같은 명령은 같은 작품을 다시 낸다."""
     if not re.fullmatch(r'[a-z]', prefix) or prefix in ('w', 'c'):
         raise SystemExit('--prefix는 기존 id 접두어(w·c)가 아닌 영문 소문자 한 글자다.')
-    candidates = json.loads((KT / 'candidates.json').read_text())
+    candidates = json.loads((KT / 'candidates.json').read_text(encoding='utf-8'))
     folder, rows = Path(candidates['folder']), candidates['rows']
-    existing = {p.parent.name: json.loads(p.read_text()) for p in sorted((KT / 'works').glob('*/work.json')) if not p.parent.name.startswith(prefix)}
+    existing = {p.parent.name: json.loads(p.read_text(encoding='utf-8')) for p in sorted((KT / 'works').glob('*/work.json')) if not p.parent.name.startswith(prefix)}
     web = {wid: work for wid, work in existing.items() if work['kind'] == 'web'}
     read = lambda row: read_head(folder / row['file'], 4_000_000)  # noqa: E731
     sources = find_sources(web, [r for r in rows if r['median_chars'] <= MAX_MEDIAN], read)
@@ -334,7 +344,7 @@ def add(count: int, prefix: str, seed: int = ADD_SEED) -> None:
               'sources_found': {wid: len(found) for wid, found in sources.items()},
               'picked': {wid: {'file': row['file'], 'genre': row['genre'], 'pattern': row['pattern'], 'chain': row['chain'], 'median_chars': row['median_chars']}
                          for wid, row in ids.items()}}
-    (KT / f'add-{prefix}.json').write_text(json.dumps(record, ensure_ascii=False, indent=1))   # 파일 이름이 들어 있어 .data(git 무시)에만 둔다
+    (KT / f'add-{prefix}.json').write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding='utf-8')   # 파일 이름이 들어 있어 .data(git 무시)에만 둔다
     print(f'새로 쓴 작품 {wrote}편(이미 같은 것이 있어 건너뜀 {count - wrote}편) · 풀 {stats["pool"]} · 교체 {stats["replaced"]}회')
     for wid, work in works.items():
         chars = [len(e['text']) for e in work['episodes']]

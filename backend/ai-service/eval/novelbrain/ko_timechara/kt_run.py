@@ -170,6 +170,8 @@ def run(mode: str, configs: tuple[str, ...], works: tuple[str, ...] = (), *, gen
     """
     if not configs:
         raise SystemExit('--configs가 비었다: 구성을 하나 이상 준다(빈 실행이 기존 결과를 덮지 않게).')
+    if any(model is not None and not model.strip() for model in (gen_model, judge_model)):
+        raise SystemExit('--gen-model·--judge-model이 비었다: 모델 id를 주거나 옵션을 뺀다(빈 값이 기본 유료 OpenAI 경로를 고르지 않게).')
     if name is None and (gen_model or judge_model or limit is not None or not personality):
         raise SystemExit('--gen-model·--judge-model·--limit·--no-personality는 --name이 필요하다(기존 rows.json·cost.jsonl을 덮거나 섞지 않게).')
     if gen_effort and not gen_model:

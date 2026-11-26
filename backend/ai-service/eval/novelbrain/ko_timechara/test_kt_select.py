@@ -5,7 +5,7 @@ import zipfile
 
 import pytest
 
-from kt_select import (QUOTA, choose, classify_genre, find_sources, normalize_title, numbered, pick_new, prepare_classic, quota_for, read_head,
+from kt_select import (QUOTA, _order, choose, classify_genre, find_sources, normalize_title, numbered, pick_new, prepare_classic, quota_for, read_head,
                        save_new_works, screen)
 
 BODY = '이야기가 이어진다. ' * 300
@@ -131,3 +131,23 @@ def test_numbered_follows_genre_then_file_order_and_save_new_works_never_overwri
     with pytest.raises(SystemExit):
         save_new_works(tmp_path, {'n01': {'id': 'n01', 'episodes': [9]}, 'n03': {'id': 'n03', 'episodes': [3]}})
     assert json.loads((tmp_path / 'n01' / 'work.json').read_text()) == {'id': 'n01', 'episodes': [1]} and not (tmp_path / 'n03').exists()   # 하나라도 다르면 아무것도 안 쓴다
+
+
+# ---- PR #945 리뷰 후속(#948): 새로 고른 작품끼리의 본문 중복 ----
+
+def test_pick_new_never_keeps_two_works_with_the_same_body_under_different_titles_and_refills_the_quota():
+    rows = [{'file': f'{title} 1-100.txt', 'genre': '무협', 'median_chars': 5000} for title in ('가나', '가나 개정판본', '다라', '마바', '사아', '자차')]   # 앞의 둘은 제목 열쇠가 다른 같은 본문
+    body = {'가나 1-100.txt': 'A', '가나 개정판본 1-100.txt': 'A', '다라 1-100.txt': 'D', '마바 1-100.txt': 'M', '사아 1-100.txt': 'S', '자차 1-100.txt': 'J'}
+    for seed in range(12):
+        picked, ready, stats = pick_new(rows, seed, {'무협': 4}, lambda row: ('n_hwa', work_of(body[row['file']])['episodes']))
+        bodies = [body[r['file']] for r in picked]
+        assert len(picked) == 4 and len(set(bodies)) == 4 and ready.keys() == {r['file'] for r in picked}, (seed, bodies)       # 같은 본문은 한 편만, 정원은 다시 채운다
+
+
+def test_pick_new_checks_each_candidate_against_the_current_selection_so_an_excluded_work_never_blocks_the_next_one():
+    rows = [{'file': f'무협{i} 1-100.txt', 'genre': '무협', 'median_chars': 5000} for i in range(3)]
+    first, second, third = sorted(rows, key=lambda r: _order(r, 7))
+    a, c = work_of('A')['episodes'], work_of('C')['episodes']
+    episodes = {first['file']: a, second['file']: a + [dict(e, number=e['number'] + 8) for e in c], third['file']: c}   # 둘째는 첫째를 담은 합본, 셋째는 그 합본의 뒷부분만(첫째와는 겹치지 않는다)
+    picked, ready, stats = pick_new(rows, 7, {'무협': 2}, lambda row: ('n_hwa', episodes[row['file']]))
+    assert [r['file'] for r in picked] == [first['file'], third['file']] and stats['replaced'] == 1                       # 합본은 빠지고, 빠진 합본이 셋째를 막지 않는다

@@ -8,6 +8,7 @@ import kt_linkeval as le
 from app.novelbrain.models import Card, Relation
 from kt_context import overlaps
 from kt_text import squash
+from kt_world import save_world
 
 
 def gold_event(eid, episode, summary, evidence, participants, witnesses=()):
@@ -277,3 +278,39 @@ def test_world_file_name_must_be_a_known_world(world_name):
 def test_other_file_names_are_not_world_files(bad):
     with pytest.raises(SystemExit):
         le.check_worlds([bad])
+
+
+# ---- PR #945 리뷰 후속(#948) ----
+
+def test_gold_classes_never_join_two_apart_names_through_a_longer_name_that_contains_both():
+    rep = le.gold_classes(['로빈', '로빈 하트', '하트', '치삼', '치삼이'], [('로빈', '하트')])                 # 로빈·하트는 같은 사건에 다른 사람으로 올랐다
+    assert rep['로빈'] != rep['하트']                                                                   # 긴 이름 '로빈 하트'를 거쳐 한 대표가 되지 않는다
+    assert rep['로빈 하트'] == rep['로빈'] and rep['치삼이'] == rep['치삼']                                   # 긴 이름은 먼저 합친 쪽(가나다 순)에 붙고 충돌 없는 호칭 변형은 그대로 합친다
+
+
+def test_evaluate_scores_every_world_on_the_works_they_all_have_and_lists_the_works_each_one_misses(tmp_path, monkeypatch):
+    for wid, names in (('A', ('world2', 'world_svc')), ('B', ('world2',))):                              # B는 서비스 전처리 세계관이 없다
+        (tmp_path / wid).mkdir()
+        for name in names:
+            save_world(tmp_path / wid / f'{name}.json', world())
+    monkeypatch.setattr(le, 'load_inputs', lambda wid: {'knowledge': KNOWLEDGE, 'kind': 'web', 'mains': ['철수', '영희'], 'folder': tmp_path / wid})
+    out = le.evaluate(['A', 'B'], ('world2', 'world_svc'))
+    assert out['common'] == ['A'] and out['worlds']['world2']['works'] == ['A'] and out['worlds']['world_svc']['works'] == ['A']
+    assert out['worlds']['world2']['missing'] == [] and out['worlds']['world_svc']['missing'] == ['B']
+    assert out['worlds']['world2']['rules']['quote']['all']['event_recall']['n'] == 3                    # B의 사건 3개는 시제품 점수에도 들지 않는다(작품 구성 차이가 성능 차이로 읽히지 않게)
+
+
+def test_a_person_heard_under_two_gold_spellings_keeps_the_earliest_episode_of_hearing():
+    gold = gold_event('E1.1', 1, '치삼이 영희에게 칼을 건넸다.', '치삼은 영희에게 칼을 건넸다.', ['영희'])
+    learn = lambda name, episode: {'event': 'E1.1', 'learner': name, 'episode': episode, 'evidence': 'x'}  # noqa: E731
+    knowledge = [{'episode': 1, 'events': [gold], 'learned': []}, {'episode': 2, 'events': [], 'learned': [learn('치삼', 2)]}, {'episode': 4, 'events': [], 'learned': [learn('치삼이', 4)]}]
+    cards = [Card(id='c1', cardType='character', title='치삼', text=''), Card(id='c2', cardType='character', title='영희', text=''), Card(id='e1', cardType='event', title='a', text='a', revealFromEpisode=1)]
+    events = {'e1': {'episode': 1, 'title': 'a', 'quote': '치삼은 영희에게 칼을 건넸다.', 'experienced': {'c2': 1}, 'heard': {'c1': 2}, 'mentioned': []}}
+    counts = le.work_counts(knowledge, {'series': 'w00', 'cards': cards, 'relations': [], 'when': {}, 'events': events}, ['치삼'], 'quote')
+    assert (counts['learned_gold'], counts['heard_found'], counts['heard_found_ep']) == (1, 1, 1)         # 2화 들음을 2화로 이었다: 4화 기록이 2화를 덮어 오답으로 세지 않는다
+
+
+def test_a_work_without_any_gold_event_counts_nothing_instead_of_stopping_the_run():
+    for knowledge in ([], [{'episode': 1, 'events': [], 'learned': []}]):                                # 추출기는 빈 정답표도 그대로 파일로 쓴다
+        counts = le.work_counts(knowledge, world(), [], 'text')
+        assert (counts['gold_events'], counts['matched'], counts['tp'], counts['persons']) == (0, 0, 0, 0)
