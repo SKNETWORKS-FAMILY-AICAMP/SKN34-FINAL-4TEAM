@@ -36,6 +36,11 @@ class PushDeviceServiceTest {
 
         assertEquals("new-token", existing.token)
         assertNull(existing.endpointArn)
+
+        existing.endpointArn = "cached-endpoint"
+        service.register(member, session.id, installation, "new-token")
+
+        assertNull(existing.endpointArn)
     }
 
     @Test

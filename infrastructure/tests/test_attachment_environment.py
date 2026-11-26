@@ -33,7 +33,8 @@ class AttachmentEnvironmentTest(unittest.TestCase):
                    INTERNAL_TOKEN="synthetic-internal", OPENAI_API_KEY="synthetic-ai-key", NEO4J_PASSWORD="synthetic-graph",
                    CORE_RABBITMQ_PASSWORD="synthetic-broker", CONTENT_CORE_AUTH_TOKEN="synthetic-content-core",
                    OPERATIONS_SERVICE_TOKEN="synthetic-operations",
-                   AWS_ACCESS_KEY_ID="synthetic-s3-id", AWS_SECRET_ACCESS_KEY="synthetic-s3-secret")
+                   AWS_ACCESS_KEY_ID="synthetic-s3-id", AWS_SECRET_ACCESS_KEY="synthetic-s3-secret",
+                   PUSH_SNS_ACCESS_KEY_ID="synthetic-sns-id", PUSH_SNS_SECRET_ACCESS_KEY="synthetic-sns-secret")
         command = ["docker", "compose", "--env-file", str(ROOT / ".env.example"), "-f", str(ROOT / "infrastructure/docker-compose.yaml"),
                    "-f", str(ROOT / "infrastructure/docker-compose.local.yaml"), "config", "--format", "json"]
         services = json.loads(subprocess.run(command, env=env, capture_output=True, text=True, check=True).stdout)["services"]
@@ -46,11 +47,13 @@ class AttachmentEnvironmentTest(unittest.TestCase):
             for key in s3_keys:
                 self.assertEqual(name in ("content-service", "image-worker"), key in settings)
                 self.assertNotIn(key, service.get("build", {}).get("args", {}))
+            self.assertEqual(name == "core-api", any(key.startswith("PUSH_SNS_") for key in settings))
             self.assertEqual(name in ("ai-service", "ai-worker", "ai-jobs-worker", "image-worker"), "OPENAI_API_KEY" in settings)
             self.assertNotIn("env_file", service)
             for port in service.get("ports", []):
                 self.assertEqual("127.0.0.1", port["host_ip"])
         self.assertEqual("synthetic-s3-id", services["minio"]["environment"]["MINIO_ROOT_USER"])
+        self.assertEqual("synthetic-sns-id", services["core-api"]["environment"]["PUSH_SNS_ACCESS_KEY_ID"])
         self.assertEqual("synthetic-s3-secret", services["minio"]["environment"]["MINIO_ROOT_PASSWORD"])
         for key in s3_keys:
             self.assertEqual(content[key], image_worker[key], key)

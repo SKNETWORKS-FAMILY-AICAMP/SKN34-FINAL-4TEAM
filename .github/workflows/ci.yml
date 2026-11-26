@@ -126,7 +126,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Start the Android emulator
+      - name: Prepare the Android emulator and SDK
         run: |
           sudo chown "$USER" /dev/kvm
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmdline-tools;23.0"
@@ -134,7 +134,6 @@ jobs:
           "$tools/sdkmanager" "platform-tools" "emulator" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.1.12297006" "system-images;android-35;google_apis;x86_64"
           echo no | "$tools/avdmanager" create avd --name storyfork-ci --package "system-images;android-35;google_apis;x86_64"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
-          nohup "$ANDROID_HOME/emulator/emulator" -avd storyfork-ci -no-window -no-audio -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
       - name: Build the Android development APK
         working-directory: mobile
         run: |
@@ -154,8 +153,17 @@ jobs:
           done
       - name: Record actual WebView login, local notification and tap
         run: |
-          timeout 180 adb wait-for-device
-          timeout 180 bash -c 'until [[ $(adb shell getprop sys.boot_completed | tr -d "\r") == 1 ]]; do sleep 2; done'
+          adb start-server
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+          "$ANDROID_HOME/emulator/emulator" -avd storyfork-ci -port 5554 -no-window -noaudio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          emulator_pid=$!
+          trap 'result=$?; if (( result != 0 )); then adb devices -l; tail -80 "$RUNNER_TEMP/emulator.log"; adb logcat -d -s AndroidRuntime:E ReactNativeJS:W | tail -80; fi; kill "$emulator_pid" 2>/dev/null || true' EXIT
+          for ((attempt=0; attempt<120; attempt++)); do
+            kill -0 "$emulator_pid"
+            if [[ $(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r") == 1 ]]; then break; fi
+            sleep 2
+          done
+          if (( attempt == 120 )); then echo "Android emulator boot timed out"; exit 1; fi
           adb install mobile/android/app/build/outputs/apk/debug/app-debug.apk
           node mobile/scripts/android-demo.mjs "$RUNNER_TEMP/storyfork-android"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

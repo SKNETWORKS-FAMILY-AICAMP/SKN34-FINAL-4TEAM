@@ -35,7 +35,8 @@ class PushDeviceService(
                     throw ResponseStatusException(HttpStatus.CONFLICT)
                 }
             }
-            if (device.token != token) device.endpointArn = null
+            // 재등록은 FCM의 최신 토큰을 확인한 요청이므로 SNS 상태를 다음 발송에서 다시 읽는다.
+            device.endpointArn = null
             device.sessionId = sessionId
             device.token = token
         }
