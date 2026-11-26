@@ -39,7 +39,7 @@ import operator
 import os
 from collections import defaultdict
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
@@ -117,7 +117,7 @@ class ConversationNotFound(Exception):
 
 
 class ConversationBusy(Exception):
-    """멈춘 실행이 있어 상태를 덮어쓰면 이어가기(resume)가 깨진다."""
+    """멈춘 실행이 있어 상태를 덮어쓰면 이어가기(resume)가 깨지거나, 이 프로세스에서 도는 실행이 곧 쓰는 checkpoint가 바꾼 값을 덮는다."""
 
 
 class ConversationUnavailable(Exception):
@@ -673,8 +673,25 @@ def _unrated(turns: list[dict]) -> list[dict]:
 
 
 def _running(snapshot) -> bool:
-    """멈추거나 도는 실행이 있는지. 요약만 남은 checkpoint(next=('summarize',))는 턴이 이미 저장돼 끝난 대화로 본다(#891): 요약은 다음 턴에 다시 합친다."""
+    """멈추거나 도는 실행이 있는지. 요약만 남은 checkpoint(next=('summarize',))는 턴이 이미 저장돼 끝난 대화로 본다(#891): 요약은 다음 턴에 다시 합친다(이 프로세스에서 도는 요약은 _EXECUTING이 따로 막는다)."""
     return bool(snapshot.next) and snapshot.next != ('summarize',)
+
+
+# ponytail: 이 프로세스에서 실행이 도는 대화의 threadId. 요약 노드가 도는 동안(next=('summarize',))은 checkpoint가 끊겨 남은 대화와 같아 보이지만, 그 사이 쓴 제목·평가를
+# 곧 끝나는 요약 checkpoint가 앞 checkpoint의 자식으로 써서 덮는다. _THREAD_LOCKS처럼 uvicorn 단일 프로세스 전제이고, 여러 프로세스로 늘리면 체크포인트 버전 비교로 바꾼다.
+_EXECUTING: set[str] = set()
+
+
+@contextmanager
+def _executing(data: OrchestrationRequest):
+    """대화 요청의 실행이 도는 동안만 그 threadId를 _EXECUTING에 둔다. 오류·연결 끊김으로 끝나도 뺀다(끊겨 남은 대화는 다시 바꿀 수 있다)."""
+    thread = data.conversation.threadId if data.conversation else ''
+    if thread:
+        _EXECUTING.add(thread)
+    try:
+        yield
+    finally:
+        _EXECUTING.discard(thread)
 
 
 async def _fork_point(config: dict, snapshot, index: int):
@@ -735,7 +752,7 @@ async def history(thread_id: str, scope: str) -> ChatHistory:
 
 async def rename(thread_id: str, scope: str, title: str) -> None:
     config, snapshot = await _owned(thread_id, scope)
-    if _running(snapshot):
+    if _running(snapshot) or thread_id in _EXECUTING:
         raise ConversationBusy()
     await CHAT.aupdate_state(config, {'title': title}, as_node='summarize')
 
@@ -762,10 +779,10 @@ async def truncate(thread_id: str, scope: str, index: int) -> None:
 
 
 async def feedback(thread_id: str, scope: str, index: int, value: str | None) -> None:
-    """index번 턴 답변의 좋아요·싫어요(#560, None이면 취소). 그 턴의 trace(runId)가 있으면 Langfuse 점수도 맞춘다. 멈춘 실행이 있으면 409다."""
+    """index번 턴 답변의 좋아요·싫어요(#560, None이면 취소). 그 턴의 trace(runId)가 있으면 Langfuse 점수도 맞춘다. 멈춘 실행이 있거나 이 프로세스에서 실행이 도는 중이면 409다."""
     async with _THREAD_LOCKS[thread_id]:  # 점수도 저장 순서대로 맞추려고 잠금 안에서 보낸다
         config, snapshot = await _owned(thread_id, scope)
-        if _running(snapshot):
+        if _running(snapshot) or thread_id in _EXECUTING:
             raise ConversationBusy()
         turns = snapshot.values.get('turns', [])
         if not 0 <= index < len(turns):
@@ -820,7 +837,7 @@ async def run(data: OrchestrationRequest, authorization: str = '') -> Orchestrat
     """
     content_mcp.AUTHORIZATION.set(authorization)
     graph, config, payload, state = await _begin(data, authorization)
-    with _traced(data, authorization, state) as turn:
+    with _traced(data, authorization, state) as turn, _executing(data):
         _claim(turn, payload, state)
         response = _response(await graph.ainvoke(payload, config))
         turn.status = _outcome(response)
@@ -869,7 +886,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
         graph, config, payload, state = await _begin(data, authorization)
         if config is not None and data.resume is None and data.fromTurn is None:
             config = merge_configs(config, {'configurable': {'persist_chat_intent_failure': True}})
-        with _traced(data, authorization, state) as turn:
+        with _traced(data, authorization, state) as turn, _executing(data):
             _claim(turn, payload, state)
             async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
                 if mode == 'custom':
