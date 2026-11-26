@@ -185,8 +185,11 @@ class ManuscriptBuildServiceTest {
     @Suppress("UNCHECKED_CAST") private fun anyWanted():(Int)->Boolean=any(Function1::class.java) as? ((Int)->Boolean) ?: { _:Int -> true }
     private fun claimedBy(token:UUID) { `when`(execution.claim(anyUuid(),anyUuid(),anyInstant(),anyInstant(),isNull())).thenReturn(token) }
 
-    @Test fun `the execution lease covers each long extraction plus resolution and result callbacks`() {
-        for (episodes in listOf(sources.take(1), sources)) {
+    @Test fun `the execution lease covers extraction batches and sequential result callbacks`() {
+        for ((count, expectedSeconds) in listOf(1 to 350L, 4 to 410L, 5 to 610L, 8 to 670L)) {
+            val episodes = (1..count).map { number ->
+                sources.first().copy(number = number, episodeId = "episode-$number", versionId = "version-$number")
+            }
             val job = job("queued", episodeSources = episodes)
             val token = UUID.randomUUID()
             claimedBy(token)
@@ -198,7 +201,7 @@ class ManuscriptBuildServiceTest {
 
             verify(execution).claim(eq(job.id) ?: job.id, eq(owner) ?: owner,
                 started.capture() ?: Instant.EPOCH, deadline.capture() ?: Instant.EPOCH, isNull())
-            assertEquals(Duration.ofSeconds(200L * episodes.size + 150L), Duration.between(started.value, deadline.value))
+            assertEquals(Duration.ofSeconds(expectedSeconds), Duration.between(started.value, deadline.value), "$count episodes")
         }
     }
 
