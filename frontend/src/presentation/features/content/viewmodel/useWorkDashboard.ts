@@ -1,6 +1,6 @@
 import { appContainer } from '../../../../app/appContainer'
 import type { PublicationEvent, Work } from '../../../../domain/entities/content'
-import type { EditSuggestionUseCase } from '../../../../domain/usecases/EditSuggestionUseCase'
+import type { AppCradle } from '../../../../app/di/types'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type { FeedbackReportUseCase } from '../../../../domain/usecases/FeedbackReportUseCase'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
@@ -13,7 +13,7 @@ type Services = {
   reading: Pick<ReadingUseCase, 'readerStats'>
   episodes: Pick<EpisodeUseCase, 'history'>
   reports: Pick<FeedbackReportUseCase, 'listInbox'>
-  suggestions: Pick<EditSuggestionUseCase, 'inbox'>
+  commentCount: AppCradle['commentFeedbackCount']
 }
 
 /**
@@ -26,7 +26,7 @@ export function useWorkDashboard(work: Pick<Work, 'id' | 'visibility'>, mockup: 
   const reading = use.reading ?? appContainer.resolve('readingUseCase')
   const episodes = use.episodes ?? appContainer.resolve('episodeUseCase')
   const reports = use.reports ?? appContainer.resolve('feedbackReportUseCase')
-  const suggestions = use.suggestions ?? appContainer.resolve('editSuggestionUseCase')
+  const commentCount = use.commentCount ?? appContainer.resolve('commentFeedbackCount')
 
   const reader = useAsyncData<ReaderMetrics>(
     async (signal) => (work.visibility !== 'public' ? 'before' : mockup ? null : reading.readerStats(work.id, signal)),
@@ -38,10 +38,7 @@ export function useWorkDashboard(work: Pick<Work, 'id' | 'visibility'>, mockup: 
     // 최신 5건만 보인다.
     return [...publicationHistory].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 5)
   }, [episodes, work.id])
-  const feedback = useAsyncData<number>(async () => {
-    const [reported, suggested] = await Promise.all([reports.listInbox(work.id), mockup ? [] : suggestions.inbox(work.id)])
-    return reported.length + suggested.length
-  }, [reports, suggestions, work.id, mockup])
+  const feedback = useAsyncData<number>(async (signal) => mockup ? (await reports.listInbox(work.id)).length : commentCount(work.id, signal), [reports, commentCount, work.id, mockup])
 
   return { reader, publications, feedback }
 }

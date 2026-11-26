@@ -295,3 +295,11 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-settings-cards .ep-delete{grid-column:1/-1;margin:0;padding:20px 24px;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line2));border-radius:16px;background:var(--surface)}
 .ep-settings-cards .ep-card .ep-facts{margin-top:8px}
 .ep-settings-cards .ep-sec-head{min-height:44px}.ep-settings-cards .ep-sec-head>h3{margin:0}
+
+.feedback-episode-list {list-style:none;padding:0}
+.feedback-episode-list > li + li {border-top:1px solid var(--tline)}
+.feedback-episode-list .feedback-episode-toggle {width:100%;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;border:0}
+.feedback-episode-toggle .d {display:block}
+.feedback-episode-toggle > span:last-child {margin-left:auto;white-space:nowrap;color:var(--tsub)}
+.feedback-episode-comments {padding:0 20px 16px}
+.feedback-episode-comments article {border-top:1px solid var(--tline)}

@@ -44,12 +44,89 @@ import tools.jackson.databind.json.JsonMapper
  */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
     "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
-    "DATABASE_USER=content_test","DATABASE_PASSWORD=",
+    "DATABASE_USER=content_test","DATABASE_PASSWORD=", "COMMENT_FEEDBACK_INTERVAL_MS=\${TEST_COMMENT_FEEDBACK_INTERVAL_MS:3600000}",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
 ])
 @Import(ContentTestConfig::class)
 @EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
 class EpisodeCommentPostgresTest {
+    @MockitoBean internal lateinit var manuscriptSearch: ai.storyfork.content.manuscript.client.ManuscriptElasticsearch
+    @Autowired lateinit var feedbackJob: ai.storyfork.content.comment.service.CommentFeedbackJob
+    @Autowired lateinit var feedbackStore: ai.storyfork.content.comment.repository.CommentFeedbackStore
+
+    /** 실제 CPU 서비스가 있는 로컬 검증에서만 모델까지 왕복한다. */
+    @Test
+    @EnabledIfEnvironmentVariable(named="TEST_REAL_COMMENT_FEEDBACK", matches="true")
+    fun `saved comment is classified once and stale edit result cannot return`() {
+        val owner = member()
+        val reader = member()
+        val work = work(owner.toString())
+        val id = created(post(work,reader,"""{"body":"이번 회차 전개가 재미있네요."}"""))
+        val path = "${write(work)}/$id/feedback-analysis"
+        fun result() = node(call("GET",path,owner))
+        assertEquals("PENDING",result().path("status").asString())
+        assertEquals(404,call("GET",path,reader).statusCode())
+        feedbackJob.processOne()
+        val saved = result()
+        assertEquals("COMPLETED",saved.path("status").asString(),saved.toString())
+        assertEquals("service-binary-v13-5097-epoch3",saved.path("modelVersion").asString())
+        assertTrue(saved.path("feedbackProbability").asDouble() > 0.50)
+        assertTrue(saved.path("isFeedback").asBoolean())
+        feedbackJob.processOne()
+        assertEquals(saved,result())
+        assertEquals(200,call("PUT","${write(work)}/$id",reader,"""{"body":"작가님 건강하세요!"}""").statusCode())
+        assertEquals(2,result().path("revision").asInt())
+        val stale = feedbackStore.claim(60)!!
+        assertNull(feedbackStore.claim(60))
+        assertEquals(200,call("PUT","${write(work)}/$id",reader,"""{"body":"작가님 힘내세요!"}""").statusCode())
+        val oldPrediction = ai.storyfork.content.comment.client.dto.FeedbackPrediction(true,0.99,"old",0.50)
+        assertEquals(0,feedbackStore.complete(stale,oldPrediction))
+        feedbackJob.processOne()
+        assertEquals("COMPLETED",result().path("status").asString())
+        assertFalse(result().path("isFeedback").asBoolean())
+        assertEquals(204,call("DELETE","${write(work)}/$id",reader).statusCode())
+        assertEquals(404,call("GET",path,owner).statusCode())
+        assertEquals(0,count("select count(*) from episode_comment_feedback where comment_id=?",id))
+        val retained = created(post(work,reader,"""{"body":"인물의 동기가 잘 드러납니다."}"""))
+        feedbackJob.processOne()
+        assertEquals("COMPLETED",node(call("GET","${write(work)}/$retained/feedback-analysis",owner)).path("status").asString())
+    }
+    /** 별도 프로세스에서 보존한 ID로 Content 재기동 후 원래 판정·확률을 읽는다. */
+    @Test
+    @EnabledIfEnvironmentVariable(named="TEST_RETAINED_FEEDBACK_ID",matches=".+")
+    fun `completed feedback survives application restart`() {
+        val id = System.getenv("TEST_RETAINED_FEEDBACK_ID")
+        val row = jdbc.queryForMap("select c.work_id,w.owner_id,f.probability from episode_comment c join work w on w.id=c.work_id join episode_comment_feedback f on f.comment_id=c.id where c.id=?",id)
+        val owner = UUID.fromString(row["owner_id"].toString())
+        `when`(core.verify("Bearer $owner")).thenReturn(VerifiedMemberResponse(owner))
+        val response = call("GET","${write(row["work_id"].toString())}/$id/feedback-analysis",owner)
+        assertEquals(200,response.statusCode())
+        val stored = node(response)
+        assertEquals("COMPLETED",stored.path("status").asString())
+        assertEquals(row["probability"] as Double,stored.path("feedbackProbability").asDouble())
+    }
+    /** 작업 메서드를 직접 호출하지 않고 Content의 스케줄러 및 CPU 서버를 거친다. */
+    @Test
+    @EnabledIfEnvironmentVariable(named="TEST_SCHEDULED_COMMENT_FEEDBACK",matches="true")
+    fun `scheduler classifies a saved comment without a dispatch request`() {
+        val owner = member()
+        val work = work(owner.toString())
+        val id = created(post(work,member(),"""{"body":"이번 회차 전개가 재미있네요."}"""))
+        val path = "${write(work)}/$id/feedback-analysis"
+        val deadline = System.nanoTime() + java.time.Duration.ofSeconds(30).toNanos()
+        do {
+            val response = call("GET",path,owner)
+            assertEquals(200,response.statusCode())
+            val result = node(response)
+            if (result.path("status").asString() == "COMPLETED") {
+                assertTrue(result.path("isFeedback").asBoolean())
+                assertEquals("service-binary-v13-5097-epoch3",result.path("modelVersion").asString())
+                return
+            }
+            Thread.sleep(100)
+        } while (System.nanoTime() < deadline)
+        fail<Unit>("스케줄러 분석 완료 시간 초과")
+    }
     @LocalServerPort var port=0
     @MockitoBean lateinit var core: CoreAuthClient
     @MockitoBean lateinit var nicknames: CoreNicknameService

@@ -55,6 +55,7 @@ import { FeedbackReportUseCase } from '../../domain/usecases/FeedbackReportUseCa
 import { HttpCreditLedgerRepository } from '../../data/api/HttpCreditLedgerRepository'
 import { HttpWithdrawalRepository } from '../../data/api/HttpWithdrawalRepository'
 import { HttpNotificationRepository } from '../../data/api/HttpNotificationRepository'
+import { commentFeedback, commentFeedbackCount } from '../../data/content/commentFeedback'
 import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeCommentRepository'
 import { HttpWorkNoticeRepository } from '../../data/content/HttpWorkNoticeRepository'
 import { InMemoryWorkNoticeRepository } from '../../data/mock/InMemoryWorkNoticeRepository'
@@ -169,6 +170,8 @@ export function registerAppServices(container: AppContainer) {
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
     episodeUseCase: asFunction(({ episodeRepository }) => new EpisodeUseCase(episodeRepository)).singleton(),
     writingChatUseCase: asFunction(() => new WritingChatUseCase(new HttpWritingChatRepository())).singleton(),
+    commentFeedback: asValue(commentFeedback),
+    commentFeedbackCount: asValue(commentFeedbackCount),
     episodeCommentRepository: asFunction(() => new HttpEpisodeCommentRepository()).singleton(),
     episodeCommentUseCase: asFunction(({ episodeCommentRepository }) => new EpisodeCommentUseCase(episodeCommentRepository)).singleton(),
     workNoticeRepository: asFunction(() => new HttpWorkNoticeRepository()).singleton(),

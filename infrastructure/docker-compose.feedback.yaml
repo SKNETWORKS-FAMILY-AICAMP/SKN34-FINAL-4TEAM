@@ -1,0 +1,23 @@
+# 기본 Compose와 local 오버레이 뒤에 선택적으로 병합한다.
+services:
+  ai-service:
+    environment:
+      FEEDBACK_MODEL_DIR: /app/models/service-binary-v13-5097
+      FEEDBACK_THRESHOLD: "${FEEDBACK_THRESHOLD:-0.9904975295066833}"
+      FEEDBACK_G2_DIR: /app/models/primary-g2
+    volumes:
+      - primary-g2:/app/models/primary-g2:ro
+      - type: volume
+        source: feedback-model
+        target: /app/models/service-binary-v13-5097
+        read_only: true
+        volume:
+          nocopy: true
+volumes:
+  primary-g2:
+    external: true
+    name: ${FEEDBACK_G2_VOLUME:?Set FEEDBACK_G2_VOLUME to the verified G2 volume}
+  feedback-model:
+    external: true
+    name: ${FEEDBACK_MODEL_VOLUME:?Set FEEDBACK_MODEL_VOLUME to the verified model volume}
+
