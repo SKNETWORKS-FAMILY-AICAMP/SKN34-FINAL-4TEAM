@@ -6,11 +6,11 @@ import { authVersion, protectedRequest } from './auth'
 import { csrf } from './csrf'
 
 const kind = z.enum(['reading', 'creation', 'result', 'credit', 'rights-security', 'ai-tool'])
-const notice = z.object({
+export const noticeSchema = z.object({
   id: z.string().min(1), kind, summary: z.string(), targetType: z.string().nullable(), targetId: z.string().nullable(),
   createdAt: z.string().datetime({ offset: true }), read: z.boolean(),
 })
-const pageSchema = z.object({ items: z.array(notice), nextCursor: z.string().nullable() })
+const pageSchema = z.object({ items: z.array(noticeSchema), nextCursor: z.string().nullable() })
 const prefsSchema = z.object({ items: z.array(z.object({ kind: z.string(), enabled: z.boolean(), mutable: z.boolean() })) })
 const base = '/api/v1/me/notifications'
 

@@ -86,7 +86,7 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 
 ### 모바일 앱
 
-모바일 앱(`mobile/`, Expo·React Native)은 Compose에 포함되지 않고 로컬에서 직접 실행합니다. Node 22.13+·24.3+·26+(React Native 0.88의 `engines`)와 npm이 필요하며 iOS는 Xcode(시뮬레이터)·CocoaPods, Android는 Android Studio를 씁니다. `(cd mobile && npm install)` 뒤 `npx expo run:ios` 또는 `npx expo run:android`로 개발 빌드를 만들어 실행합니다. `ios/`·`android/`는 Expo가 생성하는 폴더라 커밋하지 않고 `google-services.json`·`GoogleService-Info.plist`·`.env*`도 커밋하지 않습니다. 지금은 첫 화면만 있는 골격이며 로그인·알림함·푸시는 [#943](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/943) 후속 PR에서 추가합니다. 결정은 [모바일 README](../mobile/README.md)를 따릅니다.
+모바일 앱(`mobile/`, Expo·React Native)은 Compose에 포함되지 않으며 Android Studio 또는 macOS의 Xcode에서 개발 빌드를 실행합니다. [모바일 README](../mobile/README.md)에 로컬 웹 주소, Android 설정·검증 방법과 시연 CI를 정리했습니다.
 
 ## 검증
 
@@ -137,7 +137,7 @@ Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통�
 - web·Content·Operations·AI는 서비스 수준, Core는 auth/health 또는 보수적 전체로 선택합니다. Operations 변경은 독립 단위·통합을 함께 선택하고 다른 서비스나 HTTP 시스템 시나리오를 추가하지 않습니다. 시스템 `content`는 실제 Core 로그인 뒤 Content API·DB 소유권을 확인합니다.
 - 공유·설정·의존성·미등록 runtime은 확대 선택합니다. Core Auth는 Content/web 소비자, Content/AI 계약은 연결된 소비자와 시스템을 선택합니다. 삭제된 구 Core 콘텐츠 경로도 새 소유 서비스 회귀를 선택합니다.
 - 삭제·이름 변경은 `git diff --no-renames`로 이전 경로까지 포함합니다. 정확한 소스별 의존 그래프 분석은 아닙니다.
-  테스트만 변경하면 해당 서비스/기능 회귀만 실행하고 시스템은 생략합니다. 문서·`mobile/`만 변경하면 runtime job은 생략합니다(모바일 테스트 job은 mobile 단위 테스트가 생길 때 추가).
+  테스트만 변경하면 해당 서비스/기능 회귀를 실행하고 시스템은 생략합니다. 모바일 소스 변경은 Node 타입 검사와 단위 테스트를 실행하고, 수동 CI의 `record_android` 입력은 Android 에뮬레이터 시연을 추가합니다.
   영향받는 runtime 범위에서 테스트가 하나도 발견되지 않으면 성공으로 숨기지 않습니다.
 
 #### HTTP 시스템 시나리오와 경계

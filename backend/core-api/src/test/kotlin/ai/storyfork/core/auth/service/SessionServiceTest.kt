@@ -31,7 +31,8 @@ class SessionServiceTest {
     private val tokens = mock(RefreshTokenRepository::class.java)
     private val passwords = BCryptPasswordEncoder(4)
     private val secrets = AuthTokenHelper()
-    private val service = SessionService(members, sessions, tokens, passwords, secrets, mock(JwtEncoder::class.java))
+    private val service = SessionService(members, sessions, tokens, passwords, secrets, mock(JwtEncoder::class.java),
+        mock(ai.storyfork.core.notification.repository.PushDeviceRepository::class.java))
     private val member = AuthMember(UUID.randomUUID(), "reader@example.test", requireNotNull(passwords.encode("password-123")), "Reader")
 
     @Test

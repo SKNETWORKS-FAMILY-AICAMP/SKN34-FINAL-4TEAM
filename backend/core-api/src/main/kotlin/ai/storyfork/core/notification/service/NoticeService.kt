@@ -22,6 +22,7 @@ import ai.storyfork.core.notification.service.dto.UnreadCountResponse
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,6 +36,7 @@ class NoticeService(
     private val preferences: NoticePreferenceRepository,
     private val members: MemberRepository,
     private val stream: NoticeStream,
+    private val events: ApplicationEventPublisher,
 ) {
     /** 본인 알림을 최신순으로 limit개 반환한다. cursor가 형식에 맞지 않으면 400이다. */
     @Transactional(readOnly = true)
@@ -146,6 +148,7 @@ class NoticeService(
             sourceEventId = request.sourceEventId,
         ))
         signalAfterCommit(request.recipientId)
+        events.publishEvent(StoredPushNotice(request.recipientId, request.kind, saved.id.toString(), saved.summary))
         return toResponse(saved)
     }
 

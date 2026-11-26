@@ -10,6 +10,11 @@ services:
       CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
       CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
       CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
+      PUSH_SNS_ENABLED: ${PUSH_SNS_ENABLED:-false}
+      PUSH_SNS_PLATFORM_ARN: ${PUSH_SNS_PLATFORM_ARN:-}
+      AWS_ACCESS_KEY_ID: ${PUSH_SNS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${PUSH_SNS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${PUSH_SNS_SESSION_TOKEN:-}
       # 운영 회귀 평가(ai-jobs-worker)의 채점 모델. 비우면 OPENAI_MODEL이다(계약 operations-llmops-contract).
       EVALUATION_JUDGE_MODEL: ${EVALUATION_JUDGE_MODEL:-}
       # 회귀 평가 통과 허용 오차(지표별 기준 평균 - 이 값 이상이면 통과, 점수는 모두 0~1). 비우면 0.1이다.

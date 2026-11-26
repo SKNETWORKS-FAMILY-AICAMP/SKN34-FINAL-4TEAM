@@ -51,7 +51,6 @@ def select(paths, full=False):
             infra = True
             continue
         # 에이전트 지침·훅·스킬은 런타임과 무관하다(훅 테스트는 .agent-hooks에서 로컬 실행).
-        # ponytail: 모바일 테스트 job은 mobile 단위 테스트가 생길 때 추가.
         if path.endswith(".md") or path.startswith(("docs/", "mobile/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
                 or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
             continue
@@ -148,12 +147,15 @@ def main():
     if args.action == "plan":
         payload = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
         base = comparison_base(os.environ["GITHUB_EVENT_NAME"], payload)
-        plan = select(changed_paths(base) if base else [], full=base is None)
+        paths = changed_paths(base) if base else []
+        plan = select(paths, full=base is None)
+        mobile = base is None or any(path.startswith("mobile/") and not path.endswith(".md") for path in paths)
         print(json.dumps({"base": base, **plan}, indent=2))
         with open(os.environ["GITHUB_OUTPUT"], "a") as output:
             # 서비스 job 하나가 단위·통합을 모두 실행한다. select가 두 목록을 같게 만들므로 행렬은 하나만 내보낸다.
             output.write(f"service={json.dumps({'include': plan['unit']})}\nservice_needed={str(bool(plan['unit'])).lower()}\n")
             output.write(f"system={','.join(plan['system'])}\nsystem_needed={str(bool(plan['system'])).lower()}\ninfra={str(plan['infra']).lower()}\n")
+            output.write(f"mobile={str(mobile).lower()}\n")
         check_base = base
         if check_base is None:
             # 테스트 선택은 전체로 확장해도 공백 검사는 직전 변경만 확인한다.
@@ -172,7 +174,7 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_text(redact(file.read_text(errors="replace")))
     elif args.action == "required":
-        expected = {tier for tier in ("service", "system", "configuration") if os.environ[tier.upper() + "_NEEDED"] == "true"}
+        expected = {tier for tier in ("service", "system", "configuration", "mobile") if os.environ.get(tier.upper() + "_NEEDED") == "true"}
         expected.add("changes")
         check_results({job: value["result"] for job, value in json.loads(os.environ["NEEDS"]).items()}, expected)
 

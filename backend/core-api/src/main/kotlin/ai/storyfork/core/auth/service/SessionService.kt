@@ -12,6 +12,7 @@ import ai.storyfork.core.auth.service.dto.LoginResult
 import ai.storyfork.core.auth.service.dto.MemberResponse
 import ai.storyfork.core.auth.service.dto.SessionResponse
 import ai.storyfork.core.auth.service.dto.SessionsResponse
+import ai.storyfork.core.notification.repository.PushDeviceRepository
 import java.time.Instant
 import java.util.Locale
 import java.util.UUID
@@ -32,6 +33,7 @@ class SessionService(
     private val passwords: PasswordEncoder,
     private val secrets: AuthTokenHelper,
     private val jwt: JwtEncoder,
+    private val pushDevices: PushDeviceRepository,
 ) {
     private val dummyHash = requireNotNull(passwords.encode("not-a-real-password"))
 
@@ -72,6 +74,7 @@ class SessionService(
         if (session.revoked || !session.expiresAt.isAfter(Instant.now())) return null
         if (previous.used) {
             sessions.revokeAll(memberId)
+            pushDevices.deleteAllForMember(memberId)
             // Return normally: replay revocation must commit before the Controller returns 401.
             return null
         }
@@ -89,6 +92,7 @@ class SessionService(
         if (members.lockById(memberId) == null) return true
         val previous = tokens.findById(secrets.hash(requireNotNull(token))).orElse(null) ?: return true
         sessions.findById(previous.sessionId).orElse(null)?.revoked = true
+        pushDevices.deleteForSession(previous.sessionId)
         return true
     }
 
@@ -105,6 +109,7 @@ class SessionService(
         if (members.lockById(memberId) == null) return false
         val session = sessions.findByIdAndMemberIdAndRevokedFalse(sessionId, memberId) ?: return false
         session.revoked = true
+        pushDevices.deleteForSession(sessionId)
         return true
     }
 
@@ -112,6 +117,7 @@ class SessionService(
     fun logoutAll(memberId: UUID, token: String?): Boolean {
         if (members.lockById(memberId) == null) return false
         sessions.revokeAll(memberId)
+        pushDevices.deleteAllForMember(memberId)
         return owner(token) == memberId
     }
 }
