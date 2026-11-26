@@ -59,6 +59,8 @@ Browser → React Web → /api
 두 공개 API의 상태·서비스명을 검증하며 AI는 항상 Core를 경유합니다.
 Hook이 로딩·성공·실패·재시도, 요청 취소와 늦은 응답 무시를 담당하고, Health Fetch는 Data Layer에서 20초 제한과 안전한 화면 오류를 사용합니다.
 
+모바일 앱(`mobile/`, Expo·React Native, Android·iOS 한 코드)은 STORYFORK 웹을 전체 화면 WebView(`react-native-webview`)로 보이는 셸이고, 앱이 직접 하는 일은 알림뿐입니다. 로그인·회원가입·알림함·알림 설정·독서·집필은 모두 웹 화면 그대로이고(로그인은 웹에서 한 번, 갱신 토큰 쿠키는 WebView 저장소가 보관해 앱을 다시 켜도 유지됩니다) 웹과 같은 공개 `/api`는 웹이 부르므로 앱에는 네이티브 인증·API 클라이언트가 없고 AI·DB도 직접 호출하지 않습니다(웹 주소는 `EXPO_PUBLIC_API_BASE_URL`, 기본은 로컬 Compose web의 `http://localhost:5173`). 웹은 앱 안에서만(`window.ReactNativeWebView`가 있을 때) 알림 목록 첫 쪽을 읽을 때마다 `postMessage`로 앱에 알리고(로그아웃·계정 전환 때는 로그아웃을 알림), 앱은 zod로 검증한 뒤 기준선 이후 새로 생긴 읽지 않은 알림만 `expo-notifications` 로컬 알림으로 띄웁니다. 알림을 누르면 WebView가 웹 `noticeTarget`과 같은 규칙의 같은 origin 경로로 이동하고 다른 origin 링크는 시스템 브라우저로 엽니다. iOS는 APNs 원격 푸시 없이 앱을 켜 둔 동안만 알림이 옵니다([브리지 메시지 형식](notification-event-contract.md#모바일-앱-webview-브리지-메시지)). Android FCM 푸시와 Core 기기 토큰 API는 [#943](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/943) 후속입니다([모바일 README](../mobile/README.md)).
+
 ## Core Service (현재 모듈: `core-api`)
 
 Gradle group은 `ai.storyfork`, 애플리케이션은 `storyfork-core-api`, namespace는 `ai.storyfork.core`입니다.

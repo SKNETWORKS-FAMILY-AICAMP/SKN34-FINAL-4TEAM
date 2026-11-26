@@ -148,3 +148,4 @@ class IdentityResolution(Model):
     inputHashes: dict[int, str]
     mapping: dict[str, str]
     decisions: list[IdentityDecision]
+    skippedLinks: Annotated[int, Field(strict=True, ge=0)] = 0

@@ -453,6 +453,7 @@ class WritingAiServiceTest {
             assertTrue(problems(listOf(0, 1, 2, 3, 4)).isEmpty())
             assertEquals(listOf("resume.selected"), problems(listOf(0, 1, 2, 3, 4, 5)))
             assertEquals(listOf("resume.selected"), problems(emptyList()))
+            assertTrue(problems(listOf(-1)).isEmpty())  // 음수는 validator가 잡지 못한다(타입 인자 @Min은 Kotlin에서 검증되지 않아 DTO에 없다)
         }
         // 음수는 타입 인자 @Min이 검증되지 않아 서비스가 422로 거절한다
         assertEquals(422, assertThrows(ContentFailure::class.java) {

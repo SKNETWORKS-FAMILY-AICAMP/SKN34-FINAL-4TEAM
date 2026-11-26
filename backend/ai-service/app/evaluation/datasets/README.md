@@ -29,7 +29,7 @@ Decision Guard 지시문 `decision_guard.judge`의 새 버전을 평가·승격�
 | `chat` | 6 | 인사·잡담·창작과 무관한 요청은 허용 + 기능 없음(#782) |
 | `injection`·`sensitive` | 3·3 | 거절(`prompt_injection`·`sensitive_data`) |
 
-- `input`은 `{request, history?}`, `expectedOutput`은 `{guard, capabilities}`(기능은 고정 순서)다. 채점은 모델 없이 `guard`·`precision`·`recall`이다.
+- `input`은 `{request, history?}`, `expectedOutput`은 `{guard, capabilities}`(기능은 고정 순서)다. 채점은 모델 없이 `guard`·`precision`·`recall`과 `rejected`(정답이 거절인 항목만 거절 여부, #888)다.
 - 정답은 사람이 정한 한 가지다. 경계 사례(예: 공개 세계관 참고가 `research`만인지)는 정책이 바뀌면 함께 고친다.
 
 # 추출 평가 세트 (`extraction.extract`)

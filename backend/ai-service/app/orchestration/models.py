@@ -40,8 +40,8 @@ REQUEST_MAX, CHOICES_MAX = 2000, 4
 
 
 def utf16_len(text: str) -> int:
-    """Content(Kotlin String.length)와 같은 UTF-16 코드 단위 길이. 이모지 같은 보충 문자는 2단위다."""
-    return len(text.encode('utf-16-le')) // 2
+    """Content(Kotlin String.length)와 같은 UTF-16 코드 단위 길이. 이모지 같은 보충 문자는 2단위, 짝 없는 서로게이트는 1단위다."""
+    return len(text.encode('utf-16-le', 'surrogatepass')) // 2
 
 
 def _distinct(numbers: list[int] | None) -> list[int] | None:
@@ -198,7 +198,7 @@ class OrchestrationRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     conversation: Conversation | None = None
     scope: RetrievalScope | None = None  # 있으면 Q&A가 inputs 없이 Retrieval 도구로 근거를 받는다.
-    request: str | None = Field(default=None, min_length=1, max_length=2000)
+    request: str | None = Field(default=None, min_length=1, max_length=REQUEST_MAX)
     resume: Resume | None = None
     target: WritingTarget | None = None  # 있고 대화 안이면 Writing 결과를 승인받아 Content MCP로 초안에 반영한다.
     operation: CurrentFeature | None = None

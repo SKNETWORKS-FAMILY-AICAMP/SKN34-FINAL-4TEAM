@@ -149,8 +149,8 @@ def last_review(turn: dict, steps: list[dict]) -> dict | None:
 
 
 def history(turn: dict) -> list[str]:
-    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다."""
-    return [t['request'] for t in previous(turn)][-HISTORY_TURNS:]
+    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다. 가드가 거절한 턴(reply.status == 'rejected')은 뺀 뒤 최근 HISTORY_TURNS개를 센다(#887, guard_history와 같은 규칙)."""
+    return [t['request'] for t in previous(turn) if (t.get('reply') or {}).get('status') != 'rejected'][-HISTORY_TURNS:]
 
 
 def guard_history(turn: dict) -> list[dict]:

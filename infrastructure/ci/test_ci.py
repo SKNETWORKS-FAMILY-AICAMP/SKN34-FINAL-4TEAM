@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -113,6 +114,24 @@ class SelectionTest(unittest.TestCase):
         plan = ci.select([".agent-hooks/guard.py", ".agents/skills/ponytail/SKILL.md",
                           ".claude/settings.json", ".claude/skills", ".codex/hooks.json"])
         self.assertEqual(([], [], [], False), (plan["unit"], plan["integration"], plan["system"], plan["infra"]))
+
+    def test_mobile_app_changes_have_no_runtime_jobs(self):
+        plan = ci.select(["mobile/App.tsx"])
+        self.assertEqual(([], [], [], False), (plan["unit"], plan["integration"], plan["system"], plan["infra"]))
+
+    def test_mobile_changes_select_only_the_mobile_job(self):
+        for path in ["mobile/App.tsx", "mobile/src/bridge.ts", "mobile/package-lock.json", "mobile/app.json"]:
+            with self.subTest(path=path):
+                self.assertTrue(ci.select([path])["mobile"])
+        # 문서·다른 서비스·에이전트 도구만 바뀌면 모바일 job을 돌리지 않는다. 서비스 선택은 그대로다.
+        for path in ["mobile/README.md", "docs/architecture.md", "frontend/src/example.test.ts", ".claude/settings.json"]:
+            with self.subTest(path=path):
+                self.assertFalse(ci.select([path])["mobile"])
+        self.assertEqual(ci.select(["frontend/src/example.test.ts"]), {**ci.select(["frontend/src/example.test.ts", "mobile/App.tsx"]), "mobile": False})
+
+    def test_mobile_job_runs_when_everything_is_selected(self):
+        self.assertTrue(ci.select([], full=True)["mobile"])  # 기준선이 없는 수동·새 브랜치 실행
+        self.assertTrue(ci.select(["unregistered-runtime/config.toml"])["mobile"])  # 모르는 경로는 전체 선택
 
     def test_auth_change_selects_content_and_web_consumers(self):
         plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/auth/service/SessionService.kt"])
@@ -292,6 +311,19 @@ class SelectionTest(unittest.TestCase):
                 positions = [next(index for index, step in enumerate(mine) if command in step) for command in commands]
                 self.assertEqual(sorted(set(positions)), positions)  # 빌드 → 단위 → 통합, 서로 다른 단계
 
+    def test_mobile_job_typechecks_then_runs_unit_tests_only_when_selected(self):
+        jobs = workflow_jobs(read('.github/workflows/ci.yml'))
+        self.assertIn('mobile: ${{ steps.plan.outputs.mobile }}', jobs['changes'])
+        job = jobs['mobile']
+        self.assertIn('\n    needs: changes\n', job)  # 서비스 job과 병렬이다
+        self.assertIn("if: ${{ needs.changes.outputs.mobile == 'true' }}", job)
+        commands = [re.search(r'(?m)^\s*run: (.*)$', step)[1] for step in workflow_steps(job) if re.search(r'(?m)^\s*run: ', step)]
+        self.assertEqual(['npm ci', 'npx tsc --noEmit', 'npm test'], commands)  # 설치 → 타입 검사 → 단위 테스트
+        for step in workflow_steps(job):
+            if 'run: ' in step:
+                self.assertIn('working-directory: mobile', step)
+        self.assertNotIn('continue-on-error', job)
+
     def test_integration_steps_do_not_run_after_a_failed_unit_step(self):
         job = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())['service']
         self.assertNotIn('continue-on-error', job)
@@ -312,7 +344,7 @@ class SelectionTest(unittest.TestCase):
         self.assertIn('if: ${{ always() }}', required)
         # 모든 job을 집계한다(새 job을 더하고 빠뜨리면 이 시험이 실패한다).
         self.assertEqual(set(jobs) - {'required'}, set(re.search(r'needs: \[(.*)\]', required)[1].split(', ')))
-        for tier, output in (('SERVICE', 'service_needed'), ('SYSTEM', 'system_needed'), ('CONFIGURATION', 'infra')):
+        for tier, output in (('SERVICE', 'service_needed'), ('SYSTEM', 'system_needed'), ('CONFIGURATION', 'infra'), ('MOBILE', 'mobile')):
             self.assertIn(f'{tier}_NEEDED: ${{{{ needs.changes.outputs.{output} }}}}', required)
 
     def test_ci_has_no_publish_or_deploy_and_cancels_superseded_runs(self):
@@ -355,7 +387,7 @@ class SelectionTest(unittest.TestCase):
 
     def test_required_rejects_cancelled_and_unexpected_skips(self):
         ci.check_results({"service": "skipped", "system": "skipped"}, set())
-        for job in ["changes", "configuration", "service", "system"]:
+        for job in ["changes", "configuration", "service", "system", "mobile"]:
             ci.check_results({job: "success"}, {job})
             for result in ["failure", "cancelled", "skipped", "unknown"]:
                 with self.subTest(job=job, result=result), self.assertRaises(SystemExit):
@@ -367,12 +399,14 @@ class SelectionTest(unittest.TestCase):
         def required(service_result, **needed):
             needs = {"changes": {"result": "success"}, "service": {"result": service_result}}
             env = {**os.environ, "NEEDS": json.dumps(needs), "SERVICE_NEEDED": "false", "SYSTEM_NEEDED": "false",
-                   "CONFIGURATION_NEEDED": "false", **needed}
+                   "CONFIGURATION_NEEDED": "false", "MOBILE_NEEDED": "false", **needed}
             return subprocess.run([sys.executable, "-I", ci.__file__, "required"], env=env, capture_output=True).returncode
         self.assertEqual(0, required("success", SERVICE_NEEDED="true"))
         self.assertNotEqual(0, required("skipped", SERVICE_NEEDED="true"))  # 선택된 서비스가 안 돌았으면 거부
         self.assertNotEqual(0, required("failure", SERVICE_NEEDED="true"))
         self.assertEqual(0, required("skipped"))  # 선택 안 된 서비스의 의도적 skip은 허용
+        self.assertNotEqual(0, required("success", MOBILE_NEEDED="true"))  # 선택된 모바일 job 결과가 없으면 거부
+
 
 
 class PlanGitTest(unittest.TestCase):
@@ -1016,6 +1050,81 @@ class ConfigurationTest(unittest.TestCase):
         prepare = deploy.split('      - name: Prepare SSH\n', 1)[1].split('\n      - name:', 1)[0]
         self.assertIn('SSH_DIR="$RUNNER_TEMP/storyfork-ssh"', prepare)
         self.assertIn('printf \'SSH_DIR=%s\\n\' "$SSH_DIR" >> "$GITHUB_ENV"', prepare)
+
+    def test_mobile_cd_keeps_the_cd_guards_and_only_the_release_job_can_write(self):
+        # iOS 시뮬레이터 CD(#943): 트리거·가드는 publish-images.yml과 같고, 서명 없는 빌드이며, 쓰기 권한은 release job만 가진다.
+        source = read('.github/workflows/mobile-cd.yml')
+        triggers = source.split('\non:\n', 1)[1].split('\npermissions:\n', 1)[0]
+        self.assertIn('  workflow_run:\n    workflows: [CI]\n    branches: [develop]\n    types: [completed]\n  workflow_dispatch:\n', triggers)
+        self.assertNotIn('pull_request', triggers)
+        self.assertNotRegex(source, r'(?m)^name: CD$')  # publish-images.yml의 CD와 이름이 겹치지 않는다
+        jobs = workflow_jobs(source)
+        guard = re.compile(r'(?m)^    if: (.*)$')
+        self.assertEqual(guard.search(workflow_jobs(read('.github/workflows/publish-images.yml'))['publish'])[1], guard.search(jobs['changes'])[1])
+        self.assertEqual({'release'}, {name for name, body in jobs.items() if 'contents: write' in body})
+        self.assertIn('\nconcurrency:\n  group: storyfork-mobile-ios-cd\n  cancel-in-progress: false\n', source)
+        self.assertRegex(jobs['build'], r'(?m)^    runs-on: macos-\d+$')  # macos-latest가 아니라 고정해 Xcode가 몰래 바뀌지 않게 한다
+        self.assertIn('CODE_SIGNING_ALLOWED=NO', jobs['build'])
+        self.assertIn('\n    needs: build\n', jobs['release'])  # 빌드가 실패하면 릴리스를 갱신하지 않는다
+
+    def test_mobile_cd_compares_with_the_last_released_build(self):
+        # 뒤이은 push가 CI를 취소하거나 대기 중 run이 교체돼 건너뛴 mobile/ 변경도 다음 run이 싣도록, 첫 부모가 아니라 마지막 릴리스(태그)의 커밋과 비교한다.
+        source = read('.github/workflows/mobile-cd.yml')
+        self.assertIn('\nenv:\n  TAG: mobile-ios-latest\n', source)
+        changes = workflow_jobs(source)['changes']
+        self.assertIn('fetch-depth: 0', changes)  # 태그의 커밋이 얼마나 오래됐든 비교할 수 있게 전체 기록과 태그를 받는다
+        self.assertIn('fetch-tags: true', changes)
+        self.assertNotIn('fetch-depth: 2', changes)
+        diff = re.search(r'(?s)- id: diff\n.*', changes)[0]
+        self.assertIn('git rev-parse --verify --quiet "refs/tags/$TAG^{commit}"', diff)
+        self.assertIn("printf '%s^1' \"$TARGET_SHA\"", diff)  # 태그가 없으면(첫 빌드) 대상 커밋의 첫 부모
+        self.assertIn('git diff --name-only "$base" "$TARGET_SHA" -- mobile', diff)
+
+    def test_mobile_cd_replaces_the_release_before_moving_the_tag(self):
+        # 태그를 먼저 옮기면 edit·upload가 실패했을 때 태그만 새 커밋이고 zip은 옛 빌드라, 다음 실행이 태그 비교로 '변경 없음'이라 건너뛴다.
+        # 그래서 릴리스가 이미 있으면 zip 교체 → 본문 갱신 → 태그 이동 순서이고, 릴리스가 없을 때만 --verify-tag가 태그를 먼저 요구한다.
+        # release 단계 스크립트를 가짜 gh(셸 함수)로 실행해 호출 순서와 실패 시 태그 이동 여부를 본다.
+        job = workflow_jobs(read('.github/workflows/mobile-cd.yml'))['release']
+        script = re.sub(r'(?m)^ {10}', '', re.search(r'run: \|\n((?: {10}.*\n|\n)+)', job)[1])
+        fake_gh = (
+            'gh() {\n'
+            '  echo "$*" >> commands\n'
+            '  case "$*" in\n'
+            '    "release view"*) [[ "$FAKE_RELEASE" == present ]] || return 1 ;;\n'
+            '    "api repos/"*"/git/ref/tags/"*) [[ "$FAKE_TAG" == present ]] || return 1 ;;\n'
+            '  esac\n'
+            '  [[ -z "$FAKE_FAIL" || "$*" != *"$FAKE_FAIL"* ]] || return 1\n'
+            '}\n'
+        )
+
+        def run(release, tag, fail=''):
+            """(종료 코드, 확인용 조회를 뺀 gh 호출 줄들)"""
+            with tempfile.TemporaryDirectory() as directory:
+                env = dict(os.environ, TAG='mobile-ios-latest', TARGET_SHA='0123456789abcdef0123456789abcdef01234567', GITHUB_REPOSITORY='owner/repo',
+                           MOBILE_API_BASE_URL='', FAKE_RELEASE=release, FAKE_TAG=tag, FAKE_FAIL=fail)
+                result = subprocess.run([shutil.which('bash') or 'bash', '-se'], input=fake_gh + script, cwd=directory, env=env, capture_output=True, text=True)
+                lines = Path(directory, 'commands').read_text().splitlines() if Path(directory, 'commands').exists() else []
+            return result.returncode, [line for line in lines if not line.startswith('release view') and '/git/ref/tags/' not in line]
+
+        def steps(lines):
+            names = {'release upload': 'upload', 'release edit': 'edit', 'release create': 'create', 'api --method': 'tag'}
+            return [next(name for prefix, name in names.items() if line.startswith(prefix)) for line in lines]
+
+        code, lines = run('present', 'present')
+        self.assertEqual((0, ['upload', 'edit', 'tag']), (code, steps(lines)))
+        self.assertIn('--method PATCH', lines[-1])
+        code, lines = run('present', 'present', fail='release upload')
+        self.assertNotEqual(0, code)
+        self.assertEqual(['upload'], steps(lines))  # zip 교체가 실패하면 본문도 태그도 건드리지 않는다
+        code, lines = run('present', 'present', fail='release edit')
+        self.assertNotEqual(0, code)
+        self.assertEqual(['upload', 'edit'], steps(lines))  # 본문 갱신이 실패해도 태그는 옛 커밋에 남아 다음 실행이 다시 싣는다
+        for tag, method in (('absent', '--method POST'), ('present', '--method PATCH')):
+            with self.subTest(release='absent', tag=tag):
+                code, lines = run('absent', tag)
+                self.assertEqual((0, ['tag', 'create', 'upload']), (code, steps(lines)))
+                self.assertIn(method, lines[0])
+                self.assertIn('--verify-tag', lines[1])
 
     def test_cd_is_one_trusted_publish_then_deploy_workflow(self):
         source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
