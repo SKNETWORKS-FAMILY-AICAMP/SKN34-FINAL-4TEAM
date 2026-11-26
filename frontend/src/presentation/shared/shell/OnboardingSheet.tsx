@@ -29,8 +29,10 @@ export function OnboardingSheet() {
         </li>
       ))}</ol>
       <div className="rowend">
-        <button type="button" className="btn" onClick={vm.dismiss} aria-describedby="onboarding-dismiss-note">다시 보지 않기</button>
-        <span id="onboarding-dismiss-note" className="muted small">다음 방문에도 보이지 않아요</span>
+        <span className="onb-dismiss">
+          <button type="button" className="btn" onClick={vm.dismiss} aria-describedby="onboarding-dismiss-note">다시 보지 않기</button>
+          <span id="onboarding-dismiss-note" className="muted small">다음 방문에도 보이지 않아요</span>
+        </span>
         <button type="button" className="btn" onClick={vm.skip}>건너뛰기</button>
         <button type="button" className="btn pri" onClick={vm.skip}>작품 둘러보기</button>
       </div>

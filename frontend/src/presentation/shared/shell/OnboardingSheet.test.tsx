@@ -156,3 +156,9 @@ it('다시 보지 않기에 다음 방문에도 보이지 않는다는 설명을
   const id = screen.getByRole('button', { name: '다시 보지 않기' }).getAttribute('aria-describedby')
   expect(id && document.getElementById(id)?.textContent).toBe('다음 방문에도 보이지 않아요')
 })
+
+it('다시 보지 않기 버튼과 설명은 onb-dismiss 한 묶음이라 좁은 화면에서 줄이 바뀌어도 떨어지지 않는다', () => {
+  renderAt('/')
+  const group = screen.getByRole('button', { name: '다시 보지 않기' }).closest('.onb-dismiss')
+  expect(group?.querySelector('#onboarding-dismiss-note')).toBeTruthy()
+})
