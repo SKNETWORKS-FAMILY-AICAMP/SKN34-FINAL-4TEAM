@@ -127,7 +127,7 @@ describe('캐릭터챗·로그인 보호·포크 대상', () => {
 
   it('정책 화면을 떠났다가 뒤로 돌아와 제출하면 포크 대상이 비어 원작 랭킹으로 간다', async () => {
     renderAt('/')
-    act(() => { nav('/writing-policy?method=fork', { state: { target: '/fork/guunmong' } }) })
+    act(() => { nav('/writing-policy?method=fork&work=guunmong') })
     await screen.findByRole('heading', { name: '다른 소설 포크 전 확인' })
     act(() => { nav('/') })
     act(() => { nav(-1) })

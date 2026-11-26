@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Navigate, useParams } from 'react-router'
 
 import { avatarOf, epsOf, hiddenSourceEpisode, type Theme } from '../../../../domain/entities/work'
+import { qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
@@ -192,7 +193,7 @@ export function ReaderPage() {
               <h3>여기서 포크해 볼까요?</h3>
               <p>{w.canonical ? `${r.n}화의 공개된 원고·설정을 기준으로 분기해요.` : `${r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요.`} 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
               <div className="acts">
-                <Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}?at=${r.n}` }} className="tbtn pri" id="forkHere">✎ {r.n}화에서 포크하기</Go>
+                <Go to={qs('/writing-policy', { method: 'fork', work: id, at: String(r.n) })} className="tbtn pri" id="forkHere">✎ {r.n}화에서 포크하기</Go>
                 {r.forks.map((f) => <Go key={f.id} to={`/work/${f.id}`} className="tbtn">「{f.title.split(': ')[1] || f.title}」 읽기</Go>)}
               </div>
             </div>
