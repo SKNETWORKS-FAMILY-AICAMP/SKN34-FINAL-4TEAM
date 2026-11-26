@@ -363,15 +363,20 @@ def test_only_a_new_scene_plan_keeps_the_position_the_model_gave(monkeypatch, na
     assert args['data'].get('position') == sent and args['data']['title'] == '첫 장면'
 
 
-SCENES = [{'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False}, {'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False},
-          {'kind': 'scene', 'episodeNumber': 4, 'episodeMissing': False}, {'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': True},
-          {'kind': 'plot', 'episodeNumber': None, 'episodeMissing': False}]  # 3회차의 읽을 수 있는 장면은 2개뿐이다
+SCENES = [{'id': 's1', 'title': '재회', 'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False},
+          {'id': 's2', 'title': '대치', 'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': False},
+          {'id': 's3', 'title': '이별', 'kind': 'scene', 'episodeNumber': 4, 'episodeMissing': False},
+          {'id': 's4', 'title': '지워진 회차의 장면', 'kind': 'scene', 'episodeNumber': 3, 'episodeMissing': True},
+          {'id': 's5', 'title': '회차 없는 장면', 'kind': 'scene', 'episodeNumber': None, 'episodeMissing': False},
+          {'id': 'p1', 'title': '1막', 'kind': 'plot', 'episodeNumber': None, 'episodeMissing': False}]
+# 3회차의 읽을 수 있는 장면은 2개, 회차를 연결하지 않은 장면은 1개뿐이다(플롯과 지워진 회차의 장면은 세지 않는다)
 
 
-@pytest.mark.parametrize('position, sent', [(3, None), (9, None), (2, 2), (1, 1), (0, 0)])
-def test_a_new_scene_position_beyond_the_scenes_of_its_episode_is_left_out_so_content_appends_it(monkeypatch, position, sent):
-    """Content는 장면 순서가 0..그 회차 장면 수가 아니면 422다(#917). 수보다 크면 position을 빼 맨 뒤에 붙게 하고 범위 안은 그대로 둔다."""
-    data = {'kind': 'scene', 'title': '재회', 'content': '', 'episodeNumber': 3, 'position': position}
+@pytest.mark.parametrize('episode, position, sent', [(3, 3, None), (3, 9, None), (3, 2, 2), (3, 1, 1), (3, 0, 0), (None, 2, None), (None, 1, 1)])
+def test_a_new_scene_position_beyond_the_scenes_of_its_episode_is_left_out_so_content_appends_it(monkeypatch, episode, position, sent):
+    """Content는 장면 순서가 0..그 회차 장면 수가 아니면 422다(#917). 수보다 크면 position을 빼 맨 뒤에 붙게 하고 범위 안은 그대로 둔다.
+    회차를 연결하지 않은 장면(episodeNumber 없음)은 그런 장면끼리 센다."""
+    data = {'kind': 'scene', 'title': '재회', 'content': '', 'position': position, **({'episodeNumber': episode} if episode else {})}
     fake_agents(monkeypatch, only_content(('story_plan_create', {'workId': 'work', 'data': data})))
     log = content(monkeypatch, story_plan_list=SCENES)
     thread = str(uuid4())
@@ -393,6 +398,7 @@ def test_the_model_is_told_where_the_new_scene_was_really_put(monkeypatch, posit
     assert resume(thread, True).status == 'completed'
     done = json.loads(next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'story_plan_create').content)
     assert done['position'] == saved and ('appended' in done) == appended
+    assert done['order'] == saved + 1  # Content의 position은 0부터라 작가가 보는 순서(1부터)는 하나 더 크다. 모델이 그 순서로 답하게 한다
 
 
 def test_a_new_scene_whose_scene_count_cannot_be_read_fails_the_step_without_writing(monkeypatch):
