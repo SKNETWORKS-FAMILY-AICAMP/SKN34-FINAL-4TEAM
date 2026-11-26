@@ -13,7 +13,7 @@ const reasons:Record<string,string>={
  SOURCE_CHANGED:'분석하는 동안 저장된 원고가 바뀌었어요. 바뀐 원고는 자동으로 반영하지 않아요. 지금 저장된 원고로 분석하려면 새로 시작해 주세요.',
  WORLD_CHANGED:'분석하는 동안 세계관이 바뀌어 초안을 넣지 않았어요. 세계관을 확인한 뒤 새로 시작해 주세요.',
  WORLD_LINK_CHANGED:'분석하는 동안 작품의 세계관 연결이 바뀌었어요. 지금 연결된 세계관 기준으로 분석하려면 새로 시작해 주세요.',
- EXECUTION_EXPIRED:'서버 중단 등으로 실행 결과를 확인하지 못했어요. 저장된 결과에서 같은 작업을 재개해 주세요.',
+ EXECUTION_EXPIRED:'실행 기한이 지났어요. 저장된 결과에서 같은 작업을 재개해 주세요.',
  LOAD_RESULT_UNCONFIRMED:'초안 저장 완료를 확인하지 못했어요. 같은 요청으로 저장 결과를 복구해 주세요.'}
 export function ManuscriptBuildPanel({work,useCase}:{work:Pick<Work,'id'|'worldStudioId'|'episodes'>;useCase?:ManuscriptBuildUseCase}){
  const vm=useManuscriptBuild(work.id,work.worldStudioId,useCase),job=vm.job
@@ -26,15 +26,18 @@ export function ManuscriptBuildPanel({work,useCase}:{work:Pick<Work,'id'|'worldS
    {agree}
    <div className="ep-card-actions"><button className="btn pri" disabled={!vm.ready||vm.busy||!vm.consent||!!vm.error} onClick={()=>void vm.start()}>세계관 만들기</button></div></>}
   <div role="status" aria-atomic="true">
-   {job&&<><p>{states[job.status]}</p><p>추출 결과 저장 {job.completedEpisodes} / {job.totalEpisodes}화</p></>}
+   {job&&<>
+    <p>{states[job.status]}</p><p>추출 결과 저장 {job.completedEpisodes} / {job.totalEpisodes}화</p>
+    {job.status==='completed'&&job.skippedItems>0&&<p>{`항목 ${job.skippedItems}개를 초안에 넣지 않았어요.`}</p>}
+    {job.failureCode&&<p>{reasons[job.failureCode]??'결과를 검증하지 못했어요. 원고와 작업 상태를 확인해 주세요.'}</p>}
+    {job.status==='unknown'&&!job.failureCode&&<p>완료로 확인되지 않았어요. 원래 요청을 유지해 복구해 주세요.</p>}
+   </>}
   </div>
   {job&&<>
-   {job.failureCode&&<p>{reasons[job.failureCode]??'결과를 검증하지 못했어요. 원고와 작업 상태를 확인해 주세요.'}</p>}
-   {job.status==='unknown'&&!job.failureCode&&<p>완료로 확인되지 않았어요. 원래 요청을 유지해 복구해 주세요.</p>}
    {['queued','failed','unknown','loading'].includes(job.status)&&<button className="btn" disabled={vm.busy} onClick={()=>void vm.resume()}>같은 작업 재개</button>}
    {job.status==='failed'&&<><p>이전 작업을 이어 가지 않고 저장된 원고 전체를 처음부터 다시 분석해요.</p>{agree}
     <div className="ep-card-actions"><button className="btn" disabled={vm.busy||!vm.consent||!!vm.error} onClick={()=>void vm.startNew()}>새로 시작</button></div></>}
-   {job.status==='completed'&&<>{job.skippedItems>0&&<p>{`근거를 확인하지 못한 항목 ${job.skippedItems}개는 초안에 넣지 않았어요.`}</p>}<p>초안 생성만으로 확정하거나 공개하지 않아요. 작업실에서 내용을 검토·수정한 뒤 직접 확정해 주세요. 첫 등장 회차는 출처 정보이며 독자 공개 회차는 별도로 지정해야 해요.</p><Go className="btn pri" to={'/worldstudio/'+job.worldId}>세계관 초안 열기</Go></>}
+   {job.status==='completed'&&<><p>초안 생성만으로 확정하거나 공개하지 않아요. 작업실에서 내용을 검토·수정한 뒤 직접 확정해 주세요. 첫 등장 회차는 출처 정보이며 독자 공개 회차는 별도로 지정해야 해요.</p><Go className="btn pri" to={'/worldstudio/'+job.worldId}>세계관 초안 열기</Go></>}
   </>}
   {vm.error&&<p role="alert" className="ep-alert">{vm.error}</p>}
   <div className="ep-card-actions"><button className="btn sm" disabled={vm.busy} onClick={()=>void vm.refresh()}>작업 상태 다시 확인</button></div>

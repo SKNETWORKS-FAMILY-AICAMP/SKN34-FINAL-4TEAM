@@ -2,6 +2,7 @@ import asyncio
 import base64
 import contextlib
 import json
+import threading
 import time
 from uuid import uuid4
 
@@ -3250,6 +3251,25 @@ def test_rewriting_also_runs_a_candidate_review_that_failed_the_first_time(monke
     assert (again.steps[1].status, again.steps[1].error, again.steps[1].result.providerResponseId) == ('completed', None, 'r2')
 
 
+def test_rewriting_reruns_the_review_with_the_check_the_model_chose_when_the_author_sent_none(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing', Step('manuscript_review', check='semantic')))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data.check, written['after']))
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId=f'r{len(reviewed)}', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH})  # 작가가 manuscript_review 입력을 보내지 않았다
+    assert (first.steps[1].status, first.steps[1].result.check) == ('completed', 'semantic')
+    again = rewrite(thread)
+    assert reviewed == [('semantic', '버전1'), ('semantic', '버전2')]  # 다시 쓴 뒤에도 첫 검수 결과의 check로 돈다
+    assert (again.steps[1].status, again.steps[1].result.check, again.steps[1].result.providerResponseId) == ('completed', 'semantic', 'r2')
+
+
 def test_rewriting_is_observed_as_the_pipeline_node_step_writing_editing(monkeypatch, spans):
     fake_agents(monkeypatch, plan('writing_editing'))
     versions(monkeypatch)
@@ -3376,3 +3396,56 @@ def test_a_conversation_whose_summary_was_cut_off_can_still_be_renamed_and_rated
     conversation('feedback', thread, ME, 0, 'up')
     history = conversation('history', thread, ME)
     assert (history.title, history.turns[0].feedback) == ('새 제목', 'up')
+
+
+@pytest.mark.parametrize('how', ['run', 'stream'])
+@pytest.mark.parametrize('fn, args', [('rename', ('새 제목',)), ('feedback', (0, 'up'))])
+def test_rename_and_rating_are_refused_while_this_process_runs_the_summary_and_work_again_after_it(monkeypatch, how, fn, args):
+    # 요약이 도는 중(next=('summarize',))에 쓴 값은 곧 끝나는 요약 checkpoint가 부모로 삼은 옛 checkpoint의 다른 가지에 남아 사라진다(#891 리뷰)
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:5])
+    started, release = threading.Event(), threading.Event()
+
+    def slow_summary(text, turns):  # 동기 노드는 실행기 스레드에서 돌아 그사이 이벤트 루프는 다른 요청을 받는다
+        started.set()
+        release.wait(5)
+        return '요약'
+
+    monkeypatch.setattr(service, 'summarize', slow_summary)
+    sixth = OrchestrationRequest(request=TURNS[5], conversation={'threadId': thread, 'scope': ME}, inputs={'story_context': QA})
+
+    async def drain():
+        return [event async for event in service.stream(sixth)]
+
+    async def meanwhile():
+        turn = asyncio.create_task(service.run(sixth) if how == 'run' else drain())
+        try:
+            await asyncio.to_thread(started.wait, 5)
+            assert (await service.CHAT.aget_state(service._config(thread, ME))).next == ('summarize',)  # 끊겨 남은 대화와 checkpoint만으로는 구분되지 않는다
+            with pytest.raises(service.ConversationBusy):
+                await getattr(service, fn)(thread, ME, *args)
+        finally:
+            release.set()
+        await turn
+
+    asyncio.run(meanwhile())
+    conversation('rename', thread, ME, '새 제목')  # 요약이 끝나면 다시 된다
+    conversation('feedback', thread, ME, 0, 'up')
+    history = conversation('history', thread, ME)
+    assert (history.title, history.turns[0].feedback, summary_of(thread)) == ('새 제목', 'up', {'text': '요약', 'upTo': 1})
+
+
+def test_a_summary_that_breaks_outside_the_failure_handling_does_not_leave_the_conversation_busy(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:5])
+
+    def broken(text, turns):
+        raise RuntimeError('예상 밖 오류')  # SummaryFailure만 노드 안에서 삼킨다
+
+    monkeypatch.setattr(service, 'summarize', broken)
+    with pytest.raises(RuntimeError):
+        chats(thread, TURNS[5])
+    conversation('rename', thread, ME, '새 제목')  # 턴은 저장됐고 도는 실행은 없다
+    assert conversation('history', thread, ME).title == '새 제목'
