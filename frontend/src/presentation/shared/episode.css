@@ -5,7 +5,7 @@
 /* 동의·선택 문장(.ep-check)은 첫 줄에 맞춘다(첫 규칙의 align-items:flex-start·입력 위 여백 4px): 가운데 맞춤이면 두 줄로 접힌 문장의 체크 상자가 두 줄 사이에 섰다. 한 줄일 때 44px 가운데는 위·아래 안쪽 여백 11px가 맡고(입력 칸 높이 4+15+3=22px라 한 줄은 44px 그대로) 접힌 문장은 그만큼 커진다. 입력 여백이 0인 AI 집필 요일 칸은 ai-serial.css가 가운데 맞춤을 유지한다. */
 .episode-app .ep-check{min-height:44px;padding-block:11px}.episode-app .btn.sm{min-height:44px}.ep-reading details>div{white-space:pre-wrap;overflow-wrap:anywhere}/* 이력 탭 제목: 항목(h4)은 묶음(h3)보다 한 단계 낮게 둔다(글자 크기·굵기는 맨 아래 '관리 화면 quieter' 규칙). Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em, h4 1em)이라 크기를 직접 정한다. */.ep-reading :is(h3,h4){margin:20px 0 12px}.ep-reading p{margin:16px 0;line-height:1.8}.episode-app ::selection{background:var(--pri-soft);color:var(--pri-ink)}
 /* 관리 화면 틀(작품 관리·세계관 관리 공용): 공용 상단바(Gnb)·푸터 없이 왼쪽 사이드바(.ep-menu)가 상단바 역할을 하고 오른쪽이 내용(.ep-content)이다. 사이드바는 ManageMenu(shared/shell)가 그린다.
-   사이드바는 위에서 아래로 맨 위 줄(.ep-menu-top: STORYFORK 로고 + 접기 토글) / 본문(.ep-menu-body: 돌아가기 링크·메뉴(nav)·도구 묶음(.ep-menu-tools, 세계관 관리만 쓴다)) / 맨 아래 줄(.ep-menu-account: 알림·테마·계정)이다.
+   사이드바는 위에서 아래로 맨 위 줄(.ep-menu-top: STORYFORK 로고 + 접기 토글) / 본문(.ep-menu-body: 돌아가기 링크·메뉴(nav)·도구 묶음(.ep-menu-tools, 세계관 관리만 쓴다)) / 맨 아래 줄(.ep-menu-account: 알림·계정)이다.
    901px부터 사이드바는 화면 맨 위(top:0)에 붙어 화면 높이를 다 쓰는 세로 열이고, 위·아래 줄은 늘 보이고 본문만 키가 모자라면 안에서 스크롤한다. 도구 묶음은 margin-top:auto로 본문 아래쪽에 붙는다.
    메뉴가 있는 화면만 본문의 폭 제한(.ep-main 기본 1120px)·가운데 정렬을 풀어 메뉴를 화면 왼쪽 끝에 붙이고, 남는 폭은 내용 열이 쓰되 안의 글·표는 읽기 좋은 폭(≈1070px)까지만 쓰고 열 안에서 가운데에 둔다. 메뉴가 없는 화면은 그대로다.
    항목 모양은 관리자 화면 메뉴(.adm .admin-nav, storyfork.css)와 같다: 38px·hover 옅은 면·선택은 옅은 강조 면, 글자는 기본 500·선택한 항목만 650. */
@@ -35,10 +35,10 @@
 /* 도구 묶음(세계관 관리: AI 검토·확정 버전·저장 영역. 작품 관리에는 없다): 기본은 줄바꿈하는 가로 줄이다. 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 모든 폭에서 옅은 테두리·600이다(주 버튼 .pri는 그대로). */
 .ep-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 .ep-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}
-/* 맨 아래 줄: 알림은 왼쪽, 테마·계정은 오른쪽 끝이다. 테마·계정 버튼은 알림 버튼(44px)과 같은 44px다. */
+/* 맨 아래 줄: 알림은 왼쪽, 계정은 오른쪽 끝이다. 계정 버튼은 알림 버튼(44px)과 같은 44px다. 테마는 이 줄의 버튼이 아니라 계정 메뉴의 다크 모드 항목이 맡는다. */
 .ep-menu-account{display:flex;align-items:center;gap:8px}
 .ep-menu-account .btn{margin-right:auto}
-.ep-menu-account :is(.thm,.avatar){flex:none;width:44px;height:44px}
+.ep-menu-account .avatar{flex:none;width:44px;height:44px}
 /* 901px 이상: 본문 위 8px·아래 56px(.ep-main)도 없애 열이 화면 맨 위에서 시작하고(사이드바가 화면 높이를 다 써서 아래 56px이 남으면 사이드바 밑에 빈 띠가 생기고 문서가 내용이 짧아도 화면보다 56px 길었다) 내용 열은 16px 내려 시작하고 끝에 24px만 둔다. 본문(.ep-menu-body)이 남는 높이를 채우며 안에서 스크롤하고, 도구 묶음은 그 아래쪽에 위 선으로 구분돼 세로로 쌓인다.
    접으면 44px 열이 되고(내용 열이 그만큼 넓어진다) 메뉴 옆 선·여백이 없어지며 로고·계정 줄과 본문(hidden)이 숨어 토글만 남는다 — 900px 이하는 이미 가로 블록이라 접힘이 없다.
    계정 줄이 사이드바 맨 아래라 공용 AccountMenu(아바타 아래에 inline top·left로 맞춘다)의 메뉴를 아바타 위로 올린다: 자기 높이 + 아바타(44px) + 간격 16px(공용 메뉴가 아바타 아래에 두는 8px을 되돌리고 위로 8px 더)이고,
@@ -55,7 +55,7 @@
 .ep-manage[data-menu=collapsed] :is(.ep-menu-logo,.ep-menu-account){display:none}
 body:has(.ep-menu-account) .acctm{transform:translateY(calc(-100% - 60px));animation:none}
 }
-/* 사이드바 맨 아래 줄에 테마 버튼이 있으면 오른쪽 아래에 떠 있는 테마 버튼(GlobalChrome이 공용 상단바가 없는 화면에 대신 그린다)은 숨긴다: 테마 버튼이 둘이 되지 않게(공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다). */
+/* 사이드바 맨 아래 줄이 있으면 오른쪽 아래에 떠 있는 테마 버튼(GlobalChrome이 공용 상단바가 없는 화면에 대신 그린다)은 숨긴다: 테마는 그 줄 계정 메뉴의 다크 모드 항목이 맡아 테마 전환이 둘이 되지 않게(공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다). */
 body:has(.ep-menu-account) .thm-float{display:none}
 /* 900px 이하: 사이드바는 내용 위의 가로 블록이다. 로고(맨 위 줄)와 계정 줄이 그 블록 맨 위 한 줄에 놓이고(DOM 순서는 로고·본문·계정이라 order로 올린다) 줄이 모자라면 줄바꿈해 가로로 넘치지 않는다. 본문은 다음 줄이고(min-width:0: 그리드·플렉스 항목의 자동 최소 폭이 내용 폭이라 좁은 화면에서 칸이 늘어 문서가 가로로 넘치지 않게),
    메뉴(nav)는 줄바꿈하는 줄이라 탭이 모두 보인다(가로 스크롤 줄은 잘린 탭이 있다는 신호가 없었다). 접힘이 없어 토글을 숨기고, 접힌 상태로 좁아져도 본문은 그대로 보인다(작성자 CSS의 display가 UA의 [hidden]을 이긴다). 터치·좁은 화면의 누르는 높이는 44px. */

@@ -234,10 +234,10 @@ describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세�
     expect(wide('.ep-menu-tools .btn:not(.pri)')).toBe('') // 데스크톱 전용 규칙이 아니다
   })
 
-  it('맨 아래 줄(알림·테마·계정): 알림은 왼쪽, 테마·계정은 오른쪽 끝의 44px 버튼이고 901px부터 위 선으로 구분된다 — 아바타 아래에 맞추는 공용 AccountMenu는 이 줄에서 위로 열고(900px 이하는 맨 위 줄이라 아래로 연다), 열릴 때 튀지 않게 애니메이션을 끈다', () => {
+  it('맨 아래 줄(알림·계정): 알림은 왼쪽, 계정은 오른쪽 끝의 44px 버튼(테마는 계정 메뉴의 다크 모드 항목이라 이 줄에 버튼이 없다)이고 901px부터 위 선으로 구분된다 — 아바타 아래에 맞추는 공용 AccountMenu는 이 줄에서 위로 열고(900px 이하는 맨 위 줄이라 아래로 연다), 열릴 때 튀지 않게 애니메이션을 끈다', () => {
     expect(rule('.ep-menu-account')).toMatch(/display:flex;align-items:center;gap:8px/)
     expect(rule('.ep-menu-account .btn')).toMatch(/margin-right:auto/)
-    expect(rule('.ep-menu-account :is(.thm,.avatar)')).toMatch(/flex:none;width:44px;height:44px/)
+    expect(rule('.ep-menu-account .avatar')).toMatch(/flex:none;width:44px;height:44px/)
     expect(wide('.ep-menu-account')).toMatch(/padding-top:12px;border-top:1px solid var\(--line2\)/)
     const popup = wide('body:has(.ep-menu-account) .acctm')
     expect(popup).toMatch(/transform:translateY\(calc\(-100% - 60px\)\)/) // 자기 높이 + 아바타(44px) + 간격 16px
@@ -245,7 +245,7 @@ describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세�
     expect(narrow('body:has(.ep-menu-account) .acctm')).toBe('')
   })
 
-  it('사이드바 맨 아래 줄에 테마 버튼이 있으면 오른쪽 아래에 떠 있는 테마 버튼(공용 상단바가 없는 화면의 대체, GlobalChrome)은 숨겨 테마 버튼이 둘이 되지 않는다 — 공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다', () => {
+  it('사이드바 맨 아래 줄이 있으면 오른쪽 아래에 떠 있는 테마 버튼(공용 상단바가 없는 화면의 대체, GlobalChrome)은 숨긴다 — 테마는 그 줄 계정 메뉴의 다크 모드 항목이 맡아 테마 전환이 둘이 되지 않는다. 공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다', () => {
     expect(rule('body:has(.ep-menu-account) .thm-float')).toMatch(/display:none/)
   })
 

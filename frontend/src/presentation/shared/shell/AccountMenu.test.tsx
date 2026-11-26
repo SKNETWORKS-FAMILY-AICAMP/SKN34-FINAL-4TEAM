@@ -16,14 +16,16 @@ const balanceOf = (total: number): CreditBalance => ({ total, items: [] })
 /** 메뉴가 읽는 크레딧 UseCase 대역. 기본은 끝나지 않는 요청이라 상태 갱신 없이 '읽는 중'에 머문다. */
 const creditsOf = (balance: (signal?: AbortSignal) => Promise<CreditBalance> = () => new Promise(() => {})) => ({ balance })
 
-function open(role: Role = 'user', creditLedger = creditsOf()) {
+/** shortcuts는 상단바(Gnb)에서 연 메뉴만 넘긴다(600px 이하에서 검색·알림함 항목을 쓴다). theme은 기본 라이트라 OS 설정과 무관하다. */
+function open(role: Role = 'user', creditLedger = creditsOf(), options: { shortcuts?: { unread: number }; theme?: 'light' | 'dark' } = {}) {
   const anchor = document.createElement('button')
   const rect = { bottom: 60, right: 500 }
   anchor.getBoundingClientRect = () => rect as DOMRect
   document.body.append(anchor)
   const onClose = vi.fn()
-  const view = render(<Provider store={createAppStore({ role })}><MemoryRouter><AccountMenu anchor={anchor} onClose={onClose} creditLedger={creditLedger} /><Where /></MemoryRouter></Provider>)
-  return { anchor, onClose, rect, view, menu: screen.getByRole('menu'), items: screen.getAllByRole('menuitem') }
+  const store = createAppStore({ role }, { theme: options.theme ?? 'light' })
+  const view = render(<Provider store={store}><MemoryRouter><AccountMenu anchor={anchor} onClose={onClose} creditLedger={creditLedger} shortcuts={options.shortcuts} /><Where /></MemoryRouter></Provider>)
+  return { anchor, onClose, rect, view, store, menu: screen.getByRole('menu'), items: screen.getAllByRole('menuitem') }
 }
 
 it('방향키·Home·End로 메뉴 항목 사이를 이동하고 처음과 끝은 이어진다', () => {
@@ -183,4 +185,116 @@ it('프로필 줄은 아바타·이름과 이메일 묶음·프로필 › 가 �
   expect([...items[0].children].map((el) => el.className || el.tagName.toLowerCase())).toEqual(['meav', 'who-text', 'em'])
   expect(items[0].querySelector('.who-text b')?.getAttribute('title')).toBe('읽는사람')
   expect(items[0].querySelector('.who-text small')?.getAttribute('title')).toBe('reader@storyfork.demo')
+})
+
+const themeItem = () => screen.getByRole('menuitemcheckbox', { name: '다크 모드' })
+
+it('다크 모드 항목은 현재 상태를 aria-checked로 알리고, 누르면 메뉴는 열린 채 같은 항목에서 테마만 바꾼다', () => {
+  const { store, onClose } = open('user')
+  const theme = themeItem()
+  expect(theme.getAttribute('aria-checked')).toBe('false')
+  theme.focus()
+  fireEvent.click(theme)
+  expect(store.getState().ui.theme).toBe('dark')
+  expect(themeItem()).toBe(theme) // 다시 만들어지지 않아 초점도 그대로다
+  expect(theme.getAttribute('aria-checked')).toBe('true')
+  expect(onClose).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(theme)
+  fireEvent.click(theme)
+  expect(store.getState().ui.theme).toBe('light')
+  expect(theme.getAttribute('aria-checked')).toBe('false')
+})
+
+it('다크 모드가 켜진 채 열면 항목은 켜짐이고, 표시 글자는 항목 이름에 섞이지 않는다', () => {
+  open('user', creditsOf(), { theme: 'dark' })
+  const theme = themeItem()
+  expect(theme.getAttribute('aria-checked')).toBe('true')
+  expect(theme.textContent).toBe('다크 모드켜짐')
+  expect(theme.querySelector('em')?.getAttribute('aria-hidden')).toBe('true')
+})
+
+it('로그인한 메뉴의 다크 모드 항목은 로그아웃 바로 위 묶음(구분선 앞)의 끝에 있다', () => {
+  open('user')
+  const theme = themeItem()
+  expect(theme.previousElementSibling).toBe(screen.getByRole('menuitem', { name: '이벤트' }))
+  expect(theme.nextElementSibling?.tagName).toBe('HR')
+  expect(theme.nextElementSibling?.nextElementSibling).toBe(screen.getByRole('menuitem', { name: '로그아웃' }))
+})
+
+it('비로그인 메뉴의 다크 모드 항목은 맨 끝 묶음의 끝이다', () => {
+  const { menu } = open(null)
+  expect(menu.lastElementChild).toBe(themeItem())
+  expect(themeItem().previousElementSibling).toBe(screen.getByRole('menuitem', { name: '문의하기' }))
+})
+
+it('다크 모드 항목도 방향키·Home·End 이동 대상이다', () => {
+  open('user')
+  const logout = screen.getByRole('menuitem', { name: '로그아웃' })
+  logout.focus()
+  fireEvent.keyDown(logout, { key: 'ArrowUp' })
+  expect(document.activeElement).toBe(themeItem())
+  cleanup()
+  const guest = open(null)
+  fireEvent.keyDown(guest.items[0], { key: 'End' })
+  expect(document.activeElement).toBe(themeItem())
+})
+
+it('shortcuts를 받은 메뉴는 크레딧 줄 다음 묶음에 검색·알림함 항목을 두고, 읽지 않은 수를 알림함에 붙인다', () => {
+  open('user', creditsOf(), { shortcuts: { unread: 2 } })
+  const search = screen.getByRole('menuitem', { name: '검색' })
+  const inbox = screen.getByRole('menuitem', { name: '알림함, 읽지 않은 알림 2건' })
+  expect(inbox.textContent).toBe('알림함 2')
+  expect([search.className, inbox.className]).toEqual(['acct-m', 'acct-m']) // 601px부터 CSS가 숨기는 표시다
+  expect(search.nextElementSibling).toBe(inbox)
+  expect(search.previousElementSibling?.tagName).toBe('HR')
+  expect(search.previousElementSibling?.previousElementSibling).toBe(screen.getByRole('menuitem', { name: /^보유 크레딧/ }))
+  expect(inbox.nextElementSibling?.matches('hr.acct-m')).toBe(true) // 항목이 숨는 화면에서는 구분선도 함께 숨는다
+  expect(inbox.nextElementSibling?.nextElementSibling).toBe(screen.getByRole('menuitem', { name: '내 서재' }))
+})
+
+it('알림함 항목은 메뉴를 닫고 /notifications로 간다', () => {
+  const { onClose } = open('user', creditsOf(), { shortcuts: { unread: 0 } })
+  fireEvent.click(screen.getByRole('menuitem', { name: '알림함' }))
+  expect(onClose).toHaveBeenCalledOnce()
+  expect(screen.getByTestId('where').textContent).toBe('/notifications')
+})
+
+it('검색 항목은 초점을 연 버튼으로 돌려 놓은 뒤 메뉴를 닫고 검색 시트(sf-quick)를 연다 — 시트가 닫힐 때 돌아갈 곳은 곧 사라질 항목이 아니라 연 버튼이다', () => {
+  const focusAtOpen: (Element | null)[] = []
+  const listener = () => focusAtOpen.push(document.activeElement)
+  addEventListener('sf-quick', listener)
+  try {
+    const { anchor, onClose } = open('user', creditsOf(), { shortcuts: { unread: 0 } })
+    fireEvent.click(screen.getByRole('menuitem', { name: '검색' }))
+    expect(focusAtOpen).toEqual([anchor])
+    expect(onClose).toHaveBeenCalledOnce()
+  } finally { removeEventListener('sf-quick', listener) }
+})
+
+it('비로그인 메뉴는 검색 항목만 두고 알림함은 두지 않는다', () => {
+  open(null, creditsOf(), { shortcuts: { unread: 0 } })
+  expect(screen.getByRole('menuitem', { name: '검색' })).toBeTruthy()
+  expect(screen.queryByRole('menuitem', { name: /^알림함/ })).toBeNull()
+})
+
+it('CSS로 숨긴 항목(601px 이상에서 .acct-m)은 방향키·Home 이동에서 건너뛰고 첫 보이는 항목이 처음이다', () => {
+  const { items: shown } = open('user', creditsOf(), { shortcuts: { unread: 1 } })
+  const credit = screen.getByRole('menuitem', { name: /^보유 크레딧/ })
+  const search = screen.getByRole('menuitem', { name: '검색' })
+  const inbox = screen.getByRole('menuitem', { name: /^알림함/ })
+  const library = screen.getByRole('menuitem', { name: '내 서재' })
+  const logout = screen.getByRole('menuitem', { name: '로그아웃' })
+  // jsdom은 CSS를 읽지 않으니 601px 이상에서 .acct-m이 display:none이 되는 것을 인라인 스타일로 흉내 낸다.
+  for (const hidden of [search, inbox]) hidden.style.display = 'none'
+  credit.focus()
+  fireEvent.keyDown(credit, { key: 'ArrowDown' })
+  expect(document.activeElement).toBe(library)
+  fireEvent.keyDown(library, { key: 'ArrowUp' })
+  expect(document.activeElement).toBe(credit)
+  // 맨 앞 항목(프로필)이 숨은 경우의 처음·끝: Home은 첫 보이는 항목, 그 앞에서 위로 가면 끝으로 이어진다.
+  shown[0].style.display = 'none'
+  fireEvent.keyDown(credit, { key: 'Home' })
+  expect(document.activeElement).toBe(credit)
+  fireEvent.keyDown(credit, { key: 'ArrowUp' })
+  expect(document.activeElement).toBe(logout)
 })

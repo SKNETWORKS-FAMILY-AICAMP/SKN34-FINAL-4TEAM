@@ -401,7 +401,7 @@ it('puts the work menu, then the account row in the sidebar — no tool group; �
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
-  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 제보·수정 제안 링크)은 없고, 알림·테마·계정은 본문 밖의 맨 아래 줄이다.
+  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 제보·수정 제안 링크)은 없고, 알림·계정은 본문 밖의 맨 아래 줄이다.
   expect(document.querySelector('.ep-menu-tools')).toBeNull()
   expect(order[0].closest('.ep-menu-body')?.lastElementChild).toBe(order[0])
   expect(order[1].closest('.ep-menu-account')?.contains(order[2])).toBe(true)
