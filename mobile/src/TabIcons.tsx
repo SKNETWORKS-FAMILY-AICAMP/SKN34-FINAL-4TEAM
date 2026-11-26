@@ -15,9 +15,9 @@ const GLYPHS: Record<TabKey, ReactNode> = {
   me: <><Circle cx="12" cy="8.5" r="4" /><Path d="M4 21c.8-4.4 4-7 8-7s7.2 2.6 8 7z" /></>,
 }
 
-export function TabIcon({ name, color, size = 24 }: { name: TabKey; color: string; size?: number }) {
+export function TabIcon({ name, color }: { name: TabKey; color: string }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       {GLYPHS[name]}
     </Svg>
   )
