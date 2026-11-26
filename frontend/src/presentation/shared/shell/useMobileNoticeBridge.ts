@@ -29,6 +29,7 @@ export function useMobileNoticeBridge() {
     const signal = controller.signal
     const notices = appContainer.resolve('notificationRepository')
     let registration: Promise<void> = Promise.resolve()
+    let latestTap = 0
 
     function receive(event: Event) {
       if (!(event instanceof CustomEvent) || !account) return
@@ -44,11 +45,12 @@ export function useMobileNoticeBridge() {
         })
       } else {
         const id = message.data.id
+        const tap = ++latestTap
         void getMobileNotice(id, signal).then(notice => {
-          if (signal.aborted) return
+          if (signal.aborted || tap !== latestTap) return
           void notices.markRead(id).catch(() => {})
           open(noticeTarget(notice) ?? '/notifications')
-        }).catch(() => { if (!signal.aborted) open('/notifications') })
+        }).catch(() => { if (!signal.aborted && tap === latestTap) open('/notifications') })
       }
     }
 

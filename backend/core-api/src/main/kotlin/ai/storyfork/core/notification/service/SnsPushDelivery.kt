@@ -12,8 +12,12 @@ import org.springframework.core.task.TaskRejectedException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 import software.amazon.awssdk.services.sns.SnsClient
+import software.amazon.awssdk.services.sns.model.CreatePlatformEndpointRequest
 import software.amazon.awssdk.services.sns.model.EndpointDisabledException
+import software.amazon.awssdk.services.sns.model.GetEndpointAttributesRequest
 import software.amazon.awssdk.services.sns.model.NotFoundException
+import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sns.model.SetEndpointAttributesRequest
 import tools.jackson.databind.json.JsonMapper
 
 data class StoredPushNotice(val memberId: UUID, val kind: NoticeKind, val noticeId: String, val summary: String)
@@ -58,11 +62,9 @@ class SnsPushDelivery(
 
     private fun send(device: PushDevice, noticeId: String, message: String) {
         try {
-            val endpoint = device.endpointArn ?: sns.createPlatformEndpoint {
-                it.platformApplicationArn(platformArn).token(device.token)
-            }.endpointArn().also { if (!devices.saveEndpoint(device, it)) return }
+            val endpoint = device.endpointArn ?: registerEndpoint(device) ?: return
             if (!devices.isActive(device)) return
-            sns.publish { it.targetArn(endpoint).messageStructure("json").message(message) }
+            sns.publish(PublishRequest.builder().targetArn(endpoint).messageStructure("json").message(message).build())
         } catch (_: EndpointDisabledException) {
             devices.removeInvalid(device)
             log.info("Android 푸시 비활성 토큰 해제 notice={}", noticeId)
@@ -72,5 +74,17 @@ class SnsPushDelivery(
         } catch (e: RuntimeException) {
             log.warn("Android 푸시 발송 실패 notice={} reason={}", noticeId, e.javaClass.simpleName)
         }
+    }
+
+    private fun registerEndpoint(device: PushDevice): String? {
+        if (!devices.isActive(device)) return null
+        val endpoint = sns.createPlatformEndpoint(CreatePlatformEndpointRequest.builder()
+            .platformApplicationArn(platformArn).token(device.token).build()).endpointArn()
+        val attributes = sns.getEndpointAttributes(GetEndpointAttributesRequest.builder().endpointArn(endpoint).build()).attributes()
+        if (attributes["Token"] != device.token || !attributes["Enabled"].equals("true", ignoreCase = true)) {
+            sns.setEndpointAttributes(SetEndpointAttributesRequest.builder().endpointArn(endpoint)
+                .attributes(mapOf("Token" to device.token, "Enabled" to "true")).build())
+        }
+        return endpoint.takeIf { devices.saveEndpoint(device, it) }
     }
 }
