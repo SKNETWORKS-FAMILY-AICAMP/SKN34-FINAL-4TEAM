@@ -3,12 +3,11 @@ import { useId, useState, type ReactNode } from 'react'
 import { Go } from '../Go'
 import { BackChev, FoldIcon } from '../icons'
 import { AccountMenu } from './AccountMenu'
-import { ThemeButton } from './ThemeButton'
 import { useGnbViewModel } from './useGnbViewModel'
 
 /**
  * 관리 화면(작품 관리·세계관 관리)의 왼쪽 사이드바. 공용 상단바(Gnb)를 그리지 않는 화면에서 이 사이드바가 상단바 역할을 맡는다.
- * 위에서 아래로 맨 위 줄(STORYFORK 로고 + 접기 토글) / 본문(돌아가기 링크 · 화면의 메뉴(children) · 도구 묶음(tools, 선택)) / 맨 아래 줄(알림·테마·계정)이다.
+ * 위에서 아래로 맨 위 줄(STORYFORK 로고 + 접기 토글) / 본문(돌아가기 링크 · 화면의 메뉴(children) · 도구 묶음(tools, 선택)) / 맨 아래 줄(알림·계정)이다. 테마 전환은 그 줄의 버튼이 아니라 계정 메뉴의 다크 모드 항목이 맡는다.
  * 접힌 동안(open=false)에는 본문이 hidden이고 돌아가기 링크는 그리지 않는다: 호출 측이 상단 줄(.ep-top)로 옮겨 그리므로 두 곳에 동시에 두지 않는다. 도구도 호출 측이 접힌 동안 비운다.
  * 도구가 없는 화면(작품 관리)은 tools를 주지 않고, 그러면 묶음 칸(.ep-menu-tools, 위 선이 붙는다) 자체를 그리지 않는다.
  * 위치·접기·좁은 화면 배치는 shared/episode.css(.ep-menu-*) 한 곳이 정한다. 검색 버튼은 두지 않는다: Ctrl K(전역 QuickJump)가 남는다.
@@ -45,7 +44,8 @@ export function ManageMenu({ name, open, onOpenChange, back, tools, children }: 
 }
 
 /**
- * 사이드바 맨 아래 줄: 공용 상단바(Gnb)가 맡던 알림·테마·계정. 데이터는 상단바와 같은 `useGnbViewModel`(읽지 않은 알림 수·이름 첫 글자)이고 이름·aria·계정 메뉴(`AccountMenu`)도 같다.
+ * 사이드바 맨 아래 줄: 공용 상단바(Gnb)가 맡던 알림·계정. 데이터는 상단바와 같은 `useGnbViewModel`(읽지 않은 알림 수·이름 첫 글자)이고 이름·aria·계정 메뉴(`AccountMenu`, 다크 모드 항목 포함)도 같다.
+ * 알림 버튼이 이미 있어 계정 메뉴에는 상단바용 검색·알림함 항목(shortcuts)을 넘기지 않는다.
  * 이 화면들은 로그인한 사용자만 연다(RequireRole)라 비로그인 모양(상단바 아바타의 게스트 아이콘)은 두지 않는다.
  */
 function ManageMenuAccount() {
@@ -56,7 +56,6 @@ function ManageMenuAccount() {
       <Go to="/notifications" className="btn sm" aria-label={`알림함${unread ? `, 읽지 않은 알림 ${unread}건` : ''}`}>
         알림{unread > 0 && <> <span className="nb">{unread}</span></>}
       </Go>
-      <ThemeButton />
       <button type="button" className="avatar" aria-label="내 계정 메뉴" aria-haspopup="menu" aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}><span>{initial}</span></button>
       {menuAnchor && <AccountMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />}
     </div>

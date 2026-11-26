@@ -77,12 +77,14 @@ describe('홈·공통 셸 (U01·U02)', () => {
     expect(document.querySelector('#home .guide')).toBeNull()
   })
 
-  it('테마·화면 ID 토글이 동작한다', async () => {
+  it('테마·화면 ID 토글이 동작한다: 테마는 상단바 계정 메뉴의 다크 모드 항목이 바꾼다', async () => {
     renderAt('/')
     await screen.findByText('다르게 이어진 포크 소설')
-    fireEvent.click(screen.getAllByRole('button', { name: '다크 모드로' })[0])
+    expect(within(document.querySelector<HTMLElement>('.gnb')!).queryByRole('button', { name: /모드로/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '로그인·회원가입 메뉴' }))
+    fireEvent.click(screen.getByRole('menuitemcheckbox', { name: '다크 모드' }))
     expect(document.documentElement.dataset.theme).toBe('dark')
-    expect(screen.getAllByRole('button', { name: '라이트 모드로' }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('menuitemcheckbox', { name: '다크 모드' }).getAttribute('aria-checked')).toBe('true')
     expect(screen.getByRole('status').textContent).toBe('다크 모드로 바꿨어요')
     fireEvent.click(screen.getByRole('button', { name: '화면 ID 끄기' }))
     expect(document.getElementById('sid')!.hidden).toBe(true)
