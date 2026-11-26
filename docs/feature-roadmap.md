@@ -303,7 +303,7 @@
 <tr><td>EPUB 원고 업로드</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
 <tr><td>원고 회차 자동 구분 <small>(합칠 때 뒤 회차 제목이 본문에 남는다고 안내)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/907">PR #907</a></td></tr>
 <tr><td>원고 등록 미리보기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
-<tr><td>원고 등록 확정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
+<tr><td>원고 등록 확정 <small>(합치기 전 수정한 뒤 회차 제목 삭제 확인, #926)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
 <tr><td>원고 등록 실패 항목 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
 <tr><td>TXT 원고 내보내기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
 <tr><td>EPUB 원고 내보내기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/238">PR #238</a></td></tr>
