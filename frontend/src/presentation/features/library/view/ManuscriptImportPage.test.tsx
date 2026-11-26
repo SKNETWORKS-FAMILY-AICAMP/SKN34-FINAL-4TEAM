@@ -181,6 +181,28 @@ it('제목 수정·제외·합치기가 목록과 확정 버튼에 바로 반영
   expect((screen.getByRole('button', { name: '2개 회차 등록' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
+it('합칠 수 있는 회차에만 뒤 회차 제목이 본문에 남는다고 안내한다', async () => {
+  await toPreview()
+  const notice = '합치면 앞 회차 제목을 기본으로 쓰고, 뒤 회차 제목은 본문에 남아요.'
+  const merge = (number: number) => screen.getByRole('button', { name: `${number}번째 회차를 다음 회차와 합치기` })
+
+  const explanation = screen.getByText(notice)
+  expect(explanation.id).not.toBe('')
+  expect(merge(1).getAttribute('aria-describedby')).toBe(explanation.id)
+  expect(merge(2).getAttribute('aria-describedby')).toBe(explanation.id)
+  expect(merge(3).hasAttribute('aria-describedby')).toBe(false)
+
+  fireEvent.click(screen.getByLabelText('2번째 회차 제외'))
+  expect(screen.queryByText(notice)).toBeNull()
+  expect(merge(1).hasAttribute('aria-describedby')).toBe(false)
+
+  fireEvent.click(screen.getByLabelText('2번째 회차 제외'))
+  fireEvent.click(merge(1))
+  fireEvent.click(merge(1))
+  expect(screen.getByRole('button', { name: '1개 회차 등록' })).toBeTruthy()
+  expect(screen.queryByText(notice)).toBeNull()
+})
+
 it('확정은 조정한 목록을 보내고 성공·일부 성공·실패를 따로 보여 주며 전체 성공으로 표시하지 않는다', async () => {
   await toPreview()
   fireEvent.click(screen.getByRole('button', { name: '3개 회차 등록' }))

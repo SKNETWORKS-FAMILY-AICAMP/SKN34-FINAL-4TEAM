@@ -41,8 +41,8 @@ vi.mock('../viewmodel/useManuscriptBuild', async () => {
 vi.mock('./EpisodeBulkImportSheet', async () => {
   const { createElement } = await import('react')
   return {
-    EpisodeBulkImportSheet: (props: { firstEpisodeUnsaved: boolean; onClose: (refresh: boolean) => void }) =>
-      createElement('div', { role: 'dialog', 'data-first-episode-unsaved': props.firstEpisodeUnsaved },
+    EpisodeBulkImportSheet: (props: { firstUnsavedEpisode: number | null; onClose: (refresh: boolean) => void }) =>
+      createElement('div', { role: 'dialog', 'data-first-unsaved-episode': props.firstUnsavedEpisode },
       createElement('button', { onClick: () => props.onClose(true) }, '저장하고 닫기'),
       createElement('button', { onClick: () => props.onClose(false) }, '저장 없이 닫기')),
   }
@@ -616,14 +616,15 @@ it('목업 빌드는 서버 조회가 없어 배지를 그리지도 조회하지
 })
 
 it.each([
-  { rows: [row(1)], expected: 'true' },
-  { rows: [row(1, { versions: [saved('v1')] })], expected: 'false' },
-  { rows: [row(1, { inherited: true })], expected: 'false' },
-  { rows: undefined, expected: 'false' },
-])('소유자 회차 목록에서 1화의 저장본 유무를 확인해 일괄 업로드 시트에 전달한다 (%#)', ({ rows, expected }) => {
+  { rows: [row(1)], expected: '1' },
+  { rows: [row(1, { inherited: true }), row(2, { versions: [saved('v2', 2)] }), row(3), row(4)], expected: '3' },
+  { rows: [row(1, { versions: [saved('v1')] })], expected: null },
+  { rows: [row(1, { inherited: true })], expected: null },
+  { rows: undefined, expected: null },
+])('소유자 회차 중 가장 앞의 미저장 회차 번호를 일괄 업로드 시트에 전달한다 (%#)', ({ rows, expected }) => {
   openWith({ writing: { id: 'w', rows } })
   fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
-  expect(screen.getByRole('dialog').getAttribute('data-first-episode-unsaved')).toBe(expected)
+  expect(screen.getByRole('dialog').getAttribute('data-first-unsaved-episode')).toBe(expected)
 })
 
 it('일괄 업로드가 회차를 저장하고 닫히면 작품을 다시 읽고 배지도 상태를 다시 읽는다', () => {

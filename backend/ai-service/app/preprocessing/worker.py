@@ -14,6 +14,7 @@ from app.manuscript_extraction.models import EpisodeText, EpisodeExtraction
 from app.preprocessing.models import JobRequest
 
 log = logging.getLogger(__name__)
+# Content ManuscriptBuildService의 EPISODES_PER_EXTRACTION_BATCH(실행권 계산)와 함께 바꾼다(최초 구축 저장 계약 #840).
 EPISODE_CONCURRENCY = 4
 
 # 모델·검증의 세부 코드를 Content·화면이 아는 실패 사유로 옮긴다. 그 밖의 검증·출력 오류는 모두 AI_OUTPUT_INVALID다.

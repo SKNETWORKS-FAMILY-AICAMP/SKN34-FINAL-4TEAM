@@ -312,7 +312,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               )}
               {bulkImportOpen && <EpisodeBulkImportSheet
                 workId={w.id}
-                firstEpisodeUnsaved={vm.writing?.rows?.some(e => e.number === 1 && !e.inherited && e.versions.length === 0) ?? false}
+                firstUnsavedEpisode={vm.writing?.rows?.find(e => !e.inherited && e.versions.length === 0)?.number ?? null}
                 onClose={(refresh) => {
                   setBulkImportOpen(false)
                   if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }

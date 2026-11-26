@@ -30,16 +30,16 @@ function FilePicker({ children, onSelect, multiple = false, disabled = false, la
   )
 }
 
-export function EpisodeBulkImportSheet({ workId, firstEpisodeUnsaved, onClose }: {
+export function EpisodeBulkImportSheet({ workId, firstUnsavedEpisode, onClose }: {
   workId: string
-  firstEpisodeUnsaved: boolean
+  firstUnsavedEpisode: number | null
   onClose: (refresh: boolean) => void
 }) {
   const vm = useEpisodeBulkImport(workId)
   const [page, setPage] = useState(1)
   const heading = useRef<HTMLHeadingElement>(null)
   const startNoticeId = useId()
-  const showStartNotice = vm.editable && firstEpisodeUnsaved && (vm.rows[0]?.number ?? 0) > 1
+  const showStartNotice = vm.editable && firstUnsavedEpisode !== null && (vm.rows[0]?.number ?? 0) > firstUnsavedEpisode
   const visible = paginate(vm.rows, page)
   const close = () => { if (!vm.busy) onClose(vm.savedCount > 0 || vm.stopReason !== null) }
 
@@ -73,8 +73,8 @@ export function EpisodeBulkImportSheet({ workId, firstEpisodeUnsaved, onClose }:
             onChange={(event) => vm.setStart(event.currentTarget.value)} />
         </label>}
         {showStartNotice && <p id={startNoticeId} className="small">
-          1화에 저장한 원고가 없어서 이대로 저장하면 세계관 추출을 시작할 수 없어요.
-          시작 회차를 1로 바꾸거나 집필실에서 1화를 먼저 버전 저장해 주세요.
+          {firstUnsavedEpisode}화에 저장한 원고가 없어서 이대로 저장하면 세계관 추출을 시작할 수 없어요.
+          시작 회차를 {firstUnsavedEpisode === 1 ? '1' : `${firstUnsavedEpisode}화`}로 바꾸거나 집필실에서 {firstUnsavedEpisode}화를 먼저 버전 저장해 주세요.
         </p>}
         {vm.basis && vm.rows.length > 0 && vm.rows[0].number === 0 &&
           <p role="alert">시작 회차를 확인해 주세요. 새 회차는 {vm.basis.lastNumber + 1}화부터 등록할 수 있어요.</p>}

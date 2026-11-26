@@ -19,6 +19,9 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.json.JsonMapper
 
+// AI worker의 EPISODE_CONCURRENCY와 함께 바꾼다(최초 구축 저장 계약 #840).
+private const val EPISODES_PER_EXTRACTION_BATCH = 4L
+
 /** 최초 구축 전체 연결. 모델 호출은 DB transaction 밖이며 모든 성공 결과를 다음 호출 전에 기록한다. */
 @Service
 class ManuscriptBuildService(
@@ -161,8 +164,10 @@ class ManuscriptBuildService(
         if(job.status!="queued") return mapOf("claimed" to false)
         val frozen=input(job)
         val now=Instant.now()
-        // 회차 추출(읽기 120초)과 정체 정리(70초)에 각각 연결·검증·콜백 시간을 더한다(#675).
-        val leaseSeconds = 200L * frozen.episodes.size + 150L
+        val episodeCount = frozen.episodes.size.toLong()
+        val batchCount = (episodeCount + EPISODES_PER_EXTRACTION_BATCH - 1) / EPISODES_PER_EXTRACTION_BATCH
+        // 추출은 묶음별로, 결과 검증과 저장은 회차별로, 정체 정리와 적재는 작업당 한 번 예산을 잡는다.
+        val leaseSeconds = 180L * batchCount + 20L * episodeCount + 150L
         val token=execution.claim(id,owner,now,now.plusSeconds(leaseSeconds))
         if(sourceChanged(job,frozen)) stale(id,owner,token,"SOURCE_CHANGED")
         if(job.kind=="update") freezeBasis(id,owner,job.worldId,token)

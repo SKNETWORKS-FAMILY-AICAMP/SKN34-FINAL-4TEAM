@@ -192,3 +192,40 @@ def test_both_still_checks_each_finding_against_its_own_check(monkeypatch):
     with pytest.raises(ReviewFailure) as error:
         service.review(ReviewRequest(workId=WORK, episode=3, check='both'))
     assert error.value.status == 502
+
+
+def test_a_finding_whose_quote_is_not_in_the_draft_is_dropped_and_counted_in_gaps(monkeypatch):
+    fake_content(monkeypatch)
+    fake_agent(monkeypatch, finding(), finding(quote='원고에 없는 문장'), gaps=['날짜 비교 대상 없음'])
+
+    result = service.review(mechanical())
+
+    assert [f.quote for f in result.findings] == ['서윤은 웃엇다.']
+    assert result.gaps == ['날짜 비교 대상 없음', service.DROPPED_FINDINGS.format(count=1)]
+
+
+def test_no_gap_is_added_when_every_finding_is_valid(monkeypatch):
+    fake_content(monkeypatch)
+    fake_agent(monkeypatch, finding())
+    assert service.review(mechanical()).gaps == []
+
+
+def test_a_model_with_no_findings_is_an_empty_result_not_an_error(monkeypatch):
+    fake_content(monkeypatch)
+    fake_agent(monkeypatch)
+    result = service.review(mechanical())
+    assert (result.findings, result.gaps) == ([], [])
+
+
+def test_both_drops_the_bad_findings_of_one_check_and_counts_the_total(monkeypatch):
+    fake_content(monkeypatch)
+
+    def review(check, draft, settings):  # Semantic은 전부 보내지 않은 근거, Mechanical은 맞는 지적
+        found = [finding(category='setting', refs=['card:secret']), finding(category='setting', refs=['card:x'])] if check == 'semantic' else [finding()]
+        return ReviewResult(findings=found, gaps=[]), {'model': 'm', 'providerResponseId': check, 'usage': None}
+
+    monkeypatch.setattr(service.agent, 'review', review)
+    result = service.review(ReviewRequest(workId=WORK, episode=3, check='both'))
+
+    assert [f.category for f in result.findings] == ['spelling']
+    assert result.gaps == [service.DROPPED_FINDINGS.format(count=2)]
