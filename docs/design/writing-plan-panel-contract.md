@@ -43,3 +43,7 @@
 - CI: 계획 패널/집필실/시뮬레이션 Hook·React 회귀, PostgreSQL 순서 재조회·revision 충돌, V38 기존 순서 보존·음수 제약.
 - 실제 화면·공유 DB 실행은 별도 요청 전에는 수행하지 않는다. 소스 구현과 hosted CI·실행 검증 완료를 구분한다.
 - #374 후속 요청으로 격리된 로컬 PostgreSQL·Neo4j·실제 AI와 화면을 검증했다([기록](../verification/issue-374-ui.md)). 폭 변경 직후 회차 전환 시 Toast UI 3.2.2의 제거된 툴바 콜백 오류는 pnpm 패치로 공용 편집기 라이브러리에서 차단한다. 설치 시 `pnpm-workspace.yaml`과 `patches/`가 함께 필요하다.
+
+## 포크 첫 회차 집필의 직전 원문
+
+집필 제안(writeDraft)의 서술자 문맥에는 상속한 발행 기준 회차의 끝을 recentSource로 전달한다. Content가 포크 체크포인트의 contentVersionId와 자식 작품 상속 발행본을 대조한다. 원격 원작 최신본을 조회하지 않는다. 기준 이전 회차나 인물 시점에는 필드를 생략한다. UTF-16 반개구간과 UTF-8 SHA-256을 함께 전달하고, 기본 1,500단위를 포함하는 문단 시작까지 확장한다. 설정은 storyfork.writing.recent-source-units이며 기존 전체 문맥 한도를 초과하면 기존 오류 처리를 따른다. 모델 지침과 인지 판정은 유지한다.

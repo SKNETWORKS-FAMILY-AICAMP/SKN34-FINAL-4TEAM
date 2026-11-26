@@ -1,6 +1,8 @@
 package ai.storyfork.content.context.service
 
 import ai.storyfork.content._common.exception.*
+import ai.storyfork.content.context.domain.RecentSource
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ai.storyfork.content.episode.repository.*
@@ -19,9 +21,14 @@ class ContextService(
     private val episodes: EpisodeRepository,
     private val drafts: EpisodeDraftRepository,
     private val mapper: tools.jackson.databind.json.JsonMapper,
+    @Value("\${storyfork.writing.recent-source-units:1500}") private val recentSourceUnits: Int = 1500,
 ) {
 
-    fun read(id: String,owner: String?,request: ContextRequest): StoryContextResponse {
+    fun read(id: String,owner: String?,request: ContextRequest): StoryContextResponse = select(id,owner,request,false)
+
+    fun readForDraft(id: String, owner: String, request: ContextRequest): StoryContextResponse = select(id,owner,request,true)
+
+    private fun select(id: String,owner: String?,request: ContextRequest, forkDraft: Boolean): StoryContextResponse {
         val basis=request.episode ?: throw ContentFailure(422,"기준 회차를 선택해 주세요.")
         val query=request.query.take(2000)
         val character=request.character.take(80)
@@ -42,8 +49,18 @@ class ContextService(
         val selected=if(character.isEmpty()) eligible.takeLast(3) else emptyList()
         val excerpts=selected.map {e -> ContextEpisodeResponse(e.number,e.version,e.versionId,e.title,e.body.length,
             sourceExcerpts(e.body,minOf(10000,budget/maxOf(1,selected.size)),query).map {ExcerptResponse(it.start,it.end,it.text)})}
+        // A product fork pins a published episode ending, not an arbitrary character offset.
+        val origin = w.source
+        val recent = if (forkDraft && origin != null && character.isEmpty() &&
+            max == origin.episode + 1 && basis >= origin.episode) {
+            val pinned = eligible.singleOrNull { it.number == origin.episode }
+                ?: throw ContentFailure(409, "포크 기준 회차의 발행본이 없어요.")
+            checkContent(pinned.inherited && pinned.versionId == origin.pinnedContentVersionId && pinned.versionId.isNotBlank(),
+                409, "포크 원문 판본이 기준과 달라요.")
+            RecentSource.select("original", pinned.number, pinned.versionId, pinned.body, pinned.body.length, recentSourceUnits)
+        } else null
         val result=StoryContextResponse(w.title,if(character.isEmpty()) w.summary else "",basis,character,settings.map {it.toPayload()},draft,excerpts,
-            SelectionResponse(eligible.sumOf {it.body.length}-excerpts.sumOf {e -> e.excerpts.sumOf {it.text.length}},eligible.size))
+            SelectionResponse(eligible.sumOf {it.body.length}-excerpts.sumOf {e -> e.excerpts.sumOf {it.text.length}},eligible.size),recent)
         checkContent(mapper.writeValueAsString(result).length<=60000,message="문맥 한도를 넘어요. 회차 또는 인물 범위를 좁혀 주세요.")
         return result
     }
