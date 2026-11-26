@@ -129,8 +129,10 @@ jobs:
       - name: Start the Android emulator
         run: |
           sudo chown "$USER" /dev/kvm
-          sdkmanager "system-images;android-35;google_apis;x86_64"
-          echo no | avdmanager create avd --name storyfork-ci --package "system-images;android-35;google_apis;x86_64"
+          tools="$ANDROID_HOME/cmdline-tools/latest/bin"
+          "$tools/sdkmanager" "platform-tools" "emulator" "platforms;android-37" "build-tools;37.0.0" "ndk;27.1.12297006" "system-images;android-35;google_apis;x86_64"
+          echo no | "$tools/avdmanager" create avd --name storyfork-ci --package "system-images;android-35;google_apis;x86_64"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           nohup "$ANDROID_HOME/emulator/emulator" -avd storyfork-ci -no-window -no-audio -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
       - name: Build the Android development APK
         working-directory: mobile
