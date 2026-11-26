@@ -459,7 +459,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       </>}
     </div>
     <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError} sendNote={sendNote}
-      emptyTitle={emptyTitle} emptyText={worldMissing && workId ? <>{emptyText}<br />이 작품에는 연결된 세계관이 없어요. <Go to={worldTabHref(workId)}>세계관 탭에서 만들기·연결하기</Go></> : emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer} inputRef={input}
+      emptyTitle={emptyTitle} emptyText={worldMissing && workId ? <>{emptyText && <>{emptyText}<br /></>}이 작품에는 연결된 세계관이 없어요. <Go to={worldTabHref(workId)}>세계관 탭에서 만들기·연결하기</Go></> : emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer} inputRef={input}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} workId={workId ?? ''} request={vm.turns.at(-1)?.request ?? ''} reply={vm.waiting} pending={vm.pending} onResume={(approved, inputs, pick) => void vm.resume(approved, inputs, pick)} onOpenStage={onOpenStage} onOpenProposal={onOpenProposal} cardOf={cardOf} unsaved={unsaved} worldDraft={worldDraft}

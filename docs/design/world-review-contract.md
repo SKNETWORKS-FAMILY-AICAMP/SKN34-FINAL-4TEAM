@@ -97,7 +97,7 @@
 
 집필 채팅의 기능 키 `world_review`를 `world`로, 도구 `ask_world_review`를 `ask_world(request, task)`로 바꾼다. `task`는 `check`·`enrich`·`impact`이고 단계(`steps[]`)의 `task`에 남는다. 기능 키 `world_plot`은 없앤다(미구현 판정·`unsupported`가 사라진다). 저장된 대화의 옛 단계 `world_review`는 계속 읽는다. 설정집 화면의 `POST /world-studios/{id}/reviews`와 이 계약의 HTTP 경로, `app/world_review/` 패키지 이름은 그대로다.
 
-세 작업 모두 작품에 연결된 세계관을 작가 권한(Content MCP `world_studio_list`·`world_studio_read`)으로 읽고 카드 본문 링크를 벗긴 같은 스냅샷(`linked_request`)을 쓴다. 연결된 세계관이 없으면 409다. 집필 채팅은 이 409를 실패 단계로 두지 않고 세계관 탭으로 안내하는 되묻기로 끝낸다(#910, [집필 AI 아키텍처](../writing-ai-architecture/02-ai-architecture.md)의 되묻기 선택지).
+세 작업 모두 작품에 연결된 세계관을 작가 권한(Content MCP `world_studio_list`·`world_studio_read`)으로 읽고 카드 본문 링크를 벗긴 같은 스냅샷(`linked_request`)을 쓴다. 연결된 세계관이 없으면 409다. 집필 채팅은 이 409를 실패 단계로 두되 사유를 세계관 탭 안내로 바꾸고 응답에 세계관 탭으로 가는 선택지를 덧붙인다(#910, Fork가 원작 세계관을 이어받으면 안내하지 않는다, [집필 AI 아키텍처](../writing-ai-architecture/02-ai-architecture.md)의 되묻기 선택지).
 
 | task | 하는 일 | 결과(`step.result`) | 반영 |
 |---|---|---|---|

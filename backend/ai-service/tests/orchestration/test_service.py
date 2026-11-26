@@ -672,7 +672,7 @@ NO_WORLD_FAILS = [
     (Step('world', task='check'), 'world_review_read', WorldReviewFailure(409, world_review.NO_LINKED_WORLD), '세계관'),
     (Step('world', task='enrich'), 'world_read', WorldReviewFailure(409, world_review.NO_LINKED_WORLD), '세계관'),
     (Step('world', task='impact'), 'world_review_read', WorldReviewFailure(409, world_review.NO_LINKED_WORLD), '세계관'),
-    (Step('manuscript_review', check='semantic'), 'manuscript_review', ReviewFailure(409, manuscript_review.NO_LINKED_WORLD), '원고 검수'),
+    (Step('manuscript_review', check='semantic'), 'manuscript_review', ReviewFailure(409, manuscript_review.NO_LINKED_WORLD), '설정 검수'),
     ('character_simulation', 'sim_plan', SimulationFailure(409, simulation.NO_LINKED_WORLD), '인물 시뮬레이션'),
 ]
 EXTRACT = {'label': '원고에서 세계관 추출하기', 'form': 'world'}
@@ -698,13 +698,38 @@ def no_world_list(monkeypatch, listed):
 
 
 @pytest.mark.parametrize('step, where, failure, name', NO_WORLD_FAILS)
-def test_a_task_that_needs_a_world_stops_as_a_clarify_guiding_to_extract_it(monkeypatch, step, where, failure, name):
+def test_a_task_that_needs_a_world_fails_with_the_guidance_and_choices_to_the_world_tab(monkeypatch, step, where, failure, name):
+    # 턴을 멈추는 되묻기가 아니라 실패 단계다: 메인 에이전트가 다른 결과와 함께 답하고, 선택지만 응답에 덧붙는다(#910 리뷰)
     fake_agents(monkeypatch, plan(step, 'research'), fail={where: failure})
     result = run('요청', target=TARGET, inputs={'research': WEB})
-    assert (result.status, result.steps) == ('clarify', [])  # 실패 단계가 아니라 한 문장 안내로 끝난다
-    assert result.message == f'이 작품에 연결된 세계관이 없어 {name} 기능을 쓸 수 없어요. 원고로 세계관을 만들거나 내 세계관을 연결해 주세요.'
+    message = f'이 작품에 연결된 세계관이 없어 {name} 기능을 쓸 수 없어요. 원고로 세계관을 만들거나 내 세계관을 연결해 주세요.'
+    assert (result.status, [(s.status, s.error) for s in result.steps]) == ('failed', [('failed', message)])
     assert no_world_choices(result) == [EXTRACT]  # 연결할 수 있는 내 세계관이 없다
     assert all(len(c.label) <= 20 for c in result.choices)
+
+
+def test_other_results_of_the_turn_are_kept_next_to_the_no_world_guidance(monkeypatch):
+    fake_agents(monkeypatch, plan(['story_context', Step('world', task='check')]),
+                fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
+    result = run('관계 알려주고 설정 검토해줘', target=TARGET, inputs={'story_context': QA})
+    assert sorted((s.feature, s.status) for s in result.steps) == [('story_context', 'completed'), ('world', 'failed')]
+    assert result.message == '종합 답변' and no_world_choices(result) == [EXTRACT]
+
+
+def test_two_world_tasks_in_one_batch_without_a_world_show_the_choices_once(monkeypatch):
+    fake_agents(monkeypatch, plan([Step('world', task='check'), Step('manuscript_review', check='semantic')]),
+                fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD),
+                      'manuscript_review': ReviewFailure(409, manuscript_review.NO_LINKED_WORLD)})
+    result = run('설정 검토하고 설정 검수해줘', target=TARGET)
+    assert [s.status for s in result.steps] == ['failed', 'failed'] and no_world_choices(result) == [EXTRACT]
+
+
+def test_a_fork_that_inherits_the_original_world_gets_no_guidance(monkeypatch):
+    # World는 연결만 보고 409를 내므로 Fork 상속 세계관이 있으면 추출·연결로 보내지 않는다(Content가 Fork 상속 회차 추출을 거절한다)
+    fake_agents(monkeypatch, plan(Step('world', task='check')), fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
+    monkeypatch.setattr(tools.content_mcp, 'inherited_world', lambda work, episode: {'worldId': 'origin'})
+    result = run('설정 검토해줘', target=TARGET)
+    assert ([(s.status, s.error) for s in result.steps], result.choices) == ([('failed', world_review.NO_LINKED_WORLD)], [])
 
 
 def test_the_link_choice_shows_only_when_the_author_has_a_world_linked_to_no_work(monkeypatch):
@@ -719,7 +744,7 @@ def test_a_failing_world_list_still_offers_both_choices(monkeypatch):
     fake_agents(monkeypatch, plan('world'), fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
     no_world_list(monkeypatch, ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.'))
     result = run('설정 검토해줘', target=TARGET)
-    assert (result.status, no_world_choices(result)) == ('clarify', [EXTRACT, LINK])
+    assert (result.status, no_world_choices(result)) == ('failed', [EXTRACT, LINK])
 
 
 def test_other_conflicts_and_failures_of_a_world_task_stay_failed_steps(monkeypatch):
@@ -733,7 +758,8 @@ def test_the_no_world_guidance_has_no_retry_mark_and_shows_every_time(monkeypatc
     for _ in range(2):  # 대화에서 한 번만 보이는 상태는 없다
         fake_agents(monkeypatch, plan('world'), fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
         result = write_turn(thread, request='설정 검토해줘', target=TARGET)
-        assert (result.status, no_world_choices(result)) == ('clarify', [EXTRACT])
+        assert (result.status, no_world_choices(result)) == ('failed', [EXTRACT])
+        assert 'retry' not in result.steps[0].model_dump()  # 다시 시도할 실패가 아니다(DEC-61)
 
 
 def test_world_runs_in_plan_order_and_never_asks_for_an_input(monkeypatch):
