@@ -48,6 +48,13 @@ class NoticeSummaryTest {
     }
 
     @Test
+    fun `a title cut at an emoji keeps the whole code point instead of half a surrogate pair`() {
+        val text = summary(MCP_WORK_CHANGED, title = "가".repeat(39) + "😀" + "나무")
+        assertTrue(text.indices.all { !text[it].isHighSurrogate() || text[it + 1].isLowSurrogate() }, text)
+        assertEquals("AI가 MCP로 「${"가".repeat(39)}😀…」을(를) 수정했어요", text)
+    }
+
+    @Test
     fun `ai changes keep the object phrase so a bundle can say how many more changes it holds`() {
         assertEquals("「별의 숲」 3화 원고", NoticeSummary.of(MCP_WORK_CHANGED, NoticeDetail("별의 숲", 3, "원고")).subject)
         assertEquals("AI가 MCP로 「별의 숲」 3화 원고 외 2건을 수정했어요", NoticeSummary.bundled("「별의 숲」 3화 원고", 2))
