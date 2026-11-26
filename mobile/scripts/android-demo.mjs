@@ -96,6 +96,12 @@ try {
   })()`)
   await run("document.querySelector('input[type=password]').form.requestSubmit()")
   await waitFor('로그인해야 알림함이 열립니다.', () => run("location.pathname === '/notifications' && document.body.innerText.includes('알림함')"))
+    .catch(async error => {
+      console.error(await run(`({ path: location.pathname, alert: document.querySelector('#login-error')?.innerText,
+        auth: performance.getEntriesByType('resource').filter(entry => new URL(entry.name).pathname.startsWith('/api/v1/auth/'))
+          .map(entry => [new URL(entry.name).pathname, entry.responseStatus]) })`))
+      throw error
+    })
   await waitFor('Android 알림 권한 요청이 표시되지 않았어요.', () => tapText(/^Allow$/), 14000)
   stages.push('WebView 로그인과 Android 알림 권한')
   await delay(2400)
