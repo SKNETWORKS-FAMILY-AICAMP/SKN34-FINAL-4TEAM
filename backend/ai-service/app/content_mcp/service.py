@@ -7,10 +7,10 @@ Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 �
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
-import uuid
 from contextvars import ContextVar
 
 from agents.mcp import MCPServerStreamableHttp
@@ -166,9 +166,8 @@ def apply_world(world_id: str, revision: int, fixes: list[dict]) -> dict:
             raise ContentMcpFailure(409, WORLD_CHANGED)
         _replace_cell(card, fix)
         edited[card['id']] = card
-    saved = call('world_studio_edit_draft', {'id': world_id, 'request': {
-        'expectedDraftRevision': revision, 'name': name, 'description': description, 'key': uuid.uuid4().hex, 'replace': False,
-        'cards': list(edited.values())}})
+    saved = _edit_draft(world_id, {'expectedDraftRevision': revision, 'name': name, 'description': description, 'replace': False,
+                                   'cards': list(edited.values())})
     new = saved.get('draftRevision') if isinstance(saved, dict) else None
     if not isinstance(new, int):
         raise ContentMcpFailure(502, 'Content 세계관 저장 응답을 확인할 수 없습니다.')
@@ -205,9 +204,25 @@ def edit_world(arguments: dict) -> dict:
         cards.append(merged)
     if not isinstance(given.get('expectedDraftRevision'), int):  # 읽은 revision 없이 저장하면 그 사이 바뀐 초안을 덮어쓴다
         raise ContentMcpFailure(422, '세계관을 읽은 revision(expectedDraftRevision)이 필요해요.')
-    request = {'name': name, 'description': description, 'key': uuid.uuid4().hex,
-               **{k: v for k, v in given.items() if k != 'cards'}, 'replace': False, 'cards': cards}
-    return call('world_studio_edit_draft', {'id': world_id, 'request': request})
+    return _edit_draft(world_id, {'name': name, 'description': description, **{k: v for k, v in given.items() if k not in ('cards', 'key')},
+                                  'replace': False, 'cards': cards})
+
+
+def _edit_draft(world_id: str, request: dict) -> dict:
+    """`world_studio_edit_draft`를 보낸다. 요청 키는 세계관 id와 요청 본문에서 정한다(#900): Content는 미완료 저장을 같은 키·같은 revision의 재시도만 받고
+    다른 키는 503으로 거절해 세계관을 잠그기 때문이다. 5xx·호출 불가는 같은 요청으로 한 번만 다시 보내고, 4xx(409·422)는 다시 보내지 않는다. 재시도도 실패하면 첫 오류를 올리되,
+    재시도가 4xx로 거절되면(그 사이 초안이 바뀌는 등) 그 이유를 올린다."""
+    key = hashlib.sha256(json.dumps([world_id, request], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:32]
+    arguments = {'id': world_id, 'request': {**request, 'key': key}}
+    try:
+        return call('world_studio_edit_draft', arguments)
+    except ContentMcpFailure as first:
+        if first.status < 500:
+            raise
+        try:
+            return call('world_studio_edit_draft', arguments)
+        except ContentMcpFailure as retry:
+            raise (retry if retry.status < 500 else first) from None
 
 
 def _merge_metadata(old: dict | None, new: dict | None) -> dict:
