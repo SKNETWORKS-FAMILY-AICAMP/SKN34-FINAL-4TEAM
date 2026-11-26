@@ -78,6 +78,8 @@ class WorkRestrictionServiceTest {
         assertEquals(listOf("work", "work"), events.map { it.targetType })
         assertEquals(listOf("work", "work"), events.map { it.targetId })
         assertEquals(2, events.map { it.id }.toSet().size)
+        // 작품 전체 제한이라 회차 번호 없이 제목만 싣는다(#941).
+        assertEquals(listOf("작품" to null, "작품" to null), events.map { it.detailTitle to it.detailEpisode })
     }
 
     @Test fun `restricted public work is hidden from public access but still readable by its owner`() {

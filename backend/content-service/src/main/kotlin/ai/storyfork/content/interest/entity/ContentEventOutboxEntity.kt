@@ -22,4 +22,16 @@ class ContentEventOutboxEntity(
     var occurredAt: Instant = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS),
     @field:Column(name = "published_at")
     var publishedAt: Instant? = null,
+    /** 알림 문구 재료(#941, 계약의 detail). 작품명 또는 세계관명이다. 비공개 원고 본문·개인정보는 싣지 않는다. */
+    @field:Column(name = "detail_title")
+    var detailTitle: String? = null,
+    /** 회차 단위 사건의 회차 번호(#941). */
+    @field:Column(name = "detail_episode")
+    var detailEpisode: Int? = null,
+    /** AI 변경 사건에서 바뀐 것을 가리키는 짧은 구절(#941, 예: 원고·플롯). */
+    @field:Column(name = "detail_subject")
+    var detailSubject: String? = null,
+    /** 운영자 제한 사유(#941). 있을 때만 싣는다. */
+    @field:Column(name = "detail_reason")
+    var detailReason: String? = null,
 )
