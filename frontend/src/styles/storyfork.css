@@ -270,10 +270,11 @@ input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-a
 .admin-permissions{min-width:0;border:1px solid var(--line2);border-radius:14px;padding:12px 14px}.admin-permissions legend{padding:0 6px;color:var(--sub);font-size:13px;font-weight:700}.admin-perm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(max(190px,24%),1fr));gap:8px}.admin-perm-grid label{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:var(--ink2)}
 .reply{background:var(--pri-soft);border:1px solid color-mix(in srgb,var(--pri) 30%,transparent);border-radius:16px;padding:14px;font-size:14px;line-height:1.7}.reply .lab{font-size:12px;font-weight:800;color:var(--pri-ink);margin-bottom:4px;display:flex;gap:6px;align-items:center}
 .ev{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px}.ev small{color:var(--sub);font-weight:700;display:block}
-.sheet :is(.note,.reply) a{color:var(--pri-ink);text-decoration:underline;text-underline-offset:3px}
+.sheet :is(.note,.reply,.onb-steps) a{color:var(--pri-ink);text-decoration:underline;text-underline-offset:3px}
 .note{font-size:12.5px;color:var(--sub);background:var(--muted-bg);border-radius:12px;padding:10px 12px}
 .policy{font-size:12.5px;color:var(--acc-ink);background:var(--acc-soft);border-radius:12px;padding:10px 12px}
 .rowend{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.onb-dismiss{display:inline-flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}
 .qk{width:min(620px,100%);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:24px;overflow:hidden;animation:up .3s var(--ease);align-self:start;margin-top:10vh}
 .qk input{width:100%;border:0;border-bottom:1px solid var(--line);padding:20px 22px;font-size:17px;outline:none;background:transparent}
 .qk input:focus-visible{box-shadow:inset 0 -2px 0 var(--pri)}
