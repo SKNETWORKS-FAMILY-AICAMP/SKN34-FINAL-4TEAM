@@ -3217,6 +3217,25 @@ def test_rewriting_also_runs_a_candidate_review_that_failed_the_first_time(monke
     assert (again.steps[1].status, again.steps[1].error, again.steps[1].result.providerResponseId) == ('completed', None, 'r2')
 
 
+def test_rewriting_reruns_the_review_with_the_check_the_model_chose_when_the_author_sent_none(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing', Step('manuscript_review', check='semantic')))
+    versions(monkeypatch)
+    reviewed = []
+
+    def review_candidate(data, base, written):
+        reviewed.append((data.check, written['after']))
+        return ReviewResponse(workId=data.workId, episode=data.episode, revision=base['revision'], check=data.check, gaps=[], model='m',
+                              providerResponseId=f'r{len(reviewed)}', usage=None, findings=[], candidate={'selection': None})
+
+    monkeypatch.setattr(tools.manuscript_review, 'review_candidate', review_candidate)
+    thread = str(uuid4())
+    first = write_turn(thread, request='고치고 검수해줘', target=TARGET, inputs={'writing_editing': PATCH})  # 작가가 manuscript_review 입력을 보내지 않았다
+    assert (first.steps[1].status, first.steps[1].result.check) == ('completed', 'semantic')
+    again = rewrite(thread)
+    assert reviewed == [('semantic', '버전1'), ('semantic', '버전2')]  # 다시 쓴 뒤에도 첫 검수 결과의 check로 돈다
+    assert (again.steps[1].status, again.steps[1].result.check, again.steps[1].result.providerResponseId) == ('completed', 'semantic', 'r2')
+
+
 def test_rewriting_is_observed_as_the_pipeline_node_step_writing_editing(monkeypatch, spans):
     fake_agents(monkeypatch, plan('writing_editing'))
     versions(monkeypatch)
