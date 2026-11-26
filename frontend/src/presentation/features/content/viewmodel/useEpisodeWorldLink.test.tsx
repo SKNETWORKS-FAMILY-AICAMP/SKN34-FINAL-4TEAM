@@ -83,6 +83,19 @@ it('비공개 전환이 끝난 뒤 삭제하고, 삭제 실패 시 비공개 전
   expect(result.current.error).toBe('세계관은 비공개로 바뀌었지만 작품을 삭제하지 못했어요. 작품 삭제 요청이 실패했어요.')
 })
 
+it('비공개 전환이 성공하면 이어서 작품을 삭제하고 true를 돌려주며, 확인을 다시 묻지 않는다', async () => {
+  const api = { ...published(), deleteWork: vi.fn().mockResolvedValue(undefined) }
+  const worlds = { setPublication: vi.fn().mockResolvedValue({}) }
+  const confirm = vi.spyOn(window, 'confirm')
+  const result = await open(api, worlds)
+  let ok = false
+  await act(async () => { ok = await result.current.deleteWork({ makePrivate: { genre: 'fantasy' } }) })
+  expect(ok).toBe(true)
+  expect(confirm).not.toHaveBeenCalled()
+  expect(api.deleteWork).toHaveBeenCalledWith('w1', expect.any(AbortSignal))
+  expect(worlds.setPublication.mock.invocationCallOrder[0]).toBeLessThan(api.deleteWork.mock.invocationCallOrder[0])
+})
+
 it('공개 세계관을 비공개로 바꾸고 해제하면 공개 설정(장르는 현재 값 그대로)을 먼저 보내고 성공한 뒤에 해제하며, 확인을 다시 묻지 않는다', async () => {
   const api = published()
   const worlds = { setPublication: vi.fn().mockResolvedValue({}) }

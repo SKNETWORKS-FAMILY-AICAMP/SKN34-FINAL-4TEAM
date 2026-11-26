@@ -43,8 +43,6 @@ export function useEpisodeViewModel(
   const alive = useRef(true)
   const inFlight = useRef(false)
   const request = useRef<AbortController | null>(null)
-  const deleteRequest = useRef<AbortController | null>(null)
-  useEffect(() => () => deleteRequest.current?.abort(), [workId])
   const active = works.find((w) => w.id === workId) ?? null
   /** 소유자 회차 조회(작성 중인 초안·저장 버전 순번의 근거). 읽는 중이면 null이고, 읽지 못하면 rows 없이 error만 있다. */
   const [writing, setWriting] = useState<{ id: string; rows?: WritingEpisode[]; error?: string } | null>(null)
@@ -256,24 +254,20 @@ export function useEpisodeViewModel(
       const makePrivate = release?.makePrivate
       if (!makePrivate) return run(() => useCase.deleteWork(active.id), 'delete')
       const controller = new AbortController()
-      deleteRequest.current = controller
-      try {
-        const ok = await run(async () => {
-          if (!active.worldStudioId) throw new Error('연결된 세계관을 다시 확인해 주세요.')
-          await worlds.setPublication(active.worldStudioId, { visibility: 'private', genre: makePrivate.genre }, controller.signal)
+      request.current = controller // 화면을 떠나면 목록 효과 정리가 이 요청도 취소한다
+      const ok = await run(async () => {
+        if (!active.worldStudioId) throw new Error('연결된 세계관을 다시 확인해 주세요.')
+        await worlds.setPublication(active.worldStudioId, { visibility: 'private', genre: makePrivate.genre }, controller.signal)
+        if (controller.signal.aborted) return
+        try {
+          await useCase.deleteWork(active.id, controller.signal)
+        } catch (error) {
           if (controller.signal.aborted) return
-          try {
-            await useCase.deleteWork(active.id, controller.signal)
-          } catch (error) {
-            if (controller.signal.aborted) return
-            const detail = error instanceof Error ? ` ${error.message}` : ''
-            throw new Error(`세계관은 비공개로 바뀌었지만 작품을 삭제하지 못했어요.${detail}`)
-          }
-        }, 'delete')
-        return ok && !controller.signal.aborted
-      } finally {
-        deleteRequest.current = null
-      }
+          const detail = error instanceof Error ? ` ${error.message}` : ''
+          throw new Error(`세계관은 비공개로 바뀌었지만 작품을 삭제하지 못했어요.${detail}`)
+        }
+      }, 'delete')
+      return ok && !controller.signal.aborted
     },
   }
 }
