@@ -16,6 +16,7 @@ export type UiState = {
   fs: number
   motion: boolean
   epSort: 'old' | 'new'
+  /** 첫 방문 안내(U46, #884)를 이번 방문에 아직 닫지 않았는지. 건너뛰기·다른 시트에 밀림으로 false가 되고 새로 고침하면 다시 true. */
   guide: boolean
   firstHome: boolean
 }

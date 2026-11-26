@@ -6,6 +6,7 @@ import {
   hasRelationDraftChanges,
   hasIncompleteRelationDraft,
   identityBodyPatch,
+  isAuthorOnly,
   newRelationDraftRow,
   relationDirection,
   relationDirectionPatch,
@@ -272,5 +273,15 @@ describe('관계 행의 N화부터 검사', () => {
     expect(fact.value.fromEpisode).toBe(3)
     expect(fact.baseline?.fromEpisode).toBe(3)
     expect(hasRelationDraftChanges([fact], [{ ...fact, value: { ...fact.value, fromEpisode: 5 } }], [])).toBe(true) // 회차만 고쳐도 바뀐 입력이다
+  })
+})
+
+describe('isAuthorOnly: 본체 카드가 작가 전용인지(소설이 연결되지 않은 세계관의 카드는 모두 공개라 아니다)', () => {
+  it('연결된 세계관에서는 공개 회차도 공개 카드도 아니면 작가 전용이다', () => {
+    expect([isAuthorOnly({}, true), isAuthorOnly({ revealFromEpisode: 3 }, true), isAuthorOnly({ visibility: 'public' }, true), isAuthorOnly({ visibility: 'private' }, true)]).toEqual([true, false, false, true])
+    expect(isAuthorOnly(undefined, true)).toBe(false) // 카드를 찾지 못하면 경고하지 않는다
+  })
+  it('연결되지 않은 세계관은 저장된 값과 상관없이 작가 전용이 아니다(저장값은 무시한다)', () => {
+    expect([isAuthorOnly({}, false), isAuthorOnly({ revealFromEpisode: 3 }, false), isAuthorOnly({ visibility: 'private' }, false), isAuthorOnly(undefined, false)]).toEqual([false, false, false, false])
   })
 })

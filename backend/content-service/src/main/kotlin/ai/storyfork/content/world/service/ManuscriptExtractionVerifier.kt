@@ -41,7 +41,8 @@ object ManuscriptExtractionVerifier {
             if(kind in setOf("goal","plan","conjecture")) require(occurred.isNull)
             if(kind=="event") require(!occurred.isNull)
             val known=row.path("knownFromEpisode").asInt()
-            require(known==source.number || (known==0 && kind=="fact" && occurred.asInt()==0))
+            require(known==source.number || (known==0 && kind=="fact" && row.path("document").asString()=="memory" &&
+                occurred.isIntegralNumber && occurred.asInt()==0))
         }
         relations.forEach { row ->
             val from=row.path("source").asString();val to=row.path("target").asString()

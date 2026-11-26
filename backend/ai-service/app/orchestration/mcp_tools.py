@@ -13,6 +13,7 @@ import json
 
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import StructuredTool
+from langgraph.config import get_config
 from langgraph.types import Command, interrupt
 
 from app import tracing
@@ -39,6 +40,7 @@ LIMIT_REACHED = '이번 요청에서 부를 수 있는 Content 도구 횟수를 
 # 고쳐서 승인(#795)에서 작가가 바꿀 수 있는 글 필드. 세계관 카드는 request.cards[]의 것, 나머지는 data의 것이다. id·revision·종류 등은 잠근다.
 TEXT_FIELDS = {'world_studio_edit_draft': ('title', 'body'), 'work_update': ('title', 'summary'), 'story_plan_create': ('title', 'content'),
                'story_plan_update': ('title', 'content')}
+AUTHOR_EDITED = 'author_edited'  # 고쳐서 승인 요청이 설정으로 넘기는, 작가가 바꾼 글 필드 이름들(#875). 쓰기 결과에 실어 메인이 작가 수정으로 안내하게 한다
 EDIT_LOCKED = '제안의 이름·제목·설명·내용 글만 고칠 수 있어요. 대화를 다시 불러온 뒤 고쳐 주세요.'
 
 
@@ -94,6 +96,11 @@ def _texts(name: str, args) -> list:
     return [args['data']] if isinstance(args.get('data'), dict) else []
 
 
+def edited_fields(name: str, asked: dict, edited: dict) -> list[str]:
+    """작가가 승인 카드에서 값을 바꾼 글 필드 이름(정렬·고유). edit_refused를 통과한 인자만 받는다."""
+    return sorted({f for before, after in zip(_texts(name, asked), _texts(name, edited)) for f in TEXT_FIELDS[name] if before.get(f) != after.get(f)})
+
+
 def edit_refused(name: str, asked: dict, edited) -> str | None:
     """작가가 고친 인자(edited)가 승인 카드의 인자(asked)와 글 필드(TEXT_FIELDS)의 값만 다르면 None, 아니면 이유 글.
 
@@ -135,10 +142,10 @@ async def execute(request) -> Command:
     call, turn = request.tool_call, request.runtime.context
     # 모델이 고르지 않은 선택 인자를 빈 글("")·null로 채우면 Content가 값 오류(422)로 거절하므로 뺀다.
     name, args = call['name'], {k: v for k, v in (call['args'] if isinstance(call['args'], dict) else {}).items() if v not in ('', None)}
-    # 모델이 story_plan_read 결과의 position을 옮기면 422다(#774): 플롯은 순서가 없고, 읽은 장면 순번은 삭제로 빈자리가 있어
-    # 이동 위치가 아니다. 수정에서는 늘 빼서 순서를 그대로 두고, 추가에서는 장면의 끼울 위치만 남긴다.
+    # 모델이 story_plan_read 결과의 position을 옮기면 422다(#774, #835): 플롯은 순서가 없고, 읽은 장면 순번은 삭제로 빈자리가 있어
+    # 이동 위치가 아니다. 수정에서는 늘 빼서 순서를 그대로 두고, 추가에서는 kind가 장면일 때만(Content 규칙) 끼울 위치를 남긴다.
     if name in ('story_plan_create', 'story_plan_update') and isinstance(data := args.get('data'), dict) \
-            and (name == 'story_plan_update' or data.get('kind') == 'plot'):
+            and (name == 'story_plan_update' or data.get('kind') != 'scene'):
         args = {**args, 'data': {k: v for k, v in data.items() if k != 'position'}}
     label = LABELS[name]
     if reason := mismatch(call, turn):
@@ -175,4 +182,6 @@ async def execute(request) -> Command:
     revision = next((done[k] for k in ('draftRevision', 'revision') if isinstance(done, dict) and isinstance(done.get(k), int)), 0)
     step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'completed', 'result': {'tool': name, 'label': label}, 'approval': 'approved',
             'applied': {'episode': (turn.get('target') or {}).get('episode', 0), 'revision': revision}}
-    return _result(step, call, json.dumps({'tool': name, 'status': 'applied', 'revision': revision}))
+    # HITL edit는 원래 호출을 남기고 영어 안내만 붙여 모델이 작가 수정으로 알아듣지 못한다. 그대로면 원 요청과 달라졌다고 안내한다(#875).
+    edited = get_config()['configurable'].get(AUTHOR_EDITED)
+    return _result(step, call, json.dumps({'tool': name, 'status': 'applied', 'revision': revision, **({'authorEdited': edited} if edited else {})}))

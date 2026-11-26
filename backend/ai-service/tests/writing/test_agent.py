@@ -148,6 +148,12 @@ def test_pick_plan_returns_the_listed_id_the_request_points_at_and_sends_no_plan
     assert '재회 장면 고쳐줘' in sent and 'scene-1' in sent and '복수극' in sent and 'content' not in sent
 
 
+def test_pick_plan_leaves_room_for_reasoning_tokens(monkeypatch):
+    seen = fake_openai(monkeypatch, text=json.dumps({'planId': 'scene-1'}))
+    agent.pick_plan(PlanPickRequest(request='재회 장면 고쳐줘', plans=BRIEFS))
+    assert seen['init']['max_tokens'] == 2000  # 추론 토큰도 한도에 포함돼 200에서는 잘릴 수 있다(#867). 계획이 많으면 추론이 길어 research.pick과 같게 둔다
+
+
 def test_pick_plan_is_none_when_the_model_cannot_settle_on_one(monkeypatch):
     fake_openai(monkeypatch, text=json.dumps({'planId': None}))
     assert agent.pick_plan(PlanPickRequest(request='그거 고쳐줘', plans=BRIEFS)) is None

@@ -18,6 +18,7 @@ import ai.storyfork.content.preprocessing.service.dto.PreprocessingUpdateRespons
 import ai.storyfork.content.work.domain.workPage
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.ManuscriptBuildFinished
 import ai.storyfork.content.world.service.ManuscriptBuildInput
 import ai.storyfork.content.world.service.ManuscriptBuildService
@@ -46,6 +47,7 @@ class PreprocessingService(
     private val jobs: PreprocessingJobRepository,
     private val ai: PreprocessingAiClient,
     private val build: ManuscriptBuildService,
+    private val worlds: WorkWorldService,
     @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -99,10 +101,41 @@ class PreprocessingService(
         jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.INITIAL)
             ?.let { it.status == PreprocessingStatus.COMPLETED && it.worldId == world } == true
 
-    /** 첫 발행 커밋 콜백에서 아직 묶여 있는 발행 트랜잭션을 중단하고 접수한다. */
+    /**
+     * 첫 발행 커밋 콜백에서 아직 묶여 있는 발행 트랜잭션을 중단하고 접수한다. 연결된 세계관의 최초 구축이 끝났으면 발행 회차 업데이트이고,
+     * 아니면 원고 가져오기와 같은 [start]로 최초 구축을 접수한다(DEC-53 보완, 2026-11-25): 세계관이 없는 소설은 새 비공개 세계관에(자기 세계관 없이 원작 세계관을 이어받는 Fork 제외),
+     * 세계관은 연결됐는데 마지막 최초 구축이 실패했거나 없으면(원고 가져오기로 시작했다 실패한 것도 같다) 그 세계관에 다시 접수한다. 진행 중·완료·적재 확인 필요면 접수하지 않는다.
+     * 어느 쪽이든 예외 없이 결과 코드만 돌려준다. 이어서 접수하는 [continueUpdate]는 최초 구축을 건드리지 않는다.
+     */
     @Transactional(propagation = Propagation.NOT_SUPPORTED, transactionManager = "contentTransactionManager")
-    fun startUpdate(workId: String, owner: String, versionId: String): String =
-        enqueueUpdate(workId, owner, "publish:$versionId")
+    fun startUpdate(workId: String, owner: String, versionId: String): String {
+        val key = "publish:$versionId"
+        val result = enqueueUpdate(workId, owner, key)
+        return if (result == NO_WORLD || result == INITIAL_NOT_COMPLETED) startInitialOnPublish(workId, owner, key, result) else result
+    }
+
+    /**
+     * [initialWorld]가 고른 세계관으로 최초 구축을 접수한다. 고른 세계관이 없으면 업데이트 접수의 사유 [result]를 그대로 돌려주고, 거절·실패(이미 진행 중이거나 끝난 최초 구축은 [start]가 409로 거절해
+     * 두 번째 세계관을 만들지 않는다)도 던지지 않고 결과 코드만 돌려준다(발행은 이미 끝났다).
+     */
+    private fun startInitialOnPublish(workId: String, owner: String, key: String, result: String): String = try {
+        initialWorld(workId, owner, result)?.let { start(workId, owner, ManuscriptBuildRequest(it, key, true)); "INITIAL_STARTED" } ?: result
+    } catch (e: ContentFailure) {
+        e.code ?: "HTTP_${e.status}"
+    } catch (e: RuntimeException) {
+        e.javaClass.simpleName
+    }
+
+    /**
+     * 이 발행이 최초 구축을 접수할 세계관이다(없으면 접수하지 않는다). [NO_WORLD](연결된 세계관 없음)면 새 세계관이고 이어받는 Fork는 null,
+     * [INITIAL_NOT_COMPLETED](연결은 있는데 최초 구축이 안 끝남)면 마지막 최초 구축 작업이 실패했거나 없을 때만 연결된 그 세계관이다
+     * (진행 중·queued·로딩·다른 세계관의 완료는 null, 적재 확인이 필요하면 [start]가 거절한다).
+     */
+    private fun initialWorld(workId: String, owner: String, result: String): UUID? {
+        if (result == NO_WORLD) return UUID.randomUUID().takeUnless { worlds.inheritsWorld(workId, owner) }
+        val last = jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.INITIAL)
+        return if (last == null || last.status == PreprocessingStatus.FAILED) works.findById(workId).orElse(null)?.worldStudioId else null
+    }
 
     /** WorldStudio의 최종 적재·실패 커밋 뒤, 기존 트랜잭션 자원을 잠시 분리해 접수한다. */
     @TransactionalEventListener
@@ -119,9 +152,9 @@ class PreprocessingService(
                 val work = works.lockAll(listOf(workId)).singleOrNull()?.takeIf { it.ownerId == owner && it.deletedAt == null }
                     ?: throw ContentFailure(404, "작품을 찾을 수 없어요.", "NO_WORK")
                 val world = work.worldStudioId?.takeIf { expectedWorld == null || it == expectedWorld }
-                    ?: throw ContentFailure(409, "연결된 세계관을 확인해 주세요.", "NO_WORLD")
+                    ?: throw ContentFailure(409, "연결된 세계관을 확인해 주세요.", NO_WORLD)
                 if (!completedInitialBuild(workId, world))
-                    throw ContentFailure(409, "세계관의 최초 구축이 끝나야 해요.", "INITIAL_NOT_COMPLETED")
+                    throw ContentFailure(409, "세계관의 최초 구축이 끝나야 해요.", INITIAL_NOT_COMPLETED)
                 if (jobs.openOn(world)) throw ContentFailure(409, OPEN_JOB_EXISTS, "OPEN_JOB")
                 val excluded = jobs.reflectedNumbers(workId) + jobs.failedUpdateNumbers(workId, world)
                 val frozen = build.freezeUpdate(workId, excluded)
@@ -303,6 +336,10 @@ class PreprocessingService(
         /** AI가 접수하지 않았을 때 작업에 남기는 고정 사유다. 호출 오류의 내용은 담지 않는다. */
         const val AI_CALL_FAILED = "AI 서비스가 전처리 요청을 받지 못했어요."
         private const val OPEN_JOB_EXISTS = "이미 진행 중이거나 완료된 전처리 작업이 있어요."
+        /** 작품에 연결된 세계관이 없을 때 업데이트 접수의 결과 코드다. 첫 발행은 이때 최초 구축을 접수한다. */
+        private const val NO_WORLD = "NO_WORLD"
+        /** 연결된 세계관의 최초 구축이 끝나지 않았을 때 업데이트 접수의 결과 코드다. 발행은 마지막 최초 구축이 실패했거나 없으면 그 세계관에 다시 접수한다. */
+        private const val INITIAL_NOT_COMPLETED = "INITIAL_NOT_COMPLETED"
         /** V15 작업 행에만 있는 상태다(적재 결과 확인 대기). V41 미러·운영 화면에서는 loading이다. */
         private const val UNCONFIRMED = "unknown"
         private val NEWEST_FIRST = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"))

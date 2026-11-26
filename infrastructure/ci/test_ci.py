@@ -114,6 +114,10 @@ class SelectionTest(unittest.TestCase):
                           ".claude/settings.json", ".claude/skills", ".codex/hooks.json"])
         self.assertEqual(([], [], [], False), (plan["unit"], plan["integration"], plan["system"], plan["infra"]))
 
+    def test_mobile_app_changes_have_no_runtime_jobs(self):
+        plan = ci.select(["mobile/App.tsx"])
+        self.assertEqual(([], [], [], False), (plan["unit"], plan["integration"], plan["system"], plan["infra"]))
+
     def test_auth_change_selects_content_and_web_consumers(self):
         plan = ci.select(["backend/core-api/src/main/kotlin/ai/storyfork/core/auth/service/SessionService.kt"])
         self.assertEqual({"web", "core", "content"}, {row["service"] for row in plan["integration"]})

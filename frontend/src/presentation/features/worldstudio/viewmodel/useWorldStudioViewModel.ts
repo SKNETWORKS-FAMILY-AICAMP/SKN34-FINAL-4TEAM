@@ -4,6 +4,7 @@ import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUE
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
 import { useCardImages } from './useCardImages'
+import { useLinkedEpisodeLimit } from './useLinkedEpisodeLimit'
 import { worldStudioStorage } from './worldStudioStorage'
 import { useDocFill } from './useDocFill'
 import { useWorldReview } from './useWorldReview'
@@ -273,7 +274,9 @@ export function useWorldStudioViewModel(
       setError(e instanceof Error ? e.message : '관계를 변경하지 못했어요.')
     }
   }
-  const writingIssues = editing ? worldWritingIssues(editing, saved ?? undefined) : []
+  // 연결된 소설의 마지막 회차(없는 회차를 공개 회차로 정하지 못하게 한다, 결정 5): 연결이 없거나 읽는 중·실패면 undefined다.
+  const episodeLimit = useLinkedEpisodeLimit(saved?.linkedWorkId ?? null, relationKey) // relationKey는 세계관을 서버에서 다시 읽을 때마다 오르므로 그때 소설의 회차 수도 다시 읽는다
+  const writingIssues = editing ? worldWritingIssues(editing, saved ?? undefined, episodeLimit) : []
   // 이름·설명 인라인 저장은 초안 전체를 저장하므로, 저장하지 않은 수정이나 저장 전 확인 항목이 있으면 그 변경이 검사 없이 함께 저장된다 → 먼저 저장하게 막는다.
   const infoLocked = dirty || writingIssues.length > 0
   // 저장할 수 있는지: 바뀐 것이 있거나 한 번도 저장한 적 없는 세계관(첫 저장)이고, 저장 전 확인 항목이 없다.
@@ -563,6 +566,8 @@ export function useWorldStudioViewModel(
     },
     /** 이 세계관에 연결된 내 소설 id(없으면 null). 세계관과 소설은 1:1이고, 연결은 초안 저장과 별개로 서버에 바로 적용된다. */
     linkedWorkId: saved?.linkedWorkId ?? null,
+    /** 연결된 소설의 현재 마지막 회차 번호(초안·이어받은 원작 회차 포함, 회차가 없으면 0). 연결이 없거나 읽는 중·읽지 못했으면 undefined라 상한 검사를 하지 않는다(결정 5). */
+    episodeLimit,
     /** 연결된 소설의 작품 관리 화면 주소(`/content`의 그 작품). 헤더 행동 줄의 `소설 작성하기`가 간다(없으면 그 자리는 `소설 연결하기`다). */
     linkedWorkHref: saved?.linkedWorkId ? `/content?work=${encodeURIComponent(saved.linkedWorkId)}` : null,
     /** 소설 연결이 바뀌면 화면 상태에 반영한다(저장 응답을 그대로 돌려주는 메모리 저장소에서도 다음 저장 뒤에 남도록 편집본에도 둔다). */

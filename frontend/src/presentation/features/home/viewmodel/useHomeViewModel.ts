@@ -14,7 +14,6 @@ export function useHomeViewModel(readingUseCase: ReadingUseCase = appContainer.r
   const role = useAppSelector((s) => s.session.role)
   // 홈이 쓰는 값만 하나씩 구독한다. s.ui를 통째로 읽으면 캐러셀 자동 넘김(4.5초마다)·화면 ID·보기 설정처럼 무관한 변경에도 홈 전체를 다시 그린다.
   const chip = useAppSelector((s) => s.ui.chip)
-  const guide = useAppSelector((s) => s.ui.guide)
   const firstHome = useAppSelector((s) => s.ui.firstHome)
   const dispatch = useAppDispatch()
   // 칩 줄: 추천 · 홈에 보이는 장르(공개 장르 목록) · 무료 · 포크 많은. 목록을 읽는 동안·읽지 못했을 때는 장르 칩 없이 세 칩만 보이고 실패는 `chipsFailed`로 알린다.
@@ -29,10 +28,8 @@ export function useHomeViewModel(readingUseCase: ReadingUseCase = appContainer.r
     chips: chips.data ?? homeChips([]),
     chipsFailed: chips.isError && !chips.data, retryChips: chips.retry,
     chip: active,
-    guide,
     firstHome,
     selectChip: (c: string) => { showRouteProgress(); dispatch(uiActions.setChip(c)) },
-    closeGuide: () => dispatch(uiActions.closeGuide()),
     homeVisited: () => dispatch(uiActions.homeVisited()),
     markSeen: (id: string) => { void readingUseCase.markSeen(id).then(() => dispatch(sessionActions.dataChanged())) },
   }

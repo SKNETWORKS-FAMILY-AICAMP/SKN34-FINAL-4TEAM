@@ -59,6 +59,7 @@ import org.springframework.transaction.support.TransactionTemplate
 /**
  * 설정 카드의 공개 기준이 하나(DEC-53)인지 비작가 출구마다 확인한다: 독자 설정 위키·공개 세계관 상세(카드 페이지가 읽는 응답)·목록의 카드/관계 수·카드 이미지 두 경로·Fork 이어받기(REST)·MCP 도구.
  * 비공개+회차N / 공개+회차N / 공개+없음 / 비공개+없음 네 조합 × 기준 회차(N-1·N)에서 보이는 카드와 그 시점의 관계가 모든 출구에서 같아야 하고 N화 뒤의 관계는 어디에도 나오지 않는다.
+ * 연결된 소설이 없는 세계관만 예외다(2026-11-25): 카드는 설정과 무관하게 모두, 관계는 회차로 자르지 않고 최신 시점으로 나온다.
  * 저장소·Core·Neo4j는 대역이며 실제 HTTP·쿼리는 CI의 통합 테스트가 확인한다. 서비스는 대역 없이 실제 객체를 이어 붙인다(출구가 같은 규칙을 쓰는지 보려고).
  */
 class WorldCardRevealExitsTest {
@@ -119,8 +120,10 @@ class WorldCardRevealExitsTest {
     )
     private fun asOf(episode: Int?) = edges.filter { episode == null || it.from <= episode }.map { it.relation }
 
-    private val shownTitles = mapOf(n - 1 to setOf("공개만"), n to setOf("비공개3", "공개3", "공개만"))
-    private val shownLabels = mapOf(n - 1 to emptySet<String>(), n to setOf("동료", "정체"))
+    /** 연결된 소설이 없는 세계관(키 [noNovel])은 공개 설정과 무관하게 지우지 않은 카드가 모두 보이고 관계는 최신 시점의 것이다(DEC-53 보완). */
+    private val noNovel = -1
+    private val shownTitles = mapOf(n - 1 to setOf("공개만"), n to setOf("비공개3", "공개3", "공개만"), noNovel to combos.map { it.title }.toSet())
+    private val shownLabels = mapOf(n - 1 to emptySet<String>(), n to setOf("동료", "정체"), noNovel to setOf("동료", "작가만 아는 사이", "정체", "5화의 반전"))
 
     init {
         val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "genre-01", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
@@ -168,8 +171,8 @@ class WorldCardRevealExitsTest {
     private fun assertSeen(exit: String, seen: Seen, basis: Int) {
         assertEquals(shownTitles.getValue(basis), seen.titles, "${exit} 카드 @${basis}")
         assertEquals(shownLabels.getValue(basis), seen.labels, "${exit} 관계 @${basis}")
-        // 기준 회차 뒤(5화)에 기록된 관계의 글은 어느 출구에도 나오지 않는다.
-        assertFalse("스포일러" in seen.bodies, "${exit} 뒤 회차 관계 본문 @${basis}")
+        // 기준 회차 뒤(5화)에 기록된 관계의 글은 어느 출구에도 나오지 않는다(회차 기준이 없는 미연결 세계관은 최신이라 예외다).
+        if (basis != noNovel) assertFalse("스포일러" in seen.bodies, "${exit} 뒤 회차 관계 본문 @${basis}")
     }
 
     private fun wiki(upto: String? = null) = workWorlds.readerCards("work", upto).let { r -> Seen(r.cards.map { it.title }.toSet(), r.relationships.map { it.label }.toSet(), r.relationships.map { it.body }.toSet()) }
@@ -195,7 +198,7 @@ class WorldCardRevealExitsTest {
     private fun assertMcp(tool: String, text: String, basis: Int) {
         combos.forEach { assertEquals(it.title in shownTitles.getValue(basis), text.contains("\"title\":\"${it.title}\""), "${tool} 카드 ${it.title} @${basis}") }
         edges.map { it.relation.label }.forEach { assertEquals(it in shownLabels.getValue(basis), text.contains("\"label\":\"${it}\""), "${tool} 관계 ${it} @${basis}") }
-        assertFalse(text.contains("스포일러"), "${tool} 뒤 회차 관계 본문 @${basis}")
+        if (basis != noNovel) assertFalse(text.contains("스포일러"), "${tool} 뒤 회차 관계 본문 @${basis}")
     }
 
     @Test fun `every outsider exit shows the same cards and relations for the four visibility combinations at the basis episode before and at N`() {
@@ -232,11 +235,19 @@ class WorldCardRevealExitsTest {
         assertEquals(setOf("공개만"), openImages { workWorlds.readerCardImage("work", it, "2147483647") })
     }
 
-    @Test fun `a public world without a linked work is read at episode 1, and unpublishing the last episode hides the cards again`() {
-        // 연결된 소설이 없으면 기준 회차는 1이다: 공개+없음만 보이고 3화 공개 카드는 숨는다.
-        assertEquals(setOf("공개만"), detail().titles)
-        assertEquals(setOf("공개만"), openImages { publicWorlds.cardImage(worldId, it) })
-        assertEquals(1, publicWorlds.list(null, null, null, null).items.single().cardCount)
+    @Test fun `a world without a linked novel shows every active card on every public exit whatever its setting`() {
+        // 연결된 소설이 없다(link를 부르지 않았다): 작가 전용·N화부터 공개 카드까지 지우지 않은 카드가 모두 보인다(DEC-53 보완). 관계는 회차로 자르지 않고 최신 시점의 것 가운데 양 끝이 보이는 것이라 3화·5화에 기록된 관계도 나온다.
+        assertSeen("공개 상세", detail(), noNovel)
+        assertEquals(shownTitles.getValue(noNovel), openImages { publicWorlds.cardImage(worldId, it) }, "공개 이미지")
+        val item = publicWorlds.list(null, null, null, null).items.single()
+        assertEquals(shownTitles.getValue(noNovel).size, item.cardCount, "목록 카드 수")
+        assertEquals(shownLabels.getValue(noNovel).size, item.relationshipCount, "목록 관계 수")
+        assertMcp("world_studio_public_read", mcp("world_studio_public_read", mapOf("id" to worldId.toString())), noNovel)
+        assertTrue(mcp("world_studio_public_list", emptyMap()).contains("\"cardCount\":${shownTitles.getValue(noNovel).size}"), "MCP 목록")
+        verify(graph, never()).read(worldId, 1) // 1화로 자르지 않고 최신으로 읽는다
+    }
+
+    @Test fun `linking a novel brings the card rules back, and unpublishing the last episode hides the cards again`() {
         // 3화까지 발행하면 3화 공개 카드가 보이고, 마지막 회차의 공개를 중단하면 다시 숨는다.
         link(published = n)
         assertSeen("공개 상세 3화 발행", detail(), n)

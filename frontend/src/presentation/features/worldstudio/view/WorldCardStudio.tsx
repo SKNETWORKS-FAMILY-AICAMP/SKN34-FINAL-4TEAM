@@ -5,7 +5,7 @@ import { categoryChoices, categoryIcon, categoryName } from '../../../../domain/
 import { cardTypeOf, isCard, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
 import { identityBodyOf, relationDefinitions } from '../../../../domain/entities/studioRelations'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
-import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
+import { newRevealBeyondNovel, revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
 import { LazyMarkdownEditor } from '../../../shared/LazyMarkdownEditor'
 import { McpChangeBanner, type McpChangeState } from '../../../shared/McpChangeBanner'
@@ -59,7 +59,8 @@ const BODY_MAX = 3000
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다), 그리고 초안을 서버 값으로 다시 읽을 때마다(`vm.relationKey`: 다른 곳(MCP)에서 바뀐 알림의 `refresh`·확정 버전 되돌리기) 다시 만든다.
  *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · '목표 · 선택' GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
- *   개요 화면의 공개 범위(DEC-53): 공개 설정은 하나다. 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본), 연결되지 않은 세계관은 `이 설정 공개`(1화부터)와 작가 전용이다.
+ *   개요 화면의 공개 범위(DEC-53): 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본)이다. 연결된 소설에 없는 회차는 정할 수 없다(결정 5): 소설의 마지막 회차(`vm.episodeLimit`)를 넘는 새 값은 `이 소설은 N화까지 있어요.`로 알리고(`role="alert"`·`aria-invalid`) 저장을 막으며(저장된 값은 오류도 저장 잠금도 없이 배지 `작가 전용 · N화는 아직 없어요`로만 보인다), 소설에 회차가 없으면 입력 없이 `회차를 쓰면 공개 회차를 정할 수 있어요.`만 보인다(회차 수를 읽기 전에 정한 새 값이 남아 있으면 그 이유(`role="alert"`)와 `작가 전용으로 바꾸기`가 함께 보여 지울 수 있다).
+ *   소설이 연결되지 않은 세계관은 지우지 않은 카드가 모두 공개라 공개 설정을 할 수 없다(저장된 값은 지우지 않고 무시한다, DEC-53 보완): 배지 `공개`와 읽기 전용 안내만 보인다.
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
  *   바꾸면 `revealFromEpisode`만 정하고 `visibility`는 회차가 있으면 public, 없으면 지워 맞춘다(`setCardReveal`). 건드리지 않은 카드는 다시 쓰지 않는다(옛 공개 카드는 1화로 보인다).
  *   초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
@@ -114,12 +115,13 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const [entryKey, setEntryKey] = useState(() => (previewFirst ? editorKey : ''))
   useEffect(() => { if (entryKey && entryKey !== editorKey) setEntryKey('') }, [entryKey, editorKey]) // 다른 문서·카드로 옮기면 잊는다: 돌아와도 이미 쓰기 시작한 화면이라 쓰기 탭이다
   const over = docs.text.length > BODY_MAX
-  const revealError = invalidReveal(setting)
+  const linked = !!vm.linkedWorkId
+  const limit = vm.episodeLimit // 연결된 소설의 마지막 회차(결정 5): 회차 수를 읽는 중·실패면 undefined라 상한을 보지 않는다
   const reveal = cardRevealEpisode(setting)
-  const reachBadge = revealBadge(reveal, !!vm.linkedWorkId) // 공개 안내는 이 배지 한 곳과 관계도의 회차 탭에 모은다
-  const unlinkedHelp = reveal !== undefined && reveal > 1
-    ? `${reveal}화부터 공개로 정해져 있지만 소설이 연결되지 않아 지금은 공개되지 않아요.`
-    : demo ? '데모에서는 소설 연결을 지원하지 않아 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.' : '소설을 연결하면 N화부터 공개로 정할 수 있어요. 지금은 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.'
+  // 상한 초과 오류는 사용자가 이 카드의 공개 회차를 새로 정한 때만 보인다(저장 잠금과 같은 규칙, `newRevealBeyondNovel`). 손대지 않은 저장값은 배지의 '작가 전용 · N화는 아직 없어요'만 알린다.
+  const revealError = invalidReveal(setting) ? REVEAL_EPISODE_ERROR : newRevealBeyondNovel(vm.saved ?? undefined, limit)(setting)
+  const reachBadge = revealBadge(reveal, linked, limit) // 공개 안내는 이 배지 한 곳과 관계도의 회차 탭에 모은다
+  const unlinkedHelp = demo ? '데모에서는 소설 연결을 지원하지 않아 모든 설정이 공개돼요.' : '소설을 연결하기 전에는 모든 설정이 공개돼요. 소설을 연결하면 설정마다 N화부터 공개를 정할 수 있어요.'
   const portrait = cardTypeOf(item) === 'character' ? presentationPortrait(item.title) : undefined
   const deletion = confirm === item.id ? vm.cardDeletionInfo(item.id) : null
   const bodyEditor = (
@@ -215,27 +217,36 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         {item.kind !== 'relation' && (
                           <section className="world-card-reach" aria-label="공개 범위">
                             <h4>공개 범위 <span className="chip world-reach-badge">{reachBadge}</span></h4>
-                            {vm.linkedWorkId ? (
+                            {linked ? (
                               <>
-                                <label className="world-reveal">
-                                  공개 회차
-                                  <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={reveal ?? ''} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), revealEpisodeInput(e.target.value)) })} />
-                                  화부터 공개
-                                </label>
-                                {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
-                                <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용이에요.</p>
+                                {limit === 0 ? (
+                                  <>
+                                    <p className="small muted">회차를 쓰면 공개 회차를 정할 수 있어요.</p>
+                                    {/* 회차 수를 읽기 전에 정한 새 값이 남아 있으면 입력칸이 없어도 그 이유를 알리고 지울 수 있게 한다(아니면 저장이 잠긴 채 고칠 방법이 없다). */}
+                                    {revealError && (
+                                      <>
+                                        <p role="alert" className="small world-field-error">{revealError}</p>
+                                        <button type="button" className="btn sm" onClick={() => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), undefined) })}>작가 전용으로 바꾸기</button>
+                                      </>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <label className="world-reveal">
+                                      공개 회차
+                                      <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" aria-invalid={revealError !== ''} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={reveal ?? ''} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), revealEpisodeInput(e.target.value)) })} />
+                                      화부터 공개
+                                    </label>
+                                    {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{revealError}</p>}
+                                    <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용이에요.</p>
+                                  </>
+                                )}
+                                {!orderIssues.length && <p className="small muted">공개 순서 문제 없음</p>}
+                                <p className="small muted">저장 후 ‘확정 버전 남기기’를 해야 반영돼요.</p>
                               </>
                             ) : (
-                              <>
-                                <label className="world-consent">
-                                  <input type="checkbox" role="switch" checked={reveal !== undefined} aria-describedby={`${listId}-reveal`} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), e.target.checked ? 1 : undefined) })} />
-                                  이 설정 공개
-                                </label>
-                                <p id={`${listId}-reveal`} className="small muted">{unlinkedHelp}</p>
-                              </>
+                              <p className="small muted">{unlinkedHelp}</p>
                             )}
-                            {!orderIssues.length && <p className="small muted">공개 순서 문제 없음</p>}
-                            <p className="small muted">저장 후 ‘확정 버전 남기기’를 해야 반영돼요.</p>
                           </section>
                         )}
                         <label className="field">설정 영역
@@ -289,7 +300,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 편집</button>
                       </div>
                       <section className="world-card-links" aria-label="연관 설정">
-                        <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: kindOf(cardTypeOf(item)) }} badge={reachBadge} entries={entries} revealEpisode={reveal ?? null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
+                        <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: kindOf(cardTypeOf(item)) }} badge={reachBadge} entries={entries} revealEpisode={linked ? (reveal ?? null) : null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
                       </section>
                     </>
                   )}
@@ -307,7 +318,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                     <>
                       <div className="world-pane-head"><h2>공개 순서</h2></div>
                       {orderIssues.length
-                        ? <WorldCardOrder issues={orderIssues} relationTitle={(id) => world.settings.find((s) => s.item.id === id)?.item.title || '이름 없는 관계'} onOpenCard={openLinked} />
+                        ? <WorldCardOrder issues={orderIssues} limit={limit} relationTitle={(id) => world.settings.find((s) => s.item.id === id)?.item.title || '이름 없는 관계'} onOpenCard={openLinked} />
                         : <p className="small muted">공개 순서 문제 없음</p>}
                     </>
                   )}

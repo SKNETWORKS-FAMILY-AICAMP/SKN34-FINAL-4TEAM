@@ -99,6 +99,27 @@ class PublicWorldRulesTest {
         assertNull(shownCardEpisode("active", "private", mapOf("revealFromEpisode" to null), 10))
     }
 
+    /** 연결된 소설이 없는 세계관(linked=false)은 카드의 공개 설정을 보지 않고 지우지 않은 카드를 모두 1화부터 보인다(DEC-53 보완). 저장된 값은 읽지 않으니 읽을 수 없는 값도 닫지 않는다. */
+    @Test fun `without a linked novel every active card is shown from episode 1 whatever its reveal setting`() {
+        val cases = listOf(
+            "private" to emptyMap<String, Any?>(), "public" to emptyMap<String, Any?>(),
+            "private" to mapOf<String, Any?>("revealFromEpisode" to 193), "public" to mapOf<String, Any?>("revealFromEpisode" to 193),
+            "private" to mapOf<String, Any?>("revealFromEpisode" to null), "public" to mapOf<String, Any?>("revealFromEpisode" to "3"),
+        )
+        cases.forEach { (visibility, metadata) ->
+            assertEquals(1, shownCardEpisode("active", visibility, metadata, 1, linked = false), "$visibility $metadata")
+            // 삭제된 카드는 연결이 없어도 보이지 않는다.
+            assertNull(shownCardEpisode("removed", visibility, metadata, 1, linked = false), "$visibility $metadata")
+        }
+    }
+
+    @Test fun `linked is the default so the reader wiki and the Fork keep the card rules`() {
+        val at193 = mapOf<String, Any?>("revealFromEpisode" to 193)
+        assertNull(shownCardEpisode("active", "private", at193, 192))
+        assertEquals(193, shownCardEpisode("active", "private", at193, 193))
+        assertEquals(shownCardEpisode("active", "private", at193, 192, linked = true), shownCardEpisode("active", "private", at193, 192))
+    }
+
     @Test fun `the reader upto query is optional but must be a whole number of at least one`() {
         assertNull(readerUpto(null))
         assertEquals(1, readerUpto("1"))

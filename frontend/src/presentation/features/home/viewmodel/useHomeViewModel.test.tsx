@@ -71,9 +71,9 @@ describe('useHomeViewModel', () => {
     act(() => { store.dispatch(uiActions.setLook('night')) })
     act(() => { store.dispatch(uiActions.setSheetScreen('U07')) })
     expect(renders.count).toBe(before)
-    // 홈이 쓰는 상태(안내 닫기)는 그대로 반영한다.
-    act(() => result.current.closeGuide())
-    expect(result.current.guide).toBe(false)
+    // 홈이 쓰는 상태(첫 홈 방문 표시)는 그대로 반영한다.
+    act(() => result.current.homeVisited())
+    expect(result.current.firstHome).toBe(false)
     expect(renders.count).toBe(before + 1)
   })
 })

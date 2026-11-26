@@ -247,7 +247,7 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
     assert set(schemas) == {'ask_story_qa', 'ask_manuscript_review', 'ask_world', 'ask_writing', 'ask_research', 'ask_rating', 'ask_character_simulation'}
     for name, schema in schemas.items():
         properties = schema.get('properties', {})
-        assert set(properties) <= {'request', 'check', 'task', 'fix'}, name
+        assert set(properties) <= {'request', 'check', 'task', 'fix', 'from_review'}, name
         if 'request' in properties:
             assert properties['request']['maxLength'] == 2000
     # 고증 조사 web은 작업 지시(request)를 쓰지 않는다. 외부로 나가는 것은 작가가 동의한 질문뿐이다. platform만 request를 찾을 설정 주제로 쓴다.
@@ -273,6 +273,18 @@ def test_the_main_agent_is_told_how_to_choose_between_the_selection_and_a_findin
     for told in (rule, agent.TOOLS['writing_editing'].description):
         assert '검수를 함께 요청했어도' in told, told
         assert '선택한 글이 남아 있어도' in told, told
+
+
+def test_the_main_agent_is_told_not_to_make_numbered_choices_for_a_past_reviews_findings():
+    """#873: 지난 턴 검수의 지적도 ask_writing이 받으니 ask_author 번호 선택지로 고르게 하지 않는다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    assert '이전 턴 검수' in rule and 'from_review=true' in rule and 'ask_author로 번호 선택지를 만들지' in rule
+
+
+def test_the_main_agent_credits_author_edits_to_the_author():
+    """#875 E2E: authorEdited를 받고도 "실행 과정에서 바뀌었다"고 답했다. 작가가 고쳤다고 밝히게 한다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('6.'))
+    assert 'authorEdited' in rule and '작가가 고친 내용으로 저장했다고' in rule and '실행 과정에서 바뀌었다' in rule
 
 
 def test_the_review_summary_says_the_whole_episode_was_reviewed(monkeypatch):

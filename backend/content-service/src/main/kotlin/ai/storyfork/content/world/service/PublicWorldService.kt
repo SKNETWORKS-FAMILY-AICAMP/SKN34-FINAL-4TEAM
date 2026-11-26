@@ -36,11 +36,15 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 
+/** 읽은 확정 버전·연결이 응답 직전에 바뀌어 있을 때 처음부터 다시 읽는 횟수의 상한이다. */
+private const val STABLE_READS = 3
+
 /**
  * 공개 세계관의 비로그인 읽기 전용 조회다. 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(삭제되지 않았고 유효 공개 회차가 기준 회차 이하, [shownCardEpisode])와
  * 그 카드끼리의 기준 회차 시점 Neo4j 관계만 보여 주며 비공개·초안뿐인·없는·운영이 제한한 세계관은 모두 404로 숨긴다(연결된 소설 위키와 Fork 이어받기는 제한과 무관하다). 보일 카드가 하나도 없는 공개 세계관은 카드 없이 그대로 나온다.
- * 기준 회차(DEC-53)는 연결된 소설이 공개 작품이면 발행된 마지막 회차, 공개 작품이 아니면 0, 연결이 없으면 1이다.
+ * 기준 회차(DEC-53)는 연결된 소설이 공개 작품이면 발행된 마지막 회차, 공개 작품이 아니면 0이고 연결이 없으면 없다. 연결이 없는 세계관은 카드의 공개 설정을 보지 않고 지우지 않은 카드가 모두 보이며 관계도 회차로 자르지 않고 최신 시점의 것 가운데 양 끝이 보이는 것이다.
  * 상세에는 연결된 소설이 공개 작품일 때만 그 최소 정보를 싣는다(#329).
+ * 카드의 확정 버전과 연결 여부는 서로 다른 시점에 읽으므로 상세·카드 이미지·목록·검색·색인은 응답 직전에 둘을 다시 읽어 바뀌었으면 처음부터 다시 읽는다([stable]).
  * 검색(#505): [list]의 q와 [cards]는 같은 공개 기준으로 전체(색인이 켜져 있으면 [SearchCandidates]의 후보)를 읽어 메모리에서 거르고, 색인 호출은 읽기 트랜잭션 밖이다.
  * PostgreSQL은 읽기 전용 짧은 트랜잭션이고 Neo4j·Core·객체 저장소(표지)·작품(Content 트랜잭션) 호출은 그 밖이다.
  */
@@ -57,6 +61,33 @@ class PublicWorldService(
     private val transaction = TransactionTemplate(manager).apply { isReadOnly = true }
     private fun <T : Any> tx(action: () -> T): T = transaction.execute { action() }
     private fun notFound() = ContentFailure(404, "세계관을 찾을 수 없습니다.")
+
+    /**
+     * 카드의 확정 버전(WorldStudio)과 연결 여부(Content)는 서로 다른 시점에 읽는다. 읽는 사이에 작가가 비공개 카드를 지운 새 버전을 확정하고 연결을 풀면 옛 버전의 비공개 카드가 미연결로 공개되고,
+     * 읽는 도중 연결되면(작품 revision이 오르지 않는다) 숨겨야 할 카드·관계가 응답에 남는다. [read]는 읽은 것이 응답 직전([stillCurrent])에도 그대로일 때만 값을 돌려주고 아니면 null이라
+     * 처음부터 [STABLE_READS]번까지 다시 읽는다. 끝내 안정되지 않으면 409다.
+     */
+    private fun <T : Any> stable(read: () -> T?): T {
+        repeat(STABLE_READS) { read()?.let { return it } }
+        throw ContentFailure(409, "공개 세계관이 바뀌는 중이라 읽지 못했어요. 잠시 뒤 다시 시도해 주세요.")
+    }
+
+    /** 읽은 세계관별 확정 현재 버전 id([revisions])와 연결된 소설이 있는지([linked])가 지금도 같은지다. 연결 변경은 작품 revision을 올리지 않아 연결 쪽을 따로 읽는다. */
+    private fun stillCurrent(revisions: Map<UUID, UUID?>, linked: Map<UUID, Boolean>): Boolean {
+        if (revisions.isEmpty()) return true
+        val now = tx { revisions.keys.associateWith { worlds.findById(it).orElse(null)?.currentRevisionId } }
+        val links = works.findAllByWorldStudioIdIn(linked.keys.toList()).mapNotNull { it.worldStudioId }.toSet()
+        return now == revisions && linked.all { (world, was) -> (world in links) == was }
+    }
+
+    /**
+     * 세계관 하나의 기준(DEC-53)이다: 기준 회차 [episode]와 연결된 소설이 있는지([linked])다. 연결이 없으면 카드는 공개 설정과 무관하게 모두 보이고 관계도 회차로 자르지 않고 최신으로 읽으며([relationEpisode]가 null) [episode]는 쓰이지 않는다.
+     * 독자 위키·Fork 이어받기는 늘 연결된 소설 기준이다.
+     */
+    private class Basis(val episode: Int, val linked: Boolean = true) {
+        /** 관계를 읽는 회차다. 연결된 소설이 없으면 null(최신). */
+        val relationEpisode: Int? get() = episode.takeIf { linked }
+    }
 
     /** [cards]는 확정 버전의 모든 카드 버전이다. 보일 카드는 기준 회차를 안 뒤 [shownAt]이 고른다. */
     private class Snapshot(val world: StudioWorld, val revision: WorldRevision, val cards: List<SettingCardVersion>, val state: WorldRelationshipState?)
@@ -77,6 +108,11 @@ class PublicWorldService(
     fun list(genre: String?, q: String?, page: String?, size: String?): PublicWorldPageResponse {
         val code = genre?.takeIf { it.isNotBlank() }?.also { if (!isGenreCode(it)) throw ContentFailure(422, "genre 값을 확인해 주세요.") }
         val request = publicWorldPage(page, size)
+        return stable { readList(code, q, request) }
+    }
+
+    /** [list]의 읽기 한 번이다. 읽는 동안 세계관의 확정 버전이나 연결이 바뀌었으면 null이다. */
+    private fun readList(code: String?, q: String?, request: PageRequest): PublicWorldPageResponse? {
         // q가 있으면 공개 세계관 전체(색인이 켜져 있으면 그 후보)에서 거른 한 페이지다. 페이지의 카드·관계 수는 아래에서 그 한 페이지만 센다. q가 없으면 쿼리가 페이지를 자른다.
         val matched = searchTerm(q)?.let { matchingWorlds(code, it, request) }
         val found = tx {
@@ -101,8 +137,9 @@ class PublicWorldService(
             val basis = bases.getValue(world.id)
             val cardIds = shownAt(found.cards[revision.id].orEmpty(), basis).map { it.first.cardId }.toSet()
             PublicWorldSummaryResponse(world.id, revision.name, revision.description, world.genre, names.getValue(world.ownerSubject.toString()),
-                cardIds.size, currentRelationships(world.id, found.states[world.id], revision.id, cardIds, basis)?.rows?.size, world.published(), world.coverObjectKey != null)
+                cardIds.size, currentRelationships(world.id, found.states[world.id], revision.id, cardIds, basis.relationEpisode)?.rows?.size, world.published(), world.coverObjectKey != null)
         }
+        if (!stillCurrent(shown.associate { it.id to it.currentRevisionId }, bases.mapValues { it.value.linked })) return null
         return PublicWorldPageResponse(items, request.pageNumber, request.pageSize, found.page.totalElements)
     }
 
@@ -115,8 +152,7 @@ class PublicWorldService(
         val term = searchTerm(q) ?: throw ContentFailure(422, "q 값을 확인해 주세요.")
         val request = publicWorldPage(page, size)
         val candidates = search.cardWorlds(term) // 색인 호출은 읽기 트랜잭션 밖이다
-        val listed = tx { listedAll(null, candidates) }
-        val shown = shownCards(listed)
+        val (listed, shown) = listedShown { listedAll(null, candidates) }
         val hits = listed.flatMap { (world, revision) ->
             shown.getValue(world.id).filter { matchesCard(it.fields.title, it.fields.aliases, it.fields.tags, term) }
                 .sortedWith(compareBy({ it.fields.title }, { it.cardId.toString() }))
@@ -130,9 +166,8 @@ class PublicWorldService(
      * 목록 검색·[cards]와 같은 읽기라 색인에는 검색이 보여 줄 수 있는 것만 들어간다.
      */
     fun searchEntries(): List<PublicWorldSearchEntry> {
-        val listed = tx { listedAll(null, null) }
+        val (listed, shown) = listedShown { listedAll(null, null) }
         val names = authors(listed.map { it.first.ownerSubject.toString() }.distinct())
-        val shown = shownCards(listed)
         return listed.map { (world, revision) ->
             PublicWorldSearchEntry(world.id, revision.name, revision.description, names.getValue(world.ownerSubject.toString()),
                 shown.getValue(world.id).map { PublicWorldSearchCard(it.cardId, it.fields.title, it.fields.aliases.toList(), it.fields.tags.toList()) })
@@ -163,11 +198,21 @@ class PublicWorldService(
         return rows.mapNotNull { world -> sealed[world.currentRevisionId]?.let { world to it } }
     }
 
-    /** [listed] 세계관마다 기준 회차(DEC-53)에 보이는 카드다([shownAt], 상세와 같은 함수). 카드는 읽기 트랜잭션에서 한 번에 읽고 기준 회차는 Content 쿼리 둘로 센다(트랜잭션 밖). */
-    private fun shownCards(listed: List<Pair<StudioWorld, WorldRevision>>): Map<UUID, List<SettingCardVersion>> {
+    /** [load]가 읽은 공개 세계관과 그 세계관마다 보이는 카드다. 읽는 동안 확정 버전·연결이 바뀌었으면 목록부터 다시 읽는다([stable]). */
+    private fun listedShown(load: () -> List<Pair<StudioWorld, WorldRevision>>) = stable {
+        val listed = tx(load)
+        shownCards(listed)?.let { listed to it }
+    }
+
+    /**
+     * [listed] 세계관마다 기준 회차(DEC-53)에 보이는 카드다([shownAt], 상세와 같은 함수). 카드는 읽기 트랜잭션에서 한 번에 읽고 기준 회차는 Content 쿼리 둘로 센다(트랜잭션 밖).
+     * 읽은 확정 버전·연결이 응답 직전에 바뀌었으면 null이다.
+     */
+    private fun shownCards(listed: List<Pair<StudioWorld, WorldRevision>>): Map<UUID, List<SettingCardVersion>>? {
         if (listed.isEmpty()) return emptyMap()
         val rows = tx { revisionCards.cardVersionsOf(listed.map { it.second.id }) }.groupBy({ it[0] as UUID }, { it[1] as SettingCardVersion })
         val bases = basisEpisodes(listed.map { it.first.id })
+        if (!stillCurrent(listed.associate { (world, revision) -> world.id to revision.id }, bases.mapValues { it.value.linked })) return null
         return listed.associate { (world, revision) -> world.id to shownAt(rows[revision.id].orEmpty(), bases.getValue(world.id)).map { it.first } }
     }
 
@@ -175,7 +220,10 @@ class PublicWorldService(
      * 공개 세계관의 마지막 저장 버전에서 기준 회차 이하로 공개된 카드와 그 카드끼리의 기준 회차 시점 관계를 돌려준다(DEC-53). 공개가 아니거나 저장 버전이 없거나 없으면 404다.
      * 이 세계관에 연결된 소설(1:1, DEC-46)은 **공개 작품일 때만** 최소 정보로 싣고, 비공개·제한·삭제 작품이거나 연결이 없으면 null이다(#329).
      */
-    fun detail(id: UUID): PublicWorldResponse {
+    fun detail(id: UUID): PublicWorldResponse = stable { readDetail(id) }
+
+    /** [detail]의 읽기 한 번이다. 읽는 동안 세계관의 확정 버전이나 연결이 바뀌었으면 null이다. */
+    private fun readDetail(id: UUID): PublicWorldResponse? {
         val seen = tx { snapshot(id) }
         // 연결의 정본은 작품 쪽(Content 트랜잭션)이라 WorldStudio 읽기 트랜잭션을 닫은 뒤 따로 읽는다. 소설 작가명은 세계관 작가와 같은 Core 조회 한 번에 채운다.
         val linked = linkedWork(id)
@@ -185,7 +233,8 @@ class PublicWorldService(
         val shown = cards.map { it.cardId }.toSet()
         val owner = seen.world.ownerSubject.toString()
         val names = authors(listOfNotNull(owner, work?.ownerId).distinct())
-        val relations = currentRelationships(id, seen.state, seen.revision.id, shown, basis, withHistory = true)
+        val relations = currentRelationships(id, seen.state, seen.revision.id, shown, basis.relationEpisode, withHistory = true)
+        if (!stillCurrent(mapOf(id to seen.revision.id), mapOf(id to basis.linked))) return null
         return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, names.getValue(owner), seen.world.published(), seen.revision.revisionNo,
             cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, hideCardLinks(it.fields.body, shown), it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
             // 양 끝이 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
@@ -263,10 +312,11 @@ class PublicWorldService(
      * 공개 세계관 [id]의 설정 카드 이미지다(#401). 상세와 같은 기준(공개·확정 버전·기준 회차)이고, 상세에 보이는 카드 중 하나가 [imageId]로 가리키는 이미지일 때만 돌려준다.
      * 그 밖(비공개·확정 버전 없음·기준 회차 뒤나 작가 전용 카드·삭제 카드·초안에만 있는 참조·없는 이미지)은 404다.
      */
-    fun cardImage(id: UUID, imageId: UUID): WorldCoverImage {
+    fun cardImage(id: UUID, imageId: UUID): WorldCoverImage = pointedImage(id, imageId, stable {
         val seen = tx { snapshot(id) }
-        return pointedImage(id, imageId, shownAt(seen.cards, basisEpisode(linkedWork(id))).map { it.first })
-    }
+        val basis = basisEpisode(linkedWork(id))
+        shownAt(seen.cards, basis).map { it.first }.takeIf { stillCurrent(mapOf(id to seen.revision.id), mapOf(id to basis.linked)) }
+    })
 
     /**
      * 독자 설정 위키 카드의 이미지다(#401). [readerCards]와 같은 기준([upto]화에 보이는 카드)의 카드 중 하나가 [imageId]로 가리키는 이미지일 때만 돌려주고, 세계관·카드의 공개 범위는 보지 않는다.
@@ -287,14 +337,14 @@ class PublicWorldService(
      */
     fun hiddenCardTitles(worldId: UUID, upto: Int): List<String> = tx {
         val cards = sealedCards(worldId)?.second.orEmpty()
-        val shown = shownAt(cards, upto).map { it.first.id }.toSet()
+        val shown = shownAt(cards, Basis(upto)).map { it.first.id }.toSet()
         cards.filter { it.fields.lifecycle == "active" && it.id !in shown }.map { it.fields.title }.distinct().sorted()
     }
 
     /** [upto]화 기준으로 보이는 카드(유효 공개 회차와 함께)와 관계 상태다. 확정 버전이 없거나 지운 세계관이면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
     private fun readerSnapshot(worldId: UUID, upto: Int): ReaderSnapshot {
         val (revision, cards) = sealedCards(worldId) ?: return ReaderSnapshot(emptyList(), null)
-        return ReaderSnapshot(shownAt(cards, upto).sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null), revision.id)
+        return ReaderSnapshot(shownAt(cards, Basis(upto)).sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null), revision.id)
     }
 
     /** 지우지 않은 세계관의 확정(sealed)된 현재 버전과 그 모든 카드 버전이다. 확정 버전이 없거나 지운 세계관이면 null이다. 읽기 트랜잭션 안에서 부른다. */
@@ -304,9 +354,9 @@ class PublicWorldService(
         return revision to cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
     }
 
-    /** [cards] 중 기준 회차 [basis]화에 보이는 카드와 그 유효 공개 회차의 쌍이다. 독자 위키·공개 세계관·가져오기·Fork 이어받기가 모두 이 한 곳을 거친다(DEC-53). */
-    private fun shownAt(cards: List<SettingCardVersion>, basis: Int) =
-        cards.mapNotNull { card -> shownCardEpisode(card.fields.lifecycle, card.fields.visibility, card.fields.semanticMetadata, basis)?.let { card to it } }
+    /** [cards] 중 기준 [basis]에 보이는 카드와 그 유효 공개 회차의 쌍이다. 독자 위키·공개 세계관·가져오기·Fork 이어받기가 모두 이 한 곳을 거친다(DEC-53). */
+    private fun shownAt(cards: List<SettingCardVersion>, basis: Basis) =
+        cards.mapNotNull { card -> shownCardEpisode(card.fields.lifecycle, card.fields.visibility, card.fields.semanticMetadata, basis.episode, basis.linked)?.let { card to it } }
 
     /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있고 운영이 제한하지 않은 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */
     private fun listedWorld(id: UUID): Pair<StudioWorld, WorldRevision> {
@@ -358,23 +408,23 @@ class PublicWorldService(
 
     /**
      * [worldIds] 각각의 기준 회차를 목록 한 페이지 전체에 쿼리 둘로 센다([basisEpisode]와 같은 값): 연결된 작품 조회 하나와 그 가운데 공개 작품의 발행된 마지막 회차(운영 제한 회차 제외) 조회 하나다.
-     * 연결된 소설이 공개 작품이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면 0, 연결이 없으면 1이다. 작품은 Content 트랜잭션이라 WorldStudio 읽기 트랜잭션 밖에서 부른다.
+     * 연결된 소설이 공개 작품이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면 0, 연결이 없으면 회차 기준이 없다(카드는 모두 공개, 관계는 최신)이다. 작품은 Content 트랜잭션이라 WorldStudio 읽기 트랜잭션 밖에서 부른다.
      */
-    private fun basisEpisodes(worldIds: List<UUID>): Map<UUID, Int> {
+    private fun basisEpisodes(worldIds: List<UUID>): Map<UUID, Basis> {
         if (worldIds.isEmpty()) return emptyMap()
         val linked = works.findAllByWorldStudioIdIn(worldIds).associate { checkNotNull(it.worldStudioId) to it.id }
         val published = if (linked.isEmpty()) emptyMap() else works.lastPublishedOfPublicWorks(linked.values.toList()).associate { it[0] as String to (it[1] as Number).toInt() }
-        return worldIds.associateWith { world -> linked[world]?.let { published[it] ?: 0 } ?: 1 }
+        return worldIds.associateWith { world -> linked[world]?.let { Basis(published[it] ?: 0) } ?: Basis(1, linked = false) }
     }
 
     /**
      * 공개 세계관 하나의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(운영이 제한한 회차는 독자에게 없으므로 뺀다, 없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
-     * 연결이 없으면 1이다. 독자 위키의 기준([ai.storyfork.content.work.service.WorkWorldService])과 같은 값이다. 발행을 중단하면 마지막 발행 회차가 내려가 보이던 카드가 다시 숨는다.
+     * 연결이 없으면 회차 기준이 없어 카드는 공개 설정과 무관하게 모두 보이고 관계는 최신이다. 연결된 경우의 값은 독자 위키의 기준([ai.storyfork.content.work.service.WorkWorldService])과 같다. 발행을 중단하면 마지막 발행 회차가 내려가 보이던 카드가 다시 숨는다.
      */
-    private fun basisEpisode(linked: WorkAccessResult?): Int = when {
-        linked == null -> 1
-        !linked.publiclyVisible() -> 0
-        else -> publication.publishedEpisodes(linked.id).items.filterNot { it.restricted }.maxOfOrNull { it.number } ?: 0
+    private fun basisEpisode(linked: WorkAccessResult?): Basis = when {
+        linked == null -> Basis(1, linked = false)
+        !linked.publiclyVisible() -> Basis(0)
+        else -> Basis(publication.publishedEpisodes(linked.id).items.filterNot { it.restricted }.maxOfOrNull { it.number } ?: 0)
     }
 
     /** 작가 표시명은 저장하지 않고 Core에서 한 번에 조회한다. Core에 없으면 탈퇴한 회원이고, 호출 실패는 대체 이름 없이 그대로 전파한다. */

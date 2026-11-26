@@ -18,6 +18,7 @@ import ai.storyfork.content.preprocessing.service.dto.PreprocessingProgressReque
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingUpdateResponse
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.ManuscriptBuildService
 import ai.storyfork.content.world.service.ManuscriptBuildFinished
 import ai.storyfork.content.world.service.ManuscriptBuildInput
@@ -50,7 +51,8 @@ class PreprocessingServiceTest {
     private val ai = mock(PreprocessingAiClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
     private val build = mock(ManuscriptBuildService::class.java)
-    private val service = PreprocessingService(works, episodes, jobs, ai, build, TransactionTemplate(manager))
+    private val worlds = mock(WorkWorldService::class.java)
+    private val service = PreprocessingService(works, episodes, jobs, ai, build, worlds, TransactionTemplate(manager))
     private val work = WorkEntity(id = "work", ownerId = "00000000-0000-0000-0000-000000000001", title = "메밀꽃 필 무렵", worldStudioId = world)
     private val newestFirst = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"))
 
@@ -447,22 +449,25 @@ class PreprocessingServiceTest {
         order.verify(build).prepareUpdate(UUID.fromString(saved.id), "work", UUID.fromString(ownerId), ManuscriptBuildRequest(world, "publish:ev-6", true), newEpisodes)
         order.verify(ai).accept(anyRequest())
         verify(build, never()).failQueued(anyUuid(), anyUuid(), anyString())
+        // 연결된 세계관이 있으면 최초 구축을 접수하지 않고 Fork 판정도 묻지 않는다.
+        verify(build, never()).prepare(anyUuid(), anyString(), anyUuid(), anyBuildRequest(), anyInput())
+        verifyNoInteractions(worlds)
     }
 
-    @Test fun `nothing is queued without a live work a linked world a completed initial build or while the world has an open job`() {
+    @Test fun `nothing is queued without a live work, while the initial build is open or completed for another world, or while the world has an open job`() {
         ready()
         `when`(works.findById("work")).thenReturn(Optional.of(work.copyOwner("other")))
         assertEquals("NO_WORK", service.startUpdate("work", ownerId, "ev-6"))
-        `when`(works.findById("work")).thenReturn(Optional.of(work.copyUnlinked()))
-        assertEquals("NO_WORLD", service.startUpdate("work", ownerId, "ev-6"))
         `when`(works.findById("work")).thenReturn(Optional.of(work))
-        for (initial in listOf(null, job(QUEUED), job(RUNNING), job(LOADING), job(FAILED), job(COMPLETED), job(COMPLETED).apply { worldId = UUID.randomUUID() })) {
+        // 최초 구축이 진행 중이거나 다른 세계관으로 끝났으면 업데이트도 최초 구축 재접수도 없다(실패했거나 없는 경우는 아래 시험이 재접수한다).
+        for (initial in listOf(job(QUEUED), job(RUNNING), job(LOADING), job(COMPLETED), job(COMPLETED).apply { worldId = UUID.randomUUID() })) {
             `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(initial)
-            assertEquals("INITIAL_NOT_COMPLETED", service.startUpdate("work", ownerId, "ev-6"), initial?.status)
+            assertEquals("INITIAL_NOT_COMPLETED", service.startUpdate("work", ownerId, "ev-6"), initial.status)
         }
         ready(openOnWorld = true)
         assertEquals("OPEN_JOB", service.startUpdate("work", ownerId, "ev-6"))
         noUpdateJob()
+        noInitialJob()
     }
 
     @Test fun `no unreflected published episode means no job`() {
@@ -507,6 +512,109 @@ class PreprocessingServiceTest {
 
         val saved = savedJobs().single()
         verify(build).failQueued(UUID.fromString(saved.id), UUID.fromString(ownerId), "AI_INTAKE_FAILED")
+    }
+
+    // ---- 세계관이 없는 소설의 첫 발행: 비공개 세계관 최초 구축 접수(DEC-53 보완, 2026-11-25) ----
+
+    private fun unlinked() = `when`(works.findById("work")).thenReturn(Optional.of(work.copyUnlinked()))
+    private fun noInitialJob() {
+        verify(jobs, never()).saveAndFlush(anyJob())
+        verify(build, never()).prepare(anyUuid(), anyString(), anyUuid(), anyBuildRequest(), anyInput())
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `a first publish of a work without a world starts a private world build for the saved episodes under a new world id`() {
+        unlinked()
+
+        assertEquals("INITIAL_STARTED", service.startUpdate("work", ownerId, "ev-6"))
+
+        // 원고 가져오기의 자동 구축과 같은 start다: 저장 회차 전체(1·2·5화)를 최초 구축으로 접수하고 요청 키는 발행 버전이다.
+        val saved = savedJobs().single()
+        assertEquals(listOf<Any?>("work", ownerId, QUEUED, 3, "initial"), listOf(saved.workId, saved.memberId, saved.status, saved.total, saved.kind))
+        val request = mockingDetails(build).invocations.single { it.method.name == "prepare" }.arguments[3] as ManuscriptBuildRequest
+        assertEquals("publish:ev-6", request.key)
+        assertTrue(request.consent)
+        assertEquals(saved.worldId, request.worldId)
+        assertNotEquals(world, request.worldId) // 연결된 세계관이 없던 작품이라 새 세계관 id다
+        assertEquals(listOf(PreprocessingAiRequest(saved.id, "work", listOf(1, 2, 5))), aiRequests())
+        verify(build, never()).prepareUpdate(anyUuid(), anyString(), anyUuid(), anyBuildRequest(), anyInput())
+    }
+
+    @Test fun `a Fork that inherits the original's world gets no world build of its own`() {
+        unlinked()
+        `when`(worlds.inheritsWorld("work", ownerId)).thenReturn(true)
+
+        assertEquals("NO_WORLD", service.startUpdate("work", ownerId, "ev-6"))
+
+        noInitialJob()
+        verify(build, never()).freeze(anyString(), anyString())
+    }
+
+    @Test fun `a refused initial build never throws, is only a code, and leaves no second world for a work that already has an initial job`() {
+        unlinked()
+        // 최초 구축 작업이 이미 진행 중이거나 끝났으면(작가가 세계관 연결을 풀었어도) 새 세계관을 만들지 않는다.
+        for (status in listOf(RUNNING, COMPLETED)) {
+            `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(job(status, "old"))
+            assertEquals("HTTP_409", service.startUpdate("work", ownerId, "ev-6"), status)
+        }
+        noInitialJob()
+        // 기능이 꺼져 있거나 저장한 회차가 없으면 접수하지 않고 코드만 남는다.
+        `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(null)
+        `when`(build.freeze("work", ownerId)).thenThrow(ContentFailure(503, "초기 세계관 구축은 아직 활성화되지 않았습니다."))
+        assertEquals("HTTP_503", service.startUpdate("work", ownerId, "ev-6"))
+        `when`(episodes.savedNumbers("work")).thenReturn(emptyList())
+        assertEquals("HTTP_422", service.startUpdate("work", ownerId, "ev-6"))
+        noInitialJob()
+    }
+
+    @Test fun `a failure after the initial build was taken never throws either, and the earlier failed job still allows the new one`() {
+        unlinked()
+        `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(failedJob())
+        doThrow(PreprocessingAiFailure("AI_TIMEOUT")).`when`(ai).accept(anyRequest())
+        assertEquals("PREPROCESSING_AI_FAILED", service.startUpdate("work", ownerId, "ev-6"))
+        assertEquals(1, savedJobs().size) // 마지막이 실패한 작업이면 새 최초 구축을 접수한다(AI가 받았는지 모르는 502는 실패로 덮지 않고 queued로 둔다)
+
+        doThrow(IllegalStateException("원고 본문이 든 문구")).`when`(build).prepare(anyUuid(), anyString(), anyUuid(), anyBuildRequest(), anyInput())
+        `when`(jobs.lock(anyString())).thenAnswer { savedJobs().last() }
+        assertEquals("IllegalStateException", service.startUpdate("work", ownerId, "ev-7"), "예외 문구는 원고가 실릴 수 있어 종류만 돌려준다")
+    }
+
+    // ---- 최초 구축이 실패했거나 없으면 다음 발행이 같은 세계관에 다시 접수한다(2026-11-25 사용자 결정, 발행 진입점만) ----
+
+    @Test fun `a failed initial build is submitted again at the next publish on the same world, never on a new one`() {
+        `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(failedJob())
+
+        assertEquals("INITIAL_STARTED", service.startUpdate("work", ownerId, "ev-7"))
+
+        // 같은 세계관에 새 최초 구축 작업을 접수한다(원고 가져오기로 시작했다 실패한 세계관도 같다). 업데이트는 접수하지 않고 Fork 판정도 묻지 않는다.
+        val saved = savedJobs().single()
+        assertEquals(listOf<Any?>("work", world, QUEUED, "initial"), listOf(saved.workId, saved.worldId, saved.status, saved.kind))
+        val request = mockingDetails(build).invocations.single { it.method.name == "prepare" }.arguments[3] as ManuscriptBuildRequest
+        assertEquals(ManuscriptBuildRequest(world, "publish:ev-7", true), request)
+        assertEquals(listOf(PreprocessingAiRequest(saved.id, "work", listOf(1, 2, 5))), aiRequests())
+        verify(build, never()).prepareUpdate(anyUuid(), anyString(), anyUuid(), anyBuildRequest(), anyInput())
+        verifyNoInteractions(worlds)
+    }
+
+    @Test fun `a linked world that never had an initial build gets one at the next publish`() {
+        // 마지막 최초 구축 작업이 없다(Mockito 기본 null): 연결만 있는 세계관에도 같은 세계관으로 접수한다.
+        assertEquals("INITIAL_STARTED", service.startUpdate("work", ownerId, "ev-7"))
+
+        val saved = savedJobs().single()
+        assertEquals(listOf<Any?>(world, "initial"), listOf(saved.worldId, saved.kind))
+        assertEquals(ManuscriptBuildRequest(world, "publish:ev-7", true), mockingDetails(build).invocations.single { it.method.name == "prepare" }.arguments[3])
+    }
+
+    @Test fun `a failed initial build whose load needs a review is not submitted again, and a finished update never retries`() {
+        `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(failedJob())
+        // 적재 결과 확인이 필요하면 start가 거절한다: 새 작업도 AI 접수도 없고 코드만 남는다.
+        `when`(jobs.requiresLoadReview("work")).thenReturn(true)
+        assertEquals("PREPROCESSING_LOAD_REVIEW_REQUIRED", service.startUpdate("work", ownerId, "ev-7"))
+        noInitialJob()
+        // 재접수는 발행 진입점만 한다: 업데이트 작업 종료 뒤 이어서 접수하는 쪽은 최초 구축을 건드리지 않는다.
+        `when`(jobs.requiresLoadReview("work")).thenReturn(false)
+        service.continueUpdate(ManuscriptBuildFinished(UUID.randomUUID(), 2, "work", world, UUID.fromString(ownerId)))
+        noInitialJob()
     }
 
     @Test fun `a terminal update queues the published backlog without another publish and an open successor blocks duplicate intake`() {
