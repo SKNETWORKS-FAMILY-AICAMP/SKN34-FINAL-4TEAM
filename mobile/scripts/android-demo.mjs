@@ -35,13 +35,17 @@ function tapText(pattern) {
 }
 
 async function connectWebView() {
+  let targets = []
   const page = await waitFor('Android WebView의 개발 연결을 열 수 없어요.', async () => {
     const pid = adb('shell', 'pidof', app).split(' ')[0]
     if (!pid) return null
     adb('forward', 'tcp:9222', `localabstract:webview_devtools_remote_${pid}`)
-    const views = await (await fetch('http://127.0.0.1:9222/json/list')).json()
-    return views.find(view => view.url.startsWith('http://127.0.0.1:5173') && view.webSocketDebuggerUrl)
-  }, 55000)
+    targets = await (await fetch('http://127.0.0.1:9222/json/list')).json()
+    return targets.find(view => view.url.startsWith('http://127.0.0.1:5173') && view.webSocketDebuggerUrl)
+  }, 55000).catch(error => {
+    console.error('WebView targets:', targets.map(view => view.url))
+    throw error
+  })
   return new WebSocket(page.webSocketDebuggerUrl)
 }
 
@@ -67,8 +71,7 @@ adb('shell', 'wm', 'size', '720x1280')
 adb('shell', 'wm', 'density', '300')
 adb('shell', 'input', 'keyevent', '82')
 adb('reverse', 'tcp:5173', 'tcp:5173')
-adb('reverse', 'tcp:8081', 'tcp:8081')
-adb('shell', 'am', 'start', '-n', `${app}/.MainActivity`)
+adb('shell', 'am', 'start', '-W', '-n', `${app}/.MainActivity`)
 const socket = await connectWebView()
 if (socket.readyState !== WebSocket.OPEN) {
   await new Promise((resolve, reject) => {

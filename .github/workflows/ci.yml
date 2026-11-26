@@ -143,25 +143,39 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npx expo prebuild --platform android --no-install
+          mkdir -p android/app/src/debug/assets
+          npx expo export:embed --platform android --dev true --entry-file index.ts --bundle-output android/app/src/debug/assets/index.android.bundle --assets-dest android/app/src/debug/res
           cd android
           ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 --no-daemon
-      - name: Start actual Core, web and Metro
+      - name: Start actual Core and web
         run: |
           pnpm --dir frontend install --frozen-lockfile
           (cd backend/core-api && ./gradlew bootJar --no-daemon)
           nohup java -jar backend/core-api/build/libs/*-SNAPSHOT.jar > "$RUNNER_TEMP/core.log" 2>&1 &
           nohup pnpm --dir frontend dev --host 127.0.0.1 > "$RUNNER_TEMP/web.log" 2>&1 &
-          (cd mobile && nohup npx expo start --localhost --port 8081 > "$RUNNER_TEMP/metro.log" 2>&1 &)
-          for url in http://127.0.0.1:5173/api/v1/health http://127.0.0.1:8081/status; do
-            curl --fail --silent --show-error --retry 60 --retry-all-errors --retry-delay 2 "$url"
-          done
+          curl --fail --silent --show-error --retry 60 --retry-all-errors --retry-delay 2 http://127.0.0.1:5173/api/v1/health
       - name: Record actual WebView login, local notification and tap
         run: |
           adb start-server
           "$ANDROID_HOME/emulator/emulator" -accel-check
           "$ANDROID_HOME/emulator/emulator" -avd storyfork-ci -port 5554 -no-window -noaudio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           emulator_pid=$!
-          trap 'result=$?; if (( result != 0 )); then timeout 8 adb devices -l; tail -80 "$RUNNER_TEMP/emulator.log"; timeout 8 adb logcat -d -s AndroidRuntime:E ReactNativeJS:W | tail -80; fi; kill "$emulator_pid" 2>/dev/null || true; exit "$result"' EXIT
+          finish() {
+            result=$?
+            if (( result != 0 )); then
+              timeout 8 adb devices -l || true
+              if [[ $(timeout 4 adb get-state 2>/dev/null) == device ]]; then
+                timeout 10 adb exec-out screencap -p > "$RUNNER_TEMP/storyfork-android/failure.png" || true
+                timeout 8 adb logcat -d -s AndroidRuntime ReactNative ReactNativeJS chromium | tail -100
+              else
+                tail -40 "$RUNNER_TEMP/emulator.log"
+              fi
+            fi
+            kill "$emulator_pid" 2>/dev/null || true
+            exit "$result"
+          }
+          mkdir -p "$RUNNER_TEMP/storyfork-android"
+          trap finish EXIT
           for ((attempt=0; attempt<120; attempt++)); do
             kill -0 "$emulator_pid"
             if [[ $(timeout 4 adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r") == 1 ]]; then break; fi
