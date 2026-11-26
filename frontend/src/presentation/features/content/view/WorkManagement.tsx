@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { SERIAL_LOCK_NOTICE, serialEpisodeLocked } from '../../../../domain/entities/aiSerial'
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
-import { worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
+import { initialBuildCompletedOn, worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -98,7 +98,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   // 공개 회차의 진행 배지와 업로드 안내가 같은 최초 구축 조회를 사용한다.
   const build = useManuscriptBuild(w.id, w.worldStudioId, undefined, { enabled: tab === 'read' && !mockup, refreshKey: buildCheck })
   const buildLabel = !mockup && !build.error ? worldBuildBadge(build.job) : null
-  const initialBuildCompleted = !build.error && build.job?.status === 'completed' && build.job.worldId === w.worldStudioId
+  const initialBuildCompleted = !build.error && initialBuildCompletedOn(build.job, w.worldStudioId)
   // 상속 회차가 있으면 '1~2화'처럼 줄여, 그 회차들은 수정할 수 없다고 따로 알린다.
   const inherited = inheritedRangeLabel(w.episodes)
   // 회차별로 갈라진 공개 포크 수(소설 상세와 같은 목록). 불러오는 중이거나 읽지 못하면 undefined라 수를 감춘다(0편으로 채우지 않는다).
