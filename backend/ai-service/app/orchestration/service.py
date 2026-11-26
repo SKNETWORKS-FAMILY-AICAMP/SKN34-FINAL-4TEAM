@@ -365,7 +365,7 @@ def _rewrite(state: State, steps: list[dict], step: dict, answer: dict) -> State
             step['result'] = tools.write(call).model_dump(mode='json')
     except tools.FAILURES as error:
         step.update(status='failed', error=str(error))
-    # 후보 검수는 같은 턴에서 Writing 단계 뒤에 돈 검수다. 첫 실행이 실패해 result가 없어도 찾고, check는 작가 입력에서 읽는다.
+    # 후보 검수는 같은 턴에서 Writing 단계 뒤에 돈 검수다. 첫 실행이 실패해 result가 없어도 찾고, check는 작가 입력, 없으면 직전 검수 결과에서 읽는다.
     reviewed = next((s for s in steps[steps.index(step) + 1:] if s['feature'] == 'manuscript_review'), None)
     check = tools._check(state['inputs'], ((reviewed or {}).get('result') or {}).get('check'))
     if step['status'] == 'completed' and reviewed and check and call.get('base'):
