@@ -9,7 +9,7 @@ from openai import APITimeoutError, APIConnectionError
 from app import tracing
 from app.manuscript_extraction import agent, prompt, service
 from app.manuscript_extraction.errors import PreprocessingFailure
-from app.manuscript_extraction.models import EpisodeText, ProposedResolution
+from app.manuscript_extraction.models import EpisodeText, KnownCharacter, ProposedResolution
 
 from traced import attrs
 
@@ -54,6 +54,14 @@ def test_the_resolve_prompt_leaves_same_names_to_the_program():
     assert '프로그램이 종류와 이름이 같은 대상을 같은 대상으로 묶는다' in prompt.RESOLVE
     assert 'name_only' not in prompt.RESOLVE and 'explicit_coreference' not in prompt.RESOLVE
     assert '호칭 변형' in prompt.RESOLVE and '치삼이' in prompt.RESOLVE  # -이·-아·-야나 조사가 붙은 꼴도 프로그램이 묶으니 다른 사람이면 distinct로 알리게 한다(#839)
+
+
+def test_the_resolve_prompt_explains_the_existing_characters_of_episode_zero():
+    """업데이트(#952): 회차 0은 기존 세계관의 인물이다. 기존 인물과 새 회차 대상을 잇는 링크의 방향·근거·가드를 지시문이 알려 준다."""
+    block = prompt.RESOLVE.split('[기존 세계관의 인물')[1].split('[정체 링크 제출 전 점검]')[0]
+    for needle in ('회차 0', 'aliases', 'left에는 기존 인물', 'explicit_alias', 'uncertain', 'distinct', '같은 사건', '확신이 없으면', '짧은 이름이 긴 이름 밖'):
+        assert needle in block
+    assert 'explicit_coreference' not in prompt.RESOLVE and 'name_only' not in prompt.RESOLVE
 
 
 def test_the_extract_prompt_takes_soul_from_dialogue_and_action_without_a_narrator_description():
@@ -185,6 +193,20 @@ def test_resolve_input_is_compact(monkeypatch):
     assert 'source' not in dumped and 'evidence' not in dumped and lines[1][60] not in dumped  # 인용되지 않은 원문 줄은 가지 않는다
     assert data[0]['mentions'] == [{'ref': '1:m1', 'name': '서하', 'kind': 'character', 'quote': lines[1][0]}]
     assert data[0]['quotes'] == sorted(lines[1][1:31])
+
+
+def test_resolve_sends_the_existing_characters_as_a_bodiless_episode_zero_with_names_only(monkeypatch):
+    """업데이트(#952): 기존 세계관의 인물은 이름·별칭만, 본문·인용 없는 회차 0으로 새 회차 앞에 실린다. 기존 인물이 없으면 입력은 그대로다."""
+    quote = '김치삼은 장터로 나갔다.'
+    monkeypatch.setattr(agent, 'extract', lambda episode: {'mentions': [{'id': 'm1', 'name': '김치삼', 'kind': 'character', 'quote': quote}], 'statements': [], 'relationships': []})
+    extraction = service.extract(EpisodeText(number=2, title='t', body=quote))
+    sent = []
+    monkeypatch.setattr(agent, '_call', lambda name, instructions, data, schema, *, read_timeout: sent.append(data) or ProposedResolution(links=[]))
+    agent.resolve([extraction], [KnownCharacter(ref='0:k1', name='치삼', aliases=['황 노인'])])
+    agent.resolve([extraction])
+    with_known, without = sent
+    assert [row['number'] for row in with_known] == [0, 2] and with_known[1:] == without
+    assert with_known[0] == {'number': 0, 'mentions': [{'ref': '0:k1', 'name': '치삼', 'aliases': ['황 노인'], 'kind': 'character'}], 'quotes': []}
 
 
 def test_the_model_chosen_in_the_prompt_version_is_called(provider, monkeypatch):

@@ -21,7 +21,7 @@ def rejected(status):
     return httpx.HTTPStatusError("rejected", request=request, response=httpx.Response(status, request=request))
 
 
-def content(monkeypatch, failing=None, loading=False, prepared=False, missing=(RAW,)):
+def content(monkeypatch, failing=None, loading=False, prepared=False, missing=(RAW,), known=None):
     """Content 대역. 호출을 (action, data)로 모으고, failing={action: 예외 또는 data→예외·None}인 호출은 그 예외를 던진다."""
     calls = []
     def callback(job, action, data):
@@ -33,7 +33,7 @@ def content(monkeypatch, failing=None, loading=False, prepared=False, missing=(R
         if action == "claim":
             return {"claimed": True, "loading": loading, "token": "lease", "missing": list(missing)}
         if action == "structure-input":
-            return {"prepared": prepared, "results": []}
+            return {"prepared": prepared, "results": [], **({"knownCharacters": known} if known else {})}
         return {}
     monkeypatch.setattr(worker, "callback", callback)
     return calls
@@ -112,6 +112,16 @@ def test_extracts_four_at_a_time_and_saves_results_before_finishing(monkeypatch,
     extractions = named(spans, "test.extract")
     assert len(extractions) == len(raws)
     assert all(span.parent == root.context for span in extractions)
+
+
+def test_the_existing_characters_of_an_update_reach_resolve_and_organize_and_an_initial_build_is_called_without_them(monkeypatch):
+    known = [{"ref": "0:k1", "name": "치삼", "aliases": []}]
+    content(monkeypatch, known=known)
+    seen = []
+    model(monkeypatch, resolve=lambda rows, known: seen.append(("resolve", known)) or dumped({"identity": True}),
+          organize=lambda identity, rows, known: seen.append(("organize", known)) or dumped({"payload": True}))
+    worker.run(REQUEST)
+    assert seen == [("resolve", known), ("organize", known)]
 
 
 def test_a_prepared_structure_skips_the_model_and_goes_to_load(monkeypatch):

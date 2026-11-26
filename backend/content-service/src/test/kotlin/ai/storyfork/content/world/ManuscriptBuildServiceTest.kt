@@ -275,6 +275,21 @@ class ManuscriptBuildServiceTest {
         assertNull(job.basis)
         verifyNoInteractions(studio)
     }
+    @Test fun `an update job's structure input carries the existing characters' names and aliases only and an initial job's carries none`() {
+        val high=CardPayload(UUID.fromString("00000000-0000-0000-0000-00000000000b"),"치삼","카드본문-기밀","character","basic",aliases=listOf("황 노인","치삼"),semanticMetadata=mapOf("note" to "메모-기밀"))
+        val low=CardPayload(UUID.fromString("00000000-0000-0000-0000-00000000000a"),"영희","원본","character","basic")
+        val basis=emptyDraft.copy(cards=listOf(high,CardPayload(UUID.randomUUID(),"장터","원본","location","space"),
+            CardPayload(UUID.randomUUID(),"옛 인물","원본","character","basic",lifecycle="removed"),low))
+        val token=UUID.randomUUID();val update=job("running",token,"update",basis);val initial=job("running",token)
+        listOf(update,initial).forEach { job -> `when`(resultStore.read(job.id,owner)).thenReturn(extractions.mapIndexed { i,node -> ManuscriptExtractionVerifier.verify(sources[i],node,mapper) }) }
+
+        val input=service.structureInput(update.id,token)
+
+        assertEquals(listOf(mapOf("ref" to "0:k1","name" to "영희","aliases" to emptyList<String>()),mapOf("ref" to "0:k2","name" to "치삼","aliases" to listOf("황 노인"))),input["knownCharacters"],
+            "활성 인물 카드의 제목·별칭만, 카드 id 순이다")
+        assertFalse(input["knownCharacters"].toString().contains("기밀"),"카드 본문·메타데이터는 AI로 보내지 않는다")
+        assertFalse(service.structureInput(initial.id,token).containsKey("knownCharacters"))
+    }
     @Test fun `an update job loads against the basis fixed at claim and fails as WORLD_CHANGED when the world moved`() {
         val (job,token)=readyToLoad("update")
         val basis=ArgumentCaptor.forClass(WorldDraftResponse::class.java)

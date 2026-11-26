@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from app.manuscript_extraction import agent
 from app.manuscript_extraction.errors import PreprocessingFailure
 from app.manuscript_extraction.models import (DOC_LIMIT, Card, CharacterDocs, EpisodeExtraction, EpisodeText, Evidence, ExtractedRelation,
-    IdentityCandidate, IdentityDecision, IdentityLink, IdentityResolution, LoadPayload, ProposedExtraction, ProposedRelation,
+    IdentityCandidate, IdentityDecision, IdentityLink, IdentityResolution, KnownCharacter, LoadPayload, ProposedExtraction, ProposedRelation,
     ProposedResolution, Relation)
 
 # 카드 본문·문서의 줄은 '<표지> <인용>'이다. 표지와 사건 카드 제목은 Content ManuscriptStructureVerifier와 글자까지 같아야 한다.
@@ -171,8 +171,29 @@ def _key(ref):
     return 'entity-' + str(uuid5(NAMESPACE_URL, 'storyfork:manuscript:' + ref))
 
 
-def _resolution(rows, proposed):
+# 업데이트에서 새 회차의 인물을 기존 인물과 잇는 링크의 basis(같은 인물·작가 확인·다른 인물). 병합 여부는 Content가 정한다(#952).
+_KNOWN_BASES = ('explicit_alias', 'explicit_coreference', 'uncertain', 'distinct')
+
+
+def _known_links(mentions, refs, links):
+    """모델이 기존 인물과 이은 링크에서 구조(기존 인물 ref가 left, 새 회차의 인물 대상이 right, 쓰는 basis)가 맞는 것만, 같은 쌍은 먼저 온 것만 남긴다.
+    근거 인용 검증과 병합은 Content가 한다. (남긴 링크, 구조가 어긋나 버린 수)."""
+    kept, dropped = {}, 0
+    for link in links:
+        if link.left in refs and link.right in mentions and mentions[link.right].kind == 'character' and link.basis in _KNOWN_BASES:
+            kept.setdefault((link.left, link.right), link)
+        else:
+            dropped += 1
+    return list(kept.values()), dropped
+
+
+def _resolution(rows, proposed, known=()):
     mentions = {f'{n}:{m.id}': m for n, row in rows.items() for m in row.mentions}
+    refs = {k.ref for k in known}
+    known_links, others = [], []
+    for link in proposed.links:
+        (known_links if link.left in refs or link.right in refs else others).append(link)
+    known_links, dropped = _known_links(mentions, refs, known_links)
     parent = {ref: ref for ref in mentions}
     episode = lambda ref: int(ref.split(':')[0])  # noqa: E731
     def root(ref):
@@ -188,8 +209,8 @@ def _resolution(rows, proposed):
                 and _quote_start(rows[link.evidenceEpisode].source, link.quote) >= 0
                 and left.name in link.quote and right.name in link.quote and left.kind == right.kind
                 and (link.basis != 'same_name' or left.name == right.name))
-    links = sorted((link for link in proposed.links if sound(link)), key=lambda l: (l.confirmedAt, min(l.left, l.right), max(l.left, l.right)))
-    skipped_links = len(proposed.links) - len(links)
+    links = sorted((link for link in others if sound(link)), key=lambda l: (l.confirmedAt, min(l.left, l.right), max(l.left, l.right)))
+    skipped_links = len(others) - len(links) + dropped
     distinct = [frozenset((l.left, l.right)) for l in links if l.basis == 'distinct']
     decisions = []
     pairs = set()
@@ -240,24 +261,32 @@ def _resolution(rows, proposed):
             break
     decisions.sort(key=lambda d: (d.link.confirmedAt, min(d.link.left, d.link.right), max(d.link.left, d.link.right)))
     return IdentityResolution(inputHashes={n: _hash(json.dumps(row.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':'))) for n, row in rows.items()},
-                              mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions, skippedLinks=skipped_links)
+                              mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions, skippedLinks=skipped_links, knownLinks=known_links)
 
 
-def resolve(extractions: dict[int, object]) -> IdentityResolution:
-    """같은 종류·같은 이름은 기본으로 병합하고, 모델이 알린 동명이인·별칭 링크를 근거가 맞는 것만 적용한다. key는 정렬된 회차-local ID에서 결정한다."""
+def _known(known):
+    return [KnownCharacter.model_validate(k) for k in known or ()]
+
+
+def resolve(extractions: dict[int, object], known: list[dict] | None = None) -> IdentityResolution:
+    """같은 종류·같은 이름은 기본으로 병합하고, 모델이 알린 동명이인·별칭 링크를 근거가 맞는 것만 적용한다. key는 정렬된 회차-local ID에서 결정한다.
+
+    업데이트 작업은 known(기존 세계관 인물의 이름·별칭)도 같은 호출에 실어 새 회차의 인물과 이은 링크를 받는다(#952). 없으면 호출 모양이 이전과 같다.
+    """
     try:
-        rows = _inputs(extractions)
-        return _resolution(rows, ProposedResolution.model_validate(agent.resolve(list(rows.values()))))
+        rows, known = _inputs(extractions), _known(known)
+        proposed = agent.resolve(list(rows.values()), known) if known else agent.resolve(list(rows.values()))
+        return _resolution(rows, ProposedResolution.model_validate(proposed), known)
     except (ValidationError, ValueError, TypeError, KeyError):
         raise PreprocessingFailure('INVALID_IDENTITY_OUTPUT') from None
 
 
-def organize(identities: object, extractions: dict[int, object]) -> LoadPayload:
+def organize(identities: object, extractions: dict[int, object], known: list[dict] | None = None) -> LoadPayload:
     """검증 결과만 결정적으로 구성한다. 추가 LLM·원문 재조회·정본 UUID 발급은 없다."""
     try:
-        rows = _inputs(extractions)
+        rows, known = _inputs(extractions), _known(known)
         identity = IdentityResolution.model_validate(identities)
-        checked = _resolution(rows, ProposedResolution(links=[d.link for d in identity.decisions]))
+        checked = _resolution(rows, ProposedResolution(links=[d.link for d in identity.decisions] + identity.knownLinks), known)
         # 제외한 링크는 결정 목록에 없으므로 재구성 검증에서 건수만 비교하지 않는다.
         _require(identity == checked.model_copy(update={'skippedLinks': identity.skippedLinks}), 'IDENTITY_INPUT_MISMATCH')
         return _organize(identity, rows)

@@ -8,13 +8,22 @@ import java.util.UUID
  * [build]의 update는 발행 회차를 세계관 초안에 더하는 작업(2026-11-22)이며 이때만 기존 카드와 [match]로 맞춘다: 같은 대상이면 인물 기억만 더하고 그 밖은 새 카드다.
  */
 object ManuscriptBuildMapper {
+    /** 업데이트가 AI에 보내고 AI 결정([KnownMatch])을 잇는 기존 활성 인물 카드다. 순서는 카드 id 순이라 AI에 준 ref("0:k1"부터)로 다시 찾는다(#952). */
+    internal fun knownCharacters(draft:WorldDraftResponse):List<CardPayload> =
+        draft.cards.filter { it.lifecycle=="active" && it.cardType=="character" }.sortedBy { it.id.toString() }
+
+    /** 카드의 이름(제목·별칭)을 trim해 모은 집합이다. 글자 맞춤과 AI 요청·검증이 같은 이름을 쓴다. */
+    internal fun names(title:String,aliases:List<String>)=(listOf(title)+aliases).map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
     fun build(job:UUID,draft:WorldDraftResponse,payload:ManuscriptLoadPayload,
-        evidence:Map<String,List<Map<String,Any?>>>,sources:List<ManuscriptEpisodeResult> = emptyList(),update:Boolean=false):List<EditWorldDraftRequest> {
+        evidence:Map<String,List<Map<String,Any?>>>,sources:List<ManuscriptEpisodeResult> = emptyList(),update:Boolean=false,
+        /** 업데이트에서 Content가 검증한 AI 결정(요청 카드 key별, [ManuscriptStructureVerifier.knownMatches]). 글자 맞춤이 못 맞춘 인물 요청 카드에만 쓴다(#952). */
+        known:Map<String,KnownMatch> = emptyMap()):List<EditWorldDraftRequest> {
         require(update || (draft.cards.isEmpty() && draft.relationships.isEmpty())) { "기존 설정과의 정체 확인이 필요합니다." }
         require(payload.cards.isNotEmpty() && payload.cards.size<=1000)
         require(payload.cards.map { it.key }.distinct().size==payload.cards.size)
         fun id(key:String)=UUID.nameUUIDFromBytes("manuscript:$job:$key".toByteArray(Charsets.UTF_8))
-        val matching=if(update) match(draft,payload.cards) else Matching(emptyMap(),emptySet())
+        val matching=if(update) match(draft,payload.cards,known) else Matching(emptyMap(),emptySet())
         val ids=payload.cards.associate { it.key to (matching.existing[it.key]?.id ?: id("card:${it.key}")) }
         fun metadata(key:String,id:UUID,title:String,text:String,kind:String,area:String,type:String?,first:Int,
             source:UUID?=null,target:UUID?=null,aliases:List<String> = emptyList(),review:Boolean=false):Map<String,Any?> {
@@ -84,18 +93,27 @@ object ManuscriptBuildMapper {
 
     /**
      * 종류가 같고 이름(제목·별칭)이 하나라도 같은 활성 카드가 **정확히 하나**일 때만 같은 대상이다(사건 카드는 늘 새 카드).
-     * 둘 이상이거나 한 기존 카드를 요청 카드 여럿이 노리면 자동으로 합치지 않고 새 카드로 더하며 확인 필요로 표시한다.
+     * 이름이 같은 카드가 없는 요청 카드만 호칭 변형(치삼·치삼이)도 같은 이름으로 본다(#848): 최초 구축의 같은 이름 병합(#839)과 같은 [ManuscriptStructureVerifier.nameKey]다.
+     * 글자 맞춤이 못 맞춘 요청 카드만 세 번째로 Content가 검증한 AI 결정([known])을 본다(#952): 맞춘 인물이 있으면 그 카드, 확신 없음(index=null)이면 새 카드 + 확인 필요다.
+     * 둘 이상(변형 후보 포함)이거나 한 기존 카드를 요청 카드 여럿이 노리면 자동으로 합치지 않고 새 카드로 더하며 확인 필요로 표시한다.
+     * 단 이름이 같은 요청 카드끼리만 겨루고, 변형·AI로 노리는 요청 카드는 같은 카드를 후보로 보는 다른 요청 카드가 있으면 물러난다(같은 회차의 '치삼'과 '치삼이'는 AI가 일부러 가른 것이다).
      */
-    private fun match(draft:WorldDraftResponse,cards:List<ManuscriptCard>):Matching {
-        fun names(title:String,aliases:List<String>)=(listOf(title)+aliases).map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    private fun match(draft:WorldDraftResponse,cards:List<ManuscriptCard>,known:Map<String,KnownMatch>):Matching {
         val active=draft.cards.filter { it.lifecycle=="active" }
-        val found=cards.filter { it.cardType!="event" }.associate { c ->
-            val wanted=names(c.title,c.aliases)
-            c.key to active.filter { it.cardType==c.cardType && names(it.title,it.aliases).any(wanted::contains) }
+        val characters=knownCharacters(draft)
+        fun candidates(c:ManuscriptCard,normalize:(String)->String):List<CardPayload> {
+            val wanted=names(c.title,c.aliases).map(normalize)
+            return active.filter { it.cardType==c.cardType && names(it.title,it.aliases).any { name -> normalize(name) in wanted } }
         }
-        val claimed=found.values.mapNotNull { it.singleOrNull()?.id }.groupingBy { it }.eachCount()
-        val unique=found.filter { (_,hits)->hits.size==1 && claimed.getValue(hits.single().id)==1 }
-        return Matching(unique.mapValues { it.value.single() },found.filter { it.key !in unique && it.value.isNotEmpty() }.keys)
+        val requests=cards.filter { it.cardType!="event" }
+        val exact=requests.associate { it.key to candidates(it) { name -> name } }
+        val found=requests.associate { it.key to exact.getValue(it.key).ifEmpty { candidates(it,ManuscriptStructureVerifier::nameKey) }
+            .ifEmpty { known[it.key]?.index?.let { index -> listOf(characters[index]) }.orEmpty() } }
+        val claimed=exact.values.mapNotNull { it.singleOrNull()?.id }.groupingBy { it }.eachCount()
+        val seen=found.values.flatten().groupingBy { it.id }.eachCount()
+        val unique=found.filter { (key,hits)->hits.size==1 && (if(exact.getValue(key).isEmpty()) seen else claimed).getValue(hits.single().id)==1 }
+        val unsure=known.keys.filter { found[it]?.isEmpty()==true }
+        return Matching(unique.mapValues { it.value.single() },found.filter { it.key !in unique && it.value.isNotEmpty() }.keys+unsure)
     }
 
     /**
