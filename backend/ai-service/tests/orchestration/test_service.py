@@ -1401,6 +1401,22 @@ def test_the_author_answers_a_clarify_in_the_next_chat_message(monkeypatch):
     assert [c[1][:2] for c in calls if c[0] == 'sim_plan'] == [('카엘과 리나로 해 줘', ['장면 시뮬레이션'])]  # 앞 요청이 history로 간다
 
 
+def test_the_simulation_plan_history_counts_the_last_five_turns_without_the_ones_the_guard_rejected(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청1', '요청2')
+    fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
+    chat(thread, request='내 키는 sk-비밀')
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+    assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).status == 'clarify'
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, '요청5', '요청6')
+    calls = fake_agents(monkeypatch, plan('character_simulation'))
+    fake_scene(monkeypatch)
+    write_turn(thread, request='카엘과 리나로 해 줘', scope=SCOPE, target=TARGET)
+    assert [c[1][1] for c in calls if c[0] == 'sim_plan'] == [['요청1', '요청2', '장면 시뮬레이션', '요청5', '요청6']]  # 막은 원문(sk-비밀)은 계획 모델에 다시 가지 않고(#887) 거절 턴을 뺀 최근 5턴이다. 되묻기 턴 요청은 남는다
+
+
 def test_planning_failure_fails_the_step_without_running_anything(monkeypatch):
     message = '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.'
     calls = fake_agents(monkeypatch, plan('character_simulation', 'research'), fail={'sim_plan': SimulationFailure(409, message)})
@@ -2936,13 +2952,15 @@ def test_the_main_agent_gets_the_last_five_turns_without_the_rejected_ones(monke
     chats(thread, '요청1')
     fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
     chat(thread, request='내 키는 sk-비밀')
+    fake_agents(monkeypatch, plan(status='clarify'))
+    assert chat(thread, request='요청3').status == 'clarify'
     calls = fake_agents(monkeypatch, plan('story_context'))
-    chats(thread, '요청3', '요청4', '요청5', '요청6')
+    chats(thread, '요청4', '요청5', '요청6')
     calls.main.clear()
     chats(thread, '요청7')
     sent = [m for m in calls.main[0]['messages'] if isinstance(m, (HumanMessage, AIMessage))]
     asked = [m.text for m in sent if isinstance(m, HumanMessage) and not m.text.startswith(prompt.SUMMARY_HEADER)]
-    assert asked == ['요청1', '요청3', '요청4', '요청5', '요청6', '요청7']  # 거절 턴을 빼고 5턴을 센다
+    assert asked == ['요청1', '요청3', '요청4', '요청5', '요청6', '요청7']  # 거절 턴을 빼고 5턴을 센다. 되묻기(clarify) 턴 요청3은 남는다
     assert 'sk-비밀' not in str([m.text for m in sent])
 
 
