@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
@@ -9,11 +9,12 @@ import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
-import { Sheet } from '../../../shared/Sheet'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
 import { useInheritedWorld } from '../viewmodel/useInheritedWorld'
+import { useWorldReleaseCheck } from '../viewmodel/useWorldReleaseCheck'
 import type { WorldRelease } from '../viewmodel/unlinkWorld'
+import { WorldReleaseWarning } from './WorldReleaseWarning'
 
 type Props = {
   work: Pick<Work, 'id' | 'worldStudioId' | 'source'>
@@ -54,14 +55,11 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
   const { data: mine, isLoading, isError, retry } = useAsyncData((signal) => worlds.list(signal), [worlds])
   const [picked, setPicked] = useState('')
   const [query, setQuery] = useState('')
-  const [warning, setWarning] = useState<{ world?: StudioWorld } | null>(null) // 연결 해제 경고 대화 상자: 해제 직전에 다시 읽은 세계관을 들고 있다(읽지 못했거나 목록에 없으면 비어 있다)
-  const [checking, setChecking] = useState(false) // 해제 직전에 공개 여부를 다시 읽는 중
-  const check = useRef<AbortController | null>(null)
   const title = useRef<HTMLHeadingElement>(null)
-  useEffect(() => () => check.current?.abort(), []) // 화면을 떠나면 다시 읽기를 취소한다
   const hint = useId()
   const group = useId()
   const linked = work.worldStudioId
+  const { warning, checking, check, close } = useWorldReleaseCheck(linked, worlds)
   const linkedWorld = mine?.find((w) => w.id === linked)
   // 목록을 읽은 뒤 이 소설에서 연결을 푼 세계관은 목록에 아직 이 소설로 적혀 있으므로 함께 고를 수 있게 둔다.
   const options = mine?.filter((w) => !w.linkedWorkId || w.linkedWorkId === work.id) ?? []
@@ -74,22 +72,12 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
   }
   // 경고 없이 해제할 때는 옵션 없이 보낸다(호출 쪽이 기존 확인을 묻는다). 대화 상자를 거쳤으면 옵션을 함께 보내 다시 묻지 않게 한다.
   const release = (options?: WorldRelease) => {
-    setPicked(''); setQuery(''); setWarning(null)
+    setPicked(''); setQuery(''); close()
     // 해제하면 초점이 있던 버튼이 사라지므로 성공했을 때 연결 구역의 제목으로 옮긴다(아니면 초점이 문서 처음으로 떨어진다).
     void (options ? onLink(null, options) : onLink(null)).then((ok) => { if (ok) title.current?.focus() })
   }
   // 해제를 누르면 그때 세계관 목록을 한 번 다시 읽어 최신 공개 여부로 정한다: 비공개면 바로 해제(기존 확인), 공개면 비공개 선택지가 있는 경고, 읽지 못했거나 목록에 없으면 공개 여부를 모르는 경고.
   // 읽는 동안 버튼은 disabled가 아니라 aria-disabled로 잠근다: disabled가 되면 초점을 잃어 경고 상자를 닫은 뒤 돌아갈 곳이 없다.
-  const askRelease = async () => {
-    check.current?.abort()
-    const request = (check.current = new AbortController())
-    setChecking(true)
-    const fresh = await worlds.list(request.signal).then((rows) => rows.find((w) => w.id === linked), () => undefined)
-    if (request.signal.aborted) return
-    setChecking(false)
-    if (fresh && fresh.visibility !== 'public') release()
-    else setWarning({ world: fresh })
-  }
   const detach = async () => {
     const id = await onDetach()
     if (id) navigate('/worldstudio/' + id)
@@ -105,7 +93,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
             <>
               <p>연결된 세계관: <Go to={`/worldstudio/${linked}`}>{linkedWorld?.name ?? '세계관 열기'}</Go></p>
               <div className='ep-card-actions'>
-                <button type='button' className='btn sm' disabled={busy || isLoading} aria-disabled={checking || undefined} onClick={() => { if (!checking) void askRelease() }}>연결 해제</button>
+                <button type='button' className='btn sm' disabled={busy || isLoading} aria-disabled={checking || undefined} onClick={() => void check(release)}>연결 해제</button>
               </div>
             </>
           )
@@ -142,7 +130,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
                 <div className='ep-card-actions'><Go to='/worldstudio' className='btn sm'>세계관 만들기</Go></div>
               </>
             ))}
-        {warning && <PublicUnlinkWarning known={!!warning.world} onPrivate={() => release({ makePrivate: { genre: warning.world?.genre ?? null } })} onKeep={() => release({})} onCancel={() => setWarning(null)} />}
+        {warning && <WorldReleaseWarning known={!!warning.world} onPrivate={() => release({ makePrivate: { genre: warning.world?.genre ?? null } })} onKeep={() => release({})} onCancel={close} />}
         {error && <p className='ep-alert' role='alert'>{error}</p>}
         {notice && <p role='status'>{notice}</p>}
         {isError
@@ -157,28 +145,6 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
           : isLoading && <p role='status'>내 세계관을 불러오고 있어요…</p>}
       </section>
     </>
-  )
-}
-
-const UNLINK_TITLE = '세계관 연결을 해제할까요?'
-
-/**
- * 공개 세계관의 연결 해제 경고 대화 상자(결정 4, 공용 `Sheet`의 `alertdialog`): 해제하면 작가 전용이던 설정 카드까지 모든 설정이 독자에게 공개된다고 알리고
- * `세계관을 비공개로 바꾸고 해제`(처음 초점)·`공개 그대로 해제`·`취소`를 고르게 한다. 처음 초점이 안전한 쪽(비공개)이라 Enter를 눌러도 공개된 채 해제되지 않는다.
- * 공개 여부를 모르는 때([known] false: 목록을 읽지 못했거나 목록에 없다)는 공개일 수 있다고 알리고 비공개 선택지 없이 `공개 그대로 해제`·`취소`만 두며 처음 초점은 `취소`다.
- */
-function PublicUnlinkWarning({ known, onPrivate, onKeep, onCancel }: { known: boolean; onPrivate: () => void; onKeep: () => void; onCancel: () => void }) {
-  const message = useId()
-  return (
-    <Sheet sid='U21' label={UNLINK_TITLE} role='alertdialog' describedBy={message} onClose={onCancel}>
-      <h3>{UNLINK_TITLE}</h3>
-      <p id={message}>{known ? '이 세계관은 공개 상태예요. 연결을 해제하면 작가 전용이던 설정 카드까지 모든 설정이 독자에게 공개돼요.' : '이 세계관의 공개 여부를 확인하지 못했어요. 공개 세계관이라면 연결을 해제할 때 작가 전용이던 설정 카드까지 모든 설정이 독자에게 공개돼요.'}</p>
-      <div className='rowend'>
-        {known && <button type='button' className='btn pri' data-autofocus='' onClick={onPrivate}>세계관을 비공개로 바꾸고 해제</button>}
-        <button type='button' className='btn' onClick={onKeep}>공개 그대로 해제</button>
-        <button type='button' className='btn' data-autofocus={known ? undefined : ''} onClick={onCancel}>취소</button>
-      </div>
-    </Sheet>
   )
 }
 

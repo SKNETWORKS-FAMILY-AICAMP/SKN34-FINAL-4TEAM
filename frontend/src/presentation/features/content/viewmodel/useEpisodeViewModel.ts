@@ -6,7 +6,13 @@ import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecase
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 import { privateThenUnlink, type WorldRelease } from './unlinkWorld'
 
-type Origin = '' | 'create' | 'fork' | 'link' | 'detach' | 'history'
+type Origin = '' | 'create' | 'fork' | 'link' | 'detach' | 'history' | 'delete'
+
+export function workDeletePrompt(work: Work) {
+  return work.source
+    ? { title: `「${work.title}」 포크를 삭제할까요?`, description: '서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.' }
+    : { title: `「${work.title}」 작품을 삭제할까요?`, description: '서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.' }
+}
 
 /**
  * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단)·작품 삭제(원작·포크)·분기 만들기·세계관 연결·이력 조회.
@@ -241,13 +247,27 @@ export function useEpisodeViewModel(
       })
     },
     /** 원작과 포크를 소프트 삭제한다. 성공하면 true를 반환해 화면이 서재로 이동하므로 성공 안내는 따로 두지 않는다. */
-    deleteWork: () => {
-      if (!active) return Promise.resolve(false)
-      const message = active.source
-        ? `「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`
-        : `「${active.title}」 작품을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.`
-      if (!window.confirm(message)) return Promise.resolve(false)
-      return run(() => useCase.deleteWork(active.id))
+    deleteWork: async (release?: WorldRelease) => {
+      if (!active || inFlight.current) return false
+      const { title, description } = workDeletePrompt(active)
+      if (!release && !window.confirm(`${title} ${description}`)) return false
+      const makePrivate = release?.makePrivate
+      if (!makePrivate) return run(() => useCase.deleteWork(active.id), 'delete')
+      const controller = new AbortController()
+      request.current = controller // 화면을 떠나면 목록 효과 정리가 이 요청도 취소한다
+      const ok = await run(async () => {
+        if (!active.worldStudioId) throw new Error('연결된 세계관을 다시 확인해 주세요.')
+        await worlds.setPublication(active.worldStudioId, { visibility: 'private', genre: makePrivate.genre }, controller.signal)
+        if (controller.signal.aborted) return
+        try {
+          await useCase.deleteWork(active.id, controller.signal)
+        } catch (error) {
+          if (controller.signal.aborted) return
+          const detail = error instanceof Error ? ` ${error.message}` : ''
+          throw new Error(`세계관은 비공개로 바뀌었지만 작품을 삭제하지 못했어요.${detail}`)
+        }
+      }, 'delete')
+      return ok && !controller.signal.aborted
     },
   }
 }

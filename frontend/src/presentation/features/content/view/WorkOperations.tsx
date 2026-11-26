@@ -60,13 +60,15 @@ export function WorkPolicy({ work: w, locked, editing, onEditingChange, onSave }
  * 운영 설정 탭의 포크 정보 카드(분기 작품): 분기 기준·방향과 한 줄 동작 영역(왼쪽 원작으로 가기(보조), 공개 중일 때만 공개 중단, 오른쪽 끝 위험 외곽선 삭제).
  * 공개 중단은 작품을 다시 읽어 revision이 오르고 편집 폼이 새로 시작하므로, 편집 중에는(blocked) 잠가 저장하지 않은 입력이 사라지지 않게 한다. 삭제도 같다.
  */
-export function ForkInfo({ source, isPublic, blocked, onStopFork, onDeleteWork }: {
+export function ForkInfo({ source, isPublic, blocked, onStopFork, onDeleteWork, checkingDelete, deleteError }: {
   source: NonNullable<Work['source']>
   /** 공개 중일 때만 '포크 공개 중단'이 있다. */
   isPublic: boolean
   blocked: boolean
   onStopFork: () => Promise<boolean>
-  onDeleteWork: () => Promise<boolean>
+  onDeleteWork: () => void
+  checkingDelete: boolean
+  deleteError: string
 }) {
   return (
     <section className='tcard ep-card' aria-labelledby='ep-fork-title'>
@@ -90,24 +92,28 @@ export function ForkInfo({ source, isPublic, blocked, onStopFork, onDeleteWork }
           ? <p className='small muted'>삭제된 원작이라 이동할 수 없어요.</p>
           : <Go to={`/work/${source.workId}`} className='btn sm'>원작으로 가기</Go>}
         {isPublic && <button type='button' className='btn sm' disabled={blocked} onClick={() => void onStopFork()}>포크 공개 중단</button>}
-        <button type='button' className='btn sm ep-danger' disabled={blocked} onClick={() => void onDeleteWork()}>포크 삭제</button>
+        <button type='button' className='btn sm ep-danger' disabled={blocked} aria-disabled={checkingDelete || undefined} onClick={onDeleteWork}>포크 삭제</button>
       </div>
+      {checkingDelete && <p role='status'>연결된 세계관의 공개 여부를 확인하고 있어요…</p>}
+      {deleteError && <p className='ep-alert' role='alert'>{deleteError}</p>}
     </section>
   )
 }
 
 /**
  * 운영 설정 탭 맨 아래의 위험 구역(원작): 작품 전체를 지우는 동작은 분기 정책과 섞지 않고 따로 둔다. 편집 중에는(blocked) 잠가 저장하지 않은 입력을 잃지 않게 한다.
- * 확인 절차는 호출 측(useEpisodeViewModel.deleteWork)이 맡는다.
+ * 확인 절차는 호출 측이 맡는다.
  */
-export function WorkDelete({ blocked, onDelete }: { blocked: boolean; onDelete: () => Promise<boolean> }) {
+export function WorkDelete({ blocked, onDelete, checking, error }: { blocked: boolean; onDelete: () => void; checking: boolean; error: string }) {
   return (
     <section className='ep-delete' aria-labelledby='ep-delete-title'>
       <div className='ep-sec-head'>
         <h3 id='ep-delete-title'>작품 삭제</h3>
-        <button type='button' className='btn sm ep-danger' disabled={blocked} onClick={() => void onDelete()}>작품 삭제</button>
+        <button type='button' className='btn sm ep-danger' disabled={blocked} aria-disabled={checking || undefined} onClick={onDelete}>작품 삭제</button>
       </div>
       <p className='small muted'>서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.</p>
+      {checking && <p role='status'>연결된 세계관의 공개 여부를 확인하고 있어요…</p>}
+      {error && <p className='ep-alert' role='alert'>{error}</p>}
     </section>
   )
 }

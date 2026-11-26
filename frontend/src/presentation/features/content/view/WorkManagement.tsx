@@ -15,8 +15,10 @@ import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
 import { MyCommentsReports } from '../../library/view/MyCommentsReports'
 import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
 import { useEpisodeForkCounts } from '../viewmodel/useEpisodeForkCounts'
-import type { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
+import { workDeletePrompt, type useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import { useManuscriptBuild } from '../viewmodel/useManuscriptBuild'
+import type { WorldRelease } from '../viewmodel/unlinkWorld'
+import { useWorldReleaseCheck } from '../viewmodel/useWorldReleaseCheck'
 import { ContextPreview } from './ContextPreview'
 import { AiSerialPanel } from './AiSerialPanel'
 import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
@@ -28,6 +30,7 @@ import { WorkOverview, type WorkEditing } from './WorkOverview'
 import { WorkBrief } from './WorkBrief'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
+import { WorldReleaseWarning } from './WorldReleaseWarning'
 
 type Props = {
   vm: ReturnType<typeof useEpisodeViewModel>
@@ -56,6 +59,7 @@ type Props = {
  */
 export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onDeleted, menuOpen, onMenuOpenChange, notices, serialLocked = false, onSerialSaved }: Props) {
   const [tab, setTab] = useState<'overview' | 'read' | 'fork' | 'serial' | 'history' | 'world' | 'feedback' | 'reports' | 'settings'>(initialTab ?? 'overview')
+  const { check: checkDelete, checking: checkingDelete, warning: deleteWarning, close: closeDelete } = useWorldReleaseCheck(tab === 'settings' ? w.worldStudioId : null)
   // 한 번에 한 영역만 편집한다: 히어로의 작품 정보·표지와 운영 설정 탭의 분기 정책이 이 상태를 나눠 쓴다.
   const [editing, setEditing] = useState<WorkEditing>(null)
   const [mediaBusy, setMediaBusy] = useState(false)
@@ -89,11 +93,13 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   const blocked = locked || editing !== null
   // 세계관·설정집 탭으로 옮긴다. 메뉴를 누른 것과 같이 탭 내용 머리로 스크롤하고(아래 effect), 원고로 세계관 만들기 버튼과 운영 설정의 AI 자율 집필 경고가 함께 쓴다.
   const openWorld = () => { picked.current = true; setTab('world') }
-  const deleteWork = async () => {
-    const deleted = await vm.deleteWork()
+  const deleteWork = async (release?: WorldRelease) => {
+    closeDelete()
+    const deleted = await (release ? vm.deleteWork(release) : vm.deleteWork())
     if (deleted) onDeleted()
-    return deleted
   }
+  const askDelete = () => void checkDelete(() => void deleteWork())
+  const deleteError = vm.origin === 'delete' ? vm.error : ''
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다(InboxPage와 같다). 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
   // 상속 회차가 있으면 '1~2화'처럼 줄여, 그 회차들은 수정할 수 없다고 따로 알린다.
@@ -180,13 +186,22 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
               {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} />}
               {w.source
-                ? <ForkInfo source={w.source} isPublic={w.visibility === 'public'} blocked={blocked} onStopFork={vm.stopFork} onDeleteWork={deleteWork} />
+                ? <ForkInfo source={w.source} isPublic={w.visibility === 'public'} blocked={blocked} onStopFork={vm.stopFork} onDeleteWork={askDelete} checkingDelete={checkingDelete} deleteError={deleteError} />
                 : (
                   <>
                     <WorkPolicy work={w} locked={locked} editing={editing} onEditingChange={setEditing} onSave={vm.policy} />
-                    <WorkDelete blocked={blocked} onDelete={deleteWork} />
+                    <WorkDelete blocked={blocked} onDelete={askDelete} checking={checkingDelete} error={deleteError} />
                   </>
                 )}
+              {deleteWarning && (
+                <WorldReleaseWarning
+                  known={!!deleteWarning.world}
+                  deletion={workDeletePrompt(w)}
+                  onPrivate={() => void deleteWork({ makePrivate: { genre: deleteWarning.world?.genre ?? null } })}
+                  onKeep={() => void deleteWork({})}
+                  onCancel={closeDelete}
+                />
+              )}
             </div>
           )}
           {tab === 'world' && (
