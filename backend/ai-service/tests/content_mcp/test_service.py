@@ -278,10 +278,81 @@ def test_apply_world_applies_several_cells_of_one_card_to_one_payload_without_ch
     assert sent_card(calls)['semanticMetadata']['studio']['item']['text'] == '새 IDENTITY'  # 본문과 함께 고친 글도 화면의 사본이 따라간다
 
 
-def test_apply_world_makes_a_fresh_request_key_per_call(monkeypatch):
+def test_apply_world_derives_the_request_key_from_the_input_so_the_same_input_repeats_the_key(monkeypatch):
     _, first = edited(monkeypatch, [fix_of()])
-    _, second = edited(monkeypatch, [fix_of()])
-    assert first[1][3]['request']['key'] != second[1][3]['request']['key']
+    _, same = edited(monkeypatch, [fix_of()])
+    _, other = edited(monkeypatch, [fix_of(text='다른 글')])
+    key = lambda calls: calls[1][3]['request']['key']
+    assert key(first) == key(same) != key(other) and len(key(first)) == 32
+
+
+def flaky_edit(monkeypatch, *replies, call_world=lambda: service.apply_world(WORLD_ID, 7, [fix_of()])):
+    """edit_draft가 replies를 차례로 돌려주는 Content 대역. 요청 키 기록과 호출 결과(또는 오류)를 돌려준다."""
+    content(monkeypatch, {'world_studio_read': world_read()})
+    keys, answers = [], list(replies)
+
+    async def request(url, auth, tool, arguments):
+        if tool == 'world_studio_read':
+            return world_read()
+        keys.append(arguments['request']['key'])
+        return answers.pop(0)
+
+    monkeypatch.setattr(service, '_request', request)
+    return keys, call_world
+
+
+def test_apply_world_retries_a_transient_edit_failure_once_with_the_same_key(monkeypatch):
+    keys, run = flaky_edit(monkeypatch, (True, 'HTTP 503 WORLD_INCOMPLETE\n저장을 마치지 못했어요.'), world_saved())
+    assert run() == {'worldId': WORLD_ID, 'revision': 8}
+    assert len(keys) == 2 and keys[0] == keys[1]
+
+
+def test_apply_world_does_not_retry_a_client_rejection(monkeypatch):
+    keys, run = flaky_edit(monkeypatch, (True, 'HTTP 409 WORLD_CONFLICT\n초안이 최신이 아니에요.'))
+    with pytest.raises(ContentMcpFailure) as error:
+        run()
+    assert error.value.status == 409 and len(keys) == 1
+
+
+def test_apply_world_raises_the_failure_when_the_retry_fails_too(monkeypatch):
+    keys, run = flaky_edit(monkeypatch, (True, 'HTTP 503 WORLD_INCOMPLETE\n첫 실패'), (True, 'HTTP 503 WORLD_INCOMPLETE\n둘째 실패'))
+    with pytest.raises(ContentMcpFailure) as error:
+        run()
+    assert error.value.status == 502 and len(keys) == 2  # Content의 5xx는 502로 닫힌다
+
+
+def test_apply_world_raises_the_retry_rejection_when_the_retry_is_refused(monkeypatch):
+    # 재시도가 4xx로 거절되면 그 이유(예: 그 사이 초안이 바뀜)가 작가에게 더 쓸모 있다
+    keys, run = flaky_edit(monkeypatch, (True, 'HTTP 503 WORLD_INCOMPLETE\n첫 실패'), (True, 'HTTP 409 WORLD_CONFLICT\n초안이 최신이 아니에요.'))
+    with pytest.raises(ContentMcpFailure) as error:
+        run()
+    assert error.value.status == 409 and len(keys) == 2
+
+
+def test_apply_world_retries_when_the_call_itself_cannot_reach_content(monkeypatch):
+    calls = []
+
+    async def request(url, auth, tool, arguments):
+        if tool == 'world_studio_read':
+            return world_read()
+        calls.append(arguments['request']['key'])
+        if len(calls) == 1:
+            raise OSError('down')
+        return world_saved()
+
+    content(monkeypatch, {})
+    monkeypatch.setattr(service, '_request', request)
+    assert service.apply_world(WORLD_ID, 7, [fix_of()])['revision'] == 8 and calls[0] == calls[1]
+
+
+def test_edit_world_uses_an_input_derived_key_and_retries_a_transient_failure_with_it(monkeypatch):
+    keys, run = flaky_edit(monkeypatch, (True, 'HTTP 503 WORLD_INCOMPLETE\n저장 미완료'), (False, json.dumps({'draftRevision': 5})),
+                           call_world=lambda: service.edit_world({'id': WORLD_ID, 'request': {'expectedDraftRevision': 7, 'cards': [{'id': KAEL, 'body': '새 글'}]}}))
+    assert run() == {'draftRevision': 5} and keys[0] == keys[1] and len(keys[0]) == 32
+    keys2, run2 = flaky_edit(monkeypatch, (False, json.dumps({'draftRevision': 5})),
+                             call_world=lambda: service.edit_world({'id': WORLD_ID, 'request': {'expectedDraftRevision': 7, 'cards': [{'id': KAEL, 'body': '새 글'}]}}))
+    run2()
+    assert keys2 == [keys[0]]
 
 
 def test_apply_world_creates_the_character_documents_only_when_the_card_has_none(monkeypatch):

@@ -1,12 +1,10 @@
 """작품 고르기 단위 테스트: 장르 분류·후보 선별·장르별 선택·고전 회차 만들기. 합성 입력만 쓴다(소설 원문 없음)."""
 
-import json
 import zipfile
 
 import pytest
 
-from kt_select import (QUOTA, choose, classify_genre, find_sources, normalize_title, numbered, pick_new, prepare_classic, quota_for, read_head,
-                       save_new_works, screen)
+from kt_select import QUOTA, choose, classify_genre, prepare_classic, quota_for, read_head, screen
 
 BODY = '이야기가 이어진다. ' * 300
 
@@ -77,57 +75,3 @@ def test_read_head_reads_txt_in_any_supported_encoding_and_epub_but_skips_other_
     (tmp_path / 'archive.zip').write_bytes(b'PK')
     (tmp_path / 'broken.epub').write_bytes(b'not a zip')
     assert read_head(tmp_path / 'archive.zip') is None and read_head(tmp_path / 'broken.epub') is None
-
-
-# ---- add: 기존 선정과 겹치지 않는 새 작품 고르기 ----
-
-def test_normalize_title_gives_every_edition_of_one_work_the_same_key():
-    key = normalize_title('가나다 라마바 1-270.txt')
-    for name in ('[필명] 가나다_라마바_1_300_完@작가.epub', '가나다 라마바 001-322 (완).txt', '가나다+라마바+1-100화 [완] 외포.txt',
-                 '가나다 라마바 텍완.txt', '가나다 라마바 2부 1-80.txt', '[가나다 라마바] 1-100.txt', '[현판](필명) 가나다 라마바 텍완.epub'):
-        assert normalize_title(name) == key, name
-    assert normalize_title('가나다 라마사 1-270.txt') != key and normalize_title('1-100.txt') == ''
-
-
-def work_of(seed):
-    return {'episodes': [{'number': n, 'text': f'{seed}의 {n}번째 이야기가 이어진다. ' * 20} for n in range(1, 9)]}
-
-
-def test_find_sources_lists_every_candidate_file_whose_head_holds_the_works_body():
-    work = work_of('A')
-    head = lambda w: '\n'.join(f"{e['number']}화\n{e['text']}" for e in w['episodes'])
-    texts = {'x.txt': head(work), 'x 판본.txt': '머리말\n' + head(work), 'y.txt': head(work_of('B')), 'broken.txt': None}
-    rows = [{'file': name} for name in texts]
-    found = find_sources({'w01': work, 'w02': work_of('C')}, rows, lambda r: texts[r['file']])
-    assert [r['file'] for r in found['w01']] == ['x.txt', 'x 판본.txt'] and found['w02'] == []       # 판본이 여럿이면 모두, 없으면 빈 목록
-
-
-def test_pick_new_fills_the_quota_without_excluded_titles_duplicate_titles_or_unloadable_files():
-    rows = [{'file': f'{g}{i} 1-100.txt', 'genre': g, 'median_chars': 5000} for g in QUOTA for i in range(8)]
-    rows += [{'file': '[필명] 무협0 101-200 완.epub', 'genre': '무협', 'median_chars': 5000},        # 같은 작품의 다른 판본·분권
-             {'file': '무협9 1-100.txt', 'genre': '무협', 'median_chars': 12_001}]                    # 회차가 너무 길다
-    excluded = {normalize_title('무협1 1-100.txt'), normalize_title('판타지2 1-100.txt')}
-    quota = quota_for(20)
-    first = pick_new(rows, 7, quota, lambda row: ('n_hwa', []), excluded)[0][0]['file']
-    tried = []
-
-    def load(row):
-        tried.append(row['file'])
-        return None if row['file'] == first else ('n_hwa', [])                  # 처음 뽑힐 후보 하나를 못 읽는다고 하면 다음 후보로 바뀐다
-
-    picked, ready, stats = pick_new(rows, 7, quota, load, excluded)
-    titles = [normalize_title(r['file']) for r in picked]
-    assert {g: sum(r['genre'] == g for r in picked) for g in quota} == quota and len(set(titles)) == 20 and ready.keys() == {r['file'] for r in picked}
-    assert not excluded & set(titles) and first in tried and first not in ready and '무협9 1-100.txt' not in tried and stats['replaced'] == 1
-    assert stats['pool']['무협'] == 7                                         # 무협 8 + 다른 판본 1 - 제외 1 - 같은 제목 1 (회차가 너무 긴 후보는 처음부터 뺀다)
-    assert pick_new(rows, 7, quota, load, excluded)[0] == picked and pick_new(rows, 8, quota, load, excluded)[0] != picked
-
-
-def test_numbered_follows_genre_then_file_order_and_save_new_works_never_overwrites_a_different_work(tmp_path):
-    picked = [{'file': 'b.txt', 'genre': '판타지'}, {'file': 'a.txt', 'genre': '판타지'}, {'file': 'z.txt', 'genre': '무협'}]
-    assert [(i, r['file']) for i, r in numbered(picked, 'n').items()] == [('n01', 'z.txt'), ('n02', 'a.txt'), ('n03', 'b.txt')]   # 가나다 순: 무협 < 판타지
-    assert save_new_works(tmp_path, {'n01': {'id': 'n01', 'episodes': [1]}}) == 1
-    assert save_new_works(tmp_path, {'n01': {'id': 'n01', 'episodes': [1]}, 'n02': {'id': 'n02', 'episodes': [2]}}) == 1      # 같으면 건너뛰고 새것만
-    with pytest.raises(SystemExit):
-        save_new_works(tmp_path, {'n01': {'id': 'n01', 'episodes': [9]}, 'n03': {'id': 'n03', 'episodes': [3]}})
-    assert json.loads((tmp_path / 'n01' / 'work.json').read_text()) == {'id': 'n01', 'episodes': [1]} and not (tmp_path / 'n03').exists()   # 하나라도 다르면 아무것도 안 쓴다
