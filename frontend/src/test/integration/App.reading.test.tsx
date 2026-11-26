@@ -183,7 +183,7 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
     const { store } = renderApp('/read/guunmong/2')
     fireEvent.click(await screen.findByRole('link', { name: '✎ 2화에서 포크하기' }))
     await screen.findByText('로그인이 필요한 화면이에요.')
-    expect(store.getState().session).toMatchObject({ role: null, next: '/writing-policy?method=fork' })
+    expect(store.getState().session).toMatchObject({ role: null, next: '/writing-policy?method=fork&work=guunmong&at=2' })
   })
 
   it('작가의 말은 본문 뒤에 있고 감정 반응 없이 댓글 좋아요만 있다', async () => {
