@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react'
+import {render,screen,fireEvent,waitFor,cleanup,within} from '@testing-library/react'
 import {MemoryRouter} from 'react-router'
 import {afterEach,it,expect,vi} from 'vitest'
 import {ManuscriptBuildPanel} from './ManuscriptBuildPanel'
@@ -120,7 +120,7 @@ it.each([
  ['EXECUTION_EXPIRED',/실행 기한이 지났어요/],
 ])('%s 실패 사유를 정해진 한국어 문구로 알린다',async(code,text)=>{
  show({read:vi.fn().mockResolvedValue({...job,status:'failed',failureCode:code}),start:vi.fn(),resume:vi.fn()})
- await screen.findByText(text)
+ await waitFor(()=>within(screen.getByRole('status')).getByText(text))
  expect(screen.queryByText(/원고와 작업 상태를 확인해 주세요/)).toBeNull()
 })
 it('완료 화면에 초안에 넣지 않은 항목 수를 알린다',async()=>{
