@@ -1,8 +1,9 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { ImportUploadNotice, ImportWorldBuildResult } from '../../../shared/ImportWorldBuild'
+import { Sheet } from '../../../shared/Sheet'
 import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
@@ -71,7 +72,16 @@ function ImportSetup({ vm }: { vm: VM }) {
 function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
   const existing = plan.existingEpisodeCount
   const mergeNoticeId = useId()
+  const mergeWarningId = useId()
+  const [mergeIndex, setMergeIndex] = useState<number | null>(null)
   const canMergeNext = (index: number) => plan.episodes[index]?.excluded === false && plan.episodes[index + 1]?.excluded === false
+  const warningEpisode = mergeIndex === null ? null : plan.episodes[mergeIndex + 1]
+  const requestMerge = (index: number) => {
+    const next = plan.episodes[index + 1]
+    if (!canMergeNext(index)) return
+    if (next.title.trim() !== plan.originalTitles.get(next.from)) setMergeIndex(index)
+    else vm.mergeNext(index)
+  }
   return (
     <section className="panel mi-preview" aria-label="가져올 회차 미리보기">
       <h2>미리보기</h2>
@@ -98,7 +108,7 @@ function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
               <label className="mi-check"><input type="checkbox" aria-label={`${number}번째 회차 제외`} checked={episode.excluded} onChange={(e) => vm.setExcluded(index, e.target.checked)} /> 제외</label>
               <button type="button" className="btn sm" aria-label={`${number}번째 회차를 다음 회차와 합치기`}
                 aria-describedby={canMerge ? mergeNoticeId : undefined} disabled={!canMerge}
-                onClick={() => vm.mergeNext(index)}>다음 회차와 합치기</button>
+                onClick={() => requestMerge(index)}>다음 회차와 합치기</button>
             </div>
           </li>
         })}</ol>
@@ -107,6 +117,19 @@ function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
       </fieldset>
       {vm.busy && <button type="button" className="btn sm" onClick={vm.cancel}>요청 취소</button>}
       {vm.error && <p role="alert">{vm.error}</p>}
+      {warningEpisode && mergeIndex !== null && (
+        <Sheet sid="U24" label="회차를 합칠까요?" role="alertdialog" describedBy={mergeWarningId} onClose={() => setMergeIndex(null)}>
+          <h3>회차를 합칠까요?</h3>
+          <p id={mergeWarningId} className="wrap-anywhere">합치면 앞 회차 제목을 사용하고, 뒤 회차에서 고친 제목{warningEpisode.title.trim() ? ` 「${warningEpisode.title.trim()}」` : ''}은 사라져요.</p>
+          <div className="rowend">
+            <button type="button" className="btn" data-autofocus="" onClick={() => setMergeIndex(null)}>취소</button>
+            <button type="button" className="btn pri" onClick={() => {
+              if (canMergeNext(mergeIndex)) vm.mergeNext(mergeIndex)
+              setMergeIndex(null)
+            }}>회차 합치기</button>
+          </div>
+        </Sheet>
+      )}
     </section>
   )
 }

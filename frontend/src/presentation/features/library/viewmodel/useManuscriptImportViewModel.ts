@@ -8,7 +8,7 @@ import { adjustableEpisodes, mergeWithNext, type ManuscriptUseCase } from '../..
 import { useServerWorks } from './useServerWorks'
 
 type ManuscriptApi = Pick<ManuscriptUseCase, 'preview' | 'confirm'>
-type Plan = { format: 'txt' | 'epub'; existingEpisodeCount: number; episodes: AdjustableEpisode[] }
+type Plan = { format: 'txt' | 'epub'; existingEpisodeCount: number; episodes: AdjustableEpisode[]; originalTitles: Map<number, string> }
 type Busy = 'preview' | 'confirm' | null
 
 const noRights = [false, false, false]
@@ -76,7 +76,12 @@ export function useManuscriptImportViewModel(
       return run('preview', async (signal) => {
         const value = await api.preview(workId, file, signal)
         if (signal.aborted) return
-        setPlan({ format: value.format, existingEpisodeCount: value.existingEpisodeCount, episodes: adjustableEpisodes(value) })
+        setPlan({
+          format: value.format,
+          existingEpisodeCount: value.existingEpisodeCount,
+          episodes: adjustableEpisodes(value),
+          originalTitles: new Map(value.episodes.map(({ from, title }) => [from, title.trim()])),
+        })
       })
     },
     plan, included,
