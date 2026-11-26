@@ -32,7 +32,7 @@ const NONE = { mode: '—', set: NO_SET, metrics: '—', result: '—' } as cons
 
 export const AGENT_EVALUATIONS: AgentEvaluation[] = [
   { agent: '메인 에이전트', feature: 'orchestration.main', prompt: 'orchestration.main', ...NONE },
-  { agent: 'Decision Guard', feature: 'decision_guard.judge', prompt: 'decision_guard.judge', mode: '새 답변 생성', set: 'decision_guard.routing(49)', dataset: 'decision_guard.routing', metrics: 'guard(거절 판정) · precision(기능 정밀도) · recall(기능 재현율)', result: RECENT_RUN },
+  { agent: 'Decision Guard', feature: 'decision_guard.judge', prompt: 'decision_guard.judge', mode: '새 답변 생성', set: 'decision_guard.routing(49)', dataset: 'decision_guard.routing', metrics: 'guard(거절 판정) · precision(기능 정밀도) · recall(기능 재현율) · rejected(정답이 거절인 항목만 거절 여부)', result: RECENT_RUN },
   { agent: 'Q&A', feature: 'story_context.answer', prompt: 'story_context.answer', mode: '새 답변 생성', set: 'qa.grounding(6)', dataset: 'qa.grounding', metrics: 'faithfulness(근거 충실도) · context_precision(문맥 정밀도)', result: RECENT_RUN },
   { agent: 'Q&A', feature: '비공개 설정 누설(Fork 응답)', mode: '새 답변 생성', set: 'leak.spoiler(5)', dataset: 'leak.spoiler', metrics: 'GEval 누설 점수', result: RECENT_RUN },
   { agent: 'Q&A', feature: '설정·관계 발췌(world_excerpts)', mode: '원문 검색', set: '한국어 62문항(설정 14·누설 62)', metrics: 'Recall@8 · MRR@8 · 비공개 설정 누설', result: `${CI} — setting Recall@8 1.00 · MRR@8 0.92, 누설 0건` },
