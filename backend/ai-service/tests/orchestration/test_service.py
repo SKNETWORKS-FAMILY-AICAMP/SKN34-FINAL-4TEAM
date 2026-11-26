@@ -3381,6 +3381,13 @@ def test_character_simulation_reports_its_own_activity_line(monkeypatch, drafted
     assert lines(stream(REQUEST, target=TARGET, scope=SCOPE, activities=True), '인물 시뮬레이션') == [('인물 시뮬레이션', 'running'), ('인물 시뮬레이션', last)]
 
 
+def test_an_unexpected_error_in_the_character_simulation_plan_marks_its_line_failed_and_is_raised_again(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), fail={'sim_plan': RuntimeError('boom')})
+    events = stream(REQUEST, target=TARGET, scope=SCOPE, activities=True)
+    assert lines(events, '인물 시뮬레이션') == [('인물 시뮬레이션', 'running'), ('인물 시뮬레이션', 'failed')]
+    assert events[-1][0] == 'error'  # 예외를 삼키지 않고 올려 스트림이 오류로 끝난다
+
+
 def ask_lines(monkeypatch, call):
     """_ask를 직접 실행해 진행 목록 보고 (id, 상태)와 결과를 돌려준다. 예외는 그대로 올라오므로 호출한 쪽이 본다."""
     seen = []
