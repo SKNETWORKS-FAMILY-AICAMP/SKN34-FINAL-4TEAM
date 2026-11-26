@@ -69,7 +69,10 @@ NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수
 NO_WORLD_TARGET = '세계관을 다룰 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
 CONTEXT_TOO_LONG = '허용 문맥이 너무 길어요. 기준 회차나 원고 분량을 줄여 주세요.'
-NO_WORLD_SETTINGS = '이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'
+NO_WORLD_GUIDE = ' 작품 관리의 세계관 탭에서 원고로 세계관을 만들거나 내 세계관을 연결할 수 있어요.'
+NO_WORLD_SETTINGS = '이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.' + NO_WORLD_GUIDE
+# 세계관이 없어 멈추는 409(연결도 Fork 상속도 없을 때만 나온다). 상태와 고정 문구가 모두 같을 때만 안내로 바꾸고 다른 409는 실패로 둔다(#910)
+NO_WORLD_FAILURES = {(409, m) for m in (simulation.NO_LINKED_WORLD, world_review.NO_LINKED_WORLD, manuscript_review.NO_LINKED_WORLD)}
 BAD_WORLD = 'Content 세계관 응답을 확인할 수 없습니다.'
 NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
@@ -135,6 +138,23 @@ class Clarify(Exception):
 def _clarify(message: str, choices: list[dict] = ()) -> dict:
     """남은 호출을 막고 되묻기로 끝내는 stopped. 요청 한도(2,000자, UTF-16 단위로 Content와 같다)를 넘는 선택지는 자르면 다른 요청이 되므로 빼고 작가가 입력창으로 답한다."""
     return {'stopped': {'status': 'clarify', 'message': message, 'choices': [c for c in choices if utf16_len(c['message']) <= REQUEST_MAX][:CHOICES_MAX]}}
+
+
+def _no_world(error: Exception) -> bool:
+    return (getattr(error, 'status', None), str(error)) in NO_WORLD_FAILURES
+
+
+def _no_world_clarify(runtime: ToolRuntime, feature: str, step: dict) -> Command:
+    """세계관이 없어 멈춘 업무를 실패 대신 안내로 끝낸다(#910): 두 선택지는 모두 작품 관리 세계관 탭으로 보낸다(화면이 추출·연결을 진행한다).
+    연결 선택지는 어느 작품에도 연결되지 않은 내 세계관이 있을 때만 보인다. 목록을 읽지 못하면 실제 상태는 탭이 보이므로 그대로 보인다."""
+    try:
+        free = any(not w.get('linkedWorkId') for w in content_mcp.call('world_studio_list', {}))
+    except (ContentMcpFailure, TypeError, AttributeError):
+        free = True
+    message = f'이 작품에 연결된 세계관이 없어 {_name(step)} 기능을 쓸 수 없어요. 원고로 세계관을 만들거나 내 세계관을 연결해 주세요.'
+    choices = [{'label': label, 'message': text, 'form': 'world'} for label, text, show in (
+        ('원고에서 세계관 추출하기', '원고에서 세계관을 추출할게요.', True), ('내 세계관 연결하기', '내 세계관을 연결할게요.', free)) if show]
+    return _reply(runtime, feature, f'[확인 필요] {_name(step)}: {message}', _clarify(message, choices), failed=True)
 
 
 def previous(turn: dict) -> list[dict]:
@@ -291,6 +311,9 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
         agent_runtime.report(line, name, 'done', feature=feature)
         return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', _clarify(str(ask), ask.choices), failed=True)
     except FAILURES as error:
+        if _no_world(error):
+            agent_runtime.report(runtime.tool_call_id, name, 'done', feature=feature)
+            return _no_world_clarify(runtime, feature, step)
         step.update(status='failed', error=str(error))
     except Exception:  # 예상 밖 예외도 줄이 running으로 남아 멈춘 것처럼 보이지 않게 한다
         if ran:
@@ -628,6 +651,8 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
             else:
                 drafted = simulation.plan(request, history(turn), turn.get('target'))
     except FAILURES as error:
+        if _no_world(error):
+            return _no_world_clarify(runtime, 'character_simulation', step)
         step.update(status='failed', error=str(error))
         agent_runtime.report(line, name, 'failed', feature='character_simulation')
         return _reply(runtime, 'character_simulation', _summary(step), {'steps': [step]}, failed=True)

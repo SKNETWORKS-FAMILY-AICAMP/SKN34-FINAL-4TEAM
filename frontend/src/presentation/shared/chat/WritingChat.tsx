@@ -2,9 +2,10 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { cancelNotice, draftNotice, featureLabel, fixLabel, PLAN_LABEL, rangePreview, referenceHref, replyChoices, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, type ApprovalPick, type ChatActivity, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
+import { cancelNotice, draftNotice, featureLabel, fixLabel, PLAN_LABEL, rangePreview, referenceHref, replyChoices, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, worldTabHref, type ApprovalPick, type ChatActivity, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
+import { Go } from '../Go'
 import { PopMenu } from '../PopMenu'
 import { CardMarkdown } from '../CardMarkdown'
 import { ChatPanel } from './ChatPanel'
@@ -330,6 +331,8 @@ type WritingChatProps = {
   sendNote?: string
   /** 시뮬레이션 시작 양식을 연다(집필실). 없으면 양식을 여는 선택지(#794)를 보이지 않는다. */
   onOpenSetup?: () => void
+  /** 연결도 Fork 상속도 없다고 확인된 작품(#910). 빈 대화에 세계관 탭으로 가는 안내를 한 줄 보인다. 조회 중·실패에는 켜지 않는다. */
+  worldMissing?: boolean
 }
 
 export function WritingChat({ chat, basis = null, onApplied, onWorldApplied, getPage, ...rest }: WritingChatProps) {
@@ -341,7 +344,7 @@ function OwnedChat({ basis, onApplied, onWorldApplied, getPage, ...rest }: Omit<
   return <WorkChat vm={vm} {...rest} />
 }
 
-function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, onOpenProposal, cardOf, unsaved, worldDraft, sendNote, onOpenSetup }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'onOpenProposal' | 'cardOf' | 'unsaved' | 'worldDraft' | 'sendNote' | 'onOpenSetup'>) {
+function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, onOpenProposal, cardOf, unsaved, worldDraft, sendNote, onOpenSetup, worldMissing }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'onOpenProposal' | 'cardOf' | 'unsaved' | 'worldDraft' | 'sendNote' | 'onOpenSetup' | 'worldMissing'>) {
   const id = useId()
   const input = useRef<HTMLTextAreaElement>(null) // 선택지를 누른 뒤 초점을 돌려 줄 메시지 입력창(비활성이 되는 선택지 버튼에 초점이 남지 않게)
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
@@ -384,14 +387,16 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
     const outcome = text && reply ? replyOutcome(reply) : []
     const activities = vm.activityLog[index]
     // 선택지(#794)는 마지막 턴에서만 누를 수 있고 지난 턴은 비활성으로 남긴다. 누르면 그 문장을 새 메시지로 보낸다(입력창도 그대로 쓸 수 있다).
-    const choices = reply ? replyChoices(reply).filter((c) => !c.form || onOpenSetup) : []
+    const choices = reply ? replyChoices(reply).filter((c) => !c.form || (c.form === 'world' ? workId : onOpenSetup)) : []
     const choosable = index === vm.turns.length - 1 && !live && !vm.pending && !vm.waiting && !vm.lockedReason
     return <>
       {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
       {!!activities?.length && <details className="chat-step-details chat-activity-log"><summary>작업 {activities.length}개</summary><Activities list={activities} finished /></details>}
       {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
       {!!choices.length && <div className="chat-choices" role="group" aria-label="고를 수 있는 답">
-        {choices.map((c, i) => <button key={i} type="button" className="chat-suggest-btn" disabled={!choosable} title={c.form ? undefined : c.message}
+        {choices.map((c, i) => c.form === 'world' && workId
+          ? <Go key={i} to={worldTabHref(workId)} className="chat-suggest-btn" disabled={!choosable}>{c.label}</Go>
+          : <button key={i} type="button" className="chat-suggest-btn" disabled={!choosable} title={c.form ? undefined : c.message}
           onClick={() => { if (c.form) onOpenSetup?.(); else { void vm.send(c.message); input.current?.focus() } }}>{c.label}</button>)}
       </div>}
       <div className="chat-reply-foot">
@@ -454,7 +459,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       </>}
     </div>
     <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError} sendNote={sendNote}
-      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer} inputRef={input}
+      emptyTitle={emptyTitle} emptyText={worldMissing && workId ? <>{emptyText}<br />이 작품에는 연결된 세계관이 없어요. <Go to={worldTabHref(workId)}>세계관 탭에서 만들기·연결하기</Go></> : emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer} inputRef={input}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} workId={workId ?? ''} request={vm.turns.at(-1)?.request ?? ''} reply={vm.waiting} pending={vm.pending} onResume={(approved, inputs, pick) => void vm.resume(approved, inputs, pick)} onOpenStage={onOpenStage} onOpenProposal={onOpenProposal} cardOf={cardOf} unsaved={unsaved} worldDraft={worldDraft}

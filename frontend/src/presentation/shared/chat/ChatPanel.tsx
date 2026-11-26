@@ -43,7 +43,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   inputError?: string
   sendNote?: string
   emptyTitle?: string
-  emptyText?: string
+  emptyText?: ReactNode
   suggestions?: string[]
   after?: ReactNode
   streaming?: string

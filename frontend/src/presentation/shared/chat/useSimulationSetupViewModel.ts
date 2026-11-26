@@ -12,6 +12,17 @@ export function useLinkedWorld(workId: string) {
 }
 
 /**
+ * 연결한 세계관도 Fork가 이어받는 원작 세계관도 없는 작품인가(#910). 조회 중·실패는 data가 없어 참으로 보지 않는다.
+ * 집필실 AI 채팅의 빈 화면이 세계관 탭 안내를 보일지 정한다. 추출이 진행 중이면 새 세계관이 이미 연결돼 있어 거짓이다.
+ */
+export function useWorldMissing(workId: string) {
+  const worlds = appContainer.resolve('worldStudioUseCase')
+  const episodes = appContainer.resolve('episodeUseCase')
+  return useAsyncData(async (signal) => !(await worlds.list(signal)).some((world) => world.linkedWorkId === workId) && !(await episodes.inheritedWorld(workId, undefined, signal)),
+    [worlds, episodes, workId])
+}
+
+/**
  * 시뮬레이션 시작 양식(#58 버튼 진입)이 쓰는 값. 양식이 열릴 때마다 다시 읽어 플롯·세계관에서 고친 것을 따른다.
  * - 인물 후보: 이 작품에 연결된 WorldStudio 세계관의 인물 카드(내 세계관 목록에서 linkedWorkId가 이 작품인 것을 읽는다).
  *   서버가 characterIds를 연결 세계관의 활성 인물 카드 id로 검증하므로 레거시 설정집이나 장면 계획의 인물 id는 쓰지 않는다.
