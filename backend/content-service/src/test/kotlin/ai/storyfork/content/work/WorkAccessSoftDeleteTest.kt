@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 
-/** 소프트 삭제된 작품은 소유자 조회·공개 조회에서 404이고 행은 그대로 읽힌다(DEC-42). 저장소 mock으로 검증한다. */
+/** 소프트 삭제된 작품은 소유자 조회·공개 조회에서 404이고 행은 그대로 읽힌다(DEC-42). 접근 결과가 세계관 연결 여부(worldLinked)를 같은 읽기에서 채우는지도 본다. 저장소 mock으로 검증한다. */
 class WorkAccessSoftDeleteTest {
     private val works = mock(WorkRepository::class.java)
     private val worlds = mock(WorkWorldHistoryRepository::class.java)
@@ -47,6 +47,13 @@ class WorkAccessSoftDeleteTest {
     @Test fun `readers get 404 for a deleted public work`() {
         work(true)
         assertEquals(404, assertThrows(ContentFailure::class.java) { access.published("w") }.status)
+    }
+
+    @Test fun `the access result tells whether a WorldStudio world is linked`() {
+        work(false)
+        assertFalse(access.get("w").worldLinked)
+        `when`(works.findById("w")).thenReturn(Optional.of(WorkEntity(id = "w", ownerId = "author", title = "작품").also { it.worldStudioId = java.util.UUID.randomUUID() }))
+        assertTrue(access.get("w").worldLinked)
     }
 
     @Test fun `a live public work stays readable by the owner and readers`() {

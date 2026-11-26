@@ -381,7 +381,7 @@ class WorkSearchServiceTest {
         assertEquals(listOf("윤서하"), service.list("owner-a").items.map { it.authorName })
     }
 
-    @Test fun `the linked world studio is shown on the owner's detail and list only, never on a public response`() {
+    @Test fun `the linked world studio id is shown on the owner's detail and list only, but whether one is linked is on every response`() {
         work("a", "연결한 작품", 1)
         work("b", "연결 없는 작품", 2, owner = "owner-a")
         val world = java.util.UUID.randomUUID()
@@ -393,6 +393,10 @@ class WorkSearchServiceTest {
         assertEquals(mapOf("a" to world, "b" to null), service.list("owner-a").items.associate { it.id to it.worldStudioId })
         assertNull(service.publicRead("a").worldStudioId)
         assertEquals(listOf(null, null), service.publicList(null, null, null).items.map { it.worldStudioId })
+        // 세계관 id는 숨겨도 연결 여부는 공개 응답도 알린다(독자 화면이 포크 버튼을 잠그는 데 쓴다, DEC-46).
+        assertTrue(service.read("a", "owner-a").worldLinked)
+        assertTrue(service.publicRead("a").worldLinked)
+        assertEquals(mapOf("a" to true, "b" to false), service.publicList(null, null, null).items.associate { it.id to it.worldLinked })
     }
 
     @Test fun `the owner list asks Core before taking the row locks`() {

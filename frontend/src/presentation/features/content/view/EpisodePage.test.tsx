@@ -1524,7 +1524,7 @@ it('does not delete or leave when the fork deletion is not confirmed', async () 
 
 it('opens the management page of a newly created fork', async () => {
   stubCover()
-  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)] }
+  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)], worldStudioId: WORLD_ID }
   const created = { ...owned, id: 'f1', title: '새 포크', source: { workId: 'w', title: '옛 제목', episode: 1, version: 1, direction: '다른 선택' } }
   const fetcher = contentApi({ 'GET /api/v1/works': () => Response.json([original]), 'POST /api/v1/works/w/forks': () => Response.json(created) })
   await openWork(fetcher)
@@ -1558,7 +1558,7 @@ it('shows why creating a work failed inside the form next to 작품 만들기, n
 
 it('shows why creating a fork failed inside the fork form next to its button, not at the top of the page', async () => {
   stubCover()
-  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)] }
+  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)], worldStudioId: WORLD_ID }
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([original]), 'POST /api/v1/works/w/forks': () => Response.json({ detail: '이미 이 원작에서 만든 분기가 있어요.' }, { status: 409 }) }))
   fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
   fireEvent.change(screen.getByLabelText('분기 작품 제목'), { target: { value: '새 포크' } })

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
-import { canReport, canView, forkLabel, forkList, makeFork, sameAuthorWorks, similarWorks, visibleEpisode, type Work } from '../entities/work'
+import { canReport, canView, forkLabel, forkList, forkNeedsWorld, makeFork, sameAuthorWorks, similarWorks, visibleEpisode, type Work } from '../entities/work'
 
 const works = seedWorks(0)
 const worlds = seedWorlds()
@@ -23,6 +23,14 @@ describe('작품 규칙 (목업 1절)', () => {
     w.eps[2].hidden = true
     expect(forkList(w, worlds)).toEqual([2])
     expect(forkList({ ...byId('guunmong'), worldIds: ['private-world'] }, worlds)).toEqual([])
+  })
+
+  it('서버가 세계관 미연결을 알린 작품만 포크 버튼을 잠근다 — 작가가 허용한 회차 목록은 그대로고 알리지 않은(데모) 작품은 막지 않는다', () => {
+    const w = byId('guunmong')
+    expect(forkNeedsWorld(w)).toBe(false)
+    expect(forkNeedsWorld({ ...w, worldLinked: true })).toBe(false)
+    expect(forkNeedsWorld({ ...w, worldLinked: false })).toBe(true)
+    expect(forkList({ ...w, worldLinked: false }, worlds)).toEqual([2, 3, 4])
   })
 
   it('비공개 작품은 본인(일반 회원)만 볼 수 있다', () => {

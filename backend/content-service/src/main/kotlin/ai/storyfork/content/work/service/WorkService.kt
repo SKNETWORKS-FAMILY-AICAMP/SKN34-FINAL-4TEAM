@@ -256,7 +256,7 @@ class WorkService(
             slug=row.slug,authorName=authorName,ownerId=w.ownerId,revision=w.revision,theme=row.theme,hook=row.hook,hanja=row.hanja,
             hero=row.heroLine1?.let {listOf(it,row.heroLine2.orEmpty())},heroBg=row.heroBackground,
             forkableEpisodes=if(w.source==null) access.forkable(w.id,published.map {it.number}) else emptyList(),
-            worldStudioId=if(public) null else row.worldStudioId)
+            worldStudioId=if(public) null else row.worldStudioId,worldLinked=row.worldStudioId!=null)
     }
 
 }

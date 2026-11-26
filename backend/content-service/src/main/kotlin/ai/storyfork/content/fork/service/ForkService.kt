@@ -48,6 +48,8 @@ class ForkService(
         access.lockScope(id);val original=access.get(id)
         checkContent(!original.deleted,404,"작품을 찾을 수 없어요.")
         checkContent(original.source==null && original.publiclyVisible() && original.allowFork,403,"이 작품은 분기를 허용하지 않아요.")
+        // Fork는 세계관이 연결된 원작에서만 만든다(2026-11-27 사용자 결정). 연결이 없는 원작은 회차 검사보다 먼저 409로 막는다.
+        if(!original.worldLinked) throw ContentFailure(409,"세계관이 연결된 작품만 분기할 수 있어요.","FORK_WORLD_REQUIRED")
         val published=publication.publishedEpisodes(id).items
         checkContent(data.episode in published.map {it.number},message="공개된 기준 회차를 선택해 주세요.")
         // 운영이 제한한 회차를 기준으로는 새 분기를 만들 수 없다. 기준 앞의 제한 회차는 번호가 비지 않게 그대로 복사하고 뷰가 독자에게 숨긴다.
