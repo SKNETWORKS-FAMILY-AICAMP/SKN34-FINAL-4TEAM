@@ -59,14 +59,16 @@ export class HttpNotificationRepository implements NotificationRepository {
     return toPrefs(prefsSchema.parse(await (await this.request('/api/v1/me/notification-preferences', { method: 'PUT', body })).json()))
   }
 
-  /** request()를 거치지 않는다: 계정이 바뀌면 이전 계정 기준으로 모은 CSRF·세션으로 보내지 않도록 인증 버전을 맨 처음 고정한다. */
+  /**
+   * request()를 거치지 않는다: 계정이 바뀌면 이전 계정 기준으로 모은 세션으로 보내지 않도록 인증 버전을 맨 처음 고정한다.
+   * Core는 CSRF 토큰을 받은 뒤 다른 요청이 끼면 그 토큰을 거절(403)하므로, 세션 조회를 먼저 하고 토큰은 요청 직전에 받는다.
+   */
   async syncPushDevice({ installationId, token }: PushDevice, signal: AbortSignal) {
     const version = authVersion()
-    const csrfToken = await csrf(signal)
     const options = { fetcher: this.fetcher }
     if (token === null) {
       await protectedRequest(`${devices}/${encodeURIComponent(installationId)}`,
-        { signal, method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrfToken } }, version, false, options)
+        { signal, method: 'DELETE', headers: { 'X-CSRF-TOKEN': await csrf(signal) } }, version, false, options)
       return
     }
     const current = (await sessions(signal)).find((session) => session.current)
@@ -74,7 +76,7 @@ export class HttpNotificationRepository implements NotificationRepository {
     await protectedRequest(devices, {
       signal,
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': await csrf(signal) },
       body: JSON.stringify({ installationId, sessionId: current.id, platform: 'android', token }),
     }, version, false, options)
   }

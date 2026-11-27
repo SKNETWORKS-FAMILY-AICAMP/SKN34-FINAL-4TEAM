@@ -10,10 +10,13 @@ const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
 const prefsBody = { items: [{ kind: 'reading', enabled: false, mutable: true }, { kind: 'creation', enabled: true, mutable: true }, { kind: 'ai-tool', enabled: false, mutable: true }, { kind: 'result', enabled: true, mutable: false }] }
 const installationId = '7da43875-6da5-4f2a-9f11-a7bb40adcd07'
 const signal = new AbortController().signal
-/** CSRF·세션 목록은 전역 fetch로 읽으므로 login 뒤에 세션 목록을 답하는 대역으로 바꾼다. */
-const stubSessions = (sessions: { id: string; current: boolean }[]) => vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
-  ? Response.json({ csrfToken: 'n-csrf' })
-  : Response.json({ sessions: sessions.map((s) => ({ ...s, deviceLabel: '', createdAt: '2026-11-26T04:00:00Z' })) })))
+/** CSRF·세션 목록은 전역 fetch로 읽으므로 login 뒤에 세션 목록을 답하는 대역으로 바꾼다. order에는 읽은 경로를 순서대로 남긴다. */
+const stubSessions = (sessions: { id: string; current: boolean }[], order: string[] = []) => vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+  order.push(path)
+  return path.endsWith('/csrf')
+    ? Response.json({ csrfToken: 'n-csrf' })
+    : Response.json({ sessions: sessions.map((s) => ({ ...s, deviceLabel: '', createdAt: '2026-11-26T04:00:00Z' })) })
+}))
 
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'n-csrf' }) : Response.json({ accessToken: 'n-bearer', user: { id: 'u1', email: 'u1@example.invalid', nickname: 'U', operator: false } })))
@@ -117,5 +120,13 @@ describe('HttpNotificationRepository', () => {
     expect(url).toBe('/api/v1/me/push-devices/' + installationId)
     expect(init).toMatchObject({ method: 'DELETE' })
     expect(init.headers['X-CSRF-TOKEN']).toBe('n-csrf')
+  })
+
+  it('앱 기기 등록의 CSRF 토큰은 세션 조회 뒤 POST 직전에 받는다(사이에 다른 요청이 끼면 Core가 403으로 거절)', async () => {
+    const order: string[] = []
+    stubSessions([{ id: 'current', current: true }], order)
+    const fetcher = vi.fn<typeof fetch>(async (path) => { order.push(String(path)); return new Response(null, { status: 204 }) })
+    await new HttpNotificationRepository(fetcher).syncPushDevice({ installationId, token: 'token' }, signal)
+    expect(order).toEqual(['/api/v1/auth/sessions', '/api/v1/auth/csrf', '/api/v1/me/push-devices'])
   })
 })
