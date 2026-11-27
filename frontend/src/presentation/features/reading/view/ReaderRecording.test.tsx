@@ -42,10 +42,7 @@ describe('회차 뷰어의 독서 기록', () => {
     try {
       renderApp('/read/postman/1', createAppStore({ role: 'user' }))
       await screen.findByRole('heading', { name: '수취인 불명' })
-      // 안내 글은 이 한 문장뿐이다(옆의 사용법 버튼 #971은 안내 글이 아니라 투어를 여는 버튼이다).
-      const hint = document.querySelector('.hint')!
-      expect(hint.querySelector('span')!.textContent).toBe('☝ 문장을 누르면 댓글을 남길 수 있어요.')
-      expect(hint.textContent).toBe('☝ 문장을 누르면 댓글을 남길 수 있어요.사용법')
+      expect(document.querySelector('.hint')!.textContent).toBe('☝ 문장을 누르면 댓글을 남길 수 있어요.')
     } finally { cleanup(); delete work.canonical }
   })
 })

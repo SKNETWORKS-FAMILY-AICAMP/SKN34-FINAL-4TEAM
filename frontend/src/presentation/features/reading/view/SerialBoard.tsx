@@ -29,7 +29,7 @@ function Vote({ vm, view }: { vm: Vm; view: SerialBoardView }) {
       {view.choices.length === 0
         ? <p className="muted">선택지를 준비하고 있어요</p>
         : (
-          <ol className="ws-list" aria-label="다음 전개 선택지" data-tour="work-serial-vote">
+          <ol className="ws-list" aria-label="다음 전개 선택지">
             {view.choices.map((c) => {
               const mine = c.id === view.myChoiceId
               const body = (
@@ -129,7 +129,7 @@ function Proposals({ vm, view }: { vm: Vm; view: SerialBoardView }) {
           <button type="button" className={vm.sort === 'new' ? 'on' : ''} aria-pressed={vm.sort === 'new'} onClick={() => vm.setSort('new')}>최신순</button>
           <button type="button" className={vm.sort === 'likes' ? 'on' : ''} aria-pressed={vm.sort === 'likes'} onClick={() => vm.setSort('likes')}>추천순</button>
         </div>
-        {vm.loggedIn && <button type="button" className="btn sm pri" data-tour="work-serial-write" aria-expanded={vm.writing} disabled={!view.board} aria-describedby={view.board ? undefined : noBoard} onClick={() => vm.setWriting(!vm.writing)}>글쓰기</button>}
+        {vm.loggedIn && <button type="button" className="btn sm pri" aria-expanded={vm.writing} disabled={!view.board} aria-describedby={view.board ? undefined : noBoard} onClick={() => vm.setWriting(!vm.writing)}>글쓰기</button>}
       </div>
       {!view.board && <p id={noBoard} className="muted small">지금은 열린 게시판이 없어요. 게시판이 열리면 제안을 쓰고 추천할 수 있어요.</p>}
       {!vm.loggedIn && <p className="muted small">제안을 쓰고 추천하려면 <Go to="/login" onClick={vm.requireLogin}>로그인</Go>해 주세요.</p>}
@@ -161,7 +161,7 @@ export function SerialBoard({ work, read, useCase }: { work: Work; read: ReturnT
   }
   return (
     <div className="wserial">
-      <div className="wtabs ws-sub" role="tablist" aria-label="다음 회차 하위 탭" data-tour="work-serial-tabs" onKeyDown={moveSub}>
+      <div className="wtabs ws-sub" role="tablist" aria-label="다음 회차 하위 탭" onKeyDown={moveSub}>
         {SUBS.map(([k, label]) => <button key={k} type="button" role="tab" id={'stab-' + k} aria-selected={vm.sub === k} aria-controls="spanel-serial" tabIndex={vm.sub === k ? 0 : -1} className={vm.sub === k ? 'on' : ''} onClick={() => vm.setSub(k)}>{label}</button>)}
       </div>
       <div id="spanel-serial" role="tabpanel" aria-labelledby={'stab-' + vm.sub}>

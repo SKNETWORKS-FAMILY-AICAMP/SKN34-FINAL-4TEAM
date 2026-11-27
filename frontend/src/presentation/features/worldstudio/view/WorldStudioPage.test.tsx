@@ -1069,29 +1069,21 @@ it('저장 버전이 0이어도 주소에 ?new=1이 없으면(서재 관리하�
   expect(saveBar().queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장했으니 저장할 것이 없다
 })
 
-it('사용법 버튼은 지금 보기의 투어를 연다: 설정집은 도구줄 → 설정 목록(소설을 연결하지 않으면 공개 범위 일괄 변경은 없다)(#971)', async () => {
+it('세계관 관리의 사용법 버튼은 보기와 무관하게 같은 투어(관계도 → AI 검토 → 확정 버전)를 연다(#971)', async () => {
   await show()
-  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
-  const tip = await screen.findByRole('dialog', { name: '도구줄' })
-  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 2')
-})
-
-it('시간선 보기의 사용법은 승인된 사건이 놓이고 방향키로 사건 사이를 이동한다고 안내한다(#971)', async () => {
-  await show([person('가람'), eventCard('건국')])
   fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
   fireEvent.click(screen.getByRole('button', { name: '사용법' }))
-  const tip = await screen.findByRole('dialog', { name: '사건 시간선' })
-  expect(tip.textContent).toContain('승인된 사건이 회차 순서로 놓여요')
-  expect(tip.textContent).toContain('방향키로 사건 사이를 이동할 수 있어요')
-  expect(tip.textContent).not.toContain('저장된 사건 카드')
+  const tip = await screen.findByRole('dialog', { name: '관계도' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 3')
 })
 
-it('관계도 보기로 옮기면 사용법 버튼이 그 보기의 투어(관계 기준 회차 → 관계도 → + 설정 추가 → 그래프 설정)를 연다(#971)', async () => {
-  await show()
-  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+it('설정 카드 편집 화면의 사용법 버튼은 공개 범위 → 공개 순서 → 사건 시점·연관 설정 투어를 연다(#971)', async () => {
+  await show([person('가람')])
+  openCard('가람 인물')
   fireEvent.click(screen.getByRole('button', { name: '사용법' }))
-  const tip = await screen.findByRole('dialog', { name: '관계 기준 회차' })
-  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 4')
+  const tip = await screen.findByRole('dialog', { name: '공개 범위' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 3')
+  expect(tip.textContent).toContain('몇 화부터')
 })
 
 it('처음 저장하면 관리 모드로 바뀌고 초점이 헤더 제목으로 간다', async () => {

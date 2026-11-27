@@ -100,7 +100,7 @@ export function PublicWikiArticle({ work, upto, relationsUnavailable = false }: 
   return (
     <article className="tcard nw" aria-labelledby={heading}>
       <p className="nw-cat"><b>분류</b><Go to={`/work/${work.id}`}>{work.title}</Go></p>
-      <header className="nw-head" data-tour="wiki-scope">
+      <header className="nw-head">
         <h1 id={heading}>{work.title}<span>/설정 위키</span></h1>
         {upto > 0 && <p>{upto}화까지 공개된 설정만 보여요.</p>}
       </header>
@@ -109,7 +109,7 @@ export function PublicWikiArticle({ work, upto, relationsUnavailable = false }: 
           {/* 문서 번호 링크의 목적 설명. 제목 이름(1.1. 리안)을 흐리지 않도록 aria-label 대신 설명으로 붙인다. */}
           <span id="nw-back" hidden>목차로 돌아가기</span>
           {relationsUnavailable && <p className="nw-empty">설정 사이의 연결을 불러오지 못했어요. 잠시 뒤 다시 열어 보면 보일 수 있어요.</p>}
-          <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차" data-tour="wiki-toc">
+          <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
             <b>목차</b>
             <ol>{groups.map(({ cat, list }, i) => (
               <li key={cat.id}><Jump to={`nw-s-${cat.id}`}><span className="nw-no">{i + 1}.</span> {cat.n}</Jump>
@@ -118,7 +118,7 @@ export function PublicWikiArticle({ work, upto, relationsUnavailable = false }: 
             ))}</ol>
           </nav>
           {groups.map(({ cat, list }, i) => (
-            <details key={cat.id} className="nw-sec" data-tour={i === 0 ? 'wiki-docs' : undefined} open>
+            <details key={cat.id} className="nw-sec" open>
               <summary id={`nw-s-${cat.id}`}><h2><span className="nw-no">{i + 1}.</span> {cat.n}</h2></summary>
               {list.map((d, j) => <Article key={d.id} doc={d} cat={cat} no={`${i + 1}.${j + 1}.`} docs={docs} />)}
             </details>

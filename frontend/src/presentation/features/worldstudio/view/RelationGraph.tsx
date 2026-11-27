@@ -342,8 +342,8 @@ export default function RelationGraph({ vm, editing, find, filters, addTypes = c
         else if (e.key === 'Delete' || e.key === 'Backspace') removeHotRelation()
       }}
     >
-      <button type="button" className="btn sm relationship-add-button" data-tour="world-people-add" aria-haspopup="dialog" aria-expanded={adding} onClick={(e) => { if (adding) closeAdd(); else { addOpener.current = e.currentTarget; setMenu(null); shutPanel(); setAdding(true) } }}>+ 설정 추가</button>
-      <button ref={gear} type="button" className="btn sm relationship-gear" data-tour="world-people-settings" aria-label="그래프 설정" aria-expanded={panel} aria-controls={panel ? panelId : undefined} onKeyDown={(e) => { if (e.key === 'Escape' && panel) { e.stopPropagation(); closePanel() } }} onClick={() => { setMenu(null); setAdding(false); if (panel) shutPanel(); else setPanel(true) }}><GearIcon /></button>
+      <button type="button" className="btn sm relationship-add-button" aria-haspopup="dialog" aria-expanded={adding} onClick={(e) => { if (adding) closeAdd(); else { addOpener.current = e.currentTarget; setMenu(null); shutPanel(); setAdding(true) } }}>+ 설정 추가</button>
+      <button ref={gear} type="button" className="btn sm relationship-gear" aria-label="그래프 설정" aria-expanded={panel} aria-controls={panel ? panelId : undefined} onKeyDown={(e) => { if (e.key === 'Escape' && panel) { e.stopPropagation(); closePanel() } }} onClick={() => { setMenu(null); setAdding(false); if (panel) shutPanel(); else setPanel(true) }}><GearIcon /></button>
       {filters.center && (
         <div className="relationship-local" role="group" aria-label="노드 중심 보기">
           {filters.center.name} 중심 · 깊이 {filters.center.depth} · <button type="button" className="btn sm" onClick={filters.onClearCenter}>전체 보기</button>

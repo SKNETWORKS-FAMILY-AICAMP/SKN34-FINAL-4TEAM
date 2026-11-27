@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { useNavigate } from 'react-router'
 import type { World } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
@@ -17,8 +17,6 @@ type Props = {
   onDetach?: () => Promise<string | null>
   /** 이 화면에서 보낸 독립 요청의 실패 사유(독립 버튼 아래에 보인다) */
   detachError?: string
-  /** 설정집을 처음 읽어 오면 부른다(작품 관리의 사용법 투어가 카드가 그려진 뒤에 시작한다). 읽기에 실패하면 부르지 않는다. */
-  onLoaded?: () => void
 }
 
 /**
@@ -29,14 +27,11 @@ type Props = {
  * 원작에 세계관이 있는 Fork는 `LinkedWorldPanel`의 이어받는 세계관 카드가 같은 일을 하고, 독립해 세계관이 연결되면 옛 설정집에는 설정이 남지 않으므로 그 세계관을 안내한다.
  * ponytail: 설정집 읽기는 useWorldViewModel을 그대로 쓴다. 원작에 옛 설정과 세계관이 모두 있는 Fork는 두 카드에 같은 버튼이 보인다(서버는 세계관 이어받기가 우선이다).
  */
-export function WorldPanel({ workId, useCase, locked = false, onMediaBusy, linkedWorldId, onDetach, detachError, onLoaded }: Props) {
+export function WorldPanel({ workId, useCase, locked = false, onMediaBusy, linkedWorldId, onDetach, detachError }: Props) {
   const vm = useWorldViewModel(workId, useCase)
   const title = useId()
   const navigate = useNavigate()
   const w = vm.world
-  const loaded = useEffectEvent(() => onLoaded?.())
-  const read = !!w
-  useEffect(() => { if (read) loaded() }, [read])
   if (!w) {
     return (
       <section className='tcard ep-card'>
@@ -56,7 +51,7 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy, linke
   }
   return (
     <>
-      <section className='tcard ep-card' aria-labelledby={title} data-tour='manage-world-book'>
+      <section className='tcard ep-card' aria-labelledby={title}>
         <h3 id={title}>{w.name}</h3>
         <p>
           {w.mode === 'following'

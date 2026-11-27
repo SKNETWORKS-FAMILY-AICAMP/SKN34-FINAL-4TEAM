@@ -116,21 +116,6 @@ describe('독자 피드백함 (U20)', () => {
     expect(screen.getByLabelText<HTMLTextAreaElement>('작가 답변').value).toBe('')
   })
 
-  it('사용법 투어는 필터에 가려지거나 이미 처리한 제안을 건너뛰고 결정을 기다리는 첫 제안의 버튼 줄만 짚는다', async () => {
-    vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([
-      { ...suggestion, id: 's0', episodeNumber: 1, status: 'approved', applyResult: 'applied', appliedVersionId: 'v9' },
-      { ...suggestion, id: 's1', episodeNumber: 2 },
-      { ...suggestion, id: 's2', episodeNumber: 3, status: 'held' },
-    ])
-    render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={['/inbox']}><InboxPage /></MemoryRouter></Provider>)
-    await screen.findByRole('heading', { name: '독자 수정 제안' })
-    await waitFor(() => expect(document.querySelectorAll('article[aria-label$="수정 제안"]')).toHaveLength(3))
-    const targets = () => [...document.querySelectorAll('[data-tour="inbox-suggestion-actions"]')].map((el) => el.closest('article')?.getAttribute('aria-label'))
-    expect(targets()).toEqual(['별빛 서약 2화 수정 제안'])
-    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'held' } })
-    expect(targets()).toEqual(['별빛 서약 3화 수정 제안'])
-  })
-
   it('데모 피드백 패널의 제목은 굵은 글씨가 아니라 제목 요소다', async () => {
     await open('titles')
     expect((await screen.findByRole('heading', { name: '접수된 피드백' })).tagName).toBe('H3')

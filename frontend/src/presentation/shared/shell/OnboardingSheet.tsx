@@ -36,7 +36,8 @@ export function OnboardingSheet() {
           {s.link && <> <Go to={s.link.to} onClick={close}>{s.link.label}</Go></>}
         </li>
       ))}</ol>
-      <p className="muted small">작업 화면에서는 <b>사용법</b> 버튼으로 그 화면의 안내를 다시 볼 수 있어요.</p>
+      <p className="muted small">읽다가 문장을 누르면 작가에게 오류 제보나 수정 제안을 보낼 수 있어요.</p>
+      <p className="muted small">작가 도구에서는 <b>사용법</b> 버튼으로 그 화면의 안내를 다시 볼 수 있어요.</p>
       <div className="onb-foot">
         <label className="onb-never"><input type="checkbox" checked={never} onChange={(e) => setNever(e.target.checked)} /> 다음부터 보지 않기</label>
         <button type="button" className="btn pri" onClick={close}>작품 둘러보기</button>

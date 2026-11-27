@@ -126,27 +126,3 @@ it('제목 단계는 쓰는 자리를 따른다: 작품 관리의 받은 피드�
   openFor()
   expect((await screen.findByRole('heading', { name: '독자 제보 0' })).tagName).toBe('H2')
 })
-
-it('사용법 투어는 필터에 가려지지 않은 첫 제보의 처리 버튼 줄만 짚는다', async () => {
-  vi.spyOn(reports(), 'listInbox').mockResolvedValue([report(), report({ id: 'r2', kind: 'story', body: '장면 순서' }), report({ id: 'r3', kind: 'story', body: '또 다른 장면' })])
-  open()
-  await screen.findByRole('heading', { name: '독자 제보 3' })
-  const targets = () => [...document.querySelectorAll('[data-tour="inbox-report-actions"]')].map((el) => el.closest('[data-report]')?.getAttribute('data-report'))
-  expect(targets()).toEqual(['r1'])
-  fireEvent.change(screen.getByLabelText('제보 유형'), { target: { value: 'story' } })
-  expect(targets()).toEqual(['r2'])
-})
-
-it('첫 읽기가 성공하면 onLoaded를 한 번 부르고, 읽기에 실패하면 부르지 않는다', async () => {
-  const loaded = vi.fn()
-  vi.spyOn(reports(), 'listInbox').mockResolvedValueOnce([report()])
-  const { unmount } = render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><FeedbackReportInbox onLoaded={loaded} /></MemoryRouter></Provider>)
-  await screen.findByRole('heading', { name: '독자 제보 1' })
-  expect(loaded).toHaveBeenCalledTimes(1)
-  unmount()
-  const failed = vi.fn()
-  vi.spyOn(reports(), 'listInbox').mockRejectedValueOnce(new Error('offline'))
-  render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><FeedbackReportInbox onLoaded={failed} /></MemoryRouter></Provider>)
-  await screen.findByText('독자 제보를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.')
-  expect(failed).not.toHaveBeenCalled()
-})

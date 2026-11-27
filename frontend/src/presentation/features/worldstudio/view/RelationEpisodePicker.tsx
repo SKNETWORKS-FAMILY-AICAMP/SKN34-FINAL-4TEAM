@@ -32,7 +32,7 @@ export function RelationEpisodePicker({ studio }: { studio: VM }) {
     if (studio.selectEpisode(next)) refocus.current = true // 요청이 시작됐을 때만(잠겼거나 같은 회차면 시작하지 않는다)
   }
   return (
-    <section className='relationship-episode' aria-label='관계 기준 회차' data-tour='world-people-episode'>
+    <section className='relationship-episode' aria-label='관계 기준 회차'>
       <form onSubmit={(e) => { e.preventDefault(); if ('episode' in input && !off) pick(input.episode) }}>
         <label>
           관계 기준

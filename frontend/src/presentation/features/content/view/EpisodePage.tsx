@@ -11,16 +11,6 @@ import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useSerialLock } from '../../../shared/useSerialLock'
-import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
-
-// 새 작품 만들기(`/content`)의 사용법 투어(#971). 대상은 CreateWork의 data-tour="create-…"다.
-const createTour: TourStep[] = [
-  { target: 'create-title', title: '제목과 소개', text: '작품 제목은 꼭 있어야 하고, 이야기 소개는 선택이에요.' },
-  { target: 'create-cover', title: '표지', text: 'PNG·JPEG 파일을 올리거나 AI로 표지를 만들 수 있어요. 고르지 않으면 기본 표지가 쓰이고, 표지는 만든 뒤 작품 관리에서도 바꿀 수 있어요.' },
-  { target: 'create-type', title: '작품 유형', text: '직접 쓰는 원작인지 외부 2차 창작인지 골라요. 외부 2차 창작은 무료 공개만 가능해요.' },
-  { target: 'create-genre', title: '장르와 해시태그', text: '장르는 1~2개를 고르고 첫 장르는 꼭 필요해요. 해시태그는 선택이고 쉼표로 구분해 10개까지 쓸 수 있어요.' },
-  { target: 'create-submit', title: '작품 만들기', text: '등록할 권리가 있음을 확인하고 작품 만들기를 누르면, 나만 볼 수 있는 비공개 작품이 만들어지고 이어서 집필실로 가요.' },
-]
 
 /**
  * 작품 관리 화면. 주소가 화면을 정한다: `/content`는 새 작품 만들기, `/content?work=<id>`는 그 내 작품의 관리 화면(`&tab=world`면 세계관 탭부터)이고
@@ -77,7 +67,6 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
           {!(managed && menuOpen) && (
             <div className='ep-top'>
               <Go to={readerBack ?? '/lib?tab=write'} className='ep-back'><BackChev />{readerBack ? '회차로 돌아가기' : '내가 쓰는 소설'}</Go>
-              {!wanted && !reports && <ScreenTour screen='create' steps={createTour} />}
             </div>
           )}
           {!managed && notices}

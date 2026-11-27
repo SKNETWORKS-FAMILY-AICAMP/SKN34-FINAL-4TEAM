@@ -44,43 +44,12 @@ import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
-// 사용법 투어(#971)의 화면 투어(첫 진입 1회): 관리 모드 사이드바의 메뉴·도구 버튼(data-tour="world-…")을 작업 순서대로 짚는다. 접힌 사이드바의 대상은 보이지 않아 단계에서 빠진다. 사용법 버튼은 이것이 아니라 지금 보기의 투어를 연다.
+// 사용법 투어(#971): 작가 도구의 차별점만 한 문장씩. 대상은 관리 모드 사이드바의 메뉴·도구 버튼(data-tour="world-…")이라 보기와 무관하게 보이고, 접힌 사이드바의 대상은 보이지 않아 단계에서 빠진다.
 const tour: TourStep[] = [
-  { target: 'world-book', title: '설정집', text: '설정 카드를 만들고 고쳐요. 도구줄의 새 설정에서 인물·장소·사건 같은 유형을 고르면 새 카드의 편집 화면이 열리고, 줄을 누르면 미리보기가 열려요. 보기는 처음 열 때마다 그 보기의 사용법이 한 번 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
-  { target: 'world-people', title: '관계도', text: '설정 카드 사이의 관계를 캔버스에서 바로 만들어요. 관계는 N화부터로 기록하고, 관계 기준 칸으로 그 회차 시점의 관계를 볼 수 있어요.' },
-  { target: 'world-novel', title: '소설 연결', text: '이 세계관과 소설을 1:1로 연결해요. 연결하면 설정 카드를 N화부터 공개하도록 정할 수 있고, 연결된 소설과 그 Fork 소설도 여기서 봐요.' },
-  { target: 'world-review', title: 'AI 검토', text: '저장한 설정 카드를 AI가 읽고 설정끼리의 모순·빠진 정보를 지적해요. 지적은 게시판 카드 줄의 ‘AI 의견’으로 보여요. 카드 내용을 OpenAI로 보내는 데 동의해야 요청할 수 있어요.' },
-  { target: 'world-save', title: '저장', text: '바뀐 설정은 저장해야 반영돼요. 저장은 발행·공개와 달라요.' },
-  { target: 'world-versions', title: '확정 버전 남기기', text: '공개 목록에 나오려면 확정 버전이 필요해요. 저장하지 않은 변경이 있으면 먼저 저장해야 해요.' },
+  { target: 'world-people', title: '관계도', text: '인물 관계는 회차마다 따로 기록돼요.' },
+  { target: 'world-review', title: 'AI 검토', text: 'AI는 검토와 제안만 하고, 설정에 반영하는 건 내가 해요.' },
+  { target: 'world-versions', title: '확정 버전', text: '독자에게는 확정한 버전만 보여요.' },
 ]
-
-// 보기별 사용법 투어(#971): 보기(탭)에 처음 들어갈 때(화면 투어 다음) 그 보기 안의 실제 버튼·입력을 짚는다. 대상은 data-tour="world-<보기>-<이름>"이고, 사용법 버튼은 지금 보기의 투어를 연다.
-// 소설을 연결하지 않은 세계관의 공개 범위 일괄 변경·Fork 소설처럼 화면에 없는 대상의 단계는 빠진다.
-const tabTours: Record<string, TourStep[]> = {
-  overview: [
-    { target: 'world-overview-metrics', title: '세계관 지표', text: '설정 카드·관계·저장 버전의 수와 연결된 소설, 공개 상태를 한눈에 봐요.' },
-    { target: 'world-overview-info', title: '기본 정보', text: '세계관 이름·설명·공개 설정과 표지를 고쳐요.' },
-    { target: 'world-overview-save', title: '저장', text: '고친 기본 정보는 \'저장\'을 눌러야 반영돼요. \'되돌리기\'는 저장하지 않은 변경을 버려요.' },
-  ],
-  book: [
-    { target: 'world-book-tools', title: '도구줄', text: '제목·본문·태그로 검색하고 정렬해요. \'+ 새 설정\'에서 인물·장소·사건 같은 유형을 고르면 새 카드의 편집 화면이 열리고, \'다른 세계관에서 가져오기\'로 카드를 복사해 와요.' },
-    { target: 'world-book-list', title: '설정 목록', text: '줄을 누르면 미리보기가 열리고, \'수정하기\'로 카드를 편집해요.' },
-    { target: 'world-book-bulk', title: '공개 범위 한 번에 바꾸기', text: '소설을 연결한 세계관에서만 보여요. 카드를 골라 \'N화부터 공개\'나 비공개로 한꺼번에 바꾸고, 저장한 뒤 확정 버전을 남겨야 독자에게 반영돼요.' },
-  ],
-  people: [
-    { target: 'world-people-episode', title: '관계 기준 회차', text: '회차를 넣고 \'이 회차 관계 보기\'를 누르면 그 회차 시점의 관계를 봐요. \'최신으로\'는 되돌려요.' },
-    { target: 'world-people-canvas', title: '관계도', text: '노드를 누르면 이웃이 강조돼요. 더블클릭은 정보 편집, 오른쪽 클릭은 메뉴(관계 연결·삭제)예요.' },
-    { target: 'world-people-add', title: '+ 설정 추가', text: '새 설정 카드를 캔버스에서 바로 더해요.' },
-    { target: 'world-people-settings', title: '그래프 설정', text: '톱니 버튼에서 화면 맞춤·배치 정돈, 이름 찾기와 유형·관계 종류 필터, 중심 보기를 써요.' },
-  ],
-  timeline: [
-    { target: 'world-timeline-scroll', title: '사건 시간선', text: '승인된 사건이 회차 순서로 놓여요. 사건을 누르면 내용과 관련 설정이 보이고, 관련 설정을 누르면 그 카드의 편집 화면이 열려요. 방향키로 사건 사이를 이동할 수 있어요.' },
-  ],
-  novel: [
-    { target: 'world-novel-link', title: '소설 연결', text: '세계관은 소설 하나에만 연결돼요. \'소설 연결하기\'로 내 소설을 고르고, 연결한 뒤에는 \'소설 작성하기\'로 그 작품 관리로 가요.' },
-    { target: 'world-novel-forks', title: 'Fork 소설', text: '연결한 소설에서 갈라진 공개 Fork 소설을 모아 봐요. 회차를 하나 이상 발행한 공개 Fork만 보여요.' },
-  ],
-}
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 
 /**
@@ -298,7 +267,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           )}
         >
           {/* 첫 렌더는 목록 단계라 이 구역이 hidden이다: 편집 화면이 보일 때 시작해야 대상이 잡힌다(jsdom은 checkVisibility가 없어 브라우저에서만 재현). */}
-          <ScreenTour screen="world" steps={tour} tabs={tabTours} tab={vm.view} ready={vm.flow.screen === 'editor'} className="btn sm weak tour-side" />
+          <ScreenTour screen="world" steps={tour} ready={vm.flow.screen === 'editor'} className="btn sm weak tour-side" />
           <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (

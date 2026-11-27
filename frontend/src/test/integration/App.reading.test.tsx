@@ -55,15 +55,6 @@ describe('소설 상세 (U04)', () => {
     expect(screen.queryByRole('link', { name: '처음부터' })).toBeNull()
   })
 
-  it('회차를 검색하는 동안 사용법 투어의 첫 회차 대상은 검색에 맞는 첫 회차다(#971)', async () => {
-    renderApp('/work/guunmong')
-    await screen.findByRole('heading', { name: '구운몽' })
-    const anchor = () => document.querySelector('#eplist [data-tour="work-eps-first"] .no')?.textContent
-    expect(anchor()).toBe('1')
-    fireEvent.change(screen.getByLabelText('회차 검색'), { target: { value: '팔선녀' } })
-    expect(anchor()).toBe('2')
-  })
-
   it('회차 검색·결과 없음·정렬·좋아요·포크 허용 회차를 보여 준다', async () => {
     renderApp('/work/guunmong')
     await screen.findByRole('heading', { name: '구운몽' })

@@ -41,7 +41,7 @@ export function CreateWork({ busy, ready, error, onCreate }: Props) {
         }}
       >
         <div className='whero ep-hero'>
-          <div className='ep-hero-cover' data-tour='create-cover'>
+          <div className='ep-hero-cover'>
             <div className='cover ep-cover'>
               <img className='stored-image' src={preview || '/default-work-cover.svg'} alt='' />
             </div>
@@ -64,7 +64,7 @@ export function CreateWork({ busy, ready, error, onCreate }: Props) {
             </p>
           </div>
           <div className='ep-hero-main ep-create-fields'>
-            <label className='ep-create-title' data-tour='create-title'>
+            <label className='ep-create-title'>
               작품 제목<input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -85,7 +85,7 @@ export function CreateWork({ busy, ready, error, onCreate }: Props) {
                 disabled={busy}
               />
             </label>
-            <fieldset disabled={busy} data-tour='create-type'>
+            <fieldset disabled={busy}>
               <legend>작품 유형</legend>
               <label className='ep-check'><input type='radio' name='creationType' checked={creationType === 'ORIGINAL'} onChange={() => setCreationType('ORIGINAL')} /> 원작</label>
               <label className='ep-check'><input type='radio' name='creationType' checked={creationType === 'EXTERNAL_DERIVATIVE'} onChange={() => setCreationType('EXTERNAL_DERIVATIVE')} /> 외부 2차 창작 <span className='ep-optional'>무료 공개만 가능</span></label>
@@ -99,13 +99,12 @@ export function CreateWork({ busy, ready, error, onCreate }: Props) {
               onHashtags={setHashtags}
               disabled={busy}
               genreRequired
-              tour='create-genre'
             />
             <label className='ep-check'>
               <input type='checkbox' checked={registerRights} onChange={(e) => setRegisterRights(e.target.checked)} required disabled={busy} /> 이 작품을 등록할 권리가 있음을 확인합니다.
             </label>
             {error && <div className='ep-alert' role='alert'>{error}</div>}
-            <div className='ep-form-footer' data-tour='create-submit'>
+            <div className='ep-form-footer'>
               <span>처음에는 나만 볼 수 있어요</span>
               <button className='btn pri' disabled={busy || !ready}>작품 만들기</button>
             </div>

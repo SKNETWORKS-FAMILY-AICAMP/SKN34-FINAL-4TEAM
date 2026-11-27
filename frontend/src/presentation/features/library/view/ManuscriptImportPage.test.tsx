@@ -349,13 +349,3 @@ it('요청이 진행되는 동안 입력을 잠그고 요청 취소를 보여 �
   expect(screen.getByRole('link', { name: '세계관 만들기' }).getAttribute('href')).toBe('/worldstudio')
   expect(screen.queryByRole('button', { name: '요청 취소' })).toBeNull()
 })
-
-it('사용법 버튼은 가져오기 순서(작품 → 권리 → 파일 → 미리보기)대로 투어를 시작한다(#971)', async () => {
-  renderPage()
-  await screen.findByLabelText('원고를 넣을 작품')
-  const help = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
-  await waitFor(() => expect(help.disabled).toBe(false))
-  fireEvent.click(help)
-  const tip = await screen.findByRole('dialog', { name: '등록할 작품' })
-  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 4')
-})

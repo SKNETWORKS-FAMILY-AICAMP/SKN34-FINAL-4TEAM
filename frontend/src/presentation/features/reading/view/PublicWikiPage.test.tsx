@@ -45,18 +45,6 @@ it('연결된 세계관이 있는 서버 작품은 그 세계관의 독자 공�
   expect(within(panel.getByRole('heading', { name: '2.1. 연화봉', level: 3 }).closest('.nw-doc') as HTMLElement).getByRole('link', { name: '성진' })).toBeTruthy()
 })
 
-it('사용법 버튼은 공개 범위 안내 → 목차 → 문서 → 돌아가기 순서로 투어를 열고, 읽은 진도를 기억한다고 약속하지 않는다(#971)', async () => {
-  linked().mockResolvedValue(served())
-  show('/work/guunmong/wiki?upto=2')
-  await article()
-  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
-  const tip = await screen.findByRole('dialog', { name: '공개된 설정만 보여요' })
-  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 4')
-  expect(tip.textContent).toContain("회차 화면의 '설정'에서 열면 그 회차까지 공개된 설정만 보여서 스포일러 없이 볼 수 있어요")
-  expect(tip.textContent).toContain('발행된 최신 회차까지')
-  expect(tip.textContent).not.toMatch(/기억/)
-})
-
 it('연결된 세계관이 없으면 기존 작품 설정 위키를 그대로 보인다', async () => {
   linked().mockResolvedValue(null)
   const legacy = { id: 'char:성진', cat: 'char', t: '성진', alias: [], tags: [], props: {}, at: {}, body: '계율을 어긴 **제자**' }

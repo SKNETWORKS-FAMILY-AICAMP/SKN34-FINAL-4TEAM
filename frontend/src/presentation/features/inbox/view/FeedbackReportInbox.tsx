@@ -1,4 +1,4 @@
-import { Activity, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { Activity, useRef, useState } from 'react'
 
 import { REPORT_KIND_LABEL, REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
@@ -10,7 +10,7 @@ type Vm = ReturnType<typeof useFeedbackReportInboxViewModel>
 
 const at = (iso: string) => new Date(iso).toLocaleString('ko-KR')
 
-function InboxReportRow({ r, vm, tour }: { r: FeedbackReport; vm: Vm; tour: boolean }) {
+function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const [answer, setAnswer] = useState('')
   const [isPublic, setIsPublic] = useState(false)
   // 고르는 중인 처리 상태. 고르는 것만으로는 저장하지 않고 '상태 변경'을 눌러야 보낸다(WCAG 3.2.2). null이면 서버 값을 보인다.
@@ -30,7 +30,7 @@ function InboxReportRow({ r, vm, tour }: { r: FeedbackReport; vm: Vm; tour: bool
   return (
     <FeedbackReportCard report={r} showWork ref={card}>
       {(r.handledAt || firstCheck) && <p className="small muted">{r.handlerName}{r.handledAt && ` · 마지막 처리 ${at(r.handledAt)}`}{firstCheck && ` · 최초 확인 ${at(firstCheck)}`}</p>}
-      <div className="acts" data-tour={tour ? 'inbox-report-actions' : undefined} style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
         <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm" aria-label={`회차 보기 · ${label}`}>회차 보기</Go>
         {unchecked && <button type="button" className="btn sm" aria-label={`확인했어요 · ${label}`} disabled={vm.busy} onClick={() => void vm.check(r).then(settle)}>확인했어요</button>}
         <label className="small">처리 상태{' '}
@@ -63,12 +63,9 @@ function InboxReportRow({ r, vm, tour }: { r: FeedbackReport; vm: Vm; tour: bool
  * 독자가 철회·정정한 제보는 원문을 지우지 않고 표시만 남겨 함께 보입니다. 데모 작품의 피드백은 같은 화면의 기존 메모리 목록이 그대로 보입니다.
  * workId를 주면 그 작품의 제보만 보입니다(작품 관리 화면의 '받은 피드백' 탭). 주지 않으면 내 모든 작품입니다.
  */
-export function FeedbackReportInbox({ workId, onLoaded }: { workId?: string; onLoaded?: () => void }) {
+export function FeedbackReportInbox({ workId }: { workId?: string }) {
   const vm = useFeedbackReportInboxViewModel(workId)
   const { reports } = vm
-  // 첫 읽기가 성공으로 끝나면 호출 측에 알린다(작가 피드백함의 사용법 투어가 목록이 도착한 뒤에 시작한다). 읽기에 실패하면 알리지 않는다.
-  const loaded = useEffectEvent(() => onLoaded?.())
-  useEffect(() => { if (reports) loaded() }, [reports])
   // 작품 관리의 '받은 피드백' 탭(workId가 있다)에서는 탭 제목(h2) 아래 묶음 제목이라 h3다. 피드백함 화면에서는 쪽 제목(h1) 아래 구획이라 h2다.
   const Heading = workId ? 'h3' : 'h2'
   const [kind, setKind] = useState('')
@@ -76,12 +73,10 @@ export function FeedbackReportInbox({ workId, onLoaded }: { workId?: string; onL
   // 방금 처리한 제보는 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
   // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
   const visible = (r: FeedbackReport) => ((!kind || r.kind === kind) && (!status || r.status === status)) || r.id === vm.notice?.key
-  // 사용법 투어는 필터에 가려지지 않은 첫 제보의 처리 버튼 줄만 짚는다(가려진 카드의 버튼 줄은 보이지 않아 단계가 빠진다).
-  const first = reports?.find(visible)?.id
   return (
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
-    <section className="sec" data-tour="inbox-reports" aria-label="독자 제보" aria-busy={!reports && !vm.isError} style={{ marginTop: 0, marginBottom: 18 }}>
+    <section className="sec" aria-label="독자 제보" aria-busy={!reports && !vm.isError} style={{ marginTop: 0, marginBottom: 18 }}>
       <div className="sec-h"><Heading>{reports ? `독자 제보 ${reports.length}` : '독자 제보'}</Heading></div>
       {/* 처리 방법 안내는 제보가 있을 때만 쓸모가 있다. 0건·불러오는 중에는 빈 상태 문구보다 먼저 읽히지 않게 그리지 않는다. */}
       {!!reports?.length && <p className="small muted">내 작품 회차에 독자가 남긴 제보예요. 확인하거나 답변하면 독자의 내 서재에 상태가 바로 표시돼요. 비공개 제보는 작가만 볼 수 있고, 공개 답변을 달면 답변만 다른 독자에게 보여요.</p>}
@@ -98,7 +93,7 @@ export function FeedbackReportInbox({ workId, onLoaded }: { workId?: string; onL
         <label>제보 상태 <select className="inp" value={status} onChange={e=>setStatus(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_STATUS_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
       </div>}
       {!!reports?.length && !reports.some(visible) && <p role="status">조건에 맞는 제보가 없어요.</p>}
-      {!!reports?.length && <div className="list">{reports.map(r => <Activity key={r.id} mode={visible(r) ? 'visible' : 'hidden'}><InboxReportRow r={r} vm={vm} tour={r.id === first} /></Activity>)}</div>}
+      {!!reports?.length && <div className="list">{reports.map(r => <Activity key={r.id} mode={visible(r) ? 'visible' : 'hidden'}><InboxReportRow r={r} vm={vm} /></Activity>)}</div>}
     </section>
   )
 }

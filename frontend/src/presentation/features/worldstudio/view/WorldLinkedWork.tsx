@@ -93,11 +93,11 @@ export function WorldNovelTab({ vm }: { vm: VM }) {
       {!demo && (linked && work.title
         ? <ul className="world-fork-list"><li><Go to={`/work/${encodeURIComponent(linked)}`} className="world-card-link">{work.title}<small>원작</small></Go></li></ul>
         : <p className="small world-linked muted">{linkedText(linked, work.title, work.isLoading)}</p>)}
-      <div className="ep-card-actions" data-tour="world-novel-link">
+      <div className="ep-card-actions">
         <WorldNovelButton vm={vm} />
       </div>
       {linked && (
-        <div className="world-forks" data-tour="world-novel-forks">
+        <div className="world-forks">
           <h2>{forks.data ? `Fork 소설 ${forks.data.length}편` : 'Fork 소설'}</h2>
           {forks.isLoading ? <p role="status" className="small muted">Fork 소설을 불러오고 있어요…</p>
             : !forks.data ? <p role="alert">Fork 소설을 불러오지 못했어요. <button type="button" className="btn sm" onClick={forks.retry}>다시 시도</button></p>

@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Joyride, type TooltipRenderProps } from 'react-joyride'
 
 import type { TourScreen } from './tourPrefs'
@@ -31,30 +30,12 @@ function TourTooltip({ backProps, closeProps, primaryProps, skipProps, tooltipPr
 /**
  * 화면 하나의 사용법 투어(#971): 작은 `사용법` 버튼(호출 측이 둔 자리, 모양은 className으로 그 줄의 버튼에 맞춘다)과 코치마크 투어를 함께 그린다.
  * 화면은 단계(`data-tour` 이름·제목·설명)와 화면 키만 넘긴다. 시작 조건·기억은 useScreenTour, 말풍선 위치·스포트라이트는 react-joyride가 맡는다.
- * 탭이 있는 화면(작품 관리·세계관 관리·소설 상세)은 `tabs`(탭 키 → 단계)와 지금 탭 `tab`도 넘긴다: `steps`는 첫 진입의 메뉴 소개이고 사용법 버튼은 지금 탭의 투어를 연다.
- * 집필실처럼 탭 메뉴 대신 패널을 여닫는 화면은 `panel`을 켠다: 버튼은 `steps`를 열고 패널 투어는 그 패널이 처음 열릴 때만 저절로 뜬다.
  */
-export function ScreenTour({ screen, steps, tabs, tab, panel, ready = true, className = 'btn sm' }: {
-  screen: TourScreen
-  steps: readonly TourStep[]
-  tabs?: Record<string, readonly TourStep[]>
-  tab?: string
-  panel?: boolean
-  ready?: boolean
-  className?: string
-}) {
-  const tour = useScreenTour({ screen, steps, tabs, tab, panel, ready })
-  const running = tour.active !== null
-  // 투어가 떠 있는 동안 Esc·Tab은 투어만 받는다: 아래 시트(집필실 버전·공개 패널)가 같은 키로 닫히거나 초점을 가져오지 않게 body에서 막는다(joyride의 Esc는 body에 달려 있어 그대로 동작한다).
-  useEffect(() => {
-    if (!running) return
-    const keep = (e: KeyboardEvent) => { if (e.key === 'Escape' || e.key === 'Tab') e.stopPropagation() }
-    document.body.addEventListener('keydown', keep)
-    return () => document.body.removeEventListener('keydown', keep)
-  }, [running])
+export function ScreenTour({ screen, steps, ready = true, className = 'btn sm' }: { screen: TourScreen; steps: readonly TourStep[]; ready?: boolean; className?: string }) {
+  const tour = useScreenTour(screen, steps, ready)
   return (
     <>
-      <button type="button" className={className} aria-haspopup="dialog" disabled={!tour.canStart} onClick={tour.start}>사용법</button>
+      <button type="button" className={className} aria-haspopup="dialog" disabled={!ready} onClick={tour.start}>사용법</button>
       {tour.active && (
         <Joyride
           run

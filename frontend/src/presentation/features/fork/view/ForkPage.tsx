@@ -1,11 +1,9 @@
 import { Navigate, useParams, useSearchParams } from 'react-router'
 
-import { FORK_WORLD_REQUIRED } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useForkViewModel } from '../viewmodel/useForkViewModel'
 
@@ -13,14 +11,6 @@ import { useForkViewModel } from '../viewmodel/useForkViewModel'
 const PREVIEW_MAX = 8
 /** 포크를 허용하지 않은 회차 버튼이 가리키는 이유 문구의 id */
 const DENIED_NOTE = 'fork-denied-note'
-// 사용법 투어(#971): 위에서 아래로 폼 순서대로.
-const tour: TourStep[] = [
-  { target: 'fork-episode', title: '어디서부터 바꿀까요?', text: '어느 회차가 끝난 순간부터 갈라질지 골라요. 작가가 포크를 허용하지 않은 회차는 고를 수 없어요.' },
-  { target: 'fork-carry', title: '가져가는 것', text: '고른 회차까지 공개된 세계관 규칙·인물·사건을 가져가요. 원작은 바뀌지 않아요.' },
-  { target: 'fork-direction', title: '무엇이 달라지나요?', text: '이야기가 어떻게 달라지는지 한 줄(60자 이내)로 적어요.' },
-  { target: 'fork-title', title: '제목', text: '내 포크 소설의 제목을 정해요(40자 이내).' },
-  { target: 'fork-start', title: '포크 소설 시작하기', text: `누르면 내 포크가 만들어져요. ${FORK_WORLD_REQUIRED} 한 원작에서 포크는 한 번만 만들 수 있고, 포크 생성과 직접 쓰기는 무료예요.` },
-]
 
 /** 목업 fork(id): U09 포크 (3단계 폼) */
 export function ForkPage() {
@@ -48,18 +38,18 @@ function ForkForm({id}:{id:string}) {
   const w = d.work
   return (
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
-      <div className="wrap fork-top"><div className="topbar"><Go to={`/work/${id}`} className="back"><BackChev /><span>{w.title}</span></Go><ScreenTour screen="fork" steps={tour} className="btn sm tour-end" /></div></div>
+      <div className="wrap fork-top"><div className="topbar"><Go to={`/work/${id}`} className="back"><BackChev /><span>{w.title}</span></Go></div></div>
       <main className="fork" id="main" tabIndex={-1}>
         <h1>「{w.title}」 포크</h1><p className="lead">고른 회차가 끝난 순간부터 나만의 소설이 시작돼요.</p>
         <section className="tcard fstep">
           <h2><i>1</i>어디서부터 바꿀까요?</h2>
-          <div className="epc" id="epc" data-tour="fork-episode">
+          <div className="epc" id="epc">
             {vm.episodes.map(({ e, n, ok }) => (
               <button type="button" key={n} data-at={n} className={n === vm.at ? 'on' : ''} aria-pressed={n === vm.at} disabled={!ok} aria-describedby={ok ? undefined : DENIED_NOTE} onClick={() => vm.pick(n)}>{n}화 끝에서<small>{e.t}</small></button>
             ))}
           </div>
           {vm.episodes.some(({ ok }) => !ok) && <p id={DENIED_NOTE} className="small muted">작가가 포크를 허용하지 않은 회차는 고를 수 없어요.</p>}
-          <div className="carry" id="carry" data-tour="fork-carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
+          <div className="carry" id="carry"><span>가져가는 것</span><span>공개된 세계관 규칙 <b id="rulecount">{vm.ruleCount ?? '…'}</b>개</span><span>공개된 인물 <b id="castcount">{vm.castCount ?? '…'}</b>명 (<b id="atl">{vm.at}</b>화 시점 상태)</span><span><b id="atl2">{vm.at}</b>화까지의 사건</span></div>
           {/* 항상 마운트해 둔 안내 영역이다. 회차를 바꿔 설정을 다 읽으면 문구가 바뀌어 스크린 리더가 전환 완료를 알린다(처음 열 때는 읽지 않는다). */}
           <p className="sr-only" aria-live="polite">{vm.reading ? '선택한 회차의 공개 설정을 불러오고 있어요…' : `${vm.at}화 끝에서 포크해요. 공개된 세계관 규칙 ${vm.ruleCount}개, 인물 ${vm.castCount}명을 가져가요.`}</p>
           {w.canonical && (vm.reading ? <p className="small muted">선택한 회차의 공개 설정을 불러오고 있어요…</p> : <section aria-label={`${vm.at}화 공개 자료 미리보기`}>
@@ -79,11 +69,11 @@ function ForkForm({id}:{id:string}) {
           </div>
         </section>
         {d.historyConsentNeeded && <label className="field"><span><input type="checkbox" id="forkHistoryConsent" checked={vm.historyConsent} onChange={(e) => vm.setHistoryConsent(e.target.checked)} /> 회차별 설정 이력이 없어 현재 공개 설정이 포함되며 이후 회차 내용이 섞일 수 있음을 확인했어요.</span></label>}
-        <section className="tcard fstep" data-tour="fork-direction"><h2><i>2</i>무엇이 달라지나요?</h2><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
-        <section className="tcard fstep" data-tour="fork-title"><h2><i>3</i>제목</h2><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
+        <section className="tcard fstep"><h2><i>2</i>무엇이 달라지나요?</h2><input className="tinp" id="fdir" value={vm.dir} onChange={(e) => vm.setDir(e.target.value)} placeholder="한 줄로 적어 주세요" maxLength={60} aria-label="무엇이 달라지나요?" /></section>
+        <section className="tcard fstep"><h2><i>3</i>제목</h2><input className="tinp" id="ftit" value={vm.title} onChange={(e) => vm.setTitle(e.target.value)} maxLength={40} aria-label="제목" /></section>
         <p className="bm">포크 생성과 직접 쓰기는 무료예요. AI 도움의 과금 기준은 아직 정해지지 않았어요. 원작 링크가 함께 표시되고, 현금 수익 배분은 없어요.</p>
         {vm.error && <p role="alert">{vm.error}</p>}
-        <button type="button" className="tbtn pri" data-tour="fork-start" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting || vm.reading} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
+        <button type="button" className="tbtn pri" style={{ width: '100%', height: 56, fontSize: 16 }} id="startFork" disabled={vm.submitting || vm.reading} onClick={vm.start}>{vm.submitting?'포크 생성 중…':'포크 소설 시작하기 →'}</button>
       </main>
     </div>
   )

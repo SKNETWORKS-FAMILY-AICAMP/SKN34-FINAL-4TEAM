@@ -5,12 +5,10 @@ import { type InboxAct, inboxCls } from '../../../../domain/usecases/InboxUseCas
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { ScreenTour } from '../../../shared/tour/ScreenTour'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useInboxViewModel } from '../viewmodel/useInboxViewModel'
 import { EditSuggestionInbox } from './EditSuggestionInbox'
 import { FeedbackReportInbox } from './FeedbackReportInbox'
-import { inboxTour } from './inboxTour'
 import './inbox.css'
 
 type Vm = ReturnType<typeof useInboxViewModel>
@@ -23,17 +21,14 @@ export function InboxPage() {
   useDocumentTitle('독자 피드백함')
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다. 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
-  // 사용법 투어(#971)는 독자 제보·수정 제안 두 목록을 읽은 뒤에 시작한다. 수정 제안 영역이 없는 목업 빌드는 제보만 본다.
-  const [reportsLoaded, setReportsLoaded] = useState(false)
-  const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
   // 데모 목록의 조회 상태(불러오는 중·실패·도착)와 무관하게 같은 트리를 그린다. 상태마다 트리가 달라지면 데모 목록이 늦거나 실패할 때
   // 실제 수정 제안이 가려지고, 항목을 고를 때마다 아래 영역이 다시 만들어져 초점과 쓰던 입력을 잃는다.
   return (
     <>
       <Gnb on="lib" />
       <main id="main" tabIndex={-1} className="wrap inbox-page">
-        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>독자 피드백함 <span className="muted small" style={{ fontWeight: 600 }}>댓글·단순 오류·스토리 오류·질문·제안</span></h1><ScreenTour screen="inbox" steps={inboxTour} ready={reportsLoaded && (mockup || suggestionsLoaded)} className="btn sm tour-end" /></div>
-        <FeedbackReportInbox onLoaded={() => setReportsLoaded(true)} />
+        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>독자 피드백함 <span className="muted small" style={{ fontWeight: 600 }}>댓글·단순 오류·스토리 오류·질문·제안</span></h1></div>
+        <FeedbackReportInbox />
         {vm.isError && (
           <div role="alert">
             <p>독자 피드백을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>
@@ -42,7 +37,7 @@ export function InboxPage() {
         )}
         {!vm.data && !vm.isError && <p className="muted" role="status">독자 피드백을 불러오고 있어요.</p>}
         {vm.data && <DemoFeedback vm={vm} data={vm.data} sel={sel} />}
-        {!mockup && <EditSuggestionInbox onLoaded={() => setSuggestionsLoaded(true)} />}
+        {!mockup && <EditSuggestionInbox />}
       </main>
       <Footer />
     </>

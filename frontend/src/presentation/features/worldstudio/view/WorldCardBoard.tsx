@@ -239,7 +239,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
               <button type="button" className="btn pri sm" disabled={!emptyAddable} onClick={addFirstCard}>+ {emptyType.label} 설정 추가</button>
               {categories && !emptyAddable && <p className="small muted">운영에서 숨긴 분류라 새로 추가할 수 없어요.</p>}
             </div>}
-            <div className="worlds-board-tools world-compact" data-tour="world-book-tools">
+            <div className="worlds-board-tools world-compact">
               {!emptyType && <>
                 <label className="worlds-search">
                   <span className="sr-only">설정 검색</span>
@@ -257,7 +257,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
               <button type="button" className="btn sm" aria-haspopup="dialog" onClick={() => setImporting(true)}>다른 세계관에서 가져오기</button>
               {!emptyType && <NewCardMenu vm={vm} className="world-new-menu" trigger={<><span aria-hidden="true">+</span> 새 설정</>} before={board.reset} />}
             </div>
-            {!emptyType && linked && <details className="world-bulk" data-tour="world-book-bulk" open={bulkOpen} onToggle={(e) => setBulkOpen(e.currentTarget.open)}>
+            {!emptyType && linked && <details className="world-bulk" open={bulkOpen} onToggle={(e) => setBulkOpen(e.currentTarget.open)}>
               <summary>공개 범위 한 번에 바꾸기</summary>
               <div className="world-bulk-body">
                 <p className="small muted">작가 전용 설정은 독자에게 보이지 않아요. 저장 후 확정 버전을 남겨야 반영돼요.</p>
@@ -280,7 +280,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                 {limit !== 0 && <button type="button" className="btn sm" disabled={allPublic === world.settings} onClick={publishAll}>전체 공개</button>}
               </div>
             </details>}
-            {!emptyType && <div className="world-board-scroll" data-tour="world-book-list">
+            {!emptyType && <div className="world-board-scroll">
               <table className="worlds-board-table">
                 <caption className="sr-only">설정 카드 목록</caption>
                 <thead>

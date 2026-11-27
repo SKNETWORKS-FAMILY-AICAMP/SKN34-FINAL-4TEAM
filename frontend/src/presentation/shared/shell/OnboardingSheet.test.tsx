@@ -36,6 +36,12 @@ it('Fork 단계는 세계관이 연결된 원작에서만 분기할 수 있다�
   expect(fork.textContent).toContain('세계관이 연결된')
 })
 
+it('단계 목록 아래에 문장을 눌러 작가에게 오류 제보나 수정 제안을 보낼 수 있다고 한 줄 알린다(#971)', () => {
+  renderAt('/')
+  expect(sheet()!.textContent).toContain('읽다가 문장을 누르면 작가에게 오류 제보나 수정 제안을 보낼 수 있어요.')
+  expect(screen.getAllByRole('listitem')).toHaveLength(4) // 단계 구조는 그대로다
+})
+
 it('홈이 아닌 화면에서는 열리지 않는다', () => {
   renderAt('/work/w1')
   expect(sheet()).toBeNull()
@@ -95,9 +101,9 @@ it('닫는 버튼은 닫기(✕)와 주 버튼 작품 둘러보기 둘뿐이다'
   expect((never() as HTMLInputElement).checked).toBe(false)
 })
 
-it('작업 화면의 사용법 버튼으로 화면별 안내를 다시 볼 수 있다고 알린다(#971)', () => {
+it('작가 도구의 사용법 버튼으로 화면 안내를 다시 볼 수 있다고 알린다(#971)', () => {
   renderAt('/')
-  expect(sheet()!.textContent).toContain('사용법')
+  expect(sheet()!.textContent).toContain('작가 도구에서는 사용법 버튼으로')
 })
 
 it('다른 시트가 열려 대신 닫혀도 다시 보지 않기로 저장하지 않는다', async () => {

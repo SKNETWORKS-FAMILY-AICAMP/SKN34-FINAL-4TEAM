@@ -13,8 +13,6 @@ type Props = {
   disabled?: boolean
   /** 첫 장르를 꼭 고르게 한다. 작품 등록에서만 켠다 — 장르가 없던 옛 작품도 정보 수정에서 제목만 고칠 수 있어야 한다. */
   genreRequired?: boolean
-  /** 사용법 투어(#971)가 장르 칸을 가리킬 `data-tour` 이름 */
-  tour?: string
 }
 
 /**
@@ -22,7 +20,7 @@ type Props = {
  * 장르 선택지는 운영이 관리하는 공개 장르 목록(DEC-56)이고, 읽지 못하면 빈 목록으로 채우지 않고 실패와 다시 불러오기를 보인다.
  * 이미 고른 값(숨긴 장르 포함)은 목록에 없어도 그대로 보인다(새로 붙이는 것만 막는다).
  */
-export function TaxonomyFields({ genre1, genre2, hashtags, onGenre1, onGenre2, onHashtags, disabled, genreRequired, tour }: Props) {
+export function TaxonomyFields({ genre1, genre2, hashtags, onGenre1, onGenre2, onHashtags, disabled, genreRequired }: Props) {
   // 입력 이름은 '해시태그'로 두고, 형식 안내(쉼표로 구분·10개까지)는 설명으로 이어 스크린리더도 읽게 한다.
   const hashtagHint = useId()
   const genres = useGenres()
@@ -30,7 +28,7 @@ export function TaxonomyFields({ genre1, genre2, hashtags, onGenre1, onGenre2, o
   const catalog = genres.data ?? []
   return (
     <>
-      <div className='ep-field-row' data-tour={tour}>
+      <div className='ep-field-row'>
         <label>
           장르<select aria-label='장르' value={genre1} onChange={(e) => { onGenre1(e.target.value); if (e.target.value === genre2) onGenre2('') }} required={genreRequired} disabled={disabled || unavailable}>
             <option value=''>장르를 선택해 주세요</option>
