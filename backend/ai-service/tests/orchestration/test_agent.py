@@ -13,7 +13,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 from openai import OpenAIError
 from pydantic import ValidationError
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.intent.errors import IntentFailure
 from app.intent.models import DecisionResult
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
@@ -27,9 +27,11 @@ from app.story_qa.errors import StoryQaFailure
 
 from traced import attrs, named, shown
 
-from .stubs import PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, fake_scene, plan
+from .stubs import DRAFT, PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'w1', 'episode': 3}
+# fake_agents가 대역으로 바꾸기 전의 실제 서비스 함수. 서비스가 모델 출력을 검증해 올리는 502를 모델 호출만 대역으로 두고 시험한다.
+REAL_ANSWER, REAL_DRAFT = tools.story_qa.answer, tools.writing.draft
 
 
 def run(request='요청', **body):
@@ -201,14 +203,14 @@ def test_a_main_model_failure_with_only_failed_steps_does_not_point_at_results_b
     assert (result.status, result.message) == ('failed', agent.MAIN_FAILED_NOTHING_MESSAGE)
 
 
-def traced(monkeypatch) -> list[dict]:
-    """메인 모델 추적(main_agent)에 남은 update 값들."""
+def traced(monkeypatch, name='main_agent') -> list[dict]:
+    """추적 span name(기본은 메인 모델 main_agent)에 남은 update 값들."""
     updates = []
 
     @contextmanager
-    def observe(name, **fields):
+    def observe(observed, **fields):
         # 요청 루트(tracing.request)도 이 대역을 거치므로 id를 읽을 수 있어야 한다. 0 id는 추적이 꺼진 span이다.
-        yield SimpleNamespace(trace_id='0' * 32, id='0' * 16, update=lambda **kw: name == 'main_agent' and updates.append(kw))
+        yield SimpleNamespace(trace_id='0' * 32, id='0' * 16, update=lambda **kw: observed == name and updates.append(kw))
 
     monkeypatch.setattr(agent.tracing, 'observe', observe)
     return updates
@@ -976,11 +978,68 @@ def test_an_output_failure_twice_fails_the_step_and_closes_the_tools(monkeypatch
     assert result.status == 'failed' and 'research' not in names(calls) and exposed(calls)[-1] == []
 
 
+def test_an_output_retry_is_traced_on_the_step_with_its_count_and_reason_only(monkeypatch):
+    updates = traced(monkeypatch, 'step.story_context')
+    fake_agents(monkeypatch, plan('story_context'))
+    flaky_qa(monkeypatch, output_failure())
+    assert run(inputs={'story_context': QA}).status == 'completed'
+    assert updates == [{'metadata': {'retries': 1, 'retryReason': 'output'}}]
+
+
+# 서비스가 모델 출력을 검증해 올리는 502도 같은 출력 문제다. 서비스 함수는 실제 것을 쓰고 모델 호출만 대역으로 둔다.
+
+
+def flaky_draft(monkeypatch, *replies):
+    """집필 모델이 replies를 차례로 낸다(빈 글이면 서비스가 502). 실제 writing.draft를 거치고 모델에 보낸 입력 목록을 돌려준다."""
+    sent = []
+
+    def model(*args, **kwargs):
+        sent.append((args, kwargs))
+        return AIMessage(content=replies[len(sent) - 1], response_metadata={'model_name': 'm', 'id': 'r'}), None
+
+    monkeypatch.setattr(tools.writing, 'draft', REAL_DRAFT)
+    monkeypatch.setattr(agent_runtime, 'run', model)
+    return sent
+
+
+def test_an_empty_writing_reply_is_retried_once_with_the_same_input(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('writing_editing', task='draft')))
+    sent = flaky_draft(monkeypatch, ' ', '선장은 항구에 내렸다.')
+    result = run(inputs={'writing_editing': DRAFT})
+    assert [(s.feature, s.status) for s in result.steps] == [('writing_editing', 'completed')]
+    assert len(sent) == 2 and sent[0] == sent[1]
+
+
+def test_two_empty_writing_replies_fail_the_step_and_close_the_tools(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(Step('writing_editing', task='draft'), 'research'))
+    sent = flaky_draft(monkeypatch, ' ', '\n')
+    result = run(inputs={'writing_editing': DRAFT, 'research': WEB})
+    assert [(s.feature, s.status) for s in result.steps] == [('writing_editing', 'failed')] and len(sent) == 2
+    assert result.status == 'failed' and 'research' not in names(calls) and exposed(calls)[-1] == []
+
+
+def test_a_qa_answer_citing_an_excerpt_it_was_not_given_is_retried_once(monkeypatch):
+    from app.story_qa.models import AnswerResponse, Claim
+    asked = []
+
+    def model(data):  # 첫 답은 전달하지 않은 발췌를 인용하고 다시 부르면 맞게 인용한다. 실제 story_qa.answer의 인용 대조가 502를 올린다
+        asked.append(data)
+        return AnswerResponse(claims=[Claim(text='밤에 닫는다', kind='confirmed', sourceIds=['other'] if len(asked) == 1 else ['e1'])], gaps=[])
+
+    fake_agents(monkeypatch, plan('story_context'))
+    monkeypatch.setattr(tools.story_qa, 'answer', REAL_ANSWER)
+    monkeypatch.setattr(tools.story_qa.agent, 'answer', model)
+    result = run(inputs={'story_context': QA})
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed')]
+    assert len(asked) == 2 and asked[0] == asked[1]
+
+
 @pytest.mark.parametrize('failure', [StoryQaFailure(502, '고정 문구'), StoryQaFailure(422, '입력 오류'), StoryQaFailure(503, '모델 호출 실패')],
                          ids=['plain-502', '4xx', '503'])
 def test_a_failure_without_the_retry_mark_is_not_retried_and_closes_every_tool(monkeypatch, failure):
+    updates = traced(monkeypatch, 'step.story_context')
     calls = fake_agents(monkeypatch, plan('story_context', 'story_context'))
     count = flaky_qa(monkeypatch, failure)
     result = run(inputs={'story_context': QA})
     assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'failed')] and exposed(calls)[-1] == []
-    assert len(count) == 1
+    assert len(count) == 1 and updates == []  # 다시 부르지 않았으니 재시도 표시도 없다

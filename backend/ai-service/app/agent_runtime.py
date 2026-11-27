@@ -6,7 +6,7 @@ generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류
 호출 한도는 라이브러리 ModelCallLimitMiddleware가 지킨다(업무 Agent는 모델 호출 1회). 실패를 fallback으로 숨기지 않는다.
 재시도는 DEC-61의 두 가지뿐이다: 집필 AI 채팅 안(그래프 실행)의 일시 장애(연결·시간 초과·429·5xx)는 1초 뒤 같은 입력으로 한 번 더 부르고
 진행 목록에 보인다(REST 업무 API·연재·회귀 평가처럼 채팅 밖에서는 재시도하지 않는다). 출력 문제(502)는
-이 모듈이 다시 부르지 않고 `failure.retry = 'output'`만 단다. 집필 채팅의 `orchestration.tools._ask`가 같은 입력으로 한 번 더 부른다.
+이 모듈이 다시 부르지 않고 `output_problem`으로 `retry = 'output'`만 단다(서비스가 모델 출력을 검증해 올리는 502도 이 헬퍼로 단다). 집필 채팅의 `orchestration.tools._ask`가 같은 입력으로 한 번 더 부른다.
 
 여러 단계를 도는 Agent(인물 시뮬레이션)의 공통 진행 이벤트·사용량 장부도 여기 둔다. 미들웨어가 상태의 `step`에 단계 결과를 남기면
 `ProgressMiddleware`가 LangGraph custom stream으로 흘리고(바깥 오케스트레이션이 SSE `step`으로 중계), `UsageLedger`(콜백)가 그 단계까지
@@ -132,6 +132,12 @@ class UsageLedger(BaseCallbackHandler):
         tracing.client().start_observation(name=self.name, as_type='span', metadata=record).end()
 
 
+def output_problem(failure: Exception) -> Exception:
+    """DEC-61 출력 문제 표식을 달아 돌려준다(orchestration._ask가 같은 입력으로 한 번 다시 부른다)."""
+    failure.retry = 'output'
+    return failure
+
+
 class ModelCallMiddleware(AgentMiddleware):
     """모델 호출 하나를 추적하고, 결과를 쓸 수 있는지 확인한다. 실패는 failure(status, 고정 문구)로 올린다."""
 
@@ -141,8 +147,7 @@ class ModelCallMiddleware(AgentMiddleware):
         self.write = write  # 집필 AI 채팅의 stream writer. 있을 때만 일시 장애를 한 번 다시 부르고 그 줄을 진행 목록에 보인다(DEC-61)
 
     def wrap_model_call(self, request, handler):
-        unusable = self.failure(502, f'{self.label} 모델 응답을 확인할 수 없습니다.')
-        unusable.retry = 'output'  # orchestration._ask가 같은 입력으로 한 번 다시 부를 수 있는 출력 문제(DEC-61)
+        unusable = output_problem(self.failure(502, f'{self.label} 모델 응답을 확인할 수 없습니다.'))
         with tracing.observe(self.observation, as_type='generation', model=request.model.model_name, input=self.trace,
                              prompt=self.prompt) as generation:
             try:

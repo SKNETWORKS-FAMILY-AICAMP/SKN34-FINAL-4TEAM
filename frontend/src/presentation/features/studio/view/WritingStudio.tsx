@@ -369,7 +369,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
       {(stage.open||stageVisited)&&<SimulationStage hidden={!stage.open} plansVersion={plans.version+setupVersion} startBlocker={startBlocker} stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
         plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
-      {showProposal&&<ProposalStage proposal={proposal} chat={chat} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
+      {showProposal&&<ProposalStage proposal={proposal} chat={chat} workId={id} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
       {/* 설정집 상세(#986)도 편집기 자리를 대신하되 편집기는 숨기기만 한다(저장하지 않은 입력·자동 저장을 지킨다). 무대가 열려 있으면 무대가, 제안 화면이 열려 있으면 제안 화면이 먼저다(가운데에는 하나만 보인다). */}
       {!stage.open&&!showProposal&&<StudioBookDetail book={book}/>}
       <div ref={editorArea} className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open||showProposal||!!book.card}>

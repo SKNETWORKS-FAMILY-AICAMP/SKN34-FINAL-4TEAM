@@ -24,3 +24,12 @@ it('눌린 답변 평가 버튼은 --pri-soft 배경·--pri-ink 글자이고 hov
   expect(pressed).toMatch(/color:\s*var\(--pri-ink\)/)
   expect(rule('.chat-msg-actions button:hover:not(:disabled, [aria-pressed="true"])')).toMatch(/background:\s*var\(--muted-bg\)/)
 })
+
+// 지난 턴의 세계관 선택지는 Go가 그리는 <a aria-disabled="true">라 :disabled가 맞지 않는다(#957 E2E: cursor만 not-allowed이고 opacity 1, hover하면 강조).
+// 같은 줄의 비활성 버튼처럼 흐리게 하고 hover 강조에서 뺀다.
+it('aria-disabled 선택지 링크도 :disabled 버튼처럼 흐리고 not-allowed이며 hover 강조를 받지 않는다', () => {
+  const disabled = rule('.chat-suggest-btn:is(:disabled, [aria-disabled="true"])')
+  expect(disabled).toMatch(/cursor:\s*not-allowed/)
+  expect(disabled).toMatch(/opacity:\s*\.6/)
+  expect(rule('.chat-suggest-btn:hover:not(:disabled, [aria-disabled="true"])')).toMatch(/border-color:\s*var\(--tacc\)/)
+})

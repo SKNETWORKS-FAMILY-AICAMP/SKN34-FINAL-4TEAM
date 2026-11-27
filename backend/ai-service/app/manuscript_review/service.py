@@ -9,6 +9,7 @@
 import contextvars
 from concurrent.futures import ThreadPoolExecutor
 
+from app import agent_runtime
 from app.content_mcp import service as content_mcp
 from app.novelbrain.models import WorldSnapshot, world_snapshot
 from app.novelbrain.service import episode_settings
@@ -65,7 +66,7 @@ def _review(data: ReviewRequest, body: str, revision: int, candidate: ReviewCand
         metas.append(meta)
     if dropped := given - len(findings):
         if not findings:
-            raise ReviewFailure(502, BAD_FINDING)
+            raise agent_runtime.output_problem(ReviewFailure(502, BAD_FINDING))
         gaps.append(DROPPED_FINDINGS.format(count=dropped))
     usages = [m['usage'] for m in metas]
     usage = None if None in usages else {k: sum(u[k] for u in usages) for k in ('inputTokens', 'outputTokens')}

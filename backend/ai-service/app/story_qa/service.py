@@ -5,7 +5,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.content_mcp import service as content_mcp
 from app.novelbrain.models import world_snapshot
 from app.novelbrain.service import bm25_rank, episode_settings
@@ -106,7 +106,7 @@ def answer(data: AnswerRequest) -> AnswerResponse:
             check.update(metadata={'citedIds': sorted(alias.get(i, i) for i in cited), 'invalidIds': sorted(cited - alias.keys()),
                                    'claims': len(result.claims), 'gaps': len(result.gaps)})
             if not all(claim.sourceIds and set(claim.sourceIds) <= alias.keys() for claim in result.claims):
-                raise StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
+                raise agent_runtime.output_problem(StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.'))
         result = result.model_copy(update={'claims': [
             claim.model_copy(update={'sourceIds': [alias[i] for i in claim.sourceIds]}) for claim in result.claims]})
         qa.update(output=result.model_dump())

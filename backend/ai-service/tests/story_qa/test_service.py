@@ -75,7 +75,7 @@ def test_answer_with_unknown_or_missing_citation_is_502(monkeypatch, ids):
     data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=ids)])
     with pytest.raises(StoryQaFailure) as error:
         service.answer(data)
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 def attrs(span):

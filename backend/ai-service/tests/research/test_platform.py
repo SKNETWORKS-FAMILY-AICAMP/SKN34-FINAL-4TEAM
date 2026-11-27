@@ -56,7 +56,7 @@ def test_rejects_a_world_the_model_picked_outside_the_candidates(monkeypatch, pi
     with pytest.raises(ResearchFailure) as error:
         service.platform(ASK)
 
-    assert error.value.status == 502 and mcp.reads() == [] and seen.refer == []
+    assert (error.value.status, error.value.retry) == (502, 'output') and mcp.reads() == [] and seen.refer == []
 
 
 @pytest.mark.parametrize('cited', [('w1', 'c3'), ('w2', 'c1'), ('w1', 'nope')])
@@ -67,7 +67,7 @@ def test_rejects_a_citation_that_was_not_read(monkeypatch, cited):
     with pytest.raises(ResearchFailure) as error:
         service.platform(ASK)
 
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 def test_without_other_public_worlds_returns_no_result_without_calling_the_model(monkeypatch):
@@ -175,7 +175,7 @@ def test_rejects_an_unreadable_content_response(monkeypatch):
     with pytest.raises(ContentMcpFailure) as error:
         service.platform(ASK)
 
-    assert error.value.status == 502
+    assert error.value.status == 502 and getattr(error.value, 'retry', None) is None  # Content 응답 문제는 모델을 다시 불러도 같다(DEC-61)
 
 
 def test_needs_a_request(monkeypatch):

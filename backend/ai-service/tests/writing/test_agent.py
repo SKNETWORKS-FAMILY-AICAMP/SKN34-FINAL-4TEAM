@@ -59,16 +59,16 @@ def test_missing_model_settings_is_503(monkeypatch):
     assert error.value.status == 503
 
 
-@pytest.mark.parametrize('kwargs, code', [
-    ({'error': OpenAIError('down')}, 503),
-    ({'status': 'incomplete'}, 502),
-    ({'text': '   '}, 502),
+@pytest.mark.parametrize('kwargs, code, retry', [
+    ({'error': OpenAIError('down')}, 503, None),
+    ({'status': 'incomplete'}, 502, 'output'),
+    ({'text': '   '}, 502, 'output'),  # 빈 글은 서비스가 올리는 502지만 같은 입력으로 다시 부르면 풀릴 수 있는 출력 문제다(DEC-61)
 ])
-def test_provider_failure_and_empty_output_are_errors_not_results(monkeypatch, kwargs, code):
+def test_provider_failure_and_empty_output_are_errors_not_results(monkeypatch, kwargs, code, retry):
     fake_openai(monkeypatch, **kwargs)
     with pytest.raises(WritingFailure) as error:
         agent.draft(DraftRequest(episodeNumber=1, plan='계획'))
-    assert error.value.status == code
+    assert (error.value.status, getattr(error.value, 'retry', None)) == (code, retry)
 
 
 def plan_json(*plans, notes=()):
@@ -98,7 +98,7 @@ def test_plan_outside_limits_is_failure_not_result(monkeypatch, text, single):
     fake_openai(monkeypatch, text=text)
     with pytest.raises(WritingFailure) as error:
         agent.plan(PlanRequest(episodeNumber=1, request='전개 짜줘', single=single))
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 def test_plan_and_draft_plans_once_then_writes_from_that_plan(monkeypatch):
@@ -185,7 +185,7 @@ def test_revise_plan_returns_the_before_and_after_with_the_revision_it_was_given
 def test_revise_plan_outside_the_limits_is_failure_not_a_proposal(monkeypatch, title, content):
     with pytest.raises(WritingFailure) as error:
         revise(monkeypatch, title, content)
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 @pytest.mark.parametrize('title, content', [('가' * 120, '새 내용'), ('재회', '가' * 8000)], ids=['title-at-limit', 'content-at-limit'])

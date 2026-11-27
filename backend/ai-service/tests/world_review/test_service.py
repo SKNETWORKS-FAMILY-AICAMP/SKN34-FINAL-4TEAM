@@ -62,7 +62,7 @@ def test_findings_outside_the_contract_are_errors_not_repaired(monkeypatch, bad)
     fake_agent(monkeypatch, bad)
     with pytest.raises(WorldReviewFailure) as error:
         service.review(request())
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 def test_four_cards_in_one_finding_is_an_error(monkeypatch):
@@ -273,7 +273,7 @@ def test_enrich_outside_the_contract_is_an_error_not_repaired(monkeypatch, fixes
     fake_enrich(monkeypatch, *fixes, note=note)
     with pytest.raises(WorldReviewFailure) as error:
         service.enrich('보강해줘', request(), 'world-1', 3)
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 def test_enrich_accepts_five_different_cells_and_a_300_char_note(monkeypatch):
@@ -332,7 +332,7 @@ def test_impact_refs_outside_the_input_are_an_error_not_repaired(monkeypatch, ba
     fake_impact(monkeypatch, affected(), bad)
     with pytest.raises(WorldReviewFailure) as error:
         service.impact('영향은?', request(), CONTEXT, PLANS)
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 @pytest.mark.parametrize('field', ['conflicts', 'gaps'])
