@@ -4,9 +4,9 @@ import { z } from 'zod'
 
 import { appContainer } from '../../../app/appContainer'
 import { useAppSelector } from '../../../app/store'
-import { getMobileNotice, syncMobileDevice } from '../../../data/api/mobilePush'
 import { readyMessage } from '../../../domain/entities/nativeBridge'
 import { noticeTarget } from '../../../domain/entities/notification'
+import type { ShellUseCase } from '../../../domain/usecases/ShellUseCase'
 import { RestoreContext } from '../session/restoreContext'
 
 type MobileWindow = Window & { ReactNativeWebView?: { postMessage(value: string): void } }
@@ -16,7 +16,7 @@ const fromMobile = z.discriminatedUnion('type', [
 ])
 
 /** 설치 앱의 WebView만 기존 인증·SSE·알림 이동을 네이티브 알림과 연결한다. */
-export function useMobileNoticeBridge() {
+export function useMobileNoticeBridge(shellUseCase: ShellUseCase = appContainer.resolve('shellUseCase')) {
   const restoring = useContext(RestoreContext)
   const navigate = useNavigate()
   const open = useEffectEvent((target: string) => navigate(target))
@@ -27,7 +27,6 @@ export function useMobileNoticeBridge() {
     if (!bridge || restoring) return
     const controller = new AbortController()
     const signal = controller.signal
-    const notices = appContainer.resolve('notificationRepository')
     let registration: Promise<void> = Promise.resolve()
     let latestTap = 0
 
@@ -39,16 +38,16 @@ export function useMobileNoticeBridge() {
         const device = message.data
         // 갱신 두 건이 차례로 저장되도록 하고, 로그아웃 시 대기 요청은 중단한다.
         registration = registration.then(async () => {
-          if (!signal.aborted) await syncMobileDevice(device, signal)
+          if (!signal.aborted) await shellUseCase.syncPushDevice(device, signal)
         }).catch(() => {
           if (!signal.aborted) console.warn('Android 알림 등록을 저장하지 못했어요.')
         })
       } else {
         const id = message.data.id
         const tap = ++latestTap
-        void getMobileNotice(id, signal).then(notice => {
+        void shellUseCase.getNotification(id, signal).then(notice => {
           if (signal.aborted || tap !== latestTap) return
-          void notices.markRead(id).catch(() => {})
+          void shellUseCase.markRead(id).catch(() => {})
           open(noticeTarget(notice) ?? '/notifications')
         }).catch(() => { if (!signal.aborted && tap === latestTap) open('/notifications') })
       }
@@ -60,5 +59,5 @@ export function useMobileNoticeBridge() {
       controller.abort()
       window.removeEventListener('storyfork:mobile', receive)
     }
-  }, [account, restoring])
+  }, [account, restoring, shellUseCase])
 }
