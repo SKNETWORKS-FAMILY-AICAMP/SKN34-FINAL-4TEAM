@@ -153,7 +153,7 @@ export function GlobalChrome() {
       {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       {!writing && <div className="screen-controls">
         {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(uiActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
-        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. 공용 상단바(Gnb)·사이드바가 있는 화면은 계정 메뉴의 다크 모드 항목이 맡아 thm-float를 CSS가 숨긴다. */}
+        {/* 관리자 화면은 상단바 닉네임 메뉴의 다크 모드 항목이 맡으므로 떠 있는 버튼이 표를 가리지 않게 경로로 뺍니다(공용 상단바(Gnb)가 없어 CSS가 숨기지 못한다). 공용 상단바(Gnb)·사이드바가 있는 화면은 계정 메뉴의 다크 모드 항목이 맡아 thm-float를 CSS가 숨긴다. */}
         {pathname !== '/admin' && <ThemeButton className="btn sm thm-float" />}
       </div>}</>}
     </>

@@ -4,7 +4,12 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.episode.service.dto.OperationsEpisodeResponse
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.work.service.WORK_RESTRICTED
+import ai.storyfork.content.work.service.WORK_UNRESTRICTED
+import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +19,10 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 @Transactional(transactionManager="contentTransactionManager")
-class InternalEpisodeService(private val works: WorkRepository, private val current: EpisodeCurrentRepository, private val episodes: EpisodeRepository) {
+class InternalEpisodeService(
+    private val works: WorkRepository, private val current: EpisodeCurrentRepository, private val episodes: EpisodeRepository,
+    private val outbox: ContentEventOutboxRepository,
+) {
     /** 작품의 회차(번호순, 본문 없음)다. 없거나 지운 작품은 404다. */
     fun list(workId: String): List<OperationsEpisodeResponse> {
         works.findById(workId).orElse(null)?.takeIf { it.deletedAt == null } ?: throw missingWork()
@@ -24,12 +32,18 @@ class InternalEpisodeService(private val works: WorkRepository, private val curr
     /**
      * 회차 제한 플래그를 바꾼다(멱등). 작가 저장과 같은 작품 행 잠금으로 직렬화해 전체 행 저장이 플래그를 덮어쓰지 않게 한다.
      * 상속 회차는 409 EPISODE_INHERITED, 없는 회차는 404다. 응답의 제한 여부는 방금 바꾼 값이다(상속이 아닌 회차는 자기 값이 곧 결과다).
+     * 플래그가 실제로 바뀔 때만 같은 트랜잭션에서 작품 소유자에게 보낼 운영자 조치 알림 사건(작품 제한과 같은 종류 + 회차 번호)을 outbox에 쓴다(#941).
      */
     fun restrict(workId: String, number: Int, restricted: Boolean): OperationsEpisodeResponse {
-        works.lockAll(listOf(workId)).singleOrNull()?.takeIf { it.deletedAt == null } ?: throw missingWork()
+        val work = works.lockAll(listOf(workId)).singleOrNull()?.takeIf { it.deletedAt == null } ?: throw missingWork()
         val item = items(workId).firstOrNull { it.number == number } ?: throw missingEpisode()
         if (item.inherited) throw ContentFailure(409, "원작에서 물려받은 회차예요. 원작 회차를 제한해 주세요.", "EPISODE_INHERITED")
-        (episodes.findByWorkIdAndSequence(workId, number) ?: throw missingEpisode()).restricted = restricted
+        val episode = episodes.findByWorkIdAndSequence(workId, number) ?: throw missingEpisode()
+        if (episode.restricted != restricted) {
+            episode.restricted = restricted
+            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (restricted) WORK_RESTRICTED else WORK_UNRESTRICTED, work.ownerId, "work", workId,
+                detailTitle = work.title, detailEpisode = number))
+        }
         return item.copy(restricted = restricted)
     }
 
