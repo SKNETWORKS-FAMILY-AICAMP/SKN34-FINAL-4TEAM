@@ -10,7 +10,7 @@ import { KindChip } from '../../../shared/KindChip'
 import { type BoardRow } from '../../../shared/worldBoard'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
-import { publishAllCards, revealLabel, setCardReveal, shownPublicly, visibleSelection } from '../viewmodel/cardVisibility'
+import { hideAllCards, publishAllCards, revealLabel, setCardReveal, shownPublicly, visibleSelection } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { labelOf } from '../viewmodel/settingBoard'
 import type { CardPane } from '../viewmodel/cardPanels'
@@ -114,10 +114,11 @@ function RowPreview({ id, row, setting, settings, linked, limit, publicPath, ima
  * `onPreviewEdit`은 미리보기의 `수정하기`로 편집 화면에 들어갈 때 그 카드 id를 알려, 편집기가 미리보기 탭으로 시작하게 한다(레일·새 설정 같은 다른 입구는 알리지 않는다).
  * 내용 편집은 여기서 하지 않는다: 행(제목)을 누르면 그 줄 아래에 미리보기가 열리고(한 번에 하나, 편집 화면에 다녀와도 열린 채), 미리보기의 `수정하기`나 새 설정을 만들면 집필실 같은 편집 화면(`WorldCardStudio`, 주소 `?card=`)이 열리고, 삭제도 거기서 한다.
  * 편집 화면에서 돌아오면 그 카드의 행 제목에 초점이 가고, 미리보기를 닫으면 제목으로 초점이 돌아온다.
- * 설정 카드는 기본 작가 전용이고(DEC-53) 소설이 연결된 세계관만 공개 설정을 게시판에서 한 번에 바꾼다: 이 줄은 접힌 `공개 범위 한 번에 바꾸기` 한 줄로 시작해 행을 고르면 펼쳐지고, 행을 골라 `선택 공개`·`선택 비공개`, 또는 `전체 공개`로 바꾼다.
- * 회차를 한 번 입력받아(기본 1화) 고른 카드 모두에 같은 'N화부터 공개'를 정하며, 연결된 소설의 마지막 회차(`vm.episodeLimit`)를 넘는 회차는 받지 않고(`이 소설은 N화까지 있어요.`, 공개 버튼이 잠긴다) 소설에 회차가 없으면 입력 없이 `회차를 쓰면 공개 회차를 정할 수 있어요.`만 보인다(결정 5).
+ * 설정 카드는 기본 작가 전용이고(DEC-53) 소설이 연결된 세계관만 공개 설정을 게시판에서 한 번에 바꾼다: 이 줄은 접힌 `공개 범위 한 번에 바꾸기` 한 줄로 시작해 행을 고르면 펼쳐지고, 지금 보는 쪽에서 행을 골라 `선택 공개`·`선택 비공개`로 바꾸거나(쪽·분류·보완 필요·검색·정렬이 바뀌면 고른 것이 모두 풀린다)
+ * 필터·쪽과 상관없이 세계관의 모든 설정 카드를 `전체 공개`·`전체 비공개`로 바꾼다. 상태 문구는 `N/M쪽 · 이 쪽에서 K개 선택 · 전체 T개`(T는 필터와 상관없는 세계관의 설정 카드 수로, 분류 메뉴의 `전체`와 같다)다.
+ * 회차를 한 번 입력받아(기본 1화) 고른 카드 모두에 같은 'N화부터 공개'를 정하며, 연결된 소설의 마지막 회차(`vm.episodeLimit`)를 넘는 회차는 받지 않고(`이 소설은 N화까지 있어요.`, 공개 버튼이 잠긴다) 소설에 회차가 없으면 입력 없이 `회차를 쓰면 공개 회차를 정할 수 있어요.`만 보인다(결정 5). `선택 비공개`·`전체 비공개`는 회차가 필요 없어 회차가 없는 소설에서도 보인다.
  * 연결되지 않은 세계관은 지우지 않은 카드가 모두 공개라(저장된 공개 회차는 무시한다) 이 줄도 선택 칸도 그리지 않는다(DEC-53 보완). 초안 변경이라 저장과 확정 버전을 거쳐야 공개 화면에 반영된다.
- * 바꾸면 한 일을 상태 문구로 알리고(`설정 N개를 공개로 뒀어요.`), 고른 것이 풀리거나 모두 공개가 돼 누른 버튼이 잠기므로 초점은 표 머리의 `보이는 설정 모두 선택`으로 옮긴다. 일부만 고른 동안 그 체크박스는 중간 상태다.
+ * 바꾸면 한 일을 상태 문구로 알리고(`현재 페이지 설정 N개를 …로 뒀어요.`, `모든 설정 N개를 …로 뒀어요.`), 고른 것이 풀리거나 모두 그 설정이 돼 누른 버튼이 잠기므로 초점은 표 머리의 `보이는 설정 모두 선택`으로 옮긴다. 일부만 고른 동안 그 체크박스는 중간 상태다.
  * `다른 세계관에서 가져오기`는 가져오기 시트(`WorldImportSheet`)를 연다(닫히면 시트가 초점을 이 버튼으로 돌려준다).
  * 카드가 하나도 없으면 안내는 표 안 한 줄뿐이다. 카드가 아닌 기존 항목(관계·메모·분류 확인)은 표 아래 접힌 목록에서 열 수 있다.
  */
@@ -139,13 +140,16 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
   const search = useRef<HTMLInputElement>(null)
   const table = useRef<HTMLTableSectionElement>(null)
   const byId = new Map(world.settings.map((s) => [s.item.id, s]))
-  // 고른 카드는 지금 보이는 줄에서만 센다(필터로 가려진 줄을 모르는 채 바꾸지 않는다). 공개 범위를 바꾸면 고른 것을 푼다.
+  // 고른 카드는 지금 보는 쪽의 것이다(쪽 단위): 쪽·분류·보완 필요·검색어·정렬이 바뀌면 모두 풀어, 안 보이는 쪽·필터에 고른 것이 남아 바뀌는 것처럼 보이지 않게 한다. 공개 범위를 바꿔도 푼다.
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
+  const view = `${board.paged.page}|${board.kind}|${board.todo}|${board.sort}|${vm.cardQuery}`
+  const [seen, setSeen] = useState(view)
+  if (seen !== view) { setSeen(view); setSelected(new Set()) }
   // 일괄 공개 줄은 접혀 시작한다. 줄을 고르면 펼쳐지고(고른 것이 풀려도 접지 않아 한 일의 알림이 남는다) 직접 여닫을 수도 있다.
   const [bulkOpen, setBulkOpen] = useState(false)
   const picked = visibleSelection(board.paged.items, selected)
   const visiblePicked = picked.length
-  const selectionText = `현재 페이지 ${picked.length}개 선택${selected.size > picked.length ? ` · 다른 페이지·필터 ${selected.size - picked.length}개 선택` : ''}`
+  const selectionText = `${board.paged.page + 1}/${board.paged.pages}쪽 · 이 쪽에서 ${picked.length}개 선택 · 전체 ${board.total}개`
   // 방금 한 일괄 변경의 결과 문구. 그 변경이 만든 초안 그대로일 때만 보이고(다른 수정·저장으로 초안이 바뀌면 낡은 말이 된다), 다시 고르면 지운다.
   const [done, setDone] = useState<{ text: string; settings: StudioSetting[] } | null>(null)
   const head = useRef<HTMLInputElement>(null)
@@ -172,9 +176,11 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
     head.current?.focus()
   }
   const allPublic = episode === undefined ? world.settings : publishAllCards(world.settings, episode)
-  const publishAll = () => {
-    vm.patch({ settings: allPublic })
-    setDone({ text: `모든 설정을 ${episode}화부터 공개로 뒀어요.`, settings: allPublic })
+  const allHidden = hideAllCards(world.settings)
+  // 전체 공개·전체 비공개는 고른 줄·필터·쪽과 상관없이 세계관의 모든 설정 카드를 바꾼다(공개 회차가 필요 없는 전체 비공개는 소설에 회차가 없어도 쓴다).
+  const changeAll = (next: StudioSetting[], text: string) => {
+    vm.patch({ settings: next })
+    setDone({ text, settings: next })
     head.current?.focus()
   }
   // 일부만 고른 상태는 속성이 없어 DOM에 직접 표시한다.
@@ -277,7 +283,8 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                   )}
                 {limit !== 0 && <button type="button" className="btn sm" disabled={!picked.length || episode === undefined} onClick={() => change(true)}>선택 공개</button>}
                 <button type="button" className="btn sm" disabled={!picked.length} onClick={() => change(false)}>선택 비공개</button>
-                {limit !== 0 && <button type="button" className="btn sm" disabled={allPublic === world.settings} onClick={publishAll}>전체 공개</button>}
+                {limit !== 0 && <button type="button" className="btn sm" disabled={allPublic === world.settings} onClick={() => changeAll(allPublic, `모든 설정 ${board.total}개를 ${episode}화부터 공개로 뒀어요.`)}>전체 공개</button>}
+                <button type="button" className="btn sm" disabled={allHidden === world.settings} onClick={() => changeAll(allHidden, `모든 설정 ${board.total}개를 비공개로 뒀어요.`)}>전체 비공개</button>
               </div>
             </details>}
             {!emptyType && <div className="world-board-scroll" data-tour="world-book-list">

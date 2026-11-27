@@ -202,22 +202,24 @@ async function show(settings?: StudioSetting[], path: string | string[] = '/worl
   return opened
 }
 const showWorld = () => show()
-it('대형 설정집에서 쪽마다 선택한 카드를 유지하고 마지막 카드를 연다(일괄 공개는 소설이 연결된 세계관의 기능이다)', async () => {
+it('대형 설정집에서 쪽을 옮기면 고른 카드가 풀리고 상태 문구는 쪽 단위로 보이며 마지막 카드를 연다(일괄 공개는 소설이 연결된 세계관의 기능이다)', async () => {
   await show(Array.from({ length: 101 }, (_, i) => person(`설정 ${i}`)), '/worldstudio/qa', { linkedWorkId: 'work-1' })
   const table = () => within(screen.getByRole('table', { name: '설정 카드 목록' }))
   // 이름으로 찾는 row·checkbox role 쿼리는 51행 표에서 행마다 접근 가능한 이름을 계산해 느렸다(로컬에서 이 테스트 시간의 4할). CI 부하에서 5초 제한을 넘긴 적이 있어 행은 제목 글자로, 선택 칸은 레이블로 찾는다.
   const rowOf = (title: string) => table().getByText(title).closest('tr')!
   expect(table().getAllByRole('row')).toHaveLength(51)
+  expect(screen.getByText('1/3쪽 · 이 쪽에서 0개 선택 · 전체 101개')).toBeTruthy()
   fireEvent.click(table().getByLabelText('보이는 설정 모두 선택'))
+  expect(screen.getByText('1/3쪽 · 이 쪽에서 50개 선택 · 전체 101개')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '다음' }))
-  expect(screen.getByText('현재 페이지 0개 선택 · 다른 페이지·필터 50개 선택')).toBeTruthy()
+  expect(screen.getByText('2/3쪽 · 이 쪽에서 0개 선택 · 전체 101개')).toBeTruthy() // 앞 쪽에서 고른 50개는 풀린다
   fireEvent.click(table().getByLabelText('설정 50 선택'))
-  expect(screen.getByText('현재 페이지 1개 선택 · 다른 페이지·필터 50개 선택')).toBeTruthy()
+  expect(screen.getByText('2/3쪽 · 이 쪽에서 1개 선택 · 전체 101개')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '선택 공개' }))
   expect(rowOf('설정 50').textContent).toContain('1화부터')
   fireEvent.click(screen.getByRole('button', { name: '이전' }))
   expect(rowOf('설정 0').textContent).toContain('작가 전용')
-  expect(table().getByLabelText<HTMLInputElement>('설정 0 선택').checked).toBe(true)
+  expect(table().getByLabelText<HTMLInputElement>('설정 0 선택').checked).toBe(false) // 쪽을 옮기며 풀렸다
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '설정 100' } })
   fireEvent.click(table().getByRole('button', { name: '설정 100 인물' }))
   fireEvent.click(screen.getByRole('button', { name: '수정하기' })) // 제목은 미리보기를 열고, 수정하기가 편집 화면을 연다
@@ -1115,6 +1117,8 @@ it('설정집 보기의 사용법은 새 설정 만들기 → 설정 목록을 �
   const bulkTip = await nextStep('공개 범위 한 번에 바꾸기')
   expect(bulkTip.textContent).toContain("'선택 공개'")
   expect(bulkTip.textContent).toContain("'선택 비공개'")
+  expect(bulkTip.textContent).toContain("'전체 공개'")
+  expect(bulkTip.textContent).toContain("'전체 비공개'")
 })
 
 it('개요 보기의 사용법은 공개 설정 → 표지(AI로 생성)를 짚는다(#971)', async () => {
@@ -2229,27 +2233,46 @@ it('소설이 연결된 세계관의 설정 카드는 기본 작가 전용이고
   expect(visibilityOf()).toEqual(['작가 전용', '작가 전용'])
 })
 
-it('게시판에서 고른 설정만 선택 공개·선택 비공개로 바꾸고 전체 공개는 모든 설정 카드를 공개로 바꾼다(소설이 연결된 세계관)', async () => {
+it('게시판에서 고른 설정만 선택 공개·선택 비공개로 바꾸고 전체 공개·전체 비공개는 모든 설정 카드를 바꾼다(소설이 연결된 세계관)', async () => {
   await show([person('가람'), person('나래'), place('항구')], '/worldstudio/qa', linkedWork)
-  const [publish, hide, all] = ['선택 공개', '선택 비공개', '전체 공개'].map((name) => bulk().getByRole<HTMLButtonElement>('button', { name }))
-  expect([publish.disabled, hide.disabled, all.disabled]).toEqual([true, true, false]) // 고른 것이 없으면 선택 동작은 잠긴다
+  const [publish, hide, all, none] = ['선택 공개', '선택 비공개', '전체 공개', '전체 비공개'].map((name) => bulk().getByRole<HTMLButtonElement>('button', { name }))
+  expect([publish.disabled, hide.disabled, all.disabled, none.disabled]).toEqual([true, true, false, true]) // 고른 것이 없으면 선택 동작은 잠기고, 이미 모두 작가 전용이면 전체 비공개도 잠긴다
   fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' }))
   fireEvent.click(boardTable().getByRole('checkbox', { name: '항구 선택' }))
-  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('1/1쪽 · 이 쪽에서 2개 선택 · 전체 3개')
   fireEvent.click(publish)
   expect(visibilityOf()).toEqual(['1화부터', '작가 전용', '1화부터'])
   expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 2개를 1화부터 공개로 뒀어요.') // 바꾸면 고른 것을 풀고 한 일을 알린다
   expect(boardTable().getAllByRole<HTMLInputElement>('checkbox').filter((box) => box.checked)).toEqual([])
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
-  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 3개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('1/1쪽 · 이 쪽에서 3개 선택 · 전체 3개')
   fireEvent.click(hide)
   expect(visibilityOf()).toEqual(['작가 전용', '작가 전용', '작가 전용'])
   expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 3개를 비공개로 뒀어요.')
   fireEvent.click(all)
   expect(visibilityOf()).toEqual(['1화부터', '1화부터', '1화부터'])
-  expect(bulk().getByRole('status').textContent).toBe('모든 설정을 1화부터 공개로 뒀어요.')
-  expect(all.disabled).toBe(true) // 이미 모두 공개다
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 3개를 1화부터 공개로 뒀어요.')
+  expect([all.disabled, none.disabled]).toEqual([true, false]) // 이미 모두 공개다
+  fireEvent.click(none)
+  expect(visibilityOf()).toEqual(['작가 전용', '작가 전용', '작가 전용'])
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 3개를 비공개로 뒀어요.')
+  expect([all.disabled, none.disabled]).toEqual([false, true]) // 이미 모두 작가 전용이다
+})
+
+it('전체 공개·전체 비공개는 검색·분류와 상관없이 세계관의 모든 설정 카드를 바꾼다', async () => {
+  await show([person('가람', '북부'), person('나래', '남부'), place('항구')], '/worldstudio/qa', linkedWork)
+  const search = () => screen.getByRole('searchbox', { name: '설정 검색' })
+  fireEvent.change(search(), { target: { value: '북부' } }) // 가람 한 줄만 보인다
+  fireEvent.click(bulk().getByRole('button', { name: '전체 공개' }))
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 3개를 1화부터 공개로 뒀어요.')
+  fireEvent.change(search(), { target: { value: '' } })
+  expect(visibilityOf()).toEqual(['1화부터', '1화부터', '1화부터']) // 검색에 가려진 카드도 바뀐다
+  fireEvent.click(cats().getByRole('button', { name: /^장소/ })) // 항구 한 줄만 보인다
+  fireEvent.click(bulk().getByRole('button', { name: '전체 비공개' }))
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 3개를 비공개로 뒀어요.')
+  fireEvent.click(cats().getByRole('button', { name: /^전체/ }))
+  expect(visibilityOf()).toEqual(['작가 전용', '작가 전용', '작가 전용']) // 분류에 가려진 카드도 바뀐다
 })
 
 it('일괄 공개는 접힌 한 줄로 시작해 줄을 고르면 펼쳐지고, 한 일을 알린 뒤에도 접히지 않으며, 안내는 한 문장이다', async () => {
@@ -2264,14 +2287,37 @@ it('일괄 공개는 접힌 한 줄로 시작해 줄을 고르면 펼쳐지고, 
   expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 1개를 1화부터 공개로 뒀어요.')
 })
 
-it('고른 설정은 지금 보이는 줄에서만 세어, 검색으로 가려진 설정의 공개 범위는 바꾸지 않는다', async () => {
+it('검색으로 걸러도 가려진 설정의 공개 범위는 바꾸지 않는다: 검색을 바꾸면 고른 것이 풀려, 새로 보이는 줄에서 다시 골라야 바뀐다', async () => {
   await show([person('가람', '북부'), person('나래', '남부')], '/worldstudio/qa', linkedWork)
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '북부' } })
-  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 1개 선택 · 다른 페이지·필터 1개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('1/1쪽 · 이 쪽에서 0개 선택 · 전체 2개') // 가려진 줄에 고른 것이 남지 않는다
+  expect(bulk().getByRole<HTMLButtonElement>('button', { name: '선택 공개' }).disabled).toBe(true)
+  fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' }))
   fireEvent.click(bulk().getByRole('button', { name: '선택 공개' }))
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '' } })
   expect(visibilityOf()).toEqual(['1화부터', '작가 전용'])
+})
+
+it('쪽·분류·보완 필요·검색·정렬을 바꾸면 고른 설정이 모두 풀리고, 되돌아와도 되살아나지 않으며, 전체는 필터와 상관없이 세계관의 설정 카드 수다', async () => {
+  await show([person('가람', '북부'), person('나래', '남부'), place('항구')], '/worldstudio/qa', linkedWork)
+  const status = () => bulk().getByRole('status').textContent
+  const cleared = '1/1쪽 · 이 쪽에서 0개 선택 · 전체 3개' // 분류·보완 필요로 줄이 2개가 돼도 전체는 3개다(전체 공개·전체 비공개가 바꾸는 수)
+  const choose = () => { fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' })); expect(status()).toBe('1/1쪽 · 이 쪽에서 1개 선택 · 전체 3개') }
+  choose()
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '북부' } }) // 가람이 그대로 보여도 풀린다
+  expect(status()).toBe(cleared)
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '' } })
+  expect(status()).toBe(cleared) // 검색을 지워도 되살아나지 않는다
+  choose()
+  fireEvent.click(cats().getByRole('button', { name: /^인물/ }))
+  expect(status()).toBe(cleared)
+  choose()
+  fireEvent.click(cats().getByRole('button', { name: /^보완 필요/ }))
+  expect(status()).toBe(cleared)
+  choose()
+  fireEvent.change(screen.getByRole('combobox', { name: '정렬' }), { target: { value: 'name' } })
+  expect(status()).toBe(cleared)
 })
 
 it('세계관을 공개로 고르면 공개로 둔 설정이 없다고 경고하고, 그 자리에서 전체 공개를 눌러도 공개 설정 저장은 잠기지 않는다', async () => {
@@ -2538,7 +2584,7 @@ it('소설이 연결된 세계관의 일괄 공개는 회차를 한 번 입력�
   fireEvent.change(episode(), { target: { value: '2' } })
   fireEvent.click(bulk().getByRole('button', { name: '전체 공개' })) // 이미 3화부터인 카드까지 모두 같은 회차가 된다
   expect(labels()).toEqual(['2화부터', '2화부터', '2화부터'])
-  expect(bulk().getByRole('status').textContent).toBe('모든 설정을 2화부터 공개로 뒀어요.')
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 3개를 2화부터 공개로 뒀어요.')
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
   fireEvent.click(bulk().getByRole('button', { name: '선택 비공개' })) // 작가 전용은 회차와 무관하다
   expect(labels()).toEqual(['작가 전용', '작가 전용', '작가 전용'])
@@ -2667,6 +2713,19 @@ it('일괄 공개 회차도 소설의 마지막 회차까지만 받는다: 넘�
   expect(bulk().queryByRole('textbox')).toBeNull()
   expect([bulk().queryByRole('button', { name: '선택 공개' }), bulk().queryByRole('button', { name: '전체 공개' })]).toEqual([null, null])
   expect(bulk().getByRole('button', { name: '선택 비공개' })).toBeTruthy()
+})
+
+it('소설에 회차가 없어도 전체 비공개는 남아(공개가 아니라 회차가 필요 없다) 저장해 둔 공개 회차를 모두 지운다', async () => {
+  stubEpisodes()
+  await show([{ ...person('가람'), revealFromEpisode: 193 }, person('나래')], '/worldstudio/qa', linkedWork)
+  await bulk().findByText('회차를 쓰면 공개 회차를 정할 수 있어요.') // 회차 수를 읽은 뒤에는 공개 동작이 없다
+  expect(bulk().queryByRole('button', { name: '전체 공개' })).toBeNull()
+  const none = bulk().getByRole<HTMLButtonElement>('button', { name: '전체 비공개' })
+  expect(none.disabled).toBe(false) // 193화로 정해 둔 카드가 있다
+  fireEvent.click(none)
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 2개를 비공개로 뒀어요.')
+  expect(none.disabled).toBe(true)
+  expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
 })
 
 it('공개 순서 점검 줄도 소설에 없는 회차는 N화부터 공개가 아니라 작가 전용 · N화는 아직 없어요로 쓴다', async () => {
@@ -2958,17 +3017,17 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   expect([head().checked, head().indeterminate]).toEqual([false, false])
   fireEvent.click(head())
   expect([head().checked, head().indeterminate]).toEqual([true, false])
-  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택') // 다시 고르면 결과 문구 대신 고른 수를 보인다
+  expect(bulk().getByRole('status').textContent).toBe('1/1쪽 · 이 쪽에서 2개 선택 · 전체 2개') // 다시 고르면 결과 문구 대신 고른 수를 보인다
   const all = bulk().getByRole<HTMLButtonElement>('button', { name: '전체 공개' })
   all.focus()
   fireEvent.click(all)
   expect(all.disabled).toBe(true)
   expect(document.activeElement).toBe(head())
-  expect(bulk().getByRole('status').textContent).toBe('모든 설정을 1화부터 공개로 뒀어요.')
+  expect(bulk().getByRole('status').textContent).toBe('모든 설정 2개를 1화부터 공개로 뒀어요.')
   openCard('가람 인물') // 그 뒤 초안이 달라지면(다른 수정·저장) 결과 문구는 낡은 말이라 보이지 않는다
   typeReveal('2')
   backToBoard()
-  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('1/1쪽 · 이 쪽에서 2개 선택 · 전체 2개')
 })
 
 it('글자 수는 입력할 때마다 읽히지 않고 3,000자를 넘는 순간에만 상태로 알린다', async () => {

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { beyondNovel, missingEpisodeNote, newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
-import { publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, shownPublicly, visibleSelection } from './cardVisibility'
+import { hideAllCards, publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, shownPublicly, visibleSelection } from './cardVisibility'
 
 /** 카드 하나. `reveal`은 저장된 공개 회차, `visibility`는 옛 공개 값이다(둘 다 없으면 작가 전용). */
 const card = (title: string, reveal?: number, visibility?: StudioSetting['visibility']): StudioSetting => {
@@ -90,6 +90,21 @@ it('전체 공개는 설정집의 카드 모두에 같은 회차를 정하고 �
   expect(publishAllCards(all, 1)).toBe(all)
   // 다른 회차를 고르면 옛 공개 카드까지 모두 그 회차로 바뀐다.
   expect(publishAllCards(all, 4).map((row) => row.revealFromEpisode)).toEqual([4, 4, undefined, undefined])
+})
+
+it('전체 비공개는 설정집의 카드 모두를 작가 전용으로 바꾸고(회차·visibility 삭제) 집필 메모·관계는 건드리지 않으며, 이미 모두 작가 전용이면 받은 배열 그대로다', () => {
+  const [a, b, c] = [card('가', 3, 'public'), card('나', undefined, 'public'), card('다')]
+  const note = { ...newSetting('notes'), revealFromEpisode: 2, visibility: 'public' as const } // 메모는 카드가 아니라 공개 값이 있어도 그대로 둔다
+  const settings = putRelation([a, b, c, note], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  const hidden = hideAllCards(settings)
+  expect(hidden.slice(0, 3).map((row) => [row.revealFromEpisode, row.visibility])).toEqual([[undefined, undefined], [undefined, undefined], [undefined, undefined]])
+  expect(keys(hidden[0])).not.toContain('revealFromEpisode')
+  expect(keys(hidden[1])).not.toContain('visibility') // 옛 공개 카드(공개 + 회차 없음)도 작가 전용이 된다
+  expect(hidden[2]).toBe(c) // 이미 작가 전용인 카드는 다시 쓰지 않는다
+  expect(hidden[3]).toBe(note)
+  expect(hidden[4]).toBe(settings[4])
+  expect(hideAllCards(hidden)).toBe(hidden)
+  expect(hideAllCards([])).toEqual([])
 })
 
 it('소설에 없는 회차인지는 소설의 마지막 회차를 읽었을 때만 판단한다(읽는 중·실패는 판단하지 않는다)', () => {
