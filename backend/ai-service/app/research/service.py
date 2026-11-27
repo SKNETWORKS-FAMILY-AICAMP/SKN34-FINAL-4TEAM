@@ -26,7 +26,9 @@ def research(data: ResearchRequest) -> ResearchResponse:
         for url in finding.sourceUrls:
             key = _norm(url)
             if key is None:
-                raise ResearchFailure(502, '웹 조사 모델의 출처 URL을 확인할 수 없습니다.')
+                failure = ResearchFailure(502, '웹 조사 모델의 출처 URL을 확인할 수 없습니다.')
+                failure.retry = 'output'  # 모델 출력 검증 실패: 같은 입력으로 다시 부르면 풀릴 수 있어 orchestration._ask가 한 번 다시 부른다(DEC-61)
+                raise failure
             if key in found:
                 kept.append(url)
         findings.append(Finding(text=finding.text, verdict=finding.verdict if kept else 'unverified', sourceUrls=kept))
@@ -72,7 +74,9 @@ def platform(request: str) -> PlatformResult:
     ids = {w['id'] for w in worlds}
     picked = list(dict.fromkeys(agent.pick(request, worlds).worldIds))
     if any(i not in ids for i in picked):
-        raise ResearchFailure(502, '플랫폼 조사 모델이 후보에 없는 세계관을 골랐습니다.')
+        failure = ResearchFailure(502, '플랫폼 조사 모델이 후보에 없는 세계관을 골랐습니다.')
+        failure.retry = 'output'  # DEC-61
+        raise failure
     if not picked:
         return PlatformResult(references=[], gaps=[NO_MATCH])
     read = [_read(i) for i in picked[:CANDIDATES]]
@@ -83,7 +87,9 @@ def platform(request: str) -> PlatformResult:
     references = []
     for ref in draft.references:
         if (found := cards.get((ref.worldId, ref.cardId))) is None:
-            raise ResearchFailure(502, '플랫폼 조사 모델이 읽지 않은 카드를 인용했습니다.')
+            failure = ResearchFailure(502, '플랫폼 조사 모델이 읽지 않은 카드를 인용했습니다.')
+            failure.retry = 'output'  # DEC-61
+            raise failure
         world, card = found
         references.append(PlatformReference(worldId=world['id'], worldName=world['name'], cardId=card['id'], cardTitle=card['title'],
                                             authorNickname=world['authorNickname'], note=ref.note))

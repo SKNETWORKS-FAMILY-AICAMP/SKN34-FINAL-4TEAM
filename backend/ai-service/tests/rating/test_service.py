@@ -145,7 +145,7 @@ def test_no_episode_rated_is_502(monkeypatch):
     fake_agent(monkeypatch, adult(), RatingFailure(502, '심의 판별 모델 응답을 확인할 수 없습니다.'))
     with pytest.raises(RatingFailure) as error:
         service.rate(request())
-    assert (error.value.status, str(error.value)) == (502, service.BAD_REASON)
+    assert (error.value.status, str(error.value), error.value.retry) == (502, service.BAD_REASON, 'output')  # 회차 하나도 판별하지 못한 것은 모델 출력 문제다(DEC-61)
 
 
 def test_model_unavailable_fails_the_whole_request(monkeypatch):
@@ -176,4 +176,4 @@ def test_unreadable_content_is_502(monkeypatch, call):
     monkeypatch.setattr(service.content_mcp, 'call', call)
     with pytest.raises((RatingFailure, ContentMcpFailure)) as error:
         service.rate(request(1))
-    assert error.value.status == 502
+    assert error.value.status == 502 and getattr(error.value, 'retry', None) is None  # Content 응답 문제는 모델을 다시 불러도 같다(DEC-61)
