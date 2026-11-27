@@ -10,6 +10,7 @@ import ai.storyfork.core.auth.repository.SessionRepository
 import ai.storyfork.core.auth.service.dto.EmailRequest
 import ai.storyfork.core.auth.service.dto.NicknameRequest
 import ai.storyfork.core.auth.service.dto.ResetRequest
+import ai.storyfork.core.notification.repository.PushDeviceRepository
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -29,9 +30,10 @@ class ProfileServiceTest {
     private val members = mock(MemberRepository::class.java)
     private val challenges = mock(ProfileChallengeRepository::class.java)
     private val sessions = mock(SessionRepository::class.java)
+    private val pushDevices = mock(PushDeviceRepository::class.java)
     private val passwords = mock(PasswordEncoder::class.java)
     private val secrets = AuthTokenHelper()
-    private val profiles = ProfileService(members, challenges, sessions, passwords, secrets,
+    private val profiles = ProfileService(members, challenges, sessions, pushDevices, passwords, secrets,
         mock(JavaMailSender::class.java), "https://example.invalid", "dev@example.invalid")
     private val member = AuthMember(UUID.randomUUID(), "reader@example.invalid", "old-hash", "Reader")
     private val reset = AuthProfileChallenge(ProfileChallengeId(member.id, "reset"), member.email,
@@ -64,7 +66,8 @@ class ProfileServiceTest {
         order.verify(challenges).findById(email.id)
         order.verify(challenges).delete(email)
         verify(sessions).revokeAll(member.id)
-        verifyNoMoreInteractions(members, challenges, sessions)
+        verify(pushDevices).deleteAllForMember(member.id)
+        verifyNoMoreInteractions(members, challenges, sessions, pushDevices)
     }
 
     @Test
@@ -92,7 +95,7 @@ class ProfileServiceTest {
         assertEquals("old-hash", member.passwordHash)
         verify(challenges).findMemberId("reset", reset.tokenHash)
         verifyNoMoreInteractions(challenges)
-        verifyNoInteractions(members, passwords, sessions)
+        verifyNoInteractions(members, passwords, sessions, pushDevices)
     }
 
     private fun assertRejectedResetPreservesAccount() {
@@ -105,7 +108,7 @@ class ProfileServiceTest {
         verify(members).lockById(member.id)
         verify(challenges).findById(reset.id)
         verifyNoMoreInteractions(members, challenges)
-        verifyNoInteractions(passwords, sessions)
+        verifyNoInteractions(passwords, sessions, pushDevices)
     }
 
     @Test
