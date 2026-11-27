@@ -3,6 +3,7 @@
 import { act, cleanup, fireEvent, render as renderIn, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../app/store'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
@@ -19,6 +20,17 @@ const useCase = { sessions, history, send, open, writingEpisode, feedback, trunc
 afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
 // 입력 대기 카드의 초안 읽기(useEpisodeDraft)가 쓰는 useAsyncData는 세션 스토어를 읽는다.
 const render = (ui: ReactElement) => { const store = createAppStore(); return renderIn(ui, { wrapper: ({ children }) => <Provider store={store}>{children}</Provider> }) }
+
+it('세계관이 없다고 확인된 작품의 빈 대화는 세계관 탭으로 가는 안내를 보이고, 아니면 보이지 않는다(#910)', async () => {
+  sessions.mockResolvedValue([])
+  const { unmount } = render(<MemoryRouter><WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="안내" suggestions={[]} worldMissing /></MemoryRouter>)
+  const link = await screen.findByRole('link', { name: '세계관 탭에서 만들기·연결하기' })
+  expect(link.getAttribute('href')).toBe('/content?work=w&tab=world')
+  unmount()
+  render(<MemoryRouter><WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="안내" suggestions={[]} /></MemoryRouter>)
+  expect(await screen.findByText('안내')).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '세계관 탭에서 만들기·연결하기' })).toBeNull()
+})
 
 it('discards a message edit when switching to another conversation', async () => {
   sessions.mockResolvedValue([
@@ -1539,6 +1551,17 @@ describe('되묻기 선택지(#794)', () => {
     renderChat()
     const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
     expect(within(group).getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
+  })
+
+  it('세계관 선택지는 메시지를 보내지 않고 작품 관리 세계관 탭으로 이동하는 링크이며, 양식 함수 없이도 보인다(#910)', async () => {
+    openThread([{ request: '시뮬레이션', reply: clarify([
+      { label: '원고에서 세계관 추출하기', message: '원고에서 세계관을 추출할게요.', form: 'world' }, { label: '내 세계관 연결하기', message: '내 세계관을 연결할게요.', form: 'world' }]) }])
+    render(<MemoryRouter><WritingChat workId="w 1" basis={basis} emptyTitle="" emptyText="" suggestions={[]} /></MemoryRouter>)
+    const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
+    const links = within(group).getAllByRole('link')
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/content?work=w%201&tab=world', '/content?work=w%201&tab=world'])
+    fireEvent.click(links[0])
+    expect(send).not.toHaveBeenCalled()
   })
 
   it('기획 결과에는 계획 N대로 쓰기 버튼이 보인다', async () => {

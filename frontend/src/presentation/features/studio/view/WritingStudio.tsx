@@ -43,7 +43,7 @@ import { versionGraphRows } from '../../../../domain/entities/versionGraph'
 import { SimulationStage } from '../../../shared/chat/SimulationStage'
 import { ProposalStage } from '../../../shared/chat/ProposalStage'
 import { useProposalStageViewModel } from '../../../shared/chat/useProposalStageViewModel'
-import { useLinkedWorld } from '../../../shared/chat/useSimulationSetupViewModel'
+import { useLinkedWorld, useWorldMissing } from '../../../shared/chat/useSimulationSetupViewModel'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
 import { useWritingChatViewModel } from '../../../shared/chat/useWritingChatViewModel'
 import { keepFiles } from '../../../shared/chat/keepFiles'
@@ -98,6 +98,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   // 운영자가 남의 작품을 열면 열람 전용이다(2026-11-23). ponytail: 기본 집필 화면의 쓰기만 막고, 플롯·시뮬레이션·세계관 패널의 쓰기는 서버 거절 메시지로 둔다.
   const {viewOnly,notice:ownerNotice,retry:retryOwner}=useOperatorViewOnly(id)
   const worldLink=useLinkedWorld(id)
+  const worldMissing=useWorldMissing(id,worldLink.data).data===true
   // AI 자율 집필 중에는 작가가 1화만 쓴다(계약 'AI 자율 집필 = 집필 방식'): 서버가 2화부터의 수정을 409 SERIAL_LOCKED로 막으므로 화면도 미리 읽기 전용으로 두고 안내한다. 켜짐 여부를 읽지 못하면 잠그지 않고 서버가 판정한다.
   const serialOn=useSerialLock(id).locked
   const frozen=serialEpisodeLocked(serialOn,vm.active?.number)
@@ -400,7 +401,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         Content 쓰기 승인은 원고 저장 여부로 잠그지 않는다(#687): 원고를 저장하면 작품 revision이 올라 work_update 제안이 낡아진다. */}
     {viewOnly?null:chatOpen?<aside className="studio-chat writing-chat" data-tour="studio-chat" aria-label="AI 채팅">
       <div className="studio-chat-head" {...keepFiles}><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} onOpenProposal={openProposal} onOpenSetup={vm.ready&&active?()=>openStage(true):undefined} sendNote={sendNote}/>
+      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} onOpenProposal={openProposal} onOpenSetup={vm.ready&&active?()=>openStage(true):undefined} sendNote={sendNote} worldMissing={worldMissing}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" data-tour="studio-chat" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>

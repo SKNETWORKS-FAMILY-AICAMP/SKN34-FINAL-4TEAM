@@ -12,6 +12,7 @@
 .chat-empty p { color: var(--tsub); font-size: 13.5px; line-height: 1.6; text-wrap: balance; }
 .chat-suggest { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .chat-suggest-btn { min-height: 36px; padding: 0 14px; border: 1px solid var(--tline); border-radius: 999px; background: var(--chat-card, var(--tcard)); color: inherit; font-size: 13px; font-weight: 600; }
+a.chat-suggest-btn { display: inline-flex; align-items: center; text-decoration: none; }
 .chat-suggest-btn:hover:not(:disabled) { border-color: var(--tacc); color: var(--pri-ink); }
 .chat-suggest-btn:disabled { cursor: not-allowed; opacity: .6; }
 /* 되묻기 선택지(#794): 답변 말풍선 아래 왼쪽 정렬 알약 버튼 줄. 추천 칩과 같은 버튼을 쓴다. */

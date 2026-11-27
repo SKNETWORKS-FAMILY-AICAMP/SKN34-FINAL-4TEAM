@@ -249,7 +249,9 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
     decision, steps = out['decision'], out.get('steps', [])
     if not decision['allowed']:
         return {'status': 'rejected', 'message': REJECT_MESSAGES[decision['reason']], 'steps': []}
-    done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
+    # 세계관 없음 안내(#910)의 선택지. 병렬 묶음에서 여러 단계가 같은 안내를 실어도 한 번만 보인다
+    world = next((s['worldChoices'] for s in steps if s.get('worldChoices')), [])
+    done: State = {'steps': steps, 'choices': world, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
                    'simulationPlan': out.get('simulationPlan'), 'task': run_as,
                    'message': out['messages'][-1].text + unavailable,
                    'writingBaseRevision': (out.get('writingBase') or {}).get('revision'), 'writingCall': out.get('writingCall')}
