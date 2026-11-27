@@ -394,6 +394,17 @@ it('승인 제안이 오면 편집기 자리에 비교 화면이 열리고 지�
   expect(within(chat).queryByText('새로 쓴 장면')).toBeNull()
 })
 
+it('반영 회차의 초안이 비어 있으면 왼쪽 칸에 빈 칸 대신 안내를 보인다(새 회차 첫 초안)', async () => {
+  const draft = model.draft
+  model.draft = { title: '셋째', body: '', revision: 1 }
+  try {
+    stored(proposalReply())
+    renderStudio()
+    const stage = await proposalStage()
+    expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('아직 쓴 글이 없어요. 반영하면 오른쪽 글이 이 회차의 초안이 돼요.')).toBeTruthy()
+  } finally { model.draft = draft }
+})
+
 it('채팅의 원고 영역에서 보기는 비교 화면을 열고 초점을 제목으로 옮기며, 닫으면 편집기와 그 링크로 초점이 돌아온다', async () => {
   stored(proposalReply())
   renderStudio()

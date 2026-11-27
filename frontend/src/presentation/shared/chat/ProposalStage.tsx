@@ -13,7 +13,10 @@ function Column({ column }: { column: ProposalColumn }) {
   const id = useId()
   return <section className="stage-compare-col" aria-labelledby={id}>
     <p id={id} className="stage-compare-label">{column.label}</p>
-    <div className="stage-compare-text" tabIndex={0}>{column.pre}{column.mark && <mark>{column.mark}</mark>}{column.post}</div>
+    {/* 새 회차 첫 초안처럼 지금 초안이 비어 있으면 빈 칸 대신 무엇이 될지 알린다 */}
+    {column.pre || column.mark || column.post
+      ? <div className="stage-compare-text" tabIndex={0}>{column.pre}{column.mark && <mark>{column.mark}</mark>}{column.post}</div>
+      : <p className="chat-note">아직 쓴 글이 없어요. 반영하면 오른쪽 글이 이 회차의 초안이 돼요.</p>}
   </section>
 }
 
