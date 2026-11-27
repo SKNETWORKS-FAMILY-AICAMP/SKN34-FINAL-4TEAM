@@ -13,6 +13,7 @@ import { appContainer } from '../../../../app/appContainer'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import { createAppStore } from '../../../../app/store'
 import { settings as serialSettings } from '../../../../test/serialFixtures'
+import { FORK_WORLD_REQUIRED } from '../../../../domain/entities/work'
 
 /** 상단바·푸터는 공용 Gnb·Footer라 이 화면 테스트에서는 호출만 기록하는 대역으로 바꾼다(실제 Gnb는 Redux 스토어가 필요하다). */
 const shell = vi.hoisted(() => ({ gnb: vi.fn(), footer: vi.fn() }))
@@ -136,8 +137,54 @@ it('운영 설정 탭의 사용법은 설정을 읽은 뒤에 열려 집필 방�
   fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
   expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(true) // 설정을 읽는 중
   await screen.findByRole('button', { name: '집필 방식 저장' })
-  const { title, count } = await tabTour()
+  const { tip, title, count } = await tabTour()
   expect({ title, count }).toEqual({ title: '집필 방식', count: '1 / 3' })
+  expect(tip.textContent).toContain('AI 협업은 넓은 화면에서 집필실에 AI 채팅이 함께 열리고')
+})
+
+it('이야기 분기 탭의 사용법은 세계관이 연결된 작품만 분기할 수 있다는 조건을 알린다(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)], worldStudioId: WORLD_ID }]) }))
+  fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
+  const { tip, title } = await tabTour()
+  expect(title).toBe('이 회차에서 분기')
+  expect(tip.textContent).toContain(FORK_WORLD_REQUIRED)
+})
+
+it('세계관·설정집 탭의 세계관 연결 단계는 확정 버전에서 발행된 마지막 회차까지 공개된 카드가 설정 위키에 나온다고 안내한다(#971)', async () => {
+  stubCover()
+  myWorlds([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }))
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  await screen.findByRole('region', { name: '설정집' })
+  await tabTour() // 원고로 세계관 만들기
+  fireEvent.click(screen.getByRole('button', { name: '다음' }))
+  const tip = await screen.findByRole('dialog', { name: '세계관 연결' })
+  expect(tip.textContent).toContain('확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드')
+})
+
+it('탭을 떠났다 다시 열면 그 탭을 다시 읽는 동안 사용법 버튼이 잠긴다(#971)', async () => {
+  stubCover()
+  let reads = 0
+  let answer!: (reply: Response) => void
+  const second = new Promise<Response>((resolve) => { answer = resolve })
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/operating-settings': () => (++reads === 1 ? Response.json(unsetSettings) : second),
+  }))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  await screen.findByRole('button', { name: '집필 방식 저장' })
+  const help = () => screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(help().disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: '개요' }))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  await screen.findByText('운영 설정을 불러오고 있어요…')
+  expect(help().disabled).toBe(true) // 다시 읽는 중에는 지난 방문의 '읽었음'으로 열리지 않는다
+  await act(async () => { answer(Response.json(unsetSettings)) })
+  await screen.findByRole('button', { name: '집필 방식 저장' })
+  await waitFor(() => expect(help().disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' })) // 같은 탭을 다시 눌러도 패널이 그대로라 '읽었음'을 비우지 않는다
+  expect(help().disabled).toBe(false)
 })
 
 it('AI 집필 탭의 사용법은 운영 설정에서 AI 자율 집필을 켜야 입력이 열린다고 알리며 꺼져서 잠긴 연재 설정을 짚는다(#971)', async () => {

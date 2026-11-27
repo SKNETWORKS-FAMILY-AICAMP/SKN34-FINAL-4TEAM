@@ -2,16 +2,20 @@
 import '../fixtureApp'
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import '../scrollToSpy'
+import '../testLocks'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import { forgetSession, login } from '../../data/api/auth'
 import type { EditSuggestion } from '../../domain/entities/editSuggestion'
 import type { FeedbackReport } from '../../domain/entities/feedbackReport'
+import { FORK_WORLD_REQUIRED } from '../../domain/entities/work'
 import { isTourSeen, tourOffKey } from '../../presentation/shared/tour/tourPrefs'
 
 // fixtureApp은 앱 전체를 그리는 테스트가 투어에 가려지지 않게 모든 투어를 끈 채(storyfork.tour=off) 시작한다. 이 파일은 그 스위치를 켜서 앱의 자동 시작을 검사한다.
@@ -88,6 +92,26 @@ it.each([
   expect(await startTour(path, ready)).toEqual({ title, count })
 })
 
+/** 열려 있는 투어를 마지막 단계까지 넘기고 그 말풍선의 글을 돌려준다. */
+async function lastStepText() {
+  for (;;) {
+    const [n, total] = (screen.getByRole('dialog').querySelector('.tour-count')?.textContent ?? '').split(' / ').map(Number)
+    if (n === total) return screen.getByRole('dialog').textContent ?? ''
+    fireEvent.click(screen.getByRole('button', { name: '다음' }))
+    await waitFor(() => expect(screen.getByRole('dialog').querySelector('.tour-count')?.textContent).toBe(`${n + 1} / ${total}`))
+  }
+}
+
+// 세계관이 연결되지 않은 작품은 포크 버튼이 잠긴다(서버 409 FORK_WORLD_REQUIRED): 포크를 안내하는 단계마다 그 조건을 한 문장으로 알린다.
+it.each([
+  ['Fork 생성', '/fork/guunmong', () => screen.findByRole('heading', { name: '「구운몽」 포크' }, { timeout: 5000 })],
+  ['소설 상세', '/work/postman', () => screen.findByRole('link', { name: '읽기 시작' }, { timeout: 5000 })],
+  ['독서 화면', '/read/postman/1', () => screen.findByRole('heading', { name: '수취인 불명' }, { timeout: 5000 })],
+])('%s의 포크 단계는 세계관이 연결된 작품만 분기할 수 있다는 조건을 알린다(#971)', async (_name, path, ready) => {
+  await startTour(path, ready)
+  expect(await lastStepText()).toContain(FORK_WORLD_REQUIRED)
+})
+
 // 작가 피드백함은 두 목록(독자 제보·수정 제안)을 읽은 뒤에 시작한다: 데이터가 없을 때 시작하면 카드 처리 단계가 빠지고, 읽기에 실패한 화면에서는 시작하지 않는다.
 it('작가 피드백함은 제보 응답 전에는 투어를 시작하지 않고, 응답 뒤 시작해 카드 처리 단계가 들어간다', async () => {
   toursOn()
@@ -134,6 +158,36 @@ it('소설 상세는 처음 열면 화면 투어 → 지금 탭(회차)의 투�
   await act(async () => { await new Promise((r) => setTimeout(r, 80)) })
   expect(screen.queryByRole('dialog')).toBeNull() // 본 탭은 다시 뜨지 않는다
 })
+
+it('작품 관리는 앱에서 처음 열면 메뉴 소개(6단계)가 저절로 뜨고 이야기 분기 단계가 세계관 조건을 알리며, 끝내면 개요 탭 투어가 이어진다(#971)', async () => {
+  toursOn()
+  const owned = { id: 'w', title: '옛 제목', summary: '옛 소개', visibility: 'private', allowFork: false, allowForkPublication: false, revision: 0, source: null, episodes: [], draft: { title: '회차', body: '초안', revision: 0 }, creationType: 'ORIGINAL', genres: ['판타지'], hashtags: [] }
+  // 작품 관리는 Content 서버를 읽는다: 내 작품 목록만 주고 나머지(표지 없음·빈 회차)는 비어 있는 서버를 흉내 낸다.
+  vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const path = String(input)
+    if (path.endsWith('/csrf')) return Response.json({ csrfToken: 'csrf' })
+    if (path.includes('/auth/')) return Response.json({ accessToken: 'bearer', user: { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false } })
+    if ((init?.method ?? 'GET') === 'GET' && path === '/api/v1/works') return Response.json([owned])
+    if (/\/episodes$/.test(path)) return Response.json([])
+    return new Response(null, { status: 404 })
+  }))
+  try {
+    await login('writer@example.invalid', 'test-password') // Content 서버는 로그인한 요청만 받는다
+    // 실제 앱처럼 StrictMode로 그린다: 자동 시작 effect가 곧바로 두 번 돌아도 메뉴 소개가 탭 투어에 덮이지 않아야 한다.
+    render(<StrictMode><Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={['/content?work=w']}><App /></MemoryRouter></Provider></StrictMode>)
+    const intro = await screen.findByRole('dialog', { name: '개요' }, { timeout: 5000 })
+    expect(intro.querySelector('.tour-count')?.textContent).toBe('1 / 6')
+    for (let step = 2; step <= 4; step++) {
+      fireEvent.click(screen.getByRole('button', { name: '다음' }))
+      await waitFor(() => expect(screen.getByRole('dialog').querySelector('.tour-count')?.textContent).toBe(`${step} / 6`))
+    }
+    expect(screen.getByRole('dialog').textContent).toContain(FORK_WORLD_REQUIRED) // 4단계: 이야기 분기
+    fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }))
+    const tab = await screen.findByRole('dialog', { name: '작품 정보 편집' })
+    expect(tab.querySelector('.tour-count')?.textContent).toBe('1 / 3')
+    expect(isTourSeen('manage')).toBe(true)
+  } finally { vi.unstubAllGlobals(); forgetSession() }
+}, 20000)
 
 it('독서 화면의 문장 단계는 서버 작품에서만 수정 제안도 안내하고 데모 작품에는 약속하지 않는다', async () => {
   let wiki = ''

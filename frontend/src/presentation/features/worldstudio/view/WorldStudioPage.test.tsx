@@ -1076,6 +1076,16 @@ it('사용법 버튼은 지금 보기의 투어를 연다: 설정집은 도구�
   expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 2')
 })
 
+it('시간선 보기의 사용법은 승인된 사건이 놓이고 방향키로 사건 사이를 이동한다고 안내한다(#971)', async () => {
+  await show([person('가람'), eventCard('건국')])
+  fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
+  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
+  const tip = await screen.findByRole('dialog', { name: '사건 시간선' })
+  expect(tip.textContent).toContain('승인된 사건이 회차 순서로 놓여요')
+  expect(tip.textContent).toContain('방향키로 사건 사이를 이동할 수 있어요')
+  expect(tip.textContent).not.toContain('저장된 사건 카드')
+})
+
 it('관계도 보기로 옮기면 사용법 버튼이 그 보기의 투어(관계 기준 회차 → 관계도 → + 설정 추가 → 그래프 설정)를 연다(#971)', async () => {
   await show()
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))

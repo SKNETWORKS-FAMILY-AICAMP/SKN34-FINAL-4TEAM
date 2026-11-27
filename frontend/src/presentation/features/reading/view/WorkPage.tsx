@@ -37,7 +37,7 @@ const tabTours: Record<string, TourStep[]> = {
   eps: [
     { target: 'work-eps-tools', title: '회차 정렬·검색', text: '1화부터·최신순으로 정렬하고 회차 제목·본문으로 검색해요.' },
     { target: 'work-eps-first', title: '회차 읽기', text: '회차를 누르면 바로 읽어요. 읽은 기록이 있으면 \'읽음\'·\'읽는 중\'으로 표시돼요.' },
-    { target: 'work-eps-fork', title: '포크', text: '작가가 허용한 회차에서는 이야기를 갈라(Fork) 나만의 작품으로 이어 쓸 수 있어요. 고른 회차까지의 세계관과 인물을 그대로 가져가요.' },
+    { target: 'work-eps-fork', title: '포크', text: `작가가 허용한 회차에서는 이야기를 갈라(Fork) 나만의 작품으로 이어 쓸 수 있어요. 고른 회차까지의 세계관과 인물을 그대로 가져가요. ${FORK_WORLD_REQUIRED}` },
   ],
   info: [
     { target: 'work-info-summary', title: '작품 소개', text: '작가가 쓴 한 줄 소개와 줄거리를 읽어요.' },
@@ -86,6 +86,8 @@ export function WorkPage() {
   const first = visible.find(([e, i]) => !hiddenSourceEpisode(w, i + 1, e.p)) ?? visible[0]
   const start = last && visible.some(([e, i]) => i + 1 === last && !hiddenSourceEpisode(w, last, e.p)) ? last : (first?.[1] ?? 0) + 1
   const sv = serialView(w)
+  // 사용법 투어의 '첫 회차' 대상: 검색에 가려지지 않은 첫 회차(검색 중에는 전체 목록의 첫 회차가 숨는다).
+  const firstShown = vm.episodes.find((x) => x.match)?.n
   const tabs = serial.data?.enabled ? [...TABS, SERIAL_TAB] : TABS
   // 이웃 작품으로 옮기면 탭 상태가 남으므로, 켜지지 않은 작품에서는 '다음 회차'를 고른 채로 두지 않고 회차 탭으로 돌아온다.
   const current: Tab = tab === 'serial' && !serial.data?.enabled ? 'eps' : tab
@@ -157,12 +159,12 @@ export function WorkPage() {
               <label className="eps-q"><span aria-hidden="true">🔍</span><input id="epq" placeholder="회차 제목·본문 검색" aria-label="회차 검색" value={vm.query} onChange={(e) => vm.setQuery(e.target.value)} /></label>
             </div>
             <div id="eplist">
-              {vm.episodes.length ? vm.episodes.map(({ e, n, chars, match, views }, i) => {
+              {vm.episodes.length ? vm.episodes.map(({ e, n, chars, match, views }) => {
                 const inh = w.parent && n <= (w.forkAt ?? 0)
                 const hidden = hiddenSourceEpisode(w, n, e.p)
                 const fc = forks.filter((f) => f.forkAt === n).length
                 return (
-                  <Go key={n} to={`/read/${id}/${n}`} className={`ep ${read.includes(n) ? 'read' : ''}`} data-tour={i === 0 ? 'work-eps-first' : undefined} style={match ? undefined : { display: 'none' }}>
+                  <Go key={n} to={`/read/${id}/${n}`} className={`ep ${read.includes(n) ? 'read' : ''}`} data-tour={n === firstShown ? 'work-eps-first' : undefined} style={match ? undefined : { display: 'none' }}>
                     <span className="no">{n}</span>
                     <div><b>{e.t}</b><div className="d">{hidden ? '원작 삭제로 볼 수 없는 회차' : <>{inh ? '원작 스냅샷 회차' : read.includes(n) ? '읽음' : last === n ? '읽는 중' : '무료'} <i className="sep" /> {chars.toLocaleString()}자 (공백 제외){views !== undefined && <> <i className="sep" /> <span title="조회"><Eye /><span className="sr-only">조회</span> {kfmt(views)}</span></>}</>}{fc > 0 && <> <i className="sep" /> <span title="이 회차에서 갈라진 포크"><Branch /> <span className="sr-only">이 회차에서 갈라진 포크 </span>{fc}<span className="sr-only">편</span></span></>}</div></div>
                   </Go>

@@ -40,7 +40,7 @@ const tour: TourStep[] = [
   { target: 'manage-overview', title: '개요', text: '작품 정보·표지를 고치고, 공개 회차·작성 중인 초안·받은 피드백·조회 같은 현황을 봐요. 탭은 처음 열 때마다 그 탭의 사용법이 한 번 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
   { target: 'manage-read', title: '공개 회차', text: '공개한 회차를 보고 집필실로 가요. 원고 쓰기·버전 저장·공개는 집필실에서 해요. 회차가 없어도 집필실의 새 회차 버튼으로 1화를 만들 수 있어요.' },
   { target: 'manage-world', title: '세계관·설정집', text: '이 작품에 세계관을 연결하고 설정집을 관리해요. 원고로 세계관을 만들 수도 있어요.' },
-  { target: 'manage-fork', title: '이야기 분기', text: '분기를 허용한 공개 원작이면 고른 회차에서 갈라지는 작품을 만들어요.' },
+  { target: 'manage-fork', title: '이야기 분기', text: `분기를 허용한 공개 원작이면 고른 회차에서 갈라지는 작품을 만들어요. ${FORK_WORLD_REQUIRED}` },
   { target: 'manage-feedback', title: '받은 피드백', text: '독자가 이 작품에 보낸 문장 제보와 수정 제안을 받아 처리해요.' },
   { target: 'manage-settings', title: '운영 설정', text: '집필 방식과 분기 정책을 정하고, 작품을 삭제해요.' },
 ]
@@ -61,11 +61,11 @@ const tabTours: Record<string, TourStep[]> = {
   ],
   world: [
     { target: 'manage-world-build', title: '원고로 세계관 만들기', text: '저장한 원고를 AI가 분석해 비공개 세계관 초안을 만들어요. 동의에 체크하고 \'세계관 만들기\'를 누르면 시작하고, 끝나면 세계관 작업실에서 직접 검토·확정해요.' },
-    { target: 'manage-world-link', title: '세계관 연결', text: '이미 만든 세계관을 이 작품에 연결해요. 이름으로 검색해 고르고 \'세계관 연결\'을 누르면, 그 세계관에서 \'N화부터 공개\'로 정한 카드가 소설의 설정 위키에 나와요.' },
+    { target: 'manage-world-link', title: '세계관 연결', text: '이미 만든 세계관을 이 작품에 연결해요. 이름으로 검색해 고르고 \'세계관 연결\'을 누르면, 독자 설정 위키에 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드가 보여요.' },
     { target: 'manage-world-book', title: '설정집', text: '이 작품의 설정집 상태예요. 설정 카드는 세계관 작업실에서 고치고, 원작을 따라가는 분기 작품은 \'내 세계관으로 만들어 수정하기\'로 독립해요.' },
   ],
   fork: [
-    { target: 'manage-fork-form', title: '이 회차에서 분기', text: '기준 회차를 고르고 분기 작품 제목과 달라지는 점을 적은 뒤 \'이 회차에서 분기 만들기\'를 눌러요. 기준 회차까지의 공개 원고·설정·관계가 이어져요.' },
+    { target: 'manage-fork-form', title: '이 회차에서 분기', text: `기준 회차를 고르고 분기 작품 제목과 달라지는 점을 적은 뒤 '이 회차에서 분기 만들기'를 눌러요. ${FORK_WORLD_REQUIRED} 기준 회차까지의 공개 원고·설정·관계가 이어져요.` },
     { target: 'manage-fork-blocked', title: '분기를 열려면', text: '분기를 허용한 공개 원작에서만 만들 수 있어요. 운영 설정의 분기 정책에서 분기 만들기를 허용하고, 회차는 집필실에서 공개해 주세요.' },
   ],
   serial: [
@@ -75,7 +75,7 @@ const tabTours: Record<string, TourStep[]> = {
   ],
   feedback: inboxTour,
   settings: [
-    { target: 'manage-settings-mode', title: '집필 방식', text: '직접 집필·AI 협업 집필·AI 자율 집필 중에서 골라요. AI 협업은 집필실에 AI 채팅이 함께 열리고, AI 자율 집필은 1화 발행 뒤 독자 투표와 제안을 모아 AI가 다음 회차를 써요.' },
+    { target: 'manage-settings-mode', title: '집필 방식', text: '직접 집필·AI 협업 집필·AI 자율 집필 중에서 골라요. AI 협업은 넓은 화면에서 집필실에 AI 채팅이 함께 열리고, AI 자율 집필은 1화 발행 뒤 독자 투표와 제안을 모아 AI가 다음 회차를 써요.' },
     { target: 'manage-settings-save', title: '집필 방식 저장', text: '고른 방식은 \'집필 방식 저장\'을 눌러야 적용돼요. AI 자율 집필은 저장 전에 세계관 연결과 인물 카드가 필요하다는 확인 창이 떠요.' },
     { target: 'manage-settings-policy', title: '분기 정책', text: '\'분기 정책 편집\'에서 분기 만들기를 허용할지, 분기 작품의 최초 공개를 허용할지 정해요. 둘은 별개예요.' },
   ],
@@ -143,7 +143,9 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   // 편집 중에는 작품을 다시 읽는 동작(공개 중단·삭제)을 잠가 저장하지 않은 입력이 새 revision의 폼 리셋으로 사라지지 않게 한다.
   const blocked = locked || editing !== null
   // 세계관·설정집 탭으로 옮긴다. 메뉴를 누른 것과 같이 탭 내용 머리로 스크롤하고(아래 effect), 원고로 세계관 만들기 버튼과 운영 설정의 AI 자율 집필 경고가 함께 쓴다.
-  const openWorld = () => { picked.current = true; setTab('world') }
+  // 탭을 옮기면 그 탭의 패널이 새로 마운트해 다시 읽으므로 지난 방문의 '읽었음'(사용법 투어의 시작 조건)도 비운다: 다시 읽는 동안·읽기에 실패하면 사용법이 잠긴다. 같은 탭을 다시 눌러서는 비우지 않는다(패널이 그대로라 다시 알리지 않는다).
+  const showTab = (value: typeof tab) => { if (value !== tab) setLoaded({}); setTab(value) }
+  const openWorld = () => { picked.current = true; showTab('world') }
   const deleteWork = async (release?: WorldRelease) => {
     closeDelete()
     const deleted = await (release ? vm.deleteWork(release) : vm.deleteWork())
@@ -186,7 +188,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   // 탭을 옮긴다(탭 내용 머리로 스크롤하고 이력 탭은 이력을 읽기 시작한다).
   const openTab = (value: typeof tabs[number][0]) => {
     picked.current = true
-    setTab(value)
+    showTab(value)
     if (value === 'history') void vm.loadHistory()
   }
   // 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다.

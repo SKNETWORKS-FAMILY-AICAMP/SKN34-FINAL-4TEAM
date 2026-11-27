@@ -809,6 +809,20 @@ it('버전 · 공개 시트가 처음 열리면 시트 위에 그 시트의 투�
   expect(screen.getByRole('navigation', { name: '버전 관리' })).toBeTruthy() // 시트는 그대로 열려 있다
 })
 
+it('버전 · 공개 시트를 설정 버전 이력으로 처음 열면 시트 투어가 뜨지 않고, 시트 안에서 원고 저장본 · 공개로 옮기면 그때 뜬다(#971)', async () => {
+  toursSeen('chat')
+  renderWithTours()
+  await waitFor(() => expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(false))
+  openMore()
+  fireEvent.click(screen.getByRole('menuitem', { name: '설정 버전 이력' }))
+  await screen.findByRole('region', { name: '설정 버전 이력' })
+  await act(async () => { await new Promise((r) => setTimeout(r, 80)) })
+  expect(screen.queryByRole('dialog', { name: '버전 · 공개 메뉴' })).toBeNull()
+  expect(isTourSeen('studio', 'versions')).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '원고 저장본 · 공개' }))
+  await screen.findByRole('dialog', { name: '버전 · 공개 메뉴' })
+})
+
 it('AI 채팅 패널이 처음 열리면 그 패널의 투어(대화 고르기 → … → 요청 보내기)가 저절로 뜬다(#971)', async () => {
   toursSeen('versions')
   renderWithTours()

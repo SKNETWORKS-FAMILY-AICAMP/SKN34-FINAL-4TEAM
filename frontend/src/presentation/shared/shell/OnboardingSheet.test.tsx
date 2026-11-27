@@ -30,6 +30,12 @@ it('처음 홈에 들어오면 핵심 흐름 4단계를 순서대로 안내한�
   expect(steps).toEqual(['작품 읽기', 'Fork', '집필실', 'AI 집필·피드백'])
 })
 
+it('Fork 단계는 세계관이 연결된 원작에서만 분기할 수 있다는 조건을 알린다(#971)', () => {
+  renderAt('/')
+  const fork = screen.getAllByRole('listitem').find((li) => li.querySelector('b')?.textContent === 'Fork')!
+  expect(fork.textContent).toContain('세계관이 연결된')
+})
+
 it('홈이 아닌 화면에서는 열리지 않는다', () => {
   renderAt('/work/w1')
   expect(sheet()).toBeNull()

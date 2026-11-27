@@ -12,7 +12,7 @@ import { useOnboardingViewModel } from './useOnboardingViewModel'
  */
 const STEPS: { title: string; text: string; link?: { to: string; label: string } }[] = [
   { title: '작품 읽기', text: '마음에 드는 작품을 골라 공개된 회차를 읽어요.' },
-  { title: 'Fork', text: '이용이 허용된 원작은 원하는 회차에서 갈라 나만의 이야기로 이어 써요.', link: { to: '/rank?t=if', label: '포크 소설 둘러보기' } },
+  { title: 'Fork', text: '이용이 허용되고 세계관이 연결된 원작은 원하는 회차에서 갈라 나만의 이야기로 이어 써요.', link: { to: '/rank?t=if', label: '포크 소설 둘러보기' } },
   { title: '집필실', text: '내 작품을 회차별로 직접 쓰고 저장해요.', link: { to: '/lib?tab=write', label: '내가 쓰는 소설로 가기' } },
   { title: 'AI 집필·피드백', text: '집필실에서 AI에게 집필 제안을 받고, 독자 피드백을 확인해요.' },
 ]

@@ -1,5 +1,6 @@
 import { Navigate, useParams, useSearchParams } from 'react-router'
 
+import { FORK_WORLD_REQUIRED } from '../../../../domain/entities/work'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
@@ -18,7 +19,7 @@ const tour: TourStep[] = [
   { target: 'fork-carry', title: '가져가는 것', text: '고른 회차까지 공개된 세계관 규칙·인물·사건을 가져가요. 원작은 바뀌지 않아요.' },
   { target: 'fork-direction', title: '무엇이 달라지나요?', text: '이야기가 어떻게 달라지는지 한 줄(60자 이내)로 적어요.' },
   { target: 'fork-title', title: '제목', text: '내 포크 소설의 제목을 정해요(40자 이내).' },
-  { target: 'fork-start', title: '포크 소설 시작하기', text: '누르면 내 포크가 만들어져요. 한 원작에서 포크는 한 번만 만들 수 있고, 포크 생성과 직접 쓰기는 무료예요.' },
+  { target: 'fork-start', title: '포크 소설 시작하기', text: `누르면 내 포크가 만들어져요. ${FORK_WORLD_REQUIRED} 한 원작에서 포크는 한 번만 만들 수 있고, 포크 생성과 직접 쓰기는 무료예요.` },
 ]
 
 /** 목업 fork(id): U09 포크 (3단계 폼) */

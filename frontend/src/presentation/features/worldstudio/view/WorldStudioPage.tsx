@@ -74,7 +74,7 @@ const tabTours: Record<string, TourStep[]> = {
     { target: 'world-people-settings', title: '그래프 설정', text: '톱니 버튼에서 화면 맞춤·배치 정돈, 이름 찾기와 유형·관계 종류 필터, 중심 보기를 써요.' },
   ],
   timeline: [
-    { target: 'world-timeline-scroll', title: '사건 시간선', text: '저장된 사건 카드가 회차 순서로 놓여요. 사건을 누르면 내용과 관련 설정이 보이고, 관련 설정을 누르면 그 카드의 편집 화면이 열려요. 방향키로 사건을 옮길 수 있어요.' },
+    { target: 'world-timeline-scroll', title: '사건 시간선', text: '승인된 사건이 회차 순서로 놓여요. 사건을 누르면 내용과 관련 설정이 보이고, 관련 설정을 누르면 그 카드의 편집 화면이 열려요. 방향키로 사건 사이를 이동할 수 있어요.' },
   ],
   novel: [
     { target: 'world-novel-link', title: '소설 연결', text: '세계관은 소설 하나에만 연결돼요. \'소설 연결하기\'로 내 소설을 고르고, 연결한 뒤에는 \'소설 작성하기\'로 그 작품 관리로 가요.' },

@@ -253,8 +253,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const openVersions=()=>{setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   const openSettingHistory=()=>{setHistoryView('settings');setVersionsOpen(true)}
   const openPublication=(episode:number|null=null)=>{setHistoryEpisode(episode);setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}
-  // 사용법 투어의 지금 패널: 시트가 열려 있으면 시트, 아니면 열린 AI 채팅(시트가 위에 있다).
-  const tourPanel=versionsOpen?'versions':chatOpen?'chat':undefined
+  // 사용법 투어의 지금 패널: 시트가 열려 있으면 원고 저장본 · 공개 보기일 때만 시트 투어(설정 버전 이력·발행 이력 같은 다른 보기는 투어 없음, 시트 안에서 그 보기로 옮기면 그때 뜬다), 시트가 닫혀 있으면 열린 AI 채팅.
+  const tourPanel=versionsOpen?(historyView==='versions'?'versions':undefined):chatOpen?'chat':undefined
   const events=vm.publicationHistory?.filter(ev=>historyEpisode===null||ev.episode===historyEpisode)
   const lengthReason=selected&&!active?.inherited?publishBlocker(selected.body):''
   return <div className="calm rd studio writing-studio">
