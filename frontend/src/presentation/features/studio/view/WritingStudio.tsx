@@ -358,7 +358,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
       {(stage.open||stageVisited)&&<SimulationStage hidden={!stage.open} plansVersion={plans.version+setupVersion} startBlocker={startBlocker} stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
         plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
-      {showProposal&&<ProposalStage proposal={proposal} chat={chat} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
+      {showProposal&&<ProposalStage proposal={proposal} chat={chat} workId={id} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
       <div ref={editorArea} className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open||showProposal}>
         {active?<>
           {active.hasDraft===false&&!viewOnly&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}

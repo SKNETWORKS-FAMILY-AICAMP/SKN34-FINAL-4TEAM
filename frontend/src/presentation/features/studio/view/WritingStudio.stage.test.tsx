@@ -27,7 +27,10 @@ const model = vi.hoisted(() => ({
 }))
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
-vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
+// 본문은 서식을 그리는 실제 ManuscriptBody다(비교 칸이 서식 기호를 날것으로 보이지 않는지 보려고). 이미지는 읽지 않는다.
+vi.mock('../../../shared/media/MediaPanel', async (importActual) => ({
+  ManuscriptBody: (await importActual<typeof import('../../../shared/media/MediaPanel')>()).ManuscriptBody, StoredImage: () => null,
+}))
 // 본문 편집기(Toast UI Editor)는 textarea 대역으로 바꾼다.
 vi.mock('./LazyManuscriptEditor', () => import('../../../../test/manuscriptEditorFake'))
 // 채팅은 실제 WritingChatUseCase 위에 가짜 Repository를, 장면 계획·세계관(인물 카드)은 대역 UseCase를 얹는다.
@@ -385,8 +388,10 @@ it('승인 제안이 오면 편집기 자리에 비교 화면이 열리고 지�
   expect(editor().hasAttribute('hidden')).toBe(true)
   expect(document.activeElement).not.toBe(within(stage).getByRole('heading', { name: '집필 AI 제안' }))
   expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('원고')).toBeTruthy()
-  // 새 원고는 초안 끝에 이어 붙으므로 오른쪽은 반영 후 모습이고 붙는 글만 강조한다(서버 render_writing)
-  expect(within(within(stage).getByRole('region', { name: '반영 후' })).getByText('새로 쓴 장면').tagName).toBe('MARK')
+  // 새 원고는 초안 끝에 이어 붙으므로 오른쪽은 반영 후 모습이고 붙는 글만 강조 래퍼 안에 있다(서버 render_writing)
+  const after = within(stage).getByRole('region', { name: '반영 후' })
+  expect(within(after).getByText('새로 쓴 장면').closest('.stage-compare-added')).not.toBeNull()
+  expect(within(after).getByText('원고').closest('.stage-compare-added')).toBeNull()
   expect(within(stage).getByRole('heading', { name: '3화 초안에 반영할까요?' })).toBeTruthy()
   const chat = chatPanel()
   expect(within(chat).getByText('3화 초안 반영 제안 · 반영 여부를 기다려요')).toBeTruthy()
@@ -403,6 +408,35 @@ it('반영 회차의 초안이 비어 있으면 왼쪽 칸에 빈 칸 대신 안
     const stage = await proposalStage()
     expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('아직 쓴 글이 없어요. 반영하면 오른쪽 글이 이 회차의 초안이 돼요.')).toBeTruthy()
   } finally { model.draft = draft }
+})
+
+// 비교 칸은 원고 서식을 기호 그대로 보이지 않는다(#956 CodeRabbit): 새 원고는 초안·붙는 글 모두 공용 ManuscriptBody로 그린다.
+it('새 원고 비교 칸은 서식 기호 없이 원고처럼 그리고, 붙는 글은 강조 래퍼 안에서 서식대로 그린다', async () => {
+  const draft = model.draft
+  model.draft = { title: '셋째', body: '**원고**', revision: 1 }
+  try {
+    stored(proposalReply({ steps: [{ ...draftStep, result: { text: '새로 쓴 **장면**' } }] }))
+    renderStudio()
+    const stage = await proposalStage()
+    const current = within(stage).getByRole('region', { name: '지금 초안 · 3화' })
+    const after = within(stage).getByRole('region', { name: '반영 후' })
+    for (const column of [current, after]) {
+      expect(column.textContent).not.toContain('**')
+      expect(within(column).getByText('원고').tagName).toBe('STRONG')
+    }
+    const added = after.querySelector('.stage-compare-added') as HTMLElement
+    expect(added.textContent).toBe('새로 쓴 장면')
+    expect(within(added).getByText('장면').tagName).toBe('STRONG')
+    expect(within(added).queryByText('원고')).toBeNull() // 앞 글은 래퍼 밖이다
+  } finally { model.draft = draft }
+})
+
+it('반영 회차를 모르는 새 원고 제안은 이미지를 읽을 회차가 없어 글자 그대로 보인다', async () => {
+  stored(proposalReply({ approvalEpisode: undefined, steps: [{ ...draftStep, result: { text: '새로 쓴 **장면**' } }] }))
+  renderStudio()
+  const stage = await proposalStage()
+  expect(within(stage).getByText('반영할 회차를 알 수 없어 지금 원고와 비교할 수 없어요.')).toBeTruthy()
+  expect(within(stage).getByText('새로 쓴 **장면**')).toBeTruthy() // 서식을 풀지 않은 한 덩이 글자다
 })
 
 it('채팅의 원고 영역에서 보기는 비교 화면을 열고 초점을 제목으로 옮기며, 닫으면 편집기와 그 링크로 초점이 돌아온다', async () => {
@@ -447,6 +481,49 @@ it('초안에 반영은 기존 승인 요청을 보내고, 결과(반영함)는 
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
   expect(await within(stage).findByText('→ 3화 초안에 반영했어요.')).toBeTruthy()
   expect(within(stage).queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(within(stage).getByRole('heading', { name: '집필 AI 제안' })))
+})
+
+// 결정을 보내면 누른 버튼이 결과 줄로 바뀌며 사라진다. 초점이 BODY로 떨어지지 않게 결과가 보이면 제목으로 옮긴다(#956 E2E).
+it('반영하지 않기를 누르면 결과 문구가 보이고 초점이 비교 화면 제목으로 옮겨 간다(누른 버튼이 사라져도 위치를 잃지 않는다)', async () => {
+  stored(proposalReply())
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    const declined: ChatStep = { ...draftStep, approval: 'declined' }
+    store.reply = { status: 'completed', steps: [declined], missingInputs: [] }
+    onEvent({ type: 'step', step: declined })
+    onEvent({ type: 'done', reply: store.reply })
+  })
+  renderStudio()
+  const stage = await proposalStage()
+  const decline = within(stage).getByRole('button', { name: '반영하지 않기' })
+  decline.focus()
+  fireEvent.click(decline)
+  expect(await within(stage).findByText('→ 반영하지 않았어요.')).toBeTruthy()
+  expect(decline.isConnected).toBe(false)
+  await waitFor(() => expect(document.activeElement).toBe(within(stage).getByRole('heading', { name: '집필 AI 제안' })))
+})
+
+it('결정을 보낸 뒤 작가가 초점을 다른 곳으로 옮겼다면 결과가 보여도 제목으로 빼앗지 않는다', async () => {
+  stored(proposalReply())
+  let finish = () => {}
+  send.mockImplementation((_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => new Promise<void>((resolve) => {
+    finish = () => {
+      const declined: ChatStep = { ...draftStep, approval: 'declined' }
+      store.reply = { status: 'completed', steps: [declined], missingInputs: [] }
+      onEvent({ type: 'step', step: declined })
+      onEvent({ type: 'done', reply: store.reply })
+      resolve()
+    }
+  }))
+  renderStudio()
+  const stage = await proposalStage()
+  fireEvent.click(within(stage).getByRole('button', { name: '반영하지 않기' }))
+  const close = within(stage).getByRole('button', { name: '닫기' })
+  close.focus()
+  finish()
+  expect(await within(stage).findByText('→ 반영하지 않았어요.')).toBeTruthy()
+  await new Promise((resolve) => setTimeout(resolve, 50)) // 부수 효과가 돌 틈을 준다(없는 일은 폴링으로 기다릴 수 없다)
+  expect(document.activeElement).toBe(close)
 })
 
 it('반영하지 않기와 다시 쓰기도 채팅 카드와 같은 요청을 보낸다', async () => {
