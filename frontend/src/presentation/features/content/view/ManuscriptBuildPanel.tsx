@@ -18,7 +18,7 @@ const reasons:Record<string,string>={
 export function ManuscriptBuildPanel({work,useCase}:{work:Pick<Work,'id'|'worldStudioId'|'episodes'>;useCase?:ManuscriptBuildUseCase}){
  const vm=useManuscriptBuild(work.id,work.worldStudioId,useCase),job=vm.job
  const agree=<label className="ep-check"><input type="checkbox" checked={vm.consent} disabled={vm.busy} onChange={e=>vm.setConsent(e.target.checked)}/>저장된 원고의 AI 분석과 비공개 초안 생성을 시작하는 데 동의해요.</label>
- return <section className="tcard ep-card" aria-label="원고로 세계관 만들기">
+ return <section className="tcard ep-card" aria-label="원고로 세계관 만들기" data-tour="manage-world-build">
   <h3>원고로 세계관 만들기</h3>
   <p>저장된 원고(비공개 포함)로 비공개 세계관 초안을 만들어요.</p>
   <p className="ep-muted">현재 저장된 회차 전체를 한 번 분석해 인물·설정·관계를 정리해요. 원고를 올리면 이 분석을 자동으로 시작하고, 발행은 하지 않아요. 최초 구축을 마친 뒤 새 회차를 처음 발행하면, 세계관 초안 업데이트를 자동으로 요청해요.</p>

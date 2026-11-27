@@ -22,7 +22,7 @@ export function DocFill({ fill }: { fill: Fill }) {
   const { proposal } = fill
   const found = !!proposal && proposal.lines.length > 0
   return (
-    <section className="world-findings" aria-label="원고로 채우기 제안" aria-busy={fill.running}>
+    <section className="world-findings" data-tour="card-doc-fill" aria-label="원고로 채우기 제안" aria-busy={fill.running}>
       <h4>원고로 채우기 제안 <span className="small muted">AI가 원고에서 문장을 골라요</span></h4>
       {!found && (
         <>

@@ -33,7 +33,7 @@ export function WorkPolicy({ work: w, locked, editing, onEditingChange, onSave }
       <div className='ep-sec-head'>
         <h3 id='ep-policy-title'>분기 정책</h3>
         {editing !== 'policy' && (
-          <button ref={editButton} type='button' className='btn sm' disabled={locked || editing !== null} onClick={() => onEditingChange('policy')}>
+          <button ref={editButton} type='button' className='btn sm' data-tour='manage-settings-policy' disabled={locked || editing !== null} onClick={() => onEditingChange('policy')}>
             분기 정책 편집
           </button>
         )}
