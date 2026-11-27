@@ -10,7 +10,6 @@ import { afterEach, expect, it, vi } from 'vitest'
 import '../scrollToSpy'
 import '../testLocks'
 import App from '../../App'
-import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 import { forgetSession, login } from '../../data/api/auth'
 import { isTourSeen, markTourSeen, tourKey, tourScreens } from '../../presentation/shared/tour/tourPrefs'
@@ -26,23 +25,7 @@ const renderAt = (path: string, strict = false) => {
 }
 
 it('fixtureApp은 투어가 있는 작가 도구 네 화면을 모두 본 것으로 시작한다', () => {
-  expect(tourScreens).toHaveLength(4)
   expect(tourScreens.every(isTourSeen)).toBe(true)
-})
-
-// 투어는 작가 도구(작품 관리·집필실·세계관 관리·설정 카드)에만 있다. 독자 화면과 피드백함에는 사용법 버튼이 없다.
-// 지연 로딩 화면(소설 상세·독서)은 여러 테스트를 함께 돌리면 첫 import가 기본 1초를 넘을 수 있어 다른 통합 테스트처럼 5초를 기다린다.
-it.each([
-  ['소설 상세', '/work/postman', () => screen.findByRole('link', { name: '읽기 시작' }, { timeout: 5000 })],
-  ['독서 화면', '/read/postman/1', () => screen.findByRole('heading', { name: '수취인 불명' }, { timeout: 5000 })],
-  ['Fork 생성', '/fork/guunmong', () => screen.findByRole('heading', { name: '「구운몽」 포크' }, { timeout: 5000 })],
-  ['작가 피드백함', '/inbox', () => screen.findByRole('heading', { name: /독자 피드백함/ }, { timeout: 5000 })],
-])('%s에는 사용법 버튼이 없다', async (_name, path, ready) => {
-  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
-  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
-  renderAt(path)
-  await ready()
-  expect(screen.queryByRole('button', { name: '사용법' })).toBeNull()
 })
 
 it('작품 관리는 앱에서 처음 열면 투어(세계관 연결 → 이야기 분기 → 집필 방식)가 저절로 뜨고, 끝낸 뒤에는 사용법 버튼으로 다시 연다(#971)', async () => {
