@@ -49,7 +49,7 @@ class WorkAccessService(
         return WorkAccessResult(w.id,w.ownerId,w.title,w.description,w.revision,
             worlds.findFirstByWorkIdOrderByRevisionNoDesc(id)?.worldId ?: throw ContentFailure(409,"작품의 세계관 연결이 없어요."),
             visibility.findFirstByWorkIdOrderByRevisionNoDesc(id)?.visibility ?: "private",
-            policy?.allowCreation ?: false,policy?.allowPublication ?: false,source,w.restricted,w.deletedAt!=null)
+            policy?.allowCreation ?: false,policy?.allowPublication ?: false,source,w.restricted,w.deletedAt!=null,w.worldStudioId!=null)
     }
     fun forkable(id: String, published: List<Int>): List<Int> {
         val policy=policies.findFirstByWorkIdOrderByRevisionNoDesc(id) ?: return emptyList()

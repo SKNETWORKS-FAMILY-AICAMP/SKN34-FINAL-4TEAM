@@ -24,6 +24,28 @@ it('고를 수 있는 항목이 있으면 열 때 첫 항목으로 초점을 옮
   expect(document.activeElement).toBe(item('회차 설정'))
 })
 
+it('켜고 끄는 항목(menuitemcheckbox)도 방향키가 닿고 눌러도 메뉴가 닫히지 않으며 초점이 그대로다(menuitem은 눌러 고르면 닫는다)', () => {
+  const toggle = vi.fn()
+  render(<PopMenu label="더보기" icon="⋮">
+    <button type="button" role="menuitem">프로필</button>
+    <button type="button" role="menuitemcheckbox" aria-checked="false" onClick={toggle}>다크 모드</button>
+    <button type="button" role="menuitem">로그아웃</button>
+  </PopMenu>)
+  fireEvent.click(trigger())
+  fireEvent.keyDown(item('프로필'), { key: 'ArrowDown' })
+  const check = screen.getByRole('menuitemcheckbox', { name: '다크 모드' })
+  expect(document.activeElement).toBe(check)
+  fireEvent.click(check)
+  expect(toggle).toHaveBeenCalledOnce()
+  expect(screen.getByRole('menu')).toBeTruthy()
+  expect(document.activeElement).toBe(check)
+  fireEvent.keyDown(check, { key: 'ArrowDown' })
+  expect(document.activeElement).toBe(item('로그아웃'))
+  fireEvent.click(item('로그아웃'))
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(document.activeElement).toBe(trigger())
+})
+
 it('잠긴 항목에 건 사유(aria-describedby)는 초점이 닿지 않아도 읽히도록 메뉴의 설명으로 잇는다', () => {
   render(<PopMenu label="더보기" icon="⋮">
     <button type="button" role="menuitem">회차 설정</button>

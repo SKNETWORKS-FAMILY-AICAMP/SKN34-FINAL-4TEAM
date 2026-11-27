@@ -40,6 +40,8 @@ const readingWork = work.omit({draft:true}).extend({
   views:z.number().int().nonnegative(),
   /** 공개 좋아요 수(서버 값). 공개 목록·검색·랭킹 응답에서만 채워지고 소유자 응답에서는 0이다. */
   likes:z.number().int().nonnegative(),
+  /** WorldStudio 세계관 연결 여부(DEC-46). 공개 응답에도 오고 세계관 id는 소유자 응답에만 온다. 서버가 주지 않으면 알 수 없는 것으로 보고 화면이 막지 않는다. */
+  worldLinked:z.boolean().optional(),
 })
 const instant = z.iso.datetime({offset:true})
 const storageUsage = z.object({

@@ -16,8 +16,8 @@ import { Go } from '../../../shared/Go'
 import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
+import { ThemeRow } from '../../../shared/shell/AccountMenu'
 import { Footer } from '../../../shared/shell/Gnb'
-import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
@@ -38,7 +38,7 @@ type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
 
 /**
- * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 대시보드는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다.
+ * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 대시보드는 묶음 없이 맨 위 단독 항목이고, 프로필·다크 모드·로그아웃은 상단바 닉네임 메뉴에 있습니다.
  * LLM Ops의 세 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다. 프롬프트·평가는 그 아래 하위 탭(AI 파이프라인의 워크플로우, #857 3차 정정)을 펼칩니다.
  */
 const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
@@ -238,9 +238,9 @@ export function AdminPage() {
             icon={<><span className='admin-who-name'>{vm.me.nick} 님</span><span aria-hidden='true'>▾</span></>}
           >
             <Go to='/admin?tab=profile' role='menuitem' aria-current={tab === 'profile' ? 'page' : undefined}>프로필</Go>
+            <ThemeRow />
             <button type='button' role='menuitem' onClick={vm.logout}>로그아웃</button>
           </PopMenu>
-          <ThemeButton className='btn sm' />
         </div>
         <main id='main' tabIndex={-1}>
           <section ref={content} id='admin-content' tabIndex={-1} className='workspace'>

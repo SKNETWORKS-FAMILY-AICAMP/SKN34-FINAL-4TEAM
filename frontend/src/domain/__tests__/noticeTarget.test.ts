@@ -18,6 +18,10 @@ describe('noticeTarget', () => {
     expect(noticeTarget({ kind: 'result', targetType: 'work', targetId: 'a b' })).toBe('/work/a%20b')
   })
 
+  it('운영자 세계관 제한·해제 알림(처리 결과 + world)도 세계관 관리로 보낸다(#941: 분류가 result라 이동 경로가 없었다)', () => {
+    expect(noticeTarget({ kind: 'result', targetType: 'world', targetId: 'w 1' })).toBe('/worldstudio/w%201')
+  })
+
   it('운영 경고 알림(operations.alert.raised, 대상 alert)은 대상 id를 주소에 쓰지 않고 경고를 보는 LLM Ops 경고·누설 감시 쪽으로 보낸다(#857: 기본 쪽이 추적·지표가 돼 view를 붙인다)', () => {
     expect(noticeTarget({ kind: 'result', targetType: 'alert', targetId: '3f2c9a10-0000-4000-8000-000000000001' })).toBe('/admin?tab=llm&view=alerts')
     expect(noticeTarget({ kind: 'result', targetType: 'alert', targetId: null })).toBe('/admin?tab=llm&view=alerts')

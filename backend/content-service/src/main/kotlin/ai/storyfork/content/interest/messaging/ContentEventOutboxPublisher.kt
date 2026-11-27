@@ -2,6 +2,7 @@ package ai.storyfork.content.interest.messaging
 
 import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
 import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.slf4j.LoggerFactory
@@ -47,12 +48,19 @@ class ContentEventOutboxPublisher(
     }
 
     private fun message(row: ContentEventOutboxEntity): Message {
-        val body=ContentEventMessage(1,row.id.toString(),row.type,row.occurredAt.toString(),row.recipientId,ContentEventMessage.Target(row.targetType,row.targetId))
+        // detail은 값이 하나라도 있을 때만 싣는다(#941). 없으면 이전 형식 그대로라 Core는 기본 문구를 쓴다.
+        val detail=ContentEventMessage.Detail(row.detailTitle,row.detailEpisode,row.detailSubject,row.detailReason).takeIf {it!=ContentEventMessage.Detail()}
+        val body=ContentEventMessage(1,row.id.toString(),row.type,row.occurredAt.toString(),row.recipientId,ContentEventMessage.Target(row.targetType,row.targetId),detail)
         return MessageBuilder.withBody(mapper.writeValueAsBytes(body)).setContentType(MessageProperties.CONTENT_TYPE_JSON).setMessageId(row.id.toString()).build()
     }
 }
 
-/** 알림 사건 계약(schemaVersion 1)의 메시지 본문. */
-internal data class ContentEventMessage(val schemaVersion: Int, val eventId: String, val type: String, val occurredAt: String, val recipientId: String, val target: Target) {
+/** 알림 사건 계약(schemaVersion 1)의 메시지 본문. 값이 없는 선택 필드(detail과 그 안의 항목)는 싣지 않는다. */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+internal data class ContentEventMessage(val schemaVersion: Int, val eventId: String, val type: String, val occurredAt: String, val recipientId: String, val target: Target, val detail: Detail? = null) {
     data class Target(val type: String, val id: String)
+
+    /** 알림 문구 재료(#941). Core가 이 값으로 문구를 만든다. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    data class Detail(val title: String? = null, val episodeNumber: Int? = null, val subject: String? = null, val reason: String? = null)
 }

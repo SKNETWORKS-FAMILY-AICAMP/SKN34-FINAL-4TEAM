@@ -58,7 +58,8 @@ class InternalCommentService(
         val work = works.findById(row.workId).orElse(null)?.takeIf { it.deletedAt == null } ?: missing()
         if (row.hidden != hidden) {
             row.hidden = hidden
-            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (hidden) COMMENT_HIDDEN else COMMENT_RESTORED, row.authorId, "work", row.workId))
+            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (hidden) COMMENT_HIDDEN else COMMENT_RESTORED, row.authorId, "work", row.workId,
+                detailTitle = work.title, detailEpisode = row.episodeNumber))
         }
         val name = nicknames.nicknames(listOf(row.authorId))[row.authorId] ?: WITHDRAWN_MEMBER_NAME
         return view(row, work.title, likes.findAllByCommentIdIn(listOf(id)).size, name)

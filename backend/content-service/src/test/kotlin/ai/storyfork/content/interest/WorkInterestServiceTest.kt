@@ -135,6 +135,8 @@ class WorkInterestServiceTest {
         assertTrue(rows.all { it.type == "content.episode.published" && it.targetType == "work" && it.targetId == "work" && it.publishedAt == null })
         assertEquals(2, rows.map { it.id }.toSet().size)
         assertEquals(1, rows.map { it.occurredAt }.toSet().size)
+        // 알림 문구 재료(#941): 작품 제목과 새 회차 번호.
+        assertTrue(rows.all { it.detailTitle == "제목" && it.detailEpisode == 2 && it.detailSubject == null && it.detailReason == null })
     }
 
     @Test fun `republishing an episode that was already published is not a new episode`() {

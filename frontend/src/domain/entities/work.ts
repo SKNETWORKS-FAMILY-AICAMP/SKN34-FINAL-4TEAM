@@ -68,6 +68,8 @@ export type Work = {
   allowForkPublication?: boolean
   forkAll?: boolean
   forkEps?: number[]
+  /** 서버가 알려 준 세계관 연결 여부(DEC-46). Fork는 연결된 원작에서만 만들 수 있다. 데모 작품처럼 서버가 주지 않으면 비워 두고 막지 않는다. */
+  worldLinked?: boolean
   cast: CastMember[]
   rules: string[]
   ruleFrom?: Record<string, number>
@@ -130,6 +132,11 @@ export function forkList(w: Work | undefined, worlds: World[]): number[] {
 }
 
 export const forkOK = (w: Work | undefined, n: number, worlds: World[]) => forkList(w, worlds).includes(+n)
+
+/** Fork를 세계관이 연결된 원작에서만 만들 수 있다는 이유(서버 409 `FORK_WORLD_REQUIRED`의 문구와 같다). */
+export const FORK_WORLD_REQUIRED = '세계관이 연결된 작품만 분기할 수 있어요.'
+/** 서버가 세계관 미연결을 알린 작품만 포크 버튼을 잠근다. 작가가 허용한 회차 목록(forkList)은 그대로 두고, 모르는(데모) 작품은 막지 않는다. */
+export const forkNeedsWorld = (w: Work) => w.worldLinked === false
 
 export function forkLabel(w: Work, worlds: World[]) {
   const list = forkList(w, worlds)

@@ -131,7 +131,7 @@ class InternalCommentServiceTest {
     }
 
     @Test fun `hide and restore record one operator event for the comment author on the comment's work only when the state really changes`() {
-        val row = comment("c1", work = "w9", author = "a7")
+        val row = comment("c1", work = "w9", author = "a7", number = 3)
         stored(row)
         coreNames("a7" to "닉7")
 
@@ -148,5 +148,7 @@ class InternalCommentServiceTest {
         assertEquals(listOf("work", "work"), events.map { it.targetType })
         assertEquals(listOf("w9", "w9"), events.map { it.targetId })
         assertEquals(2, events.map { it.id }.toSet().size)
+        // 알림 문구 재료(#941): 댓글이 달린 작품 제목과 회차 번호.
+        assertEquals(listOf("작품A" to 3, "작품A" to 3), events.map { it.detailTitle to it.detailEpisode })
     }
 }
