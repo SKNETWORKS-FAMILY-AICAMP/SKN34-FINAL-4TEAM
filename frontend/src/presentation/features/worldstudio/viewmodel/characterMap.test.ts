@@ -4,7 +4,7 @@ import {putRelation} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,type CardType} from '../../../../domain/entities/studioCards'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
 import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType} from './characterMap'
-import {settingBoardEntries} from './settingBoard'
+import {settingBoardEntries} from '../../../shared/settingBoard'
 it('keeps locations and real directed relationships in the service card board',()=>{
  const person=newSetting('people'),place=newSetting('places')
  person.item.title='가람';place.item.title='항구'
