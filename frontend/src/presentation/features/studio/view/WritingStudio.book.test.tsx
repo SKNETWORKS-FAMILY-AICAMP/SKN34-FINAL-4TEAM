@@ -10,6 +10,7 @@ import { createAppStore } from '../../../../app/store'
 import { cardTypePatch } from '../../../../domain/entities/studioCards'
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
+import type { ChatReply, ChatStep } from '../../../../domain/entities/writingChat'
 import { WritingStudio } from './WritingStudio'
 
 const { sessions, history, send, open, list, owned, readWorld, categories, workSettings, inherited } = vi.hoisted(() => ({
@@ -371,4 +372,55 @@ it('원고로 돌아가기는 상세에서 링크로 다른 쪽의 카드를 연
   fireEvent.click(within(detail('카드50')).getByRole('button', { name: '원고로 돌아가기' }))
   expect(rows().map((b) => b.getAttribute('aria-label'))).toEqual(['카드50 장소 작가 전용']) // 그 줄이 있는 쪽으로 넘어간다
   expect(document.activeElement).toBe(row(/^카드50/))
+})
+
+// ── 집필 AI 제안 화면(#909)과 같은 가운데 자리를 쓴다: 무대 > 제안 화면 > 설정 상세 > 편집기 ──
+const draftStep: ChatStep = { feature: 'writing_editing', task: 'draft', status: 'completed', result: { text: '새로 쓴 장면' } }
+const proposalReply = (): ChatReply => ({ status: 'waiting', steps: [draftStep], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 3, rewritesLeft: 2 })
+const withProposal = () => ({ threadId: 'a', title: '', turns: [{ request: '써 줘', reply: proposalReply() }] })
+const proposalStage = () => screen.findByRole('region', { name: '집필 AI 제안' })
+const chatPanel = () => screen.getByRole('complementary', { name: 'AI 채팅' })
+const storedProposal = () => {
+  workSettings.mockResolvedValue({ current: { writingMode: 'assisted' } }) // 채팅이 열린 채로 시작한다
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+}
+
+it('설정 상세를 보는 중 제안이 도착하면 제안 화면이 먼저 보이고(상세는 지우지 않고 가려진다), 제안 화면을 닫으면 상세가 돌아온다', async () => {
+  storedProposal()
+  let failing = true // 처음에는 대화 이력을 읽지 못해 제안이 없다 → 다시 불러오기로 제안이 도착한다
+  history.mockImplementation(async () => { if (failing) throw new Error('대화를 불러오지 못했어요.'); return withProposal() })
+  renderStudio()
+  await openBook()
+  fireEvent.click(row(/^카엘/))
+  expect(detail('카엘')).toBeTruthy()
+  failing = false
+  fireEvent.click(within(await screen.findByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '다시 불러오기' }))
+  const stage = await proposalStage()
+  expect(screen.queryByRole('region', { name: '카엘 설정 상세' })).toBeNull() // 가운데에는 하나만 보인다
+  expect(editor().hasAttribute('hidden')).toBe(true)
+  expect(row(/^카엘/).getAttribute('aria-pressed')).toBe('true') // 고른 카드는 그대로다
+  fireEvent.click(within(stage).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('region', { name: '집필 AI 제안' })).toBeNull()
+  expect(detail('카엘')).toBeTruthy()
+  expect(editor().hasAttribute('hidden')).toBe(true)
+})
+
+it('제안 화면이 열려 있을 때 카드를 고르면 제안 화면을 닫고 상세를 보이며, 채팅의 링크로 제안 화면을 다시 열면 상세가 닫힌다(편집기는 늘 숨기기만 한다)', async () => {
+  storedProposal()
+  history.mockResolvedValue(withProposal())
+  renderStudio()
+  await proposalStage() // 제안이 있으면 저절로 열린다
+  const textarea = body()
+  await openBook()
+  fireEvent.click(row(/^카엘/))
+  expect(detail('카엘')).toBeTruthy()
+  expect(screen.queryByRole('region', { name: '집필 AI 제안' })).toBeNull()
+  expect(editor().hasAttribute('hidden')).toBe(true)
+  fireEvent.click(within(chatPanel()).getByRole('button', { name: '원고 영역에서 보기' }))
+  const stage = await proposalStage()
+  expect(screen.queryByRole('region', { name: '카엘 설정 상세' })).toBeNull()
+  expect(row(/^카엘/).getAttribute('aria-pressed')).toBe('false') // 직접 연 제안 화면이 이겨 고른 카드는 닫혔다
+  fireEvent.click(within(stage).getByRole('button', { name: '닫기' }))
+  expect(editor().hasAttribute('hidden')).toBe(false) // 닫힌 카드가 되살아나지 않고 원고로 돌아온다
+  expect(body()).toBe(textarea) // 편집기는 한 번도 다시 만들어지지 않았다
 })
