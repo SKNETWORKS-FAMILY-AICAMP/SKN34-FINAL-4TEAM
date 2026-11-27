@@ -45,12 +45,37 @@ import { WorldSaveBar } from './WorldSaveBar'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
-// 사용법 투어(#971): 설정 카드 작성의 차별점만 한 문장씩. 대상은 활동 막대의 탭 아이콘(data-tour="card-<화면>")이라 어느 화면에 있어도 보인다. 이 화면은 카드를 골라야 열려 대상이 늘 있다.
+// 사용법 투어(#971)의 화면 투어(첫 진입 1회, 메뉴 소개): 활동 막대의 탭 아이콘(data-tour="card-<화면>")으로 화면마다 무엇을 하는 곳인지 한 문장씩 알린다. 사용법 버튼은 이것이 아니라 지금 화면(탭)의 투어를 연다.
 const tour: TourStep[] = [
-  { target: 'card-overview', title: '공개 범위', text: '카드는 작가만 보는 게 기본이고, 소설을 연결한 세계관에서는 개요에서 몇 화부터 보일지 정해요.' },
-  { target: 'card-order', title: '공개 순서', text: '카드 글에 그 글이 보일 때 아직 공개되지 않은 설정의 이름이 나오면 스포일러일 수 있어 알려 주고, 저장은 막지 않아요.' },
-  { target: 'card-relations', title: '사건 시점·연관 설정', text: '사건 카드에 적은 시점과 연관 설정은 시간선에, 카드의 관계는 관계도에 나타나요.' },
+  { target: 'card-overview', title: '개요', text: '분류와 공개 범위를 정하고, 이미지·파일을 붙여요.' },
+  { target: 'card-doc', title: '문서', text: '본문을 쓰고 다른 설정을 링크로 이어요. 인물은 정체성·성격·목표 문서를 따로 써요.' },
+  { target: 'card-relations', title: '관계', text: '이 설정과 이어진 설정·관계를 보고, 관계 편집으로 관계를 이어요.' },
+  { target: 'card-versions', title: '버전', text: '버전 그래프에서 확정 버전을 남기고 지난 확정 버전을 봐요.' },
+  { target: 'card-order', title: '공개 순서', text: '글에 나온 설정이 더 늦게 공개되도록 정해져 있으면 알려 줘요. 다른 탭도 처음 열면 안내가 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
 ]
+
+// 화면(탭)별 사용법 투어(#971): 활동 막대의 화면(주소의 pane)을 처음 열 때(메뉴 소개 다음) 그 화면의 우리만의 기능을 짚는다. 대상은 data-tour="card-<화면>-<이름>"이고, 화면에 없는 대상(채울 문서가 없는 인물·카드가 아닌 항목)의 단계는 빠진다.
+const cardTours: Record<string, TourStep[]> = {
+  doc: [
+    { target: 'card-doc-editor', title: '설정 링크', text: "본문 위의 '설정 링크'를 누르면 같은 세계관의 다른 설정을 이름·별칭으로 찾아 고를 수 있고, 고른 설정이 커서 자리에 링크로 들어가요. 미리보기에서 링크를 누르면 그 설정의 편집 화면이 열려요." },
+    { target: 'card-doc-fill', title: '원고로 채우기 제안', text: "비어 있는 인물 문서는 '원고로 채우기 제안'으로 AI가 연결된 소설 원고에서 이 인물이 나온 문장을 골라 제안해요. 새로 쓰지 않고, 반영해도 세계관을 저장해야 서버에 닿아요." },
+  ],
+  overview: [
+    { target: 'card-overview-reach', title: '공개 범위', text: "소설을 연결한 세계관에서는 '공개 회차'에 N을 쓰면 N화부터 독자에게 공개돼요. 비워 두면 작가 전용이고, 저장한 뒤 '확정 버전 남기기'를 해야 반영돼요." },
+    { target: 'card-overview-attach', title: '이미지·파일 첨부', text: "'이미지·파일 첨부'로 이 카드의 참고 파일과 이미지를 붙여요. 세계관을 저장한 뒤에 쓸 수 있어요." },
+  ],
+  relations: [
+    { target: 'card-relations-edit', title: '관계 편집', text: "'관계 편집'을 누르면 관계도 화면이 열려 이 설정의 관계를 만들고 고쳐요. 관계는 시작 회차와 함께 기록돼요." },
+    { target: 'card-relations-map', title: '연관 설정', text: '이 설정을 가운데 두고 관계와 본문 링크로 이어진 설정을 한눈에 봐요. 이웃을 누르면 그 설정의 편집 화면이 열려요.' },
+  ],
+  versions: [
+    { target: 'card-versions-seal', title: '확정 버전 남기기', text: "'확정 버전 남기기'로 지금 저장된 세계관을 확정 버전으로 남겨요. 독자에게는 확정한 버전만 보여요." },
+    { target: 'card-versions-graph', title: '버전 그래프', text: '작업 초안과 확정 버전이 줄로 보이고, 확정 버전을 누르면 읽기 전용 시트가 열려요. 관계는 확정 버전에 포함되지 않고 회차별로 기록돼요.' },
+  ],
+  order: [
+    { target: 'card-order-list', title: '공개 순서 확인', text: '이 설정의 글에 이름이 나온 다른 설정이 이 설정보다 늦게(또는 작가 전용으로) 공개되도록 정해져 있으면 알려 줘요. 경고일 뿐이라 저장은 막지 않아요.' },
+  ],
+}
 
 const BODY_MAX = 3000
 
@@ -133,7 +158,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const portrait = cardTypeOf(item) === 'character' ? presentationPortrait(item.title) : undefined
   const deletion = confirm === item.id ? vm.cardDeletionInfo(item.id) : null
   const bodyEditor = (
-    <div className="world-card-editor" inert={vm.busy}>
+    <div className="world-card-editor" data-tour="card-doc-editor" inert={vm.busy}>
       <Suspense fallback={<div className="world-card-editor-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
         <LazyMarkdownEditor key={editorKey} startTab={entryKey === editorKey ? 'preview' : undefined} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
       </Suspense>
@@ -163,7 +188,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
           <button type="button" className="back rback" onClick={vm.closeCard}><BackChev />{MANAGE_VIEWS.find(([id]) => id === vm.view)?.[1]}</button>
           <h1 className="t">설정 편집</h1>
         </div>
-        <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /><ScreenTour screen="card" steps={tour} className="btn sm" /><ThemeButton className="btn sm" /></div>
+        <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /><ScreenTour screen="card" steps={tour} tabs={cardTours} tab={pane} className="btn sm" /><ThemeButton className="btn sm" /></div>
       </header>
       {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
       {vm.message && <p role="status" className="writing-message">{vm.message}</p>}
@@ -223,7 +248,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         <CardCategoryNotice isError={isError} retry={retry} />
                         {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
                         {item.kind !== 'relation' && (
-                          <section className="world-card-reach" aria-label="공개 범위">
+                          <section className="world-card-reach" aria-label="공개 범위" data-tour="card-overview-reach">
                             <h4>공개 범위 <span className="chip world-reach-badge">{reachBadge}</span></h4>
                             {linked ? (
                               <>
@@ -269,7 +294,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                       </div>
                     </div>
                   )}
-                  {pane === 'overview' && <WorldCardAttachments vm={vm} cardId={item.id} />}
+                  {pane === 'overview' && vm.cardImages.supported && <div data-tour="card-overview-attach"><WorldCardAttachments vm={vm} cardId={item.id} /></div>}
                   {pane === 'doc' && (
                     <>
                       {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
@@ -305,18 +330,18 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                     <>
                       <div className="world-pane-head">
                         <h2>연관 설정·관계 <span className="small muted">관계 {relationCount}</span></h2>
-                        <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 편집</button>
+                        <button className="btn sm world-relation-link" data-tour="card-relations-edit" type="button" onClick={() => vm.openRelations(item.id)}>관계 편집</button>
                       </div>
-                      <section className="world-card-links" aria-label="연관 설정">
+                      <section className="world-card-links" aria-label="연관 설정" data-tour="card-relations-map">
                         <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: kindOf(cardTypeOf(item)) }} badge={reachBadge} entries={entries} revealEpisode={linked ? (reveal ?? null) : null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
                       </section>
                     </>
                   )}
                   {pane === 'versions' && (
-                    <section className="writing-graph" aria-label="버전 그래프">
+                    <section className="writing-graph" aria-label="버전 그래프" data-tour="card-versions-graph">
                       <h2>버전 그래프</h2>
                       <div className="world-graph-actions">
-                        <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!revisions.supported} onClick={openVersions}>확정 버전 남기기</button>
+                        <button type="button" className="btn sm" data-tour="card-versions-seal" aria-haspopup="dialog" disabled={!revisions.supported} onClick={openVersions}>확정 버전 남기기</button>
                       </div>
                       <VersionGraph rows={worldVersionRows(revisions.rows, vm.dirty, vm.saved?.currentRevisionId)} selectedId={revisions.detail?.revisionId ?? ''} disabled={revisions.busy} onPick={(id) => { void revisions.open(id); openVersions() }} />
                       <p className="small muted world-graph-note">{revisions.supported ? '관계는 회차별로 기록해요(확정 버전에는 포함되지 않음).' : '목업에서는 확정 버전을 지원하지 않아요. 관계는 현재 상태만 보관해요.'}</p>
@@ -325,9 +350,11 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                   {pane === 'order' && (
                     <>
                       <div className="world-pane-head"><h2>공개 순서</h2></div>
-                      {orderIssues.length
-                        ? <WorldCardOrder issues={orderIssues} limit={limit} relationTitle={(id) => world.settings.find((s) => s.item.id === id)?.item.title || '이름 없는 관계'} onOpenCard={openLinked} />
-                        : <p className="small muted">공개 순서 문제 없음</p>}
+                      <div data-tour="card-order-list">
+                        {orderIssues.length
+                          ? <WorldCardOrder issues={orderIssues} limit={limit} relationTitle={(id) => world.settings.find((s) => s.item.id === id)?.item.title || '이름 없는 관계'} onOpenCard={openLinked} />
+                          : <p className="small muted">공개 순서 문제 없음</p>}
+                      </div>
                     </>
                   )}
                 </div>

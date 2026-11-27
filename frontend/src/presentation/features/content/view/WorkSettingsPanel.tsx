@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useEffectEvent, useId } from 'react'
 import { writingModeLabels, type WritingMode } from '../../../../domain/entities/operatingSettings'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { kstDateTime } from '../../../shared/format'
@@ -33,9 +33,12 @@ function AutonomousWarning({ onOpenWorld, onProceed, onCancel }: { onOpenWorld?:
  * 자동 처리의 AI 자율 연재는 저장된 집필 방식이 AI 자율 집필이면 켜짐, 아니면 꺼짐이다(고르기만 하고 저장하지 않은 select 값은 보지 않는다).
  * onOpenWorld는 AI 자율 집필 경고의 '세계관·설정집으로'가 부른다(작품 관리의 세계관·설정집 탭으로 옮긴다). 주지 않으면 그 버튼은 잠긴다.
  */
-export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld }: { workId: string; useCase?: EpisodeUseCase; onSaved?: () => void; onOpenWorld?: () => void }) {
+export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld, onLoaded }: { workId: string; useCase?: EpisodeUseCase; onSaved?: () => void; onOpenWorld?: () => void; onLoaded?: () => void }) {
   const vm = useWorkSettingsViewModel(workId, useCase, onSaved)
   const settings = vm.settings
+  // 첫 읽기가 성공으로 끝나면 호출 측에 알린다(작품 관리의 사용법 투어가 카드가 그려진 뒤에 시작한다). 읽기에 실패하면 알리지 않는다.
+  const loaded = useEffectEvent(() => onLoaded?.())
+  useEffect(() => { if (settings) loaded() }, [settings])
   const reason = useId()
   // 세 카드(집필 방식·자동 처리·설정 변경 이력)의 제목 id. 카드는 제목으로 이름 붙은 region이다(분기 정책·포크 정보 카드와 같은 틀).
   const modeTitle = useId()
@@ -60,7 +63,7 @@ export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld }: { w
             <form onSubmit={(event) => { event.preventDefault(); void vm.save() }}>
               <label>
                 <span className='sr-only'>집필 방식</span>
-                <select value={vm.mode} disabled={vm.saving} onChange={(event) => vm.selectMode(event.target.value as WritingMode | '')}>
+                <select data-tour='manage-settings-mode' value={vm.mode} disabled={vm.saving} onChange={(event) => vm.selectMode(event.target.value as WritingMode | '')}>
                   {settings.current.writingMode === null && <option value='' disabled>집필 방식 선택</option>}
                   <option value='direct'>{writingModeLabels.direct}</option>
                   <option value='assisted'>{writingModeLabels.assisted}</option>

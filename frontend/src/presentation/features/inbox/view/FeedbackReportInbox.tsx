@@ -1,4 +1,4 @@
-import { Activity, useRef, useState } from 'react'
+import { Activity, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { REPORT_KIND_LABEL, REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
@@ -63,9 +63,12 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
  * 독자가 철회·정정한 제보는 원문을 지우지 않고 표시만 남겨 함께 보입니다. 데모 작품의 피드백은 같은 화면의 기존 메모리 목록이 그대로 보입니다.
  * workId를 주면 그 작품의 제보만 보입니다(작품 관리 화면의 '받은 피드백' 탭). 주지 않으면 내 모든 작품입니다.
  */
-export function FeedbackReportInbox({ workId }: { workId?: string }) {
+export function FeedbackReportInbox({ workId, onLoaded }: { workId?: string; onLoaded?: () => void }) {
   const vm = useFeedbackReportInboxViewModel(workId)
   const { reports } = vm
+  // 첫 읽기가 성공으로 끝나면 호출 측에 알린다(작품 관리의 사용법 투어가 목록이 도착한 뒤에 시작한다). 읽기에 실패하면 알리지 않는다.
+  const loaded = useEffectEvent(() => onLoaded?.())
+  useEffect(() => { if (reports) loaded() }, [reports])
   // 작품 관리의 '받은 피드백' 탭(workId가 있다)에서는 탭 제목(h2) 아래 묶음 제목이라 h3다. 피드백함 화면에서는 쪽 제목(h1) 아래 구획이라 h2다.
   const Heading = workId ? 'h3' : 'h2'
   const [kind, setKind] = useState('')
@@ -76,7 +79,7 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
   return (
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
-    <section className="sec" aria-label="독자 제보" aria-busy={!reports && !vm.isError} style={{ marginTop: 0, marginBottom: 18 }}>
+    <section className="sec" data-tour="inbox-reports" aria-label="독자 제보" aria-busy={!reports && !vm.isError} style={{ marginTop: 0, marginBottom: 18 }}>
       <div className="sec-h"><Heading>{reports ? `독자 제보 ${reports.length}` : '독자 제보'}</Heading></div>
       {/* 처리 방법 안내는 제보가 있을 때만 쓸모가 있다. 0건·불러오는 중에는 빈 상태 문구보다 먼저 읽히지 않게 그리지 않는다. */}
       {!!reports?.length && <p className="small muted">내 작품 회차에 독자가 남긴 제보예요. 확인하거나 답변하면 독자의 내 서재에 상태가 바로 표시돼요. 비공개 제보는 작가만 볼 수 있고, 공개 답변을 달면 답변만 다른 독자에게 보여요.</p>}

@@ -1,4 +1,4 @@
-import { Activity, useEffect, useRef, useState } from 'react'
+import { Activity, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { BASE_CHANGED_MESSAGE, SUGGESTION_MAX, type EditSuggestion } from '../../../../domain/entities/editSuggestion'
 import './inbox.css'
@@ -82,8 +82,11 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
  * 승인은 새 초안 버전으로만 반영하며 발행은 집필실에서 따로 합니다. 데모 작품의 수정 제안은 위의 데모 피드백함이 계속 맡습니다.
  * workId를 주면 그 작품의 제안만 보입니다(작품 관리 화면의 '받은 피드백' 탭). 주지 않으면 내 모든 작품입니다.
  */
-export function EditSuggestionInbox({ workId }: { workId?: string }) {
+export function EditSuggestionInbox({ workId, onLoaded }: { workId?: string; onLoaded?: () => void }) {
   const vm = useEditSuggestionInboxViewModel(workId)
+  // 첫 읽기가 성공으로 끝나면 호출 측에 알린다(작품 관리의 사용법 투어가 목록이 도착한 뒤에 시작한다). 읽기에 실패하면 알리지 않는다.
+  const loaded = useEffectEvent(() => onLoaded?.())
+  useEffect(() => { if (vm.items) loaded() }, [vm.items])
   const [status, setStatus] = useState('')
   // 작품 관리의 '받은 피드백' 탭(workId가 있다)에서는 탭 제목(h2) 아래 묶음 제목이라 h3다. 피드백함 화면에서는 쪽 제목(h1) 아래 구획이라 h2다.
   const Heading = workId ? 'h3' : 'h2'
@@ -91,7 +94,7 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
   // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
   const visible = (item: EditSuggestion) => !status || item.status === status || item.id === vm.notice?.id
   return (
-    <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
+    <section className="sec" data-tour="inbox-suggestions" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><Heading id="edit-suggestions-h">독자 수정 제안</Heading><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
       {vm.isError && (
         <div className="panel" role="alert">
