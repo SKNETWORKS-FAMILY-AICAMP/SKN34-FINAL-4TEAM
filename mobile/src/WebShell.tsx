@@ -1,17 +1,19 @@
 import * as Notifications from 'expo-notifications'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, BackHandler, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, AppState, BackHandler, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes'
 
 import { BACKGROUND_SCRIPT, DEFAULT_LOOK, type Look, lookOf, palette } from './appearance.ts'
 import { initialBridgeState, receive } from './bridge.ts'
-import { API_BASE_URL, webUrl } from './config.ts'
+import { API_BASE_URL, originOf, webUrl } from './config.ts'
 import { requestNotificationPermission, showLocalNotification } from './device.ts'
+import { pushNoticeId } from './notification.ts'
 import { TabBar } from './TabBar.tsx'
 import { selectedTab } from './tabs.ts'
+import { useAndroidPush } from './useAndroidPush.ts'
 import { isSameOrigin, navigateScript, navigationDecision, tapDestination } from './webview.ts'
 
 /**
@@ -35,14 +37,39 @@ export function WebShell() {
   const canGoBack = useRef(false)
   const bridge = useRef(initialBridgeState)
   const asked = useRef(false)
+  const [memberId, setMemberId] = useState<string | null>(null)
+  const pendingTap = useRef<string | null>(null)
+  // 웹의 storyfork.ready로만 정한다. onLoadStart로 지우지 않는다: Android는 SPA 이동(pushState)에도 불러 이미 받은 ready를 지우고,
+  // 웹은 계정이 바뀔 때만 다시 보내므로 권한 요청·기기 등록·알림 탭 전달이 멈춘다(새 문서는 웹이 마운트 때 ready를 다시 보낸다).
+  const ready = useRef(false)
+
+  function send(message: { type: 'storyfork.tap'; id: string } | { type: 'storyfork.device'; installationId: string; token: string | null }) {
+    web.current?.injectJavaScript(`if (location.origin === ${JSON.stringify(originOf(API_BASE_URL))}) window.dispatchEvent(new CustomEvent('storyfork:mobile', {detail:${JSON.stringify(message)}})); true;`)
+  }
+
+  useAndroidPush(memberId, (installationId, token) => {
+    if (ready.current) send({ type: 'storyfork.device', installationId, token })
+  })
 
   // 시작 주소: 알림을 눌러 앱이 열렸으면 그 대상, 아니면 웹 홈. 이후 알림을 누를 때마다 그 대상으로 새로 연다.
   useEffect(() => {
     if (tapped === undefined) return
-    const url = tapped?.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER ? tapDestination(tapped.notification.request.content.data) : null
+    const data = tapped?.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER ? tapped.notification.request.content.data : null
+    const id = Platform.OS === 'android' ? pushNoticeId(data) : null
+    if (id) {
+      pendingTap.current = id
+      Notifications.clearLastNotificationResponse()
+    }
+    const url = id ? null : tapDestination(data)
     setPage((current) => (url || !current ? { uri: url ?? webUrl('/'), n: (current?.n ?? 0) + 1 } : current))
     setFailed(false)
   }, [tapped])
+
+  useEffect(() => {
+    if (!ready.current || !memberId || !pendingTap.current) return
+    send({ type: 'storyfork.tap', id: pendingTap.current })
+    pendingTap.current = null
+  }, [memberId, tapped])
 
   // Android 하드웨어 뒤로 = WebView 뒤로(갈 곳이 없으면 앱을 닫는다).
   useEffect(() => {
@@ -58,16 +85,30 @@ export function WebShell() {
     if (!isSameOrigin(nativeEvent.url)) return // 우리 웹이 보낸 메시지만 받는다
     const next = lookOf(nativeEvent.data)
     if (next) { setLook((current) => (current.background === next.background ? current : next)); return }
-    const { state, fresh } = receive(bridge.current, nativeEvent.data)
+    const previous = bridge.current.userId
+    const { state, fresh, accountReady } = receive(bridge.current, nativeEvent.data)
     bridge.current = state
+    if (Platform.OS === 'android') {
+      if (previous && previous !== state.userId) {
+        ready.current = false
+        pendingTap.current = null
+        setMemberId(null)
+        void Notifications.dismissAllNotificationsAsync().catch(() => {})
+      }
+      if (accountReady) {
+        ready.current = Boolean(state.userId)
+        setMemberId(state.userId)
+      }
+      if (AppState.currentState !== 'active') return
+    }
     // 알림 권한은 로그인한 걸 안 뒤 한 번만 묻는다(iOS는 이미 정했으면 창 없이 현재 상태만 돌려준다).
-    if (state.userId && !asked.current) { asked.current = true; requestNotificationPermission().catch(() => {}) }
+    if (Platform.OS === 'ios' && state.userId && !asked.current) { asked.current = true; requestNotificationPermission().catch(() => {}) }
     fresh.forEach((n) => showLocalNotification(n).catch(() => {}))
   }
 
   // 다른 origin 링크는 WebView에서 열지 않고 시스템 브라우저로 보낸다. iframe 같은 하위 프레임은 거르지 않는다.
   const onShouldStart = (request: ShouldStartLoadRequest) => {
-    if (!request.isTopFrame) return true
+    if (request.isTopFrame === false) return true
     const decision = navigationDecision(request.url)
     if (decision === 'external') Linking.openURL(request.url).catch(() => {})
     return decision === 'allow'
@@ -98,6 +139,7 @@ export function WebShell() {
         onShouldStartLoadWithRequest={onShouldStart}
         onNavigationStateChange={(navigation) => { canGoBack.current = navigation.canGoBack; setUrl(navigation.url) }}
         onMessage={onMessage}
+        webviewDebuggingEnabled={Platform.OS === 'android' && __DEV__}
         onError={() => setFailed(true)}
         onHttpError={({ nativeEvent }) => { if (nativeEvent.statusCode >= 500) setFailed(true) }}
       />

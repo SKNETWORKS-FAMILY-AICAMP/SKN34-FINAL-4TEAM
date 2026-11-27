@@ -81,6 +81,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 | --- | --- | --- |
 | `storyfork.notifications` | 로그인한 회원의 알림 목록 첫 쪽(`GET /api/v1/me/notifications`, 20개)을 읽은 직후: 로그인·세션 복구 직후와 알림 스트림 신호(`ready`·`changed`)마다. 새 요청 종류는 없고 웹의 기존 목록 조회(`ShellUseCase.listNotifications`)다 | `userId`(Core 회원 id), `items[]`: `id`·`kind`·`targetType`·`targetId`(없으면 `null`)·`summary`·`read`·`createdAt`(ISO 8601). 알림 API 응답의 항목과 같은 값이다 |
 | `storyfork.logout` | 로그아웃하거나 로그인한 회원이 바뀔 때(계정 전환) | 없음 |
+| `storyfork.ready` | 웹이 앱 메시지 수신을 시작할 때 | `account`(로그인한 회원 ID, 비로그인은 `null`) |
 
 ```json
 {"type":"storyfork.notifications","userId":"00000000-0000-4000-8000-000000000001","items":[{"id":"…","kind":"credit","targetType":"credit-expiry","targetId":"2026-12-01","summary":"곧 소멸되는 크레딧이 있어요","read":false,"createdAt":"2026-11-26T04:14:26.947303Z"}]}
@@ -101,3 +102,12 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
   같은 사건이 두 번 나가도 위 `eventId` 규칙으로 알림은 한 건만 생긴다. 1차는 Core 한 대 기준이다.
   Core 사건은 `core.` 접두사를 쓴다(`core.credit.expiring`, `core.member.withdrawal-requested`). 정기 작업처럼 같은 사건을 여러 번 만들 수 있으면 `enqueueOnce`로 사건 id를 직접 정해 한 번만 기록한다.
 - Content는 `content_event_outbox`(`id`=`eventId`)에 쓰고(문구 재료 `detail`은 V48 `detail_title`·`detail_episode`·`detail_subject`·`detail_reason`, 값이 하나라도 있을 때만 메시지에 싣는다, #941), 단일 인스턴스의 스케줄 발행기가 5초마다 `published_at`이 빈 행을 오래된 순으로 `storyfork.events`(routing key=`type`)에 보낸다. 보낸 행만 `published_at`을 채우고, 실패하면 그 주기를 멈춰 다음 주기에 같은 `eventId`로 다시 보낸다. Content는 교환기·큐를 선언하지 않는다. 교환기·큐·바인딩은 Core가 처음 연결할 때 선언하므로, Core가 한 번도 연결하지 않은 브로커로 보낸 사건은 어디에도 보관되지 않는다(발행기는 보낸 것으로 기록한다).
+
+## 모바일 알림 (#943)
+
+- 앱 안의 STORYFORK WebView에서 로그인·알림함·수신 설정을 그대로 사용합니다. 인증은 기존 웹 세션을 따르고 SecureStore에는 Android 설치 UUID만 저장합니다.
+- Android는 iOS와 같은 알림 목록을 받고 전면에서 로컬 알림을 표시합니다. Android 알림 탭은 앱이 보낸 알림 ID를 웹 세션으로 다시 조회해 읽음 처리하고 `noticeTarget`으로 이동합니다. iOS 시뮬레이터에서 넣는 예시 알림은 기존 대상 데이터로 이동합니다.
+- 읽음 처리는 기존 `PATCH /api/v1/me/notifications/{id}/read`를 사용합니다. Vite를 거쳐 접속하는 개발 WebView의 출처는 Core `APP_CORS_ALLOWED_ORIGIN`에 지정합니다.
+- Android는 FCM V1 기기 토큰을 받은 뒤 현재 웹 인증 세션과 설치 UUID로 `POST /api/v1/me/push-devices`에 등록합니다. 같은 설치의 토큰 갱신은 기존 토큰을 교체합니다. 권한이 꺼지면 `DELETE /api/v1/me/push-devices/{installationId}`로 해제합니다. 세션 폐기 시 연결된 기기도 해제합니다.
+- Core는 알림 커밋 뒤 활성 기기에만 AWS SNS로 발송합니다. 선택 가능한 분류는 발송 전 설정을 다시 확인합니다. 화면에 표시하는 내용은 `summary`와 본인 알림 조회용 ID입니다. 비활성 토큰은 정리하며, SNS 실패는 로그로 남기고 알림함 기록을 보존합니다.
+- iOS 경로는 시뮬레이터의 전면 SSE·로컬 알림입니다. 원격 APNs와 앱 스토어 배포는 이 범위에서 다루지 않습니다.

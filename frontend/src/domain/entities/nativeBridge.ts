@@ -6,6 +6,7 @@ import type { AppNotification } from './notification'
  */
 export type NativeNotification = Pick<AppNotification, 'id' | 'kind' | 'targetType' | 'targetId' | 'summary' | 'read' | 'createdAt'>
 export type NativeAppMessage =
+  | { type: 'storyfork.ready'; account: string | null }
   | { type: 'storyfork.notifications'; userId: string; items: NativeNotification[] }
   | { type: 'storyfork.logout' }
 
@@ -18,3 +19,6 @@ export const notificationsMessage = (userId: string, items: AppNotification[]): 
 
 /** 로그아웃·계정 전환 때 앱이 알림 기준선을 비우게 한다. */
 export const logoutMessage: NativeAppMessage = { type: 'storyfork.logout' }
+
+/** 웹의 앱 메시지 수신기가 준비된 뒤 Android 기기 등록과 알림 탭을 허용한다. */
+export const readyMessage = (account: string | null): NativeAppMessage => ({ type: 'storyfork.ready', account })

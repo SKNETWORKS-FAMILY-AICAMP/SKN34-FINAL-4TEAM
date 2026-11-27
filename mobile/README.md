@@ -47,7 +47,9 @@ xcrun simctl push booted com.storyfork.app push-example.apns   # mobile/ 에서 
 
 알림 권한을 허용한 앱에 배너가 뜨고 누르면 WebView가 `/work/<id>` 웹 경로로 이동합니다. 원격 알림의 데이터는 expo-notifications 규칙대로 최상위 `body` 객체(`kind`·`targetType`·`targetId`)에 둡니다(로컬 알림은 앱이 `data`에 직접 담습니다).
 `expo-notifications` 플러그인은 `app.json`의 `plugins`에 넣지 않았습니다. 플러그인은 APNs 권한(`aps-environment`)을 붙여 무료 개발자 계정으로 서명할 수 없게 되고, 로컬 알림에는 필요 없습니다. Android FCM 작업에서 플러그인을 넣을 때 iOS 권한 영향을 확인하세요.
-Android 13+는 권한을 요청하기 전에 알림 채널을 먼저 만들어야 권한 창이 뜹니다(`setNotificationChannelAsync`). iOS 작업에서는 필요 없어 넣지 않았으니 Android 작업에서 `src/device.ts`에 더하세요.
+Android는 권한 요청 전에 `storyfork` 알림 채널을 만듭니다. 원격 수신을 검증할 때는 루트 `.env`의 `MOBILE_GOOGLE_SERVICES_FILE`에 `com.storyfork.app`용 Firebase 설정 파일 경로를 지정하고 개발 빌드를 다시 만듭니다. Core의 SNS FCM V1 플랫폼 ARN과 발송 자격도 설정하고 `PUSH_SNS_ENABLED=true`로 켭니다.
+
+포크의 CI를 `record_android=true`로 수동 실행하면 Android 에뮬레이터에서 WebView 로그인, 권한 허용, 실제 Core SSE의 로컬 알림, 대상 화면 이동, 읽음과 삭제를 검증합니다. 자바스크립트 번들을 포함한 APK와 녹화 영상을 artifact로 보관합니다. 이 시연은 Firebase·SNS 설정 없이 실행합니다.
 
 ## 시뮬레이터용 빌드 받기 (Mobile CD)
 
@@ -89,7 +91,7 @@ xcrun simctl launch booted com.storyfork.app
 
 ## Expo 결정 요약 ([#943](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/943))
 
-- Expo 개발 빌드(`npx expo run:ios`·`run:android`)로 만듭니다. 앱을 열면 바로 STORYFORK 웹을 WebView로 보이고(로그인·회원가입·알림함·설정·독서·집필 모두 웹 화면 그대로) 앱은 알림과 하단 탭만 맡습니다. 그래서 `expo-secure-store`·네이티브 인증이 필요 없습니다.
-- Android 푸시 토큰은 FCM 기기 토큰(`getDevicePushTokenAsync`)이고 Expo Push 서비스는 쓰지 않습니다(#89). Core 기기 토큰 API와 FCM 발송은 Android 작업입니다.
+- Expo 개발 빌드(`npx expo run:ios`·`run:android`)로 만듭니다. 로그인 상태는 웹의 HttpOnly 쿠키가 관리하고 SecureStore에는 Android 설치 UUID만 보관합니다.
+- Android는 FCM 기기 토큰(`getDevicePushTokenAsync`)을 Core에 등록하고, Core는 AWS SNS → FCM V1으로 발송합니다(#89).
 - 스토어 배포 없이 시연용 테스트 빌드만 만듭니다. iOS는 유료 계정 없이 시뮬레이터로 확인하므로 APNs 원격 푸시는 빼고, 웹이 읽은 알림을 앱이 로컬 알림으로 띄우는 것으로 대신합니다(앱을 켜 둔 동안만).
 - 화면·알림 처리 로직은 한 코드로 쓰고, 플랫폼 차이는 푸시 토큰 발급과 권한 요청에만 둡니다.

@@ -14,6 +14,16 @@ export type AppNotification = z.infer<typeof notice>
 const LABELS: Record<NoticeKind, string> = { reading: '읽기', creation: '작가 소식', result: '처리 결과', credit: '크레딧', 'rights-security': '권리·보안', 'ai-tool': 'AI·외부 도구 변경' }
 export const noticeLabel = (kind: NoticeKind) => LABELS[kind]
 
+const pushPayload = z.object({ noticeId: z.uuid() })
+
+export function pushNoticeId(data: unknown) {
+  return pushPayload.safeParse(data).data?.noticeId ?? null
+}
+
+export function shouldRequestNotificationPermission(permission: { granted: boolean; canAskAgain: boolean }, requested: boolean) {
+  return !requested && !permission.granted && permission.canAskAgain
+}
+
 /**
  * 알림에서 이동할 웹 화면 경로. 웹 noticeTarget과 같은 규칙이라 같은 기대값으로 시험한다(notification.test.ts).
  * 사건 계약이 확정된 대상만 연결하고, 모르는 대상은 이동하지 않는다.

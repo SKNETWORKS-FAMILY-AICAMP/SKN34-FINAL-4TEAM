@@ -49,7 +49,7 @@ describe('알림함 (U42)', () => {
     renderAt('/notifications')
     await screen.findByRole('heading', { name: '알림함' })
     expect(sid()).toContain('U42')
-    screen.getByText(/결과·크레딧·권리·보안 알림은 필수 알림이에요\. 알림은 앱 안에서만 확인할 수 있고, 직접 삭제하기 전까지 보관해요\./)
+    screen.getByText(/결과·크레딧·권리·보안 알림은 필수 알림이에요\. 알림함에는 직접 삭제하기 전까지 보관해요\./)
     expect(document.body.textContent).not.toMatch('90일')
     await screen.findByText('알림 a')
   })

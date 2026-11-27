@@ -6,6 +6,7 @@ import { toastDuration } from '../events'
 import { screenLabel } from '../screenIds'
 import { uiActions } from '../ui/uiSlice'
 import { ThemeButton } from './ThemeButton'
+import { useMobileNoticeBridge } from './useMobileNoticeBridge'
 import { useNativeAppBridge } from './useNativeAppBridge'
 import { useNotificationStream } from './useNotificationStream'
 import { useApplyTheme } from './useTheme'
@@ -135,6 +136,7 @@ export function GlobalChrome() {
   useApplyTheme()
   useProximity()
   useNotificationStream()
+  useMobileNoticeBridge()
   useNativeAppBridge()
   const { showSid, screen } = useAppSelector((s) => s.ui)
   const { pathname } = useLocation()
