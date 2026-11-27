@@ -114,14 +114,53 @@ it('새 작품 만들기의 사용법 버튼은 폼 순서(제목 → 표지 →
   expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 5')
 })
 
-it('작품 관리의 사용법 버튼은 탭에 묶이지 않고 사이드바 메뉴(개요 → 공개 회차 → … → 운영 설정)를 짚는다', async () => {
+/** 사용법 버튼은 지금 탭의 투어를 연다: 탭 내용을 읽어 오는 동안은 잠겨 있다가 열리면 눌러 첫 단계의 제목과 단계 수를 돌려준다. */
+async function tabTour() {
+  const button = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(button.disabled).toBe(false))
+  fireEvent.click(button)
+  const tip = await screen.findByRole('dialog')
+  return { tip, title: tip.querySelector('h3')?.textContent, count: tip.querySelector('.tour-count')?.textContent }
+}
+
+it('작품 관리의 사용법 버튼은 지금 탭의 투어를 연다: 개요 탭은 작품 정보 편집 → 작품 지표 → 바로가기(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  const { title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '작품 정보 편집', count: '1 / 3' })
+})
+
+it('운영 설정 탭의 사용법은 설정을 읽은 뒤에 열려 집필 방식 → 집필 방식 저장 → 분기 정책을 짚는다(#971)', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(true) // 설정을 읽는 중
   await screen.findByRole('button', { name: '집필 방식 저장' })
-  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
-  const tip = await screen.findByRole('dialog', { name: '개요' })
-  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 6')
+  const { title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '집필 방식', count: '1 / 3' })
+})
+
+it('AI 집필 탭의 사용법은 운영 설정에서 AI 자율 집필을 켜야 입력이 열린다고 알리며 꺼져서 잠긴 연재 설정을 짚는다(#971)', async () => {
+  stubCover()
+  myWorlds([])
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockResolvedValue(serialSettings({ enabled: false }))
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'boards').mockResolvedValue([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+  await screen.findByRole('button', { name: '설정 저장' })
+  const { tip, title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '연재 설정', count: '1 / 3' })
+  expect(tip.textContent).toContain("운영 설정의 집필 방식에서 'AI 자율 집필'을 켜야")
+})
+
+it('내 제보·수정 제안과 이력 탭에는 투어가 없어 사용법 버튼이 잠긴다(#971)', async () => {
+  stubCover()
+  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listMine').mockResolvedValue([])
+  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'mine').mockResolvedValue([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: '내 제보·수정 제안' }))
+  await screen.findByRole('heading', { level: 3, name: '내 제보 0' })
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(true)
 })
 
 // ── 작품 만들기 (/content) ─────────────────────────────────────────────

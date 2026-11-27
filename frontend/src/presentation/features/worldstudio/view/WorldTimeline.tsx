@@ -66,7 +66,7 @@ function TimelineBoard({ timeline, settings, onOpenCard }: { timeline: Timeline;
         </nav>
       )}
       <div className="world-timeline-body">
-        <div ref={scroll} className="world-timeline-scroll" role="region" aria-label="사건 시간선" tabIndex={0} onKeyDown={move}>
+        <div ref={scroll} className="world-timeline-scroll" data-tour="world-timeline-scroll" role="region" aria-label="사건 시간선" tabIndex={0} onKeyDown={move}>
           <div className="world-timeline-board" style={{ width, height }}>
             {size.w > 0 && (
               <svg width={svgWidth} height={height} aria-hidden="true">

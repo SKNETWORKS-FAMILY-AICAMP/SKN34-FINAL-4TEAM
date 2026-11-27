@@ -24,14 +24,37 @@ const TABS: readonly (readonly [Tab, string])[] = [['eps', '회차'], ['info', '
 /** AI 자율 집필이 켜진 서버 작품에만 있는 탭(UC-18): 안은 하위 탭 '투표 | 제안 게시판'이다. */
 const SERIAL_TAB = ['serial', '다음 회차'] as const
 
-// 사용법 투어(#971): 위에서 아래로. 다음 회차 탭·포크 안내는 해당 작품에만 있어 없으면 단계에서 빠진다.
+// 사용법 투어(#971)의 화면 투어(첫 진입 1회): 위쪽의 읽기 버튼과 탭을 소개한다. 다음 회차 탭은 해당 작품에만 있어 없으면 단계에서 빠진다. 탭 안의 내용은 탭별 투어가 맡고, 사용법 버튼은 지금 탭의 투어를 연다.
 const tour: TourStep[] = [
   { target: 'work-read', title: '읽기 시작', text: '공개된 회차를 읽기 시작해요. 읽던 작품이면 읽던 회차부터 이어서 읽어요.' },
-  { target: 'work-tabs', title: '회차·정보·소식', text: '탭을 바꿔 회차 목록과 작품 정보, 작가의 작품 공지(소식)를 봐요.' },
+  { target: 'work-tabs', title: '회차·정보·소식', text: '탭을 바꿔 회차 목록과 작품 정보, 작가의 작품 공지(소식)를 봐요. 탭은 처음 열 때마다 그 탭의 사용법이 한 번 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
   { target: 'work-serial', title: '다음 회차', text: '이 작품은 AI 자율 연재 중이에요. 다음 회차를 위해 투표하거나 제안 게시판에 글을 쓸 수 있어요.' },
-  { target: 'work-episodes', title: '회차 고르기', text: '회차를 누르면 바로 읽어요. 1화부터·최신순으로 정렬하고 제목·본문으로 검색할 수 있어요.' },
-  { target: 'work-fork', title: '포크', text: '작가가 허용한 회차에서는 이야기를 갈라(Fork) 나만의 작품으로 이어 쓸 수 있어요. 고른 회차까지의 세계관과 인물을 그대로 가져가요.' },
 ]
+
+// 탭별 사용법 투어(#971): 탭을 처음 열 때(화면 투어 다음) 그 탭 안의 실제 버튼·입력을 짚는다. 대상은 data-tour="work-<탭>-<이름>"이고, 사용법 버튼은 지금 탭의 투어를 연다.
+// 포크 안내·키워드·설정 위키 링크처럼 그 작품에 없는 대상의 단계는 빠진다. 소식 탭은 작가가 아닌 독자에게도 목록 안내 한 단계가 남는다.
+const tabTours: Record<string, TourStep[]> = {
+  eps: [
+    { target: 'work-eps-tools', title: '회차 정렬·검색', text: '1화부터·최신순으로 정렬하고 회차 제목·본문으로 검색해요.' },
+    { target: 'work-eps-first', title: '회차 읽기', text: '회차를 누르면 바로 읽어요. 읽은 기록이 있으면 \'읽음\'·\'읽는 중\'으로 표시돼요.' },
+    { target: 'work-eps-fork', title: '포크', text: '작가가 허용한 회차에서는 이야기를 갈라(Fork) 나만의 작품으로 이어 쓸 수 있어요. 고른 회차까지의 세계관과 인물을 그대로 가져가요.' },
+  ],
+  info: [
+    { target: 'work-info-summary', title: '작품 소개', text: '작가가 쓴 한 줄 소개와 줄거리를 읽어요.' },
+    { target: 'work-info-keywords', title: '키워드', text: '키워드를 누르면 같은 키워드의 소설 목록으로 가요.' },
+    { target: 'work-info-detail', title: '상세 정보', text: '작가·장르·연재 주기·연령 등급·총 회차를 확인해요. 분기 작품은 원작으로 가는 링크도 여기 있어요.' },
+    { target: 'work-info-wiki', title: '설정 위키', text: '세계관 설정을 모아 보는 위키예요. 여기서는 발행된 최신 회차까지 공개된 설정이 보이고, 읽는 중에 회차 화면의 \'설정\'을 누르면 그 회차까지 공개된 설정만 보여서 스포일러를 피할 수 있어요.' },
+  ],
+  notice: [
+    { target: 'work-notice-form', title: '소식 올리기', text: '분류·제목·내용을 적고 \'소식 등록\'으로 독자에게 알려요. \'상단 고정\'을 켜면 그 소식을 위에 고정해요.' },
+    { target: 'work-notice-list', title: '작품 소식', text: '작가가 올린 작품 공지가 모여요. 작가는 소식마다 수정·상단 고정·삭제를 할 수 있고, 소식은 작품을 공개한 뒤에 보고 올릴 수 있어요.' },
+  ],
+  serial: [
+    { target: 'work-serial-tabs', title: '투표 · 제안 게시판', text: '\'투표\'에서는 다음 회차의 전개 선택지에 투표하고, \'제안 게시판\'에서는 쓰고 싶은 전개를 글로 제안해요. 마감 때 AI가 이를 참고해 다음 회차를 써요.' },
+    { target: 'work-serial-vote', title: '전개 투표', text: '선택지 하나에 표를 줘요. 표는 하나만 줄 수 있고 다른 선택지로 옮기거나 \'투표 취소\'로 취소해요. 투표하려면 로그인해야 해요.' },
+    { target: 'work-serial-write', title: '제안 쓰기', text: '\'글쓰기\'로 제안 유형·제목·내용을 적어 올려요. 마음에 드는 제안은 추천하고, 추천을 많이 받은 글 3개를 AI가 참고해요.' },
+  ],
+}
 
 /** 목업 unavailableWork() */
 export function UnavailableWork() {
@@ -89,7 +112,7 @@ export function WorkPage() {
             <div className="acts">
               {visible.length > 0 && <Go to={`/read/${id}/${start}`} className="tbtn pri" data-tour="work-read">읽기 시작</Go>}
               {!!last && <Go to={`/read/${id}/1`} className="tbtn">처음부터</Go>}
-              {w.canonical && <Go to={`/work/${id}/wiki`} className="tbtn">설정 위키</Go>}
+              {w.canonical && <Go to={`/work/${id}/wiki`} className="tbtn" data-tour="work-info-wiki">설정 위키</Go>}
               <div className="ibs">
                 <LikeButton liked={liked} label={w.canonical ? '좋아요' : '관심 소설'} pending={vm.likePending} onClick={vm.toggleLike} />
                 <button type="button" className="ib" aria-label="공유" onClick={vm.share}><Share /></button>
@@ -98,7 +121,7 @@ export function WorkPage() {
                 ? <button type="button" className="tbtn" disabled={vm.interestBusy} onClick={vm.toggleInterest}>{vm.interested ? '관심 해제' : '관심 등록'}</button>
                 : <Go to="/login" className="tbtn" onClick={vm.requireLogin}>관심 등록</Go>)}
               {vm.canReport && <button type="button" className="tbtn weak" aria-label={`${w.title} 소설 신고`} onClick={vm.startReport}><Flag /> 소설 신고</button>}
-              <ScreenTour screen="work" steps={tour} ready={!serial.isLoading} />
+              <ScreenTour screen="work" steps={tour} tabs={tabTours} tab={current} ready={!serial.isLoading} />
             </div>
             {!!(w.hash || p?.hash)?.length && <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>}
             <div className="stats">
@@ -123,7 +146,7 @@ export function WorkPage() {
             </div>
             <div id="panel-work" role="tabpanel" aria-labelledby={`tab-${current}`}>
             {current === 'info' ? <WorkInfo work={w} parent={p} episodeCount={visible.length} /> : current === 'notice' ? <WorkNotices key={w.id} work={w} /> : current === 'serial' ? <SerialBoard key={w.id} work={w} read={serial} /> : <>
-            <div className="eptool" data-tour="work-episodes">
+            <div className="eptool" data-tour="work-eps-tools">
               <b>전체 {visible.length}화</b>
               <div className="sortt" role="group" aria-label="회차 정렬">
                 <button type="button" className={vm.epSort !== 'new' ? 'on' : ''} aria-pressed={vm.epSort !== 'new'} onClick={() => vm.setSort('old')}>1화부터</button>
@@ -132,12 +155,12 @@ export function WorkPage() {
               <label className="eps-q"><span aria-hidden="true">🔍</span><input id="epq" placeholder="회차 제목·본문 검색" aria-label="회차 검색" value={vm.query} onChange={(e) => vm.setQuery(e.target.value)} /></label>
             </div>
             <div id="eplist">
-              {vm.episodes.length ? vm.episodes.map(({ e, n, chars, match, views }) => {
+              {vm.episodes.length ? vm.episodes.map(({ e, n, chars, match, views }, i) => {
                 const inh = w.parent && n <= (w.forkAt ?? 0)
                 const hidden = hiddenSourceEpisode(w, n, e.p)
                 const fc = forks.filter((f) => f.forkAt === n).length
                 return (
-                  <Go key={n} to={`/read/${id}/${n}`} className={`ep ${read.includes(n) ? 'read' : ''}`} style={match ? undefined : { display: 'none' }}>
+                  <Go key={n} to={`/read/${id}/${n}`} className={`ep ${read.includes(n) ? 'read' : ''}`} data-tour={i === 0 ? 'work-eps-first' : undefined} style={match ? undefined : { display: 'none' }}>
                     <span className="no">{n}</span>
                     <div><b>{e.t}</b><div className="d">{hidden ? '원작 삭제로 볼 수 없는 회차' : <>{inh ? '원작 스냅샷 회차' : read.includes(n) ? '읽음' : last === n ? '읽는 중' : '무료'} <i className="sep" /> {chars.toLocaleString()}자 (공백 제외){views !== undefined && <> <i className="sep" /> <span title="조회"><Eye /><span className="sr-only">조회</span> {kfmt(views)}</span></>}</>}{fc > 0 && <> <i className="sep" /> <span title="이 회차에서 갈라진 포크"><Branch /> <span className="sr-only">이 회차에서 갈라진 포크 </span>{fc}<span className="sr-only">편</span></span></>}</div></div>
                   </Go>
@@ -148,7 +171,7 @@ export function WorkPage() {
             </>}
             </div>
           </section>
-          <aside className="tcard forkbox" data-tour={!p && !w.parentDeleted && forkList.length ? 'work-fork' : undefined}>
+          <aside className="tcard forkbox" data-tour={!p && !w.parentDeleted && forkList.length ? 'work-eps-fork' : undefined}>
             {p ? (
               <><h2>원작 보기</h2><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 그 뒤 이야기는 이 소설에서 따로 이어져요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
             ) : w.parentDeleted ? (

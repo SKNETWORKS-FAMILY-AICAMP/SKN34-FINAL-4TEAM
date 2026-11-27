@@ -159,12 +159,12 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
         <span className="chat-mark" aria-hidden="true"><SparkIcon size={28} /></span>
         {emptyTitle && <h3>{emptyTitle}</h3>}
         <p>{emptyText}</p>
-        {!!suggestions?.length && <ul className="chat-suggest" aria-label="추천 질문">{suggestions.map(text => <li key={text}>
+        {!!suggestions?.length && <ul className="chat-suggest" aria-label="추천 질문" data-tour="chat-suggest">{suggestions.map(text => <li key={text}>
           <button type="button" className="chat-suggest-btn" disabled={locked} onClick={() => { changeDraft(text); box.current?.focus() }}>{text}</button>
         </li>)}</ul>}
       </div>}
     </div>
-    <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
+    <form className="chat-composer" data-tour="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
       {note && <p id={noteId} className="chat-note">{note}</p>}
       <div className={`chat-card${locked ? ' locked' : ''}`} onDrop={attachOff ? undefined : e => { if (isFileDrag(e)) add([...e.dataTransfer.files]) }}>
         {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.file.name}-${i}`} className="chip">

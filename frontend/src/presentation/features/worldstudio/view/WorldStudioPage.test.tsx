@@ -1066,11 +1066,19 @@ it('저장 버전이 0이어도 주소에 ?new=1이 없으면(서재 관리하�
   expect(saveBar().queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장했으니 저장할 것이 없다
 })
 
-it('사용법 버튼은 설정집 → 관계도 → 소설 연결 → AI 검토 → 저장 → 확정 버전 순서로 투어를 시작한다(#971)', async () => {
+it('사용법 버튼은 지금 보기의 투어를 연다: 설정집은 도구줄 → 설정 목록(소설을 연결하지 않으면 공개 범위 일괄 변경은 없다)(#971)', async () => {
   await show()
   fireEvent.click(screen.getByRole('button', { name: '사용법' }))
-  const tip = await screen.findByRole('dialog', { name: '설정집' })
-  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 6')
+  const tip = await screen.findByRole('dialog', { name: '도구줄' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 2')
+})
+
+it('관계도 보기로 옮기면 사용법 버튼이 그 보기의 투어(관계 기준 회차 → 관계도 → + 설정 추가 → 그래프 설정)를 연다(#971)', async () => {
+  await show()
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
+  const tip = await screen.findByRole('dialog', { name: '관계 기준 회차' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 4')
 })
 
 it('처음 저장하면 관리 모드로 바뀌고 초점이 헤더 제목으로 간다', async () => {

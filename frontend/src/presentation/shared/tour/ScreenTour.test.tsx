@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { ScreenTour } from './ScreenTour'
 import { isTourSeen, markTourSeen } from './tourPrefs'
 import { TourAutoStart, type TourStep } from './useScreenTour'
 
-afterEach(() => { cleanup(); localStorage.clear() })
+afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks() })
 
 const STEPS: TourStep[] = [
   { target: 'studio-episodes', title: '회차 목록', text: '쓸 회차를 골라요.' },
@@ -166,5 +166,180 @@ it('끝낸 뒤에는 같은 화면을 다시 그려도 저절로 시작하지 �
   unmount()
   render(<Host />)
   await act(async () => { await new Promise((r) => setTimeout(r, 50)) })
+  expect(dialog()).toBeNull()
+})
+
+// ── 탭·패널별 투어 ─────────────────────────────────────────────
+
+const INTRO: TourStep[] = [
+  { target: 'manage-overview', title: '개요', text: '작품 현황을 봐요.' },
+  { target: 'manage-settings', title: '운영 설정', text: '집필 방식을 정해요.' },
+]
+const TABS: Record<string, TourStep[]> = {
+  settings: [
+    { target: 'manage-settings-mode', title: '집필 방식', text: '직접·AI 협업·AI 자율 집필 중에서 골라요.' },
+    { target: 'manage-settings-policy', title: '분기 정책', text: '분기를 허용할지 정해요.' },
+  ],
+  serial: [{ target: 'manage-serial-form', title: '연재 설정', text: '요일·시각·방향을 저장해요.' }],
+}
+const targetsOf = (tab?: string) => [...INTRO, ...(tab ? TABS[tab] ?? [] : [])].map((s) => s.target)
+
+/** 화면(메뉴)은 늘 있고, 탭의 대상은 그 탭을 보는 동안만 그려진다. */
+function TabHost({ tab = 'settings', auto = true, panel = false, ready = true, extra }: { tab?: string | null; auto?: boolean; panel?: boolean; ready?: boolean; extra?: ReactNode }) {
+  const at = tab ?? undefined // null = 탭 내용을 아직 불러오는 중
+  return (
+    <TourAutoStart.Provider value={auto}>
+      {targetsOf(at).map((name) => <div key={name} data-tour={name}>{name}</div>)}
+      {extra}
+      <ScreenTour screen="manage" steps={INTRO} tabs={TABS} tab={at} panel={panel} ready={ready} />
+    </TourAutoStart.Provider>
+  )
+}
+const quiet = () => act(async () => { await new Promise((r) => setTimeout(r, 60)) })
+const press = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
+
+it('처음 들어온 화면은 화면 투어가 먼저 뜨고, 끝나면 지금 탭의 투어가 이어서 뜬다(둘이 같이 뜨지 않는다)', async () => {
+  render(<TabHost />)
+  await tip()
+  expect(titleOf()).toBe('개요')
+  expect(screen.getAllByRole('dialog')).toHaveLength(1)
+  press('건너뛰기')
+  await waitFor(() => expect(titleOf()).toBe('집필 방식'))
+  expect(screen.getAllByRole('dialog')).toHaveLength(1)
+  expect(progress()).toBe('1 / 2')
+  expect(isTourSeen('manage')).toBe(true)
+  expect(isTourSeen('manage', 'settings')).toBe(false)
+  press('건너뛰기')
+  await waitFor(() => expect(dialog()).toBeNull())
+  expect(isTourSeen('manage', 'settings')).toBe(true)
+})
+
+it('화면 투어를 이미 봤으면 첫 진입에 지금 탭의 투어가 바로 뜬다', async () => {
+  markTourSeen('manage')
+  render(<TabHost tab="serial" />)
+  await tip()
+  expect(titleOf()).toBe('연재 설정')
+  expect(progress()).toBe('1 / 1')
+})
+
+it('다른 탭으로 처음 옮기면 그 탭의 투어가 한 번 뜨고, 본 탭은 다시 뜨지 않는다', async () => {
+  markTourSeen('manage')
+  markTourSeen('manage', 'settings')
+  const { rerender } = render(<TabHost tab="settings" />)
+  await quiet()
+  expect(dialog()).toBeNull()
+  rerender(<TabHost tab="serial" />)
+  await tip()
+  expect(titleOf()).toBe('연재 설정')
+  press('완료')
+  await waitFor(() => expect(dialog()).toBeNull())
+  expect(isTourSeen('manage', 'serial')).toBe(true)
+  rerender(<TabHost tab="settings" />)
+  await quiet()
+  rerender(<TabHost tab="serial" />)
+  await quiet()
+  expect(dialog()).toBeNull()
+})
+
+it('사용법 버튼은 지금 보는 탭의 투어를 연다(이미 본 탭도, 화면 투어는 다시 열지 않는다)', async () => {
+  markTourSeen('manage'); markTourSeen('manage', 'settings'); markTourSeen('manage', 'serial')
+  const { rerender } = render(<TabHost tab="settings" />)
+  press('사용법')
+  await tip()
+  expect(titleOf()).toBe('집필 방식')
+  expect(progress()).toBe('1 / 2')
+  press('건너뛰기')
+  await waitFor(() => expect(dialog()).toBeNull())
+  rerender(<TabHost tab="serial" />)
+  press('사용법')
+  await tip()
+  expect(titleOf()).toBe('연재 설정')
+})
+
+it('탭 투어가 없는 탭이거나 탭의 내용을 아직 불러오는 중(tab 없음)이면 사용법 버튼이 잠기고 시작하지 않는다', async () => {
+  markTourSeen('manage')
+  const { rerender } = render(<TabHost tab="history" />)
+  expect((screen.getByRole('button', { name: '사용법' }) as HTMLButtonElement).disabled).toBe(true)
+  rerender(<TabHost tab={null} />)
+  expect((screen.getByRole('button', { name: '사용법' }) as HTMLButtonElement).disabled).toBe(true)
+  await quiet()
+  expect(dialog()).toBeNull()
+  rerender(<TabHost tab="settings" />)
+  await tip()
+  expect(titleOf()).toBe('집필 방식')
+  expect(screen.queryByRole('button', { name: '사용법' })).not.toBeNull()
+})
+
+it('panel이면 사용법 버튼은 화면 투어를 열고, 패널 투어는 패널이 처음 열릴 때 저절로 뜬다', async () => {
+  markTourSeen('manage')
+  const { rerender } = render(<TabHost tab={null} panel />)
+  await quiet()
+  expect(dialog()).toBeNull()
+  press('사용법')
+  await tip()
+  expect(titleOf()).toBe('개요')
+  press('건너뛰기')
+  await waitFor(() => expect(dialog()).toBeNull())
+  rerender(<TabHost tab="settings" panel />)
+  await tip()
+  expect(titleOf()).toBe('집필 방식')
+})
+
+const panelOwn = (extra: ReactNode = null) => (
+  <TourAutoStart.Provider value>
+    <div role="dialog" aria-label="패널">
+      <div data-tour="manage-settings-mode">방식</div>
+    </div>
+    {extra}
+    <ScreenTour screen="manage" steps={[]} tabs={TABS} tab="settings" panel />
+  </TourAutoStart.Provider>
+)
+
+it('패널 자신의 대화 상자(안에 그 패널의 대상이 있는 것)는 패널 투어를 막지 않는다', async () => {
+  markTourSeen('manage')
+  render(panelOwn())
+  const tipOfPanel = await screen.findByRole('dialog', { name: '집필 방식' })
+  expect(tipOfPanel.querySelector('.tour-count')?.textContent).toBe('1 / 1') // 화면에 있는 대상만
+})
+
+it('패널 투어는 다른 시트가 열려 있으면 그 위에 뜨지 않는다', async () => {
+  markTourSeen('manage')
+  render(panelOwn(<div role="dialog" aria-label="다른 시트">다른 시트</div>))
+  await quiet()
+  expect(screen.queryByRole('dialog', { name: '집필 방식' })).toBeNull()
+  expect(isTourSeen('manage', 'settings')).toBe(false)
+})
+
+it('투어가 떠 있는 동안 Esc는 아래 시트를 닫지 않고 투어만 닫으며, 끝난 뒤에는 시트가 다시 Esc를 받는다', async () => {
+  markTourSeen('manage')
+  const onEsc = vi.fn()
+  function Sheetish() {
+    useEffect(() => {
+      const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onEsc() }
+      document.addEventListener('keydown', onKey)
+      return () => document.removeEventListener('keydown', onKey)
+    }, [])
+    return null
+  }
+  render(panelOwn(<Sheetish />))
+  await screen.findByRole('dialog', { name: '집필 방식' })
+  await waitFor(() => expect(document.querySelector<HTMLElement>('.react-joyride__floater')?.style.opacity).toBe('1'))
+  fireEvent.keyDown(screen.getByRole('button', { name: '완료' }), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '집필 방식' })).toBeNull())
+  expect(onEsc).not.toHaveBeenCalled()
+  expect(isTourSeen('manage', 'settings')).toBe(true)
+  fireEvent.keyDown(document.body, { key: 'Escape' })
+  expect(onEsc).toHaveBeenCalledTimes(1)
+})
+
+it('기억을 저장할 수 없는 브라우저에서도 끝낸 투어가 다시 뜨지 않는다', async () => {
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') })
+  render(<TabHost />)
+  await tip()
+  press('건너뛰기')
+  await waitFor(() => expect(titleOf()).toBe('집필 방식'))
+  press('건너뛰기')
+  await waitFor(() => expect(dialog()).toBeNull())
+  await quiet()
   expect(dialog()).toBeNull()
 })

@@ -28,7 +28,7 @@ const ORN: Record<Theme, string> = { hanji: '● ─────', star: '✦ �
 // 문장 팝업의 수정 제안은 서버 작품(canonical)에만 있어 문장 단계 글이 작품에 따라 다르다.
 const tour = (canonical: boolean): TourStep[] => [
   { target: 'read-look', title: '보기 설정', text: '배경·배경 움직임·글자 크기를 내게 맞게 바꿔요.' },
-  { target: 'read-wiki', title: '설정 위키', text: '이 회차까지 공개된 설정만 모아 본 설정 위키를 열어요.' },
+  { target: 'read-wiki', title: '설정 위키', text: '이 회차까지 공개된 세계관 설정만 모아 보여서, 읽는 중에도 스포일러 없이 설정을 확인할 수 있어요.' },
   { target: 'read-sentence', title: '문장 누르기', text: `문장을 누르면 그 문장에 댓글을 남기거나 피드백${canonical ? '·수정 제안' : ''}을 보낼 수 있어요. 로그인한 회원만 보낼 수 있어요.` },
   { target: 'read-fork', title: '여기서 포크', text: '회차 끝에서 이 회차를 기준으로 이야기를 갈라 나만의 작품을 이어 쓸 수 있어요. 원작은 바뀌지 않아요.' },
 ]

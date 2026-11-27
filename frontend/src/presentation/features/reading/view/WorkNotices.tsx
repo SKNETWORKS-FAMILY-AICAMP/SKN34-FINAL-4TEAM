@@ -27,7 +27,7 @@ type FormProps = {
 function NoticeForm({ label, submitLabel, initial = EMPTY, busy, onSubmit, onCancel }: FormProps) {
   const [draft, setDraft] = useState(initial)
   return (
-    <form className="wn-form" aria-label={label} onSubmit={(e) => { e.preventDefault(); void onSubmit(draft).then((ok) => { if (ok) setDraft(initial) }) }}>
+    <form className="wn-form" aria-label={label} data-tour={label === '소식 작성' ? 'work-notice-form' : undefined} onSubmit={(e) => { e.preventDefault(); void onSubmit(draft).then((ok) => { if (ok) setDraft(initial) }) }}>
       <div className="wn-row">
         <select className="inp" aria-label="소식 분류" value={draft.category} onChange={(e) => setDraft({ ...draft, category: NOTICE_CATEGORIES.find(([k]) => k === e.target.value)?.[0] ?? 'info' })} style={{ width: 'auto' }}>
           {NOTICE_CATEGORIES.map(([k, name]) => <option key={k} value={k}>{name}</option>)}
@@ -55,11 +55,11 @@ export function WorkNotices({ work }: { work: Work }) {
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<string | null>(null)
   const { notices } = vm
-  if (!vm.open) return <p className="muted" style={{ padding: 20 }}>공개한 뒤에 소식을 보고 올릴 수 있어요.</p>
+  if (!vm.open) return <p className="muted" data-tour="work-notice-list" style={{ padding: 20 }}>공개한 뒤에 소식을 보고 올릴 수 있어요.</p>
   // 서재·작품 관리와 같은 10개씩 쪽 나눔(paginate)과 쪽 이동(Pager)을 쓴다.
   const view = paginate(notices ?? [], page)
   return (
-    <div className="wnotice">
+    <div className="wnotice" data-tour="work-notice-list">
       {!work.canonical && <p className="muted small">데모 소식이에요 · 서버에 저장되지 않고 새로 고치면 처음 상태로 돌아가요.</p>}
       {vm.canWrite && <NoticeForm label="소식 작성" submitLabel="소식 등록" busy={vm.busy} onSubmit={async (input) => { const ok = await vm.create(input); if (ok) setPage(1); return ok }} />}
       {vm.isError && (

@@ -59,7 +59,7 @@ export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disable
   const characters = own.reduce((sum, e) => sum + e.body.length, 0)
   return (
     <div className='ep-dash'>
-      <section aria-labelledby={metricsTitle}>
+      <section aria-labelledby={metricsTitle} data-tour='manage-overview-metrics'>
         <h3 id={metricsTitle}>작품 지표</h3>
         <dl className='ep-metrics'>
           <Metric label='공개 회차'>{w.episodes.length}화</Metric>
@@ -94,7 +94,7 @@ export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disable
       </section>
       <section className='tcard ep-card' aria-labelledby={shortcutsTitle}>
         <h3 id={shortcutsTitle}>바로가기</h3>
-        <div className='ep-shortcuts'>
+        <div className='ep-shortcuts' data-tour='manage-overview-shortcuts'>
           <Shortcut to={`/studio/${w.id}`} disabled={disabled}>집필실 열기</Shortcut>
           {w.visibility === 'public' && <Shortcut to={`/work/${w.id}`} disabled={disabled}>소설 상세 보기</Shortcut>}
         </div>

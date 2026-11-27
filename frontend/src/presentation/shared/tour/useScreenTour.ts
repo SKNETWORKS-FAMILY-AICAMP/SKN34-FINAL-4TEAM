@@ -1,9 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useEffectEvent, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { ACTIONS, EVENTS, type EventData, type Step } from 'react-joyride'
 
 import { isTourSeen, markTourSeen, type TourScreen } from './tourPrefs'
 
-/** 한 단계. target은 요소의 `data-tour` 값(`<화면>-<이름>`)이다: 문구·클래스로 요소를 찾지 않는다. */
+/** 한 단계. target은 요소의 `data-tour` 값(`<화면>-<이름>`, 탭·패널은 `<화면>-<탭>-<이름>`)이다: 문구·클래스로 요소를 찾지 않는다. */
 export type TourStep = { target: string; title: string; text: string }
 
 /**
@@ -18,30 +18,49 @@ const present = (step: TourStep) => {
   const el = document.querySelector(target(step.target))
   return !!el && (el.checkVisibility?.({ visibilityProperty: true }) ?? true)
 }
+/** 열린 대화 상자가 있는지. `own`은 그 패널 자신의 대화 상자를 알아보는 선택자다(집필실의 버전·공개 시트는 안에 그 패널의 대상이 있다): 그것만 있으면 열리지 않은 것으로 본다. */
+const dialogOpen = (own?: string) => [...document.querySelectorAll('[role=dialog],[role=alertdialog]')].some((d) => !(own && d.querySelector(own)))
 
 /**
  * 화면 투어의 상태. `ready`는 화면의 주요 데이터가 도착해 첫 대상이 그려졌다는 뜻이다(읽는 중·열람 전용은 호출 측이 false로 두고, 읽기에 실패한 화면은 성공 신호로만 true를 만들어 시작하지 않는다).
  * 오류 문구 같은 일시 상태는 `ready`에 넣지 않는다: 작업 중 버튼이 잠기고, 문구가 지워질 때 ready가 다시 true가 되어 도중에 시작된다.
  * 처음 보는 화면이고 다른 대화 상자가 열려 있지 않으면 ready가 된 순간 한 번 시작한다(`ready`가 다시 바뀌어도 본 화면은 다시 시작하지 않는다).
  * 완료·건너뛰기·닫기·Esc 어느 쪽으로 끝나도 그 화면을 본 것으로 기억한다. 도중에 화면을 떠나면 기억하지 않아 다음 방문에 다시 시작한다.
+ *
+ * 탭·패널 투어(`tabs`: 탭 키 → 단계, `tab`: 지금 보는 탭): 화면 투어(메뉴 소개)가 먼저이고 끝나면(이미 봤으면 바로) 지금 탭의 투어가 한 번, 다른 탭으로 처음 옮길 때마다 그 탭의 투어가 한 번 뜬다.
+ * 두 투어는 같이 뜨지 않는다(투어가 끝나 `active`가 비면 같은 effect가 다음 투어를 본다). 탭의 내용을 아직 불러오는 중이면 `tab`을 비워 둔다.
+ * 사용법 버튼(`start`)은 탭이 있는 화면에서는 지금 탭의 투어를 열고(화면 투어는 첫 진입에만), `panel`(탭이 아니라 열고 닫는 패널)이거나 탭이 없는 화면에서는 화면 투어를 연다.
  */
-export function useScreenTour(screen: TourScreen, steps: readonly TourStep[], ready: boolean) {
+export function useScreenTour({ screen, steps, tabs, tab, panel = false, ready }: { screen: TourScreen; steps: readonly TourStep[]; tabs?: Record<string, readonly TourStep[]>; tab?: string; panel?: boolean; ready: boolean }) {
   const auto = useContext(TourAutoStart)
-  const [active, setActive] = useState<Step[] | null>(null)
-  const start = () => {
-    const found = steps.filter(present).map((s): Step => ({ target: target(s.target), title: s.title, content: s.text, placement: 'auto' }))
-    if (found.length) setActive(found)
+  const [active, setActive] = useState<{ steps: Step[]; tab?: string } | null>(null)
+  // 이 화면을 연 동안 이미 띄운 투어(화면 ''·탭). 기억을 저장할 수 없는 브라우저에서도 끝낸 투어가 다시 뜨지 않게 한다.
+  const shown = useRef(new Set<string>())
+  const done = (at?: string) => shown.current.has(at ?? '') || isTourSeen(screen, at)
+  const begin = (list: readonly TourStep[] | undefined, at?: string) => {
+    const found = (list ?? []).filter(present).map((s): Step => ({ target: target(s.target), title: s.title, content: s.text, placement: 'auto' }))
+    if (found.length) {
+      shown.current.add(at ?? '')
+      setActive({ steps: found, tab: at })
+    }
+    return found.length > 0
   }
   const autoStart = useEffectEvent(() => {
-    if (!isTourSeen(screen) && !document.querySelector('[role=dialog],[role=alertdialog]')) start()
+    if (active) return
+    if (!done()) { if (dialogOpen() || begin(steps)) return }
+    if (tab && !done(tab) && !dialogOpen(`[data-tour^="${screen}-${tab}-"]`)) begin(tabs?.[tab], tab)
   })
-  useEffect(() => { if (auto && ready) autoStart() }, [auto, ready])
+  useEffect(() => { if (auto && ready) autoStart() }, [auto, ready, tab, active])
+  const tabbed = !!tabs && !panel
+  const canStart = ready && (!tabbed || !!(tab && tabs[tab]?.length))
+  const start = () => { if (!tabbed) begin(steps); else if (tab) begin(tabs[tab], tab) }
   // joyride에서 닫기(✕)·Esc는 '다음 단계'라서 투어를 끝내는 신호로 쓰려면 step:after의 close를 직접 본다.
+  const at = active?.tab
   const onEvent = useCallback(({ type, action }: EventData) => {
     if (type === EVENTS.TOUR_END || (type === EVENTS.STEP_AFTER && action === ACTIONS.CLOSE)) {
-      markTourSeen(screen)
+      markTourSeen(screen, at)
       setActive(null)
     }
-  }, [screen])
-  return { active, start, onEvent }
+  }, [screen, at])
+  return { active: active?.steps ?? null, canStart, start, onEvent }
 }

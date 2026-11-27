@@ -13,6 +13,7 @@ import { ManageMenu } from '../../../shared/shell/ManageMenu'
 import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { EditSuggestionInbox } from '../../inbox/view/EditSuggestionInbox'
 import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
+import { inboxTour } from '../../inbox/view/inboxTour'
 import { MyCommentsReports } from '../../library/view/MyCommentsReports'
 import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
 import { useEpisodeForkCounts } from '../viewmodel/useEpisodeForkCounts'
@@ -33,15 +34,51 @@ import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
 import { WorldReleaseWarning } from './WorldReleaseWarning'
 
-// 사용법 투어(#971): 사이드바 메뉴 버튼(data-tour="manage-<탭>")을 짚는다. 어느 탭에 있어도 메뉴는 보이므로 투어가 탭에 묶이지 않는다.
+// 사용법 투어(#971)의 화면 투어(첫 진입 1회, 메뉴 소개): 사이드바 메뉴 버튼(data-tour="manage-<탭>")을 짚는다. 어느 탭에 있어도 메뉴는 보인다. 사용법 버튼은 이것이 아니라 지금 탭의 투어를 연다.
 const tour: TourStep[] = [
-  { target: 'manage-overview', title: '개요', text: '작품 정보·표지를 고치고, 공개 회차·작성 중인 초안·받은 피드백·조회 같은 현황을 봐요.' },
+  { target: 'manage-overview', title: '개요', text: '작품 정보·표지를 고치고, 공개 회차·작성 중인 초안·받은 피드백·조회 같은 현황을 봐요. 탭은 처음 열 때마다 그 탭의 사용법이 한 번 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
   { target: 'manage-read', title: '공개 회차', text: '공개한 회차를 보고 집필실로 가요. 원고 쓰기·버전 저장·공개는 집필실에서 해요. 회차가 없어도 집필실의 새 회차 버튼으로 1화를 만들 수 있어요.' },
   { target: 'manage-world', title: '세계관·설정집', text: '이 작품에 세계관을 연결하고 설정집을 관리해요. 원고로 세계관을 만들 수도 있어요.' },
   { target: 'manage-fork', title: '이야기 분기', text: '분기를 허용한 공개 원작이면 고른 회차에서 갈라지는 작품을 만들어요.' },
   { target: 'manage-feedback', title: '받은 피드백', text: '독자가 이 작품에 보낸 문장 제보와 수정 제안을 받아 처리해요.' },
   { target: 'manage-settings', title: '운영 설정', text: '집필 방식과 분기 정책을 정하고, 작품을 삭제해요.' },
 ]
+
+// 탭·패널별 사용법 투어(#971): 탭에 처음 들어갈 때(화면 투어 다음) 그 탭 안의 실제 버튼·입력을 짚는다. 대상은 data-tour="manage-<탭>-<이름>"이고, 사용법 버튼은 지금 탭의 투어를 연다.
+// 내용을 불러온 뒤에 시작하며(tabReady), 화면에 없는 대상(분기 작품의 분기 정책·꺼진 기능·빈 목록)의 단계는 빠진다. 내 제보·수정 제안과 이력 탭은 투어가 없다.
+// 받은 피드백 탭은 피드백함과 같은 컴포넌트라 같은 앵커(inbox-*)·같은 단계(inboxTour)를 쓴다.
+const tabTours: Record<string, TourStep[]> = {
+  overview: [
+    { target: 'manage-overview-info', title: '작품 정보 편집', text: '제목·소개·장르·해시태그를 고쳐요. 표지는 \'표지 편집\'으로 바꿔요.' },
+    { target: 'manage-overview-metrics', title: '작품 지표', text: '공개 회차·작성 중인 초안·글자 수·포크·받은 피드백, 회원 조회·좋아요를 숫자로 봐요.' },
+    { target: 'manage-overview-shortcuts', title: '바로가기', text: '집필실에서 원고를 쓰고 공개해요. 공개한 작품이면 소설 상세로도 바로 가요.' },
+  ],
+  read: [
+    { target: 'manage-read-studio', title: '집필실 열기', text: '새 회차 쓰기·원고 고치기·버전 저장·공개는 모두 집필실에서 해요. 회차가 없어도 집필실의 새 회차 버튼으로 1화를 만들 수 있어요.' },
+    { target: 'manage-read-list', title: '공개 회차 목록', text: '독자가 볼 수 있는 발행본이에요. 회차마다 \'수정하기\'로 그 회차의 집필실을 열어요. 원작에서 이어받은 회차는 고칠 수 없고, AI 자율 집필을 켜면 2화부터 수정하기가 잠겨요.' },
+    { target: 'manage-read-import', title: '여러 회차 올리기', text: '\'회차 파일 일괄 업로드\'는 TXT·EPUB 파일 하나를 한 회차로 저장해요. \'원고로 세계관 만들기\'는 세계관·설정집 탭으로 이동해요.' },
+  ],
+  world: [
+    { target: 'manage-world-build', title: '원고로 세계관 만들기', text: '저장한 원고를 AI가 분석해 비공개 세계관 초안을 만들어요. 동의에 체크하고 \'세계관 만들기\'를 누르면 시작하고, 끝나면 세계관 작업실에서 직접 검토·확정해요.' },
+    { target: 'manage-world-link', title: '세계관 연결', text: '이미 만든 세계관을 이 작품에 연결해요. 이름으로 검색해 고르고 \'세계관 연결\'을 누르면, 그 세계관에서 \'N화부터 공개\'로 정한 카드가 소설의 설정 위키에 나와요.' },
+    { target: 'manage-world-book', title: '설정집', text: '이 작품의 설정집 상태예요. 설정 카드는 세계관 작업실에서 고치고, 원작을 따라가는 분기 작품은 \'내 세계관으로 만들어 수정하기\'로 독립해요.' },
+  ],
+  fork: [
+    { target: 'manage-fork-form', title: '이 회차에서 분기', text: '기준 회차를 고르고 분기 작품 제목과 달라지는 점을 적은 뒤 \'이 회차에서 분기 만들기\'를 눌러요. 기준 회차까지의 공개 원고·설정·관계가 이어져요.' },
+    { target: 'manage-fork-blocked', title: '분기를 열려면', text: '분기를 허용한 공개 원작에서만 만들 수 있어요. 운영 설정의 분기 정책에서 분기 만들기를 허용하고, 회차는 집필실에서 공개해 주세요.' },
+  ],
+  serial: [
+    { target: 'manage-serial-fields', title: '연재 설정', text: '연재 요일·시각(한국시간)·연재 방향을 정해요. 운영 설정의 집필 방식에서 \'AI 자율 집필\'을 켜야 이 입력이 열려요. 꺼져 있으면 잠겨 있어요.' },
+    { target: 'manage-serial-save', title: '설정 저장', text: '저장한 값은 다음 마감부터 적용돼요. 1화는 직접 써서 발행해야 2화 게시판이 열려요.' },
+    { target: 'manage-serial-history', title: '게시판 기록', text: '\'게시판 기록\' 탭에서 회차별 상태와 실패 사유를 보고, \'지금 마감·실행\'으로 마감 시각을 기다리지 않고 바로 마감해 AI가 다음 회차를 쓰게 해요.' },
+  ],
+  feedback: inboxTour,
+  settings: [
+    { target: 'manage-settings-mode', title: '집필 방식', text: '직접 집필·AI 협업 집필·AI 자율 집필 중에서 골라요. AI 협업은 집필실에 AI 채팅이 함께 열리고, AI 자율 집필은 1화 발행 뒤 독자 투표와 제안을 모아 AI가 다음 회차를 써요.' },
+    { target: 'manage-settings-save', title: '집필 방식 저장', text: '고른 방식은 \'집필 방식 저장\'을 눌러야 적용돼요. AI 자율 집필은 저장 전에 세계관 연결과 인물 카드가 필요하다는 확인 창이 떠요.' },
+    { target: 'manage-settings-policy', title: '분기 정책', text: '\'분기 정책 편집\'에서 분기 만들기를 허용할지, 분기 작품의 최초 공개를 허용할지 정해요. 둘은 별개예요.' },
+  ],
+}
 
 type Props = {
   vm: ReturnType<typeof useEpisodeViewModel>
@@ -73,6 +110,9 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   const { check: checkDelete, checking: checkingDelete, warning: deleteWarning, close: closeDelete } = useWorldReleaseCheck(tab === 'settings' ? w.worldStudioId : null)
   // 한 번에 한 영역만 편집한다: 히어로의 작품 정보·표지와 운영 설정 탭의 분기 정책이 이 상태를 나눠 쓴다.
   const [editing, setEditing] = useState<WorkEditing>(null)
+  // 내용을 자기가 읽어 오는 탭 패널이 처음 읽기를 마쳤는지(사용법 투어가 그 뒤에 시작한다).
+  const [loaded, setLoaded] = useState<Partial<Record<'settings' | 'serial' | 'world' | 'reports' | 'suggestions', boolean>>>({})
+  const loadedOf = (key: keyof typeof loaded) => () => setLoaded((now) => (now[key] ? now : { ...now, [key]: true }))
   const [mediaBusy, setMediaBusy] = useState(false)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [buildCheck, setBuildCheck] = useState(0)
@@ -132,6 +172,14 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     ['settings', '운영 설정'],
     ['history', '저장·AI·발행 이력'],
   ] as const
+  // 사용법 투어의 탭: 내용을 읽어 오는 탭은 읽기가 끝난 뒤에만 지금 탭으로 알린다(읽기에 실패하면 시작하지 않는다). 운영 설정 패널·피드백 수정 제안은 서버 없는 시연(목업)에 없다.
+  const tabReady: Partial<Record<typeof tab, boolean>> = {
+    settings: mockup || !!loaded.settings,
+    serial: !!loaded.serial,
+    world: !!loaded.world,
+    feedback: !!loaded.reports && (mockup || !!loaded.suggestions),
+  }
+  const tourTab = tabReady[tab] === false ? undefined : tab
   // 탭을 옮긴다(탭 내용 머리로 스크롤하고 이력 탭은 이력을 읽기 시작한다).
   const openTab = (value: typeof tabs[number][0]) => {
     picked.current = true
@@ -146,7 +194,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
       <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }}>
         {/* 사용법 버튼은 돌아가기 링크 아래·메뉴 위에 둔다: 사이드바 본문의 마지막은 메뉴다. */}
-        <ScreenTour screen='manage' steps={tour} className='btn sm weak tour-side' />
+        <ScreenTour screen='manage' steps={tour} tabs={tabTours} tab={tourTab} className='btn sm weak tour-side' />
         <nav aria-label='작품 메뉴'>
           {tabs.map(([value, label]) => (
             <button
@@ -201,7 +249,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             // 설정 카드·분기 정책(포크 정보)·작품 삭제가 한 카드 틀이다: 넓은 화면은 왼쪽에 집필 방식(두 줄)·오른쪽에 자동 처리·설정 변경 이력이고, 그 아래 분기 정책(포크 정보)과 맨 끝 삭제(위험 구역)는 전체 폭이다(episode.css .ep-settings-cards).
             <div className='ep-settings-cards'>
               {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
-              {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} />}
+              {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} onLoaded={loadedOf('settings')} />}
               {w.source
                 ? <ForkInfo source={w.source} isPublic={w.visibility === 'public'} blocked={blocked} onStopFork={vm.stopFork} onDeleteWork={askDelete} checkingDelete={checkingDelete} deleteError={deleteError} />
                 : (
@@ -225,7 +273,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             <>
               {!mockup && <ManuscriptBuildPanel key={w.id} work={w} />}
               <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} onDetach={vm.detachWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} detachError={vm.origin === 'detach' ? vm.error : ''} useCase={useCase} />
-              <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} linkedWorldId={w.worldStudioId} onDetach={vm.detachWorld} detachError={vm.origin === 'detach' ? vm.error : ''} />
+              <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} linkedWorldId={w.worldStudioId} onLoaded={loadedOf('world')} onDetach={vm.detachWorld} detachError={vm.origin === 'detach' ? vm.error : ''} />
             </>
           )}
           {tab === 'history' && (
@@ -282,7 +330,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             <>
               {buildLabel && <div className='ep-notes'><p><span className='chip wait'>{buildLabel}</span></p></div>}
               {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. 이 탭의 주 행동이라 채운 버튼이다(아래 가져오기 계열은 작은 보조 버튼). */}
-              <p className='ep-list-head'><Go to={`/studio/${w.id}`} className='btn pri'>집필실 열기</Go></p>
+              <p className='ep-list-head'><Go to={`/studio/${w.id}`} className='btn pri' data-tour='manage-read-studio'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
               {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
               {serialLocked && <div className='ep-notes'><p id={lockNote} role='status'>{SERIAL_LOCK_NOTICE}</p></div>}
@@ -298,7 +346,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                 ? (
                   // 소설 상세(/work/:id)의 회차 행(.ep)을 그대로 쓰고, 오른쪽에 자체 회차는 집필실로 가는 '수정하기', 상속 회차는 읽기 전용 칩을 둔다. 본문은 펼치지 않는다.
                   // 10개씩 나눠 보인다. 쪽을 옮기면 이 머리로 스크롤하므로 위의 sticky 상단바(.gnb)가 가리지 않게 scroll-margin을 둔다.
-                  <ol ref={episodeList} className='tcard eps ep-list' style={{ scrollMarginTop: 16 }}>
+                  <ol ref={episodeList} className='tcard eps ep-list' data-tour='manage-read-list' style={{ scrollMarginTop: 16 }}>
                     {view.items.map((e) => {
                       const forks = forkCounts?.[e.number] ?? 0
                       return (
@@ -336,7 +384,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
               {/* 새 회차 집필은 위 머리의 '집필실 열기'(집필실의 새 회차 버튼) 하나로 간다(같은 곳으로 가는 버튼을 본문에 또 두지 않는다). */}
               {!mockup && (
-                <div className='ep-list-foot'>
+                <div className='ep-list-foot' data-tour='manage-read-import'>
                   {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
                   <button type='button' className='btn sm' disabled={locked} onClick={openWorld}>원고로 세계관 만들기</button>
                   <button type="button" className="btn sm" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
@@ -362,13 +410,13 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               </p>
               {w.source || w.visibility !== 'public' || !w.allowFork
                 ? (
-                  <div className='ep-empty'>
+                  <div className='ep-empty' data-tour='manage-fork-blocked'>
                     분기를 허용한 공개 원작에서만 시작할 수 있어요. 분기 작품은 다시 분기할 수
                     없어요.<br />분기 정책에서 분기 만들기를 허용하고, 회차는 집필실에서 공개해 주세요.
                   </div>
                 )
                 : (
-                  <form
+                  <form data-tour='manage-fork-form'
                     onSubmit={async (e) => {
                       e.preventDefault()
                       const id = await vm.fork(at, forkTitle, direction)
@@ -417,7 +465,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             </section>
           )}
           {/* AI 집필(UC-18)은 서버 기능이라 서버 없는 시연(목업)에서는 지원하지 않는다고만 알린다. */}
-          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} onOpenSettings={blocked ? undefined : () => openTab('settings')} />)}
+          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} onOpenSettings={blocked ? undefined : () => openTab('settings')} onLoaded={loadedOf('serial')} />)}
           {tab === 'reports' && (
             // 내가 남긴 제보·수정 제안과 데모 피드백(계정 메뉴의 /content?view=reports 화면과 같은 내용). 탭 제목(h2)이 이미 있어 쪽 제목(h1)은 빼고(embedded), 틀은 받은 피드백 탭(.ep-feedback)과 같다.
             <div className='ep-feedback'><MyCommentsReports embedded /></div>
@@ -425,8 +473,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           {tab === 'feedback' && (
             // 독자가 이 작품에 보낸 문장 제보·수정 제안. 작가 피드백함(/inbox)의 View를 그대로 쓰고, 서버에 workId로 이 작품 것만 묻는다.
             <div className='ep-feedback'>
-              <FeedbackReportInbox workId={w.id} />
-              {!mockup && <EditSuggestionInbox workId={w.id} />}
+              <FeedbackReportInbox workId={w.id} onLoaded={loadedOf('reports')} />
+              {!mockup && <EditSuggestionInbox workId={w.id} onLoaded={loadedOf('suggestions')} />}
             </div>
           )}
         </div>

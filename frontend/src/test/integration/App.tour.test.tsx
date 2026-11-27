@@ -12,10 +12,16 @@ import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 import type { EditSuggestion } from '../../domain/entities/editSuggestion'
 import type { FeedbackReport } from '../../domain/entities/feedbackReport'
-import { isTourSeen, markTourSeen, tourKey, tourScreens } from '../../presentation/shared/tour/tourPrefs'
+import { isTourSeen, tourOffKey } from '../../presentation/shared/tour/tourPrefs'
 
-// fixtureApp은 앱 전체를 그리는 테스트가 투어에 가려지지 않게 아홉 화면을 모두 본 것으로 시작한다. 이 파일은 그 값을 하나씩 되돌려 앱의 자동 시작을 검사한다.
-afterEach(() => { cleanup(); vi.restoreAllMocks(); markTourSeen('inbox') })
+// fixtureApp은 앱 전체를 그리는 테스트가 투어에 가려지지 않게 모든 투어를 끈 채(storyfork.tour=off) 시작한다. 이 파일은 그 스위치를 켜서 앱의 자동 시작을 검사한다.
+/** 스위치를 켜고, 앞 테스트가 남긴 '본 것' 기억(storyfork.tour.*)도 지워 처음 방문 상태로 만든다. */
+const toursOn = () => {
+  Object.keys(localStorage).filter((k) => k.startsWith(`${tourOffKey}.`)).forEach((k) => localStorage.removeItem(k))
+  localStorage.removeItem(tourOffKey)
+}
+const toursOff = () => localStorage.setItem(tourOffKey, 'off')
+afterEach(() => { cleanup(); vi.restoreAllMocks(); toursOff() })
 
 const report = (extra: Partial<FeedbackReport> = {}): FeedbackReport => ({
   id: 'r1', workId: 'guunmong', workTitle: '구운몽', episodeNumber: 2, publishedVersionId: 'v2', kind: 'typo', body: '오탈자가 있어요', quote: null, visibility: 'private',
@@ -37,8 +43,9 @@ beforeEach(() => { stubInbox() })
 
 const renderAt = (path: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>)
 
-it('fixtureApp은 투어가 있는 아홉 화면을 모두 본 것으로 시작한다', () => {
-  expect(tourScreens.every(isTourSeen)).toBe(true)
+it('fixtureApp은 모든 화면·탭의 투어를 끈 채 시작한다', () => {
+  expect(isTourSeen('studio')).toBe(true)
+  expect(isTourSeen('manage', 'settings')).toBe(true)
 })
 
 it('본 화면은 앱에서 투어를 저절로 시작하지 않는다', async () => {
@@ -48,7 +55,7 @@ it('본 화면은 앱에서 투어를 저절로 시작하지 않는다', async (
 })
 
 it('앱에서는 처음 가는 화면의 투어가 저절로 시작하고, 끝내면 그 화면을 본 것으로 기억한다', async () => {
-  localStorage.removeItem(tourKey('inbox'))
+  toursOn()
   renderAt('/inbox')
   const tip = await screen.findByRole('dialog', { name: '독자 제보' })
   expect(tip.textContent).toContain('1 / 2')
@@ -71,8 +78,8 @@ async function startTour(path: string, ready: () => Promise<unknown>) {
 
 it.each([
   ['Fork 생성', '/fork/guunmong', () => screen.findByRole('heading', { name: '「구운몽」 포크' }), '어디서부터 바꿀까요?', '1 / 5'],
-  // 데모 작품은 AI 자율 연재 탭이 없어 '다음 회차' 단계가 빠진다.
-  ['소설 상세', '/work/postman', () => screen.findByRole('link', { name: '읽기 시작' }), '읽기 시작', '1 / 4'],
+  // 사용법 버튼은 지금 탭(회차)의 투어를 연다: 정렬·검색 → 첫 회차 → 포크. (메뉴 소개인 화면 투어는 첫 진입에만 저절로 뜬다.)
+  ['소설 상세(회차 탭)', '/work/postman', () => screen.findByRole('link', { name: '읽기 시작' }), '회차 정렬·검색', '1 / 3'],
   // 데모 작품은 설정 위키 링크가 없어 그 단계가 빠진다(위쪽 막대 → 본문 → 회차 끝 포크).
   ['독서 화면', '/read/postman/1', () => screen.findByRole('heading', { name: '수취인 불명' }), '보기 설정', '1 / 3'],
   ['작가 피드백함', '/inbox', () => screen.findByRole('heading', { name: /독자 피드백함/ }), '독자 제보', '1 / 2'],
@@ -82,7 +89,7 @@ it.each([
 
 // 작가 피드백함은 두 목록(독자 제보·수정 제안)을 읽은 뒤에 시작한다: 데이터가 없을 때 시작하면 카드 처리 단계가 빠지고, 읽기에 실패한 화면에서는 시작하지 않는다.
 it('작가 피드백함은 제보 응답 전에는 투어를 시작하지 않고, 응답 뒤 시작해 카드 처리 단계가 들어간다', async () => {
-  localStorage.removeItem(tourKey('inbox'))
+  toursOn()
   let answer!: (rows: FeedbackReport[]) => void
   stubInbox(new Promise<FeedbackReport[]>((resolve) => { answer = resolve }), [suggestion])
   renderAt('/inbox')
@@ -97,7 +104,7 @@ it('작가 피드백함은 제보 응답 전에는 투어를 시작하지 않고
 })
 
 it('작가 피드백함은 제보 읽기에 실패하면 투어를 시작하지 않는다', async () => {
-  localStorage.removeItem(tourKey('inbox'))
+  toursOn()
   vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockRejectedValue(new Error('offline'))
   renderAt('/inbox')
   await screen.findByText('독자 제보를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.')
@@ -105,7 +112,30 @@ it('작가 피드백함은 제보 읽기에 실패하면 투어를 시작하지 
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
+it('소설 상세는 처음 열면 화면 투어 → 지금 탭(회차)의 투어 순서로 뜨고, 다른 탭을 처음 열면 그 탭의 투어가 한 번 뜬다(#971)', async () => {
+  toursOn()
+  renderAt('/work/postman')
+  const intro = await screen.findByRole('dialog', { name: '읽기 시작' })
+  expect(intro.querySelector('.tour-count')?.textContent).toBe('1 / 2')
+  fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }))
+  const eps = await screen.findByRole('dialog', { name: '회차 정렬·검색' })
+  expect(eps.querySelector('.tour-count')?.textContent).toBe('1 / 3')
+  fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(isTourSeen('work')).toBe(true)
+  expect(isTourSeen('work', 'eps')).toBe(true)
+  fireEvent.click(screen.getByRole('tab', { name: '정보' }))
+  const info = await screen.findByRole('dialog', { name: '작품 소개' })
+  expect(info.querySelector('.tour-count')?.textContent).toMatch(/^1 \/ \d$/)
+  fireEvent.click(screen.getByRole('button', { name: '건너뛰기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  fireEvent.click(screen.getByRole('tab', { name: '회차' }))
+  await act(async () => { await new Promise((r) => setTimeout(r, 80)) })
+  expect(screen.queryByRole('dialog')).toBeNull() // 본 탭은 다시 뜨지 않는다
+})
+
 it('독서 화면의 문장 단계는 서버 작품에서만 수정 제안도 안내하고 데모 작품에는 약속하지 않는다', async () => {
+  let wiki = ''
   const sentenceStep = async (canonical: boolean) => {
     const work = appContainer.resolve('mockDb').works.find((w) => w.id === 'postman')!
     if (canonical) {
@@ -121,11 +151,14 @@ it('독서 화면의 문장 단계는 서버 작품에서만 수정 제안도 �
       // 보기 설정 → (서버 작품만 설정 위키) → 문장 누르기
       for (const title of canonical ? ['설정 위키', '문장 누르기'] : ['문장 누르기']) {
         fireEvent.click(screen.getByRole('button', { name: '다음' }))
-        await screen.findByRole('dialog', { name: title })
+        const tip = await screen.findByRole('dialog', { name: title })
+        if (title === '설정 위키') wiki = tip.textContent ?? ''
       }
       return screen.getByRole('dialog').textContent ?? ''
     } finally { cleanup(); delete work.canonical }
   }
   expect(await sentenceStep(true)).toContain('수정 제안')
+  expect(wiki).toContain('이 회차까지 공개된 세계관 설정만')
+  expect(wiki).toContain('스포일러 없이')
   expect(await sentenceStep(false)).not.toContain('수정 제안')
 })

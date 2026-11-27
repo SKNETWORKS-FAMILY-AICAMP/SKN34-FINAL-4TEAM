@@ -46,18 +46,18 @@ export function WorkInfo({ work: w, parent, episodeCount }: { work: Work; parent
   if (w.parent || w.parentTitle) rows.push(['원작', parent ? <Go key="src" to={`/work/${parent.id}`}>「{sourceTitle}」 {w.forkAt}화에서 분기</Go> : `「${sourceTitle}」 ${w.forkAt}화에서 분기`])
   return (
     <div className="winfo">
-      <section aria-labelledby="wi-sum">
+      <section aria-labelledby="wi-sum" data-tour="work-info-summary">
         <h2 id="wi-sum">작품 소개</h2>
         {w.hook && <p className="wi-hook">“{w.hook}”</p>}
         <p className="wi-body">{w.summary || '아직 작품 소개가 없어요.'}</p>
       </section>
       {!!w.hash?.length && (
-        <section aria-labelledby="wi-kw">
+        <section aria-labelledby="wi-kw" data-tour="work-info-keywords">
           <h2 id="wi-kw">키워드</h2>
           <div className="hashes">{w.hash.map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`}>{h}</Go>)}</div>
         </section>
       )}
-      <section aria-labelledby="wi-detail">
+      <section aria-labelledby="wi-detail" data-tour="work-info-detail">
         <h2 id="wi-detail">상세 정보</h2>
         <dl className="wi-dl">{rows.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       </section>

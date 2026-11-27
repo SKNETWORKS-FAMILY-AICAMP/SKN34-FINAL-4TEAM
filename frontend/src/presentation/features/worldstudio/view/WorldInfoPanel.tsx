@@ -82,7 +82,7 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
         onSubmit={(e) => { e.preventDefault(); void save() }}
       >
         <fieldset disabled={vm.busy}>
-          <div className="world-info-card world-info-basic" role="group" aria-labelledby={basicId}>
+          <div className="world-info-card world-info-basic" role="group" aria-labelledby={basicId} data-tour="world-overview-info">
             <h3 id={basicId}>기본 정보</h3>
             <label>세계관 이름<input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required /></label>
             <label>세계관 설명<textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={20000} rows={4} /></label>
@@ -117,7 +117,7 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
           </div>
           {locked && <p id={lockId} role="status" className="small muted">작성 중인 변경을 먼저 저장하세요.</p>}
           <div className="ep-edit-actions">
-            <button className="btn pri sm" disabled={!canSave} aria-describedby={locked ? lockId : undefined}>{vm.saveState === 'saving' ? '저장 중…' : '저장'}</button>
+            <button className="btn pri sm" data-tour="world-overview-save" disabled={!canSave} aria-describedby={locked ? lockId : undefined}>{vm.saveState === 'saving' ? '저장 중…' : '저장'}</button>
             <button type="button" className="btn sm" disabled={!changed} onClick={reset}>되돌리기</button>
           </div>
           <p role="status" className="small muted">{done && !changed ? '저장했어요.' : ''}</p>
@@ -170,7 +170,7 @@ export function WorldOverviewMetrics({ vm, world, revisions }: { vm: VM; world: 
   const counts = useMemo(() => ({ cards: cardLibraryRows(world.settings, 'all', '').length, relations: world.settings.filter((s) => s.item.kind === 'relation').length }), [world.settings])
   const status = vm.publication.visibility !== 'public' ? '비공개' : vm.listing === 'listed' ? '공개 중' : vm.listing === 'unlisted' ? '공개 · 목록 미노출' : '공개'
   return (
-    <section aria-labelledby={titleId}>
+    <section aria-labelledby={titleId} data-tour="world-overview-metrics">
       <h3 id={titleId}>세계관 지표</h3>
       <dl className="ep-metrics">
         <Metric label="설정 카드">{number(counts.cards)}개</Metric>

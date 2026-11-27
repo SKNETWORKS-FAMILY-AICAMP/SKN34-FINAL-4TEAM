@@ -398,7 +398,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   }
   const current = vm.sessions?.find((s) => s.threadId === vm.threadId)
   return <>
-    <div className="chat-sessions" {...keepFiles}>
+    <div className="chat-sessions" data-tour="chat-sessions" {...keepFiles}>
       {renaming !== null ? <form className="chat-rename" onSubmit={async (e) => { e.preventDefault(); if (await vm.rename(renaming)) setRenaming(null) }}>
         <label className="sr-only" htmlFor={`${id}-title`}>대화 제목</label>
         <input id={`${id}-title`} value={renaming} maxLength={100} autoFocus onChange={(e) => setRenaming(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setRenaming(null) }} />

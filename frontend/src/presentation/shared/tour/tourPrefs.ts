@@ -4,16 +4,21 @@
  * 저장소가 막혀 있거나 가득 차도 투어는 계속 동작하도록 조용히 건너뛰고, 읽기 실패는 본 적이 없는 것으로 본다.
  */
 
-/** 투어가 있는 화면. 키는 `storyfork.tour.<화면>`이고, 대상 요소는 `data-tour="<화면>-<이름>"`으로 가리킨다. */
-export const tourScreens = ['studio', 'manage', 'world', 'fork', 'create', 'import', 'read', 'inbox', 'work'] as const
-export type TourScreen = (typeof tourScreens)[number]
+/**
+ * 투어가 있는 화면. 키는 `storyfork.tour.<화면>`(그 화면에 처음 들어올 때의 메뉴 소개)이고, 탭·패널 투어는 `storyfork.tour.<화면>.<탭>`이다.
+ * 대상 요소는 `data-tour="<화면>-<이름>"`(탭·패널은 `<화면>-<탭>-<이름>`)으로 가리킨다.
+ */
+export type TourScreen = 'studio' | 'manage' | 'world' | 'fork' | 'create' | 'import' | 'read' | 'inbox' | 'work' | 'wiki'
 
-export const tourKey = (screen: TourScreen) => `storyfork.tour.${screen}`
+export const tourKey = (screen: TourScreen, tab?: string) => `storyfork.tour.${screen}${tab ? `.${tab}` : ''}`
 
-export function isTourSeen(screen: TourScreen): boolean {
-  try { return localStorage.getItem(tourKey(screen)) === 'seen' } catch { return false }
+/** 이 키의 값이 'off'면 모든 화면·탭을 본 것으로 본다. 앱 전체를 그리는 테스트(fixtureApp)와 QA가 키를 하나씩 적지 않고 투어를 끄는 스위치다. */
+export const tourOffKey = 'storyfork.tour'
+
+export function isTourSeen(screen: TourScreen, tab?: string): boolean {
+  try { return localStorage.getItem(tourOffKey) === 'off' || localStorage.getItem(tourKey(screen, tab)) === 'seen' } catch { return false }
 }
 
-export function markTourSeen(screen: TourScreen) {
-  try { localStorage.setItem(tourKey(screen), 'seen') } catch { /* 저장소를 쓸 수 없다: 다음 방문에 다시 보인다 */ }
+export function markTourSeen(screen: TourScreen, tab?: string) {
+  try { localStorage.setItem(tourKey(screen, tab), 'seen') } catch { /* 저장소를 쓸 수 없다: 다음 방문에 다시 보인다 */ }
 }

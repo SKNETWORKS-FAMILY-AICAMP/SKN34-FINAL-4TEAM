@@ -182,7 +182,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const deletion = deleting && existingIds.has(deleting) ? studio.cardDeletionInfo(deleting) : null
   const deletedNoun = studio.deletedCard?.person ? '인물' : '설정'
   return (
-    <section ref={section} className='world-map relationship-editor' aria-label='관계 편집' onKeyDown={(e) => { if (choosing && e.key === 'Escape') stopChoosing() }}>
+    <section ref={section} className='world-map relationship-editor' aria-label='관계 편집' data-tour='world-people-canvas' onKeyDown={(e) => { if (choosing && e.key === 'Escape') stopChoosing() }}>
       <fieldset className='world-fields' disabled={studio.busy}>
         <legend className='sr-only'>관계 대상 선택</legend>
         <div className='relationship-stage'>
