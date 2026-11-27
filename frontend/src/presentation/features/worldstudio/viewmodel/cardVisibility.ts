@@ -44,5 +44,11 @@ export function setCardReveal(settings: StudioSetting[], ids: ReadonlySet<string
   return changed ? next : settings
 }
 
+/** `전체 공개`·`전체 비공개`가 바꾸는 대상: 설정집의 카드 전부다(집필 메모·분류 확인 항목·관계는 아니다). 필터·검색·쪽과 상관없다. */
+const allCardIds = (settings: StudioSetting[]) => new Set(cardLibraryRows(settings, 'all', '').map((s) => s.item.id))
+
 /** `전체 공개`: 설정집의 카드를 모두 [episode]화부터 공개로 바꾼다(집필 메모·분류 확인 항목·관계는 건드리지 않는다). 이미 모두 그 설정이면 받은 배열 그대로다. */
-export const publishAllCards = (settings: StudioSetting[], episode: number) => setCardReveal(settings, new Set(cardLibraryRows(settings, 'all', '').map((s) => s.item.id)), episode)
+export const publishAllCards = (settings: StudioSetting[], episode: number) => setCardReveal(settings, allCardIds(settings), episode)
+
+/** `전체 비공개`: 설정집의 카드를 모두 작가 전용으로 바꾼다(회차·visibility를 지운다. 집필 메모·분류 확인 항목·관계는 건드리지 않는다). 이미 모두 작가 전용이면 받은 배열 그대로다. */
+export const hideAllCards = (settings: StudioSetting[]) => setCardReveal(settings, allCardIds(settings), undefined)
