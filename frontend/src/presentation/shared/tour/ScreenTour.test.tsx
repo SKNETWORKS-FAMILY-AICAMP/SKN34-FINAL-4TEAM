@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { useEffect, type ReactNode } from 'react'
+import { StrictMode, useEffect, type ReactNode } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { ScreenTour } from './ScreenTour'
@@ -212,6 +212,13 @@ it('처음 들어온 화면은 화면 투어가 먼저 뜨고, 끝나면 지금 
   press('건너뛰기')
   await waitFor(() => expect(dialog()).toBeNull())
   expect(isTourSeen('manage', 'settings')).toBe(true)
+})
+
+// 앱은 StrictMode라 effect가 두 번 돈다: 첫 실행이 화면 투어를 고른 뒤 상태가 반영되기 전에 두 번째 실행이 '이미 띄움'만 보고 탭 투어로 덮어썼다(브라우저 작품 관리에서 메뉴 소개가 빠짐).
+it('StrictMode에서도 첫 진입은 화면 투어가 먼저 뜬다(effect가 두 번 돌아도 탭 투어가 덮어쓰지 않는다)', async () => {
+  render(<StrictMode><TabHost /></StrictMode>)
+  await tip()
+  expect(titleOf()).toBe('개요')
 })
 
 it('화면 투어를 이미 봤으면 첫 진입에 지금 탭의 투어가 바로 뜬다', async () => {

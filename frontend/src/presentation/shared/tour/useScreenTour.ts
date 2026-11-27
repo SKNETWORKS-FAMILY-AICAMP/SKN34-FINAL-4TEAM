@@ -36,17 +36,20 @@ export function useScreenTour({ screen, steps, tabs, tab, panel = false, ready }
   const [active, setActive] = useState<{ steps: Step[]; tab?: string } | null>(null)
   // 이 화면을 연 동안 이미 띄운 투어(화면 ''·탭). 기억을 저장할 수 없는 브라우저에서도 끝낸 투어가 다시 뜨지 않게 한다.
   const shown = useRef(new Set<string>())
+  // 띄운 투어가 아직 상태(active)에 반영되기 전인지. StrictMode처럼 effect가 곧바로 한 번 더 돌면 active가 아직 비어 보여 다음 투어가 덮어쓴다.
+  const pending = useRef(false)
   const done = (at?: string) => shown.current.has(at ?? '') || isTourSeen(screen, at)
   const begin = (list: readonly TourStep[] | undefined, at?: string) => {
     const found = (list ?? []).filter(present).map((s): Step => ({ target: target(s.target), title: s.title, content: s.text, placement: 'auto' }))
     if (found.length) {
       shown.current.add(at ?? '')
+      pending.current = true
       setActive({ steps: found, tab: at })
     }
     return found.length > 0
   }
   const autoStart = useEffectEvent(() => {
-    if (active) return
+    if (active || pending.current) return
     if (!done()) { if (dialogOpen() || begin(steps)) return }
     if (tab && !done(tab) && !dialogOpen(`[data-tour^="${screen}-${tab}-"]`)) begin(tabs?.[tab], tab)
   })
@@ -59,6 +62,7 @@ export function useScreenTour({ screen, steps, tabs, tab, panel = false, ready }
   const onEvent = useCallback(({ type, action }: EventData) => {
     if (type === EVENTS.TOUR_END || (type === EVENTS.STEP_AFTER && action === ACTIONS.CLOSE)) {
       markTourSeen(screen, at)
+      pending.current = false
       setActive(null)
     }
   }, [screen, at])
