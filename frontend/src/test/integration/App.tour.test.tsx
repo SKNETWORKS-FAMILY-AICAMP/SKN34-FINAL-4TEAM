@@ -76,13 +76,14 @@ async function startTour(path: string, ready: () => Promise<unknown>) {
   return { title: tip.querySelector('h3')?.textContent, count: tip.querySelector('.tour-count')?.textContent }
 }
 
+// 지연 로딩 화면(소설 상세·독서)은 여러 테스트를 함께 돌리면 첫 import가 기본 1초를 넘을 수 있어 다른 통합 테스트처럼 5초를 기다린다.
 it.each([
-  ['Fork 생성', '/fork/guunmong', () => screen.findByRole('heading', { name: '「구운몽」 포크' }), '어디서부터 바꿀까요?', '1 / 5'],
+  ['Fork 생성', '/fork/guunmong', () => screen.findByRole('heading', { name: '「구운몽」 포크' }, { timeout: 5000 }), '어디서부터 바꿀까요?', '1 / 5'],
   // 사용법 버튼은 지금 탭(회차)의 투어를 연다: 정렬·검색 → 첫 회차 → 포크. (메뉴 소개인 화면 투어는 첫 진입에만 저절로 뜬다.)
-  ['소설 상세(회차 탭)', '/work/postman', () => screen.findByRole('link', { name: '읽기 시작' }), '회차 정렬·검색', '1 / 3'],
+  ['소설 상세(회차 탭)', '/work/postman', () => screen.findByRole('link', { name: '읽기 시작' }, { timeout: 5000 }), '회차 정렬·검색', '1 / 3'],
   // 데모 작품은 설정 위키 링크가 없어 그 단계가 빠진다(위쪽 막대 → 본문 → 회차 끝 포크).
-  ['독서 화면', '/read/postman/1', () => screen.findByRole('heading', { name: '수취인 불명' }), '보기 설정', '1 / 3'],
-  ['작가 피드백함', '/inbox', () => screen.findByRole('heading', { name: /독자 피드백함/ }), '독자 제보', '1 / 2'],
+  ['독서 화면', '/read/postman/1', () => screen.findByRole('heading', { name: '수취인 불명' }, { timeout: 5000 }), '보기 설정', '1 / 3'],
+  ['작가 피드백함', '/inbox', () => screen.findByRole('heading', { name: /독자 피드백함/ }, { timeout: 5000 }), '독자 제보', '1 / 2'],
 ])('%s의 사용법 버튼은 이 화면의 첫 단계부터 투어를 시작한다', async (_name, path, ready, title, count) => {
   expect(await startTour(path, ready)).toEqual({ title, count })
 })
