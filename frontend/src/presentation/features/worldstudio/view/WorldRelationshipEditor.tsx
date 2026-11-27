@@ -224,7 +224,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               }}
             />
             <div className='relationship-notes'>
-              <div className='relationship-hint' role='status'>{choosing ? <>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></> : shown.nodes.length ? '노드를 누르면 이웃을 강조해요. 더블클릭은 정보 편집, 오른쪽 클릭은 메뉴(관계 연결·삭제)예요.' : '설정 카드가 없어요. + 설정 추가나 오른쪽 클릭으로 첫 카드를 더해 보세요.'}</div>
+              <div className='relationship-hint' role='status' data-tour='world-people-hint'>{choosing ? <>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></> : shown.nodes.length ? '노드를 누르면 이웃을 강조해요. 더블클릭은 정보 편집, 오른쪽 클릭은 메뉴(관계 연결·삭제)예요.' : '설정 카드가 없어요. + 설정 추가나 오른쪽 클릭으로 첫 카드를 더해 보세요.'}</div>
             </div>
           </div>
         </div>

@@ -213,6 +213,24 @@ it('처음 들어온 화면은 화면 투어가 먼저 뜨고, 끝나면 지금 
 })
 
 // 앱은 StrictMode라 effect가 두 번 돈다: 첫 실행이 화면 투어를 고른 뒤 상태가 반영되기 전에 두 번째 실행이 '이미 띄움'만 보고 탭 투어로 덮어썼다(브라우저 작품 관리에서 메뉴 소개가 빠짐).
+// 지연 로딩되는 내용(세계관 관계도 캔버스 등)은 탭을 옮긴 순간 아직 대상이 없다: 그때 한 번만 보고 끝내면 그 탭 투어가 영영 뜨지 않았다(브라우저 관계도에서 확인).
+it('탭을 옮긴 순간 대상이 아직 없으면 그려질 때까지 잠시 기다렸다 그 탭의 투어를 띄운다', async () => {
+  markTourSeen('manage')
+  const Late = ({ drawn }: { drawn: boolean }) => (
+    <TourAutoStart.Provider value>
+      <div data-tour="manage-overview" />
+      <div>{drawn && TABS.serial.map((s) => <div key={s.target} data-tour={s.target} />)}</div>
+      <ScreenTour screen="manage" steps={INTRO} tabs={TABS} tab="serial" />
+    </TourAutoStart.Provider>
+  )
+  const { rerender } = render(<Late drawn={false} />)
+  await quiet()
+  expect(dialog()).toBeNull()
+  rerender(<Late drawn />)
+  await tip()
+  expect(titleOf()).toBe(TABS.serial[0].title)
+})
+
 it('StrictMode에서도 첫 진입은 화면 투어가 먼저 뜬다(effect가 두 번 돌아도 탭 투어가 덮어쓰지 않는다)', async () => {
   render(<StrictMode><TabHost /></StrictMode>)
   await tip()

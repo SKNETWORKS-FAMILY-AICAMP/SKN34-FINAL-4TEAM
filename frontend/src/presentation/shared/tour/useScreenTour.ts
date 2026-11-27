@@ -48,12 +48,22 @@ export function useScreenTour({ screen, steps, tabs, tab, panel = false, ready }
     }
     return found.length > 0
   }
+  // 띄울 투어의 대상이 아직 하나도 그려지지 않았으면(지연 로딩되는 관계도 캔버스 등) 잠시 뒤 다시 본다.
+  // ponytail: 0.25초 간격으로 탭마다 20번(5초)까지만. 그 뒤에도 없으면 그 방문에는 띄우지 않는다(사용법 버튼은 그대로).
+  const [retry, setRetry] = useState(0)
+  const tries = useRef({ tab, n: 0 })
   const autoStart = useEffectEvent(() => {
     if (active || pending.current) return
-    if (!done()) { if (dialogOpen() || begin(steps)) return }
-    if (tab && !done(tab) && !dialogOpen(`[data-tour^="${screen}-${tab}-"]`)) begin(tabs?.[tab], tab)
+    if (tries.current.tab !== tab) tries.current = { tab, n: 0 }
+    let missed = false
+    if (!done()) { if (dialogOpen() || begin(steps)) return; missed = steps.length > 0 }
+    if (tab && !done(tab) && !dialogOpen(`[data-tour^="${screen}-${tab}-"]`)) { if (begin(tabs?.[tab], tab)) return; missed ||= !!tabs?.[tab]?.length }
+    if (!missed || tries.current.n >= 20) return
+    tries.current.n += 1
+    const timer = setTimeout(() => setRetry((n) => n + 1), 250)
+    return () => clearTimeout(timer)
   })
-  useEffect(() => { if (auto && ready) autoStart() }, [auto, ready, tab, active])
+  useEffect(() => (auto && ready ? autoStart() : undefined), [auto, ready, tab, active, retry])
   const tabbed = !!tabs && !panel
   const canStart = ready && (!tabbed || !!(tab && tabs[tab]?.length))
   const start = () => { if (!tabbed) begin(steps); else if (tab) begin(tabs[tab], tab) }

@@ -70,7 +70,8 @@ const tabTours: Record<string, TourStep[]> = {
   people: [
     { target: 'world-people-episode', title: '관계 기준 회차', text: "관계는 '시작 회차'와 함께 기록돼요. 회차를 넣고 '이 회차 관계 보기'를 누르면 그 회차 시점의 관계가 보이고, '최신으로'로 돌아와요." },
     { target: 'world-people-canvas', title: '전체 관계도', text: '설정 카드와 관계가 한 그래프에 모두 보여요. 노드를 누르면 그 설정과 이웃이 강조되고, 더블클릭하면 그 설정의 편집 화면이 열려요.' },
-    { target: 'world-people-canvas', title: '그래프에서 만들기', text: "빈 곳이나 노드를 오른쪽 클릭하면 메뉴가 열려요(터치는 길게 누르기). 빈 곳은 '여기에 설정 추가', 노드는 '관계 연결'을 골라 상대 노드를 누르면 관계 작성 시트가 열려요." },
+    // 바로 앞 단계와 같은 대상이면 joyride가 말풍선을 다시 띄우지 않아(불투명도 0) 캔버스 아래 조작 안내 줄을 짚는다.
+    { target: 'world-people-hint', title: '그래프에서 만들기', text: "빈 곳이나 노드를 오른쪽 클릭하면 메뉴가 열려요(터치는 길게 누르기). 빈 곳은 '여기에 설정 추가', 노드는 '관계 연결'을 골라 상대 노드를 누르면 관계 작성 시트가 열려요." },
     { target: 'world-people-add', title: '+ 설정 추가', text: "왼쪽 위 '+ 설정 추가'로도 새 설정을 캔버스에 바로 더해요." },
     { target: 'world-people-settings', title: '그래프 설정', text: '톱니 버튼에서 화면 맞춤·배치 정돈, 설정 찾기와 유형·관계 종류 필터, 중심 보기를 써요.' },
   ],
