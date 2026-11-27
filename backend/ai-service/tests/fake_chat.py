@@ -13,6 +13,7 @@ class FakeChat(BaseChatModel):
     seen: Any
     reply: Any  # AIMessage 또는 올릴 예외
     model_name: str
+    fails: Any = None  # 앞 호출들이 차례로 올릴 예외(재시도 테스트). 다 쓰면 reply를 낸다
 
     @property
     def _llm_type(self) -> str:
@@ -26,12 +27,15 @@ class FakeChat(BaseChatModel):
 
     def _generate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
         self.seen['messages'] = messages
+        self.seen['calls'] = self.seen.get('calls', 0) + 1
+        if self.fails:
+            raise self.fails.pop(0)
         if isinstance(self.reply, Exception):
             raise self.reply
         return ChatResult(generations=[ChatGeneration(message=self.reply)])
 
 
-def fake_chat(monkeypatch, text='', status='completed', error=None, blocks=()):
+def fake_chat(monkeypatch, text='', status='completed', error=None, blocks=(), fails=()):
     """OPENAI 설정을 채우고 ChatOpenAI를 대역으로 바꾼다. 생성자·bind 인자와 받은 메시지를 담은 dict를 돌려준다."""
     seen = {}
     monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
@@ -43,7 +47,7 @@ def fake_chat(monkeypatch, text='', status='completed', error=None, blocks=()):
 
     def chat(**kwargs):
         seen['init'] = kwargs
-        return FakeChat(seen=seen, reply=reply, model_name=kwargs['model'])
+        return FakeChat(seen=seen, reply=reply, model_name=kwargs['model'], fails=list(fails))
 
     monkeypatch.setattr(agent_runtime, 'ChatOpenAI', chat)
     return seen

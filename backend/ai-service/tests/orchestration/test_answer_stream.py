@@ -107,7 +107,8 @@ def test_answer_deltas_replace_the_remark_made_before_a_tool_call(monkeypatch, s
 ], ids=['disconnected', 'read-timeout', 'chunk-timeout', 'incomplete', 'failed', 'no-completion'])
 def test_a_broken_answer_ends_failed_with_the_fixed_message(monkeypatch, ending):
     fake_agents(monkeypatch, plan(status='clarify'))
-    openai(monkeypatch, [*written('쓰다 만 '), *ending])
+    broken = [*written('쓰다 만 '), *ending]
+    bodies = openai(monkeypatch, broken, broken)  # 일시 장애(끊김·시간 초과)는 한 번 다시 부르고, 같은 끊김이면 실패로 끝낸다(DEC-61)
 
     events = stream()
 
@@ -115,11 +116,29 @@ def test_a_broken_answer_ends_failed_with_the_fixed_message(monkeypatch, ending)
     assert events[-2] == ('answer', {'delta': None})  # 쓰다 만 글은 어떤 상태로 끝나든(승인 대기 포함) 비운다
     name, done = events[-1]
     assert (name, done['status'], done['message']) == ('done', 'failed', agent.MAIN_FAILED_NOTHING_MESSAGE)
+    retried = isinstance(ending[0], (httpx2.HTTPError, TimeoutError)) if ending else False
+    assert len(bodies) == (2 if retried else 1)  # 잘린 응답·응답 오류·완료 없는 종료는 다시 부르지 않는다
+
+
+def test_a_stream_cut_discards_the_partial_answer_and_the_retry_writes_it_again(monkeypatch):
+    fake_agents(monkeypatch, plan(status='clarify'))
+    bodies = openai(monkeypatch, [*written('쓰다 만 '), httpx2.RemoteProtocolError('peer closed')],
+                    [*written('다시 쓴 ', '답이에요.', name='resp_2'), sent('response.completed', response=response(name='resp_2'))])
+
+    events = stream()
+
+    assert [(name, data.get('delta')) for name, data in events] == [
+        ('answer', None), ('answer', '쓰다 만 '),
+        ('answer', None),  # 일시 장애: 쓰던 답을 버린다
+        ('answer', None), ('answer', '다시 쓴 '), ('answer', '답이에요.'), ('done', None)]  # 모델 호출 시작이 한 번 더 비운다
+    done = events[-1][1]
+    assert (done['status'], done['message']) == ('clarify', '다시 쓴 답이에요.') and len(bodies) == 2
 
 
 def test_a_failure_after_a_tool_keeps_the_finished_step(monkeypatch):
     fake_agents(monkeypatch, plan('story_context'))
-    openai(monkeypatch, asked(), [*written('길드는 ', name='resp_2'), httpx2.RemoteProtocolError('peer closed')])
+    cut = [*written('길드는 ', name='resp_2'), httpx2.RemoteProtocolError('peer closed')]
+    openai(monkeypatch, asked(), cut, cut)
 
     name, done = stream()[-1]
 

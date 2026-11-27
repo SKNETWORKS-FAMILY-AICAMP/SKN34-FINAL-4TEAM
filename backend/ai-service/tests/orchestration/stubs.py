@@ -133,6 +133,7 @@ class FakeMain(BaseChatModel):
     script: list
     answer: Any  # 종합 답변 또는 올릴 예외
     seen: Any  # pydantic이 list를 복사하지 않게 Any로 둔다
+    fails: Any = None  # 앞 호출들이 차례로 올릴 예외(재시도 테스트). 다 쓰면 대본을 따른다
     model_name: str = 'test-main'
 
     @property
@@ -144,6 +145,8 @@ class FakeMain(BaseChatModel):
 
     def _generate(self, messages, stop=None, run_manager=None, tools=None, settings=None, **kwargs) -> ChatResult:
         self.seen.append({'tools': tools or [], 'settings': settings or kwargs, 'messages': messages})
+        if self.fails:
+            raise self.fails.pop(0)
         last = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
         done = sum(isinstance(m, AIMessage) and bool(m.tool_calls) for m in messages[last:])
         meta = {'status': 'completed', 'model_name': 'resolved-main', 'id': f'resp-{len(self.seen)}'}
@@ -169,7 +172,7 @@ async def _specs(names):
     return [s for s in SPECS if s['name'] in names]
 
 
-def fake_main(monkeypatch, *calls, answer='종합 답변'):
+def fake_main(monkeypatch, *calls, answer='종합 답변', fails=()):
     """메인 에이전트의 ChatOpenAI를 대역으로 바꾼다. calls는 (도구 이름, 인자) 순서다. 모델 호출 기록(Seen)을 돌려준다."""
     seen = Seen()
     monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
@@ -177,7 +180,7 @@ def fake_main(monkeypatch, *calls, answer='종합 답변'):
 
     def chat(**kwargs):
         seen.init = kwargs
-        return FakeMain(script=list(calls), answer=answer, seen=seen)
+        return FakeMain(script=list(calls), answer=answer, seen=seen, fails=list(fails))
 
     monkeypatch.setattr(main_agent, 'ChatOpenAI', chat)
     monkeypatch.setattr(content_mcp, 'tool_specs', _specs)

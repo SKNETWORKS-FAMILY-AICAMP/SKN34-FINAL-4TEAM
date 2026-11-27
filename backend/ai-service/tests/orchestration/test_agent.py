@@ -866,3 +866,121 @@ def test_ask_author_with_bad_options_is_returned_to_the_model_and_asks_nothing(m
 def test_rule_three_asks_with_ask_author_only_when_there_are_candidates():
     rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('3.'))
     assert 'ask_author' in rule and '후보가 없으면' in rule
+
+
+# 실패 원인 분류와 자동 재시도(#908, DEC-61)
+
+
+def provider_error(kind):
+    import httpx
+    import openai
+    request = httpx.Request('POST', 'http://provider.test')
+    if kind == 'connection':
+        return openai.APIConnectionError(request=request)
+    cls, status = {'rate': (openai.RateLimitError, 429), 'server': (openai.InternalServerError, 500), 'bad': (openai.BadRequestError, 400)}[kind]
+    return cls('provider', response=httpx.Response(status, request=request), body=None)
+
+
+def stream_rows(request='요청', **body):
+    """SSE 이벤트를 행으로: 진행 목록은 (activity, 라벨, 상태), 답변은 (answer, delta), 나머지는 (이벤트,)."""
+    async def collect():
+        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(request=request, **body))]
+    return [(name, data['label'], data['status']) if name == 'activity' else (name, data['delta']) if name == 'answer' else (name,)
+            for name, data in asyncio.run(collect())]
+
+
+@pytest.mark.parametrize('kind', ['connection', 'rate', 'server'])
+def test_a_transient_main_model_error_discards_the_partial_answer_and_retries_once_after_a_second(monkeypatch, main_waits, kind):
+    fake_agents(monkeypatch, plan(status='clarify'))
+    calls = fake_main(monkeypatch, fails=[provider_error(kind)])
+
+    rows = stream_rows()
+
+    assert rows == [('activity', '요청 확인', 'running'), ('activity', '요청 확인', 'done'),
+                    ('answer', None),  # 쓰다 만 글을 버린다
+                    ('activity', '다시 시도하는 중', 'running'), ('activity', '다시 시도하는 중', 'done'), ('done',)]
+    assert main_waits == [1] and len(calls) == 2
+
+
+def test_a_transient_main_model_error_twice_ends_failed_with_the_fixed_message(monkeypatch, main_waits):
+    fake_agents(monkeypatch, plan(status='clarify'))
+    calls = fake_main(monkeypatch, fails=[provider_error('rate'), provider_error('connection')])
+    result = run()
+    assert (result.status, result.message) == ('failed', agent.MAIN_FAILED_NOTHING_MESSAGE)
+    assert main_waits == [1] and len(calls) == 2
+
+
+@pytest.mark.parametrize('error', [provider_error('bad'), OpenAIError('down'), ValueError('response error')])
+def test_a_non_transient_main_model_error_is_not_retried(monkeypatch, main_waits, error):
+    fake_agents(monkeypatch, plan(status='clarify'))
+    calls = fake_main(monkeypatch, fails=[error])
+    assert run().status == 'failed' and main_waits == [] and len(calls) == 1
+
+
+def test_a_main_model_retry_is_traced_with_its_count_and_reason_only(monkeypatch, main_waits):
+    updates = traced(monkeypatch)
+    fake_agents(monkeypatch, plan(status='clarify'))
+    fake_main(monkeypatch, fails=[provider_error('server')])
+    assert run().status == 'clarify'
+    assert {'retries': 1, 'retryReason': 'transient'} in [u.get('metadata') for u in updates]
+
+
+# 출력 문제(502)는 그 업무 Agent를 같은 입력으로 한 번 더 부른다(DEC-61, 2026-11-26 E2E 뒤 사용자 결정: 메인 에이전트 재호출은
+# 지시문 규칙 5 '같은 턴에 같은 도구를 다시 부르지 마세요'와 부딪쳐 실모델에서 미완료로 끝났다).
+
+
+def output_failure():
+    failure = StoryQaFailure(502, '작품 질문 모델 응답을 확인할 수 없습니다.')
+    failure.retry = 'output'
+    return failure
+
+
+def flaky_qa(monkeypatch, *failures):
+    """Q&A 업무 Agent가 앞 호출들은 failures를 올리고 이후는 정상 답을 내게 한다. 부른 횟수를 돌려준다."""
+    from app.story_qa import service as story_qa
+    from app.story_qa.models import AnswerResponse, Claim
+    waiting, ok, count = list(failures), AnswerResponse(claims=[Claim(text='밤에 닫는다', kind='confirmed', sourceIds=['a'])], gaps=[]), []
+
+    def answer(*args, **kwargs):
+        count.append(1)
+        if waiting:
+            raise waiting.pop(0)
+        return ok
+
+    monkeypatch.setattr(story_qa, 'answer', answer)
+    return count
+
+
+def test_an_output_failure_is_retried_once_with_the_same_input_inside_the_tool(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    count = flaky_qa(monkeypatch, output_failure())
+    result = run(inputs={'story_context': QA})
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed')] and len(count) == 2
+    assert (result.status, result.message) == ('completed', '종합 답변')
+    assert names(calls).count('judge') == 1 and len(calls.main) == 2  # 메인 에이전트는 도구를 한 번만 불렀다
+    assert not any(seen['settings'].get('tool_choice') for seen in calls.main)
+
+
+def test_the_progress_list_shows_the_output_retry_line(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'))
+    flaky_qa(monkeypatch, output_failure())
+    rows = stream_rows(inputs={'story_context': QA})
+    assert ('activity', '다시 시도하는 중', 'running') in rows and ('activity', '다시 시도하는 중', 'done') in rows
+
+
+def test_an_output_failure_twice_fails_the_step_and_closes_the_tools(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
+    count = flaky_qa(monkeypatch, output_failure(), output_failure())
+    result = run(inputs={'story_context': QA, 'research': WEB})
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'failed')] and len(count) == 2
+    assert result.status == 'failed' and 'research' not in names(calls) and exposed(calls)[-1] == []
+
+
+@pytest.mark.parametrize('failure', [StoryQaFailure(502, '고정 문구'), StoryQaFailure(422, '입력 오류'), StoryQaFailure(503, '모델 호출 실패')],
+                         ids=['plain-502', '4xx', '503'])
+def test_a_failure_without_the_retry_mark_is_not_retried_and_closes_every_tool(monkeypatch, failure):
+    calls = fake_agents(monkeypatch, plan('story_context', 'story_context'))
+    count = flaky_qa(monkeypatch, failure)
+    result = run(inputs={'story_context': QA})
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'failed')] and exposed(calls)[-1] == []
+    assert len(count) == 1
