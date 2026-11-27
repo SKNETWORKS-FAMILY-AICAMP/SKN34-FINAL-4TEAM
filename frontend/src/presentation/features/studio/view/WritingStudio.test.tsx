@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
@@ -533,6 +533,38 @@ it('연결된 세계관을 읽지 못하면 더보기에서 다시 시도할 수
   } finally {
     list.mockRestore()
   }
+})
+
+describe('세계관 없는 작품의 AI 채팅 빈 화면 안내(#910)', () => {
+  const guide = { name: '세계관 탭에서 만들기·연결하기' }
+  afterEach(() => { vi.restoreAllMocks() })
+  const stub = (list: () => Promise<unknown[]>, inherited: unknown) => {
+    vi.spyOn(appContainer.resolve('writingChatUseCase')!, 'sessions').mockResolvedValue([] as never)
+    vi.spyOn(appContainer.resolve('worldStudioUseCase'), 'list').mockImplementation(list as never)
+    return vi.spyOn(appContainer.resolve('episodeUseCase'), 'inheritedWorld').mockResolvedValue(inherited as never)
+  }
+  const linked = { id: 'world-id', name: '세계관', description: '', version: 1, settings: [], analysis: null, linkedWorkId: 'work-id' }
+
+  it('연결도 Fork 상속도 없다고 확인되면 세계관 탭 링크를 보인다', async () => {
+    stub(async () => [], null)
+    renderStudio()
+    expect((await screen.findByRole('link', guide)).getAttribute('href')).toBe('/content?work=work-id&tab=world')
+  })
+
+  it.each([['연결한 세계관이 있다', async () => [linked], null], ['Fork가 원작 세계관을 이어받는다', async () => [], { worldId: 'origin', upto: 3, cards: [] }],
+    ['세계관 목록을 읽지 못했다', async () => { throw new Error('offline') }, null]])('%s면 안내하지 않는다', async (_, list, inherited) => {
+    stub(list, inherited)
+    renderStudio()
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)) })
+    expect(screen.queryByRole('link', guide)).toBeNull()
+  })
+
+  it('조회 중에는 안내하지 않는다', async () => {
+    stub(() => new Promise(() => {}), null)
+    renderStudio()
+    await act(async () => { await Promise.resolve() })
+    expect(screen.queryByRole('link', guide)).toBeNull()
+  })
 })
 
 it('회차 편집 영역은 건너뛰기 링크가 닿는 하나의 main 안에 있고 h1은 하나다', () => {

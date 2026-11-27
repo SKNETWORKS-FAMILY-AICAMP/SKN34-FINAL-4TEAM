@@ -122,7 +122,7 @@ describe('집필 AI 채팅 세션', () => {
   })
 
   it('되묻기 선택지(choices)를 읽고, 없는 옛 기록은 빈 목록으로 읽는다(#794)', async () => {
-    const choices = [{ label: 'IF로 시작', message: 'IF 시뮬레이션으로 해줘: 요청' }, { label: '양식에서 고르기', message: '요청', form: 'simulation' }]
+    const choices = [{ label: 'IF로 시작', message: 'IF 시뮬레이션으로 해줘: 요청' }, { label: '양식에서 고르기', message: '요청', form: 'simulation' }, { label: '원고에서 세계관 추출하기', message: '원고에서 세계관을 추출할게요.', form: 'world' }]
     const fetcher = vi.fn().mockResolvedValueOnce(Response.json({ threadId: 't1', title: '', turns: [
       { request: '요청', reply: { status: 'clarify', message: '모드를 알려 주세요.', steps: [], missingInputs: [], choices } },
       { request: '옛 질문', reply: { status: 'clarify', message: '어느 회차요?', steps: [], missingInputs: [] } },

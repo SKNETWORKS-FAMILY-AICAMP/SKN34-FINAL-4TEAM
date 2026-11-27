@@ -20,7 +20,7 @@ FILES = {
     ONNX_FILE: 'dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88',
     'tokenizer.json': '0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39',
 }
-NO_WORLD = '이 작품에 연결된 세계관이 없어 설정·관계는 확인하지 못했어요.'
+NO_WORLD = '이 작품에 연결된 세계관이 없어 설정·관계는 확인하지 못했어요. 작품 관리의 세계관 탭에서 원고로 세계관을 만들거나 내 세계관을 연결할 수 있어요.'
 NO_SETTINGS = '기준 회차까지 공개된 세계관 설정·관계에서 질문에 쓸 근거를 찾지 못했어요.'
 BAD_WORLD = 'Content 세계관 응답을 확인할 수 없습니다.'
 # shortcut: 시연 규모라 공개 카드·관계를 모두 보내고 8건이 넘을 때만 질문과 BM25로 맞는 8건을 고른다. 세계관이 커져 누락이 잦으면 NovelBrain recall로 바꾼다.

@@ -289,8 +289,8 @@ class Choice(BaseModel):
 
 
 class ReplyChoice(Choice):
-    """응답의 선택지. form이 있으면 메시지 대신 그 화면 양식을 연다(simulation: 집필실 시뮬레이션 시작 양식)."""
-    form: Literal['simulation'] | None = None
+    """응답의 선택지. form이 있으면 메시지 대신 그 화면을 연다(simulation: 집필실 시뮬레이션 시작 양식, world: 작품 관리 세계관 탭, #910)."""
+    form: Literal['simulation', 'world'] | None = None
 
 
 class OrchestrationResponse(BaseModel):
