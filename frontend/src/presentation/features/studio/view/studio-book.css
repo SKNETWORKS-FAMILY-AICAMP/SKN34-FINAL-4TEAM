@@ -1,0 +1,64 @@
+/* 집필실 왼쪽 메뉴(회차 | 설정집)와 설정집 보기(#986). 메뉴는 세계관 카드 편집 화면의 활동 막대(worldstudio/view/world-studio.css의 .world-activity)와 같은 모양이다.
+   writing.css·전역 규칙은 건드리지 않고, 메뉴 폭(64px)만큼 이 화면의 --writing-rail(메뉴 + 패널 폭, 하단 바의 채팅 열기 여백 계산이 쓴다)을 넓힌다. */
+.writing-studio:not(.world-card-studio) { --writing-panel: 280px; --writing-rail: calc(var(--writing-panel) + 64px); }
+@media (min-width: 901px) and (max-width: 1200px) { .writing-studio:not(.world-card-studio) { --writing-panel: 240px; } }
+.writing-side { display: flex; min-width: 0; min-height: 0; }
+.writing-side > .writing-rail { flex: 1 1 0; min-width: 0; }
+/* 안 고른 패널은 지우지 않고 숨기기만 한다(.writing-rail의 display가 hidden을 덮으므로 직접 지킨다). */
+.writing-rail[hidden] { display: none; }
+.writing-menu { display: flex; flex: none; flex-direction: column; align-items: stretch; gap: 4px; box-sizing: border-box; width: 64px; padding: 10px 4px; border-right: 1px solid var(--tline); }
+.writing-menu-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; box-sizing: border-box; width: 100%; min-height: 52px; padding: 6px 2px; border: 0; border-radius: 10px; background: none; color: var(--tsub); cursor: pointer; }
+.writing-menu-icon { display: grid; place-items: center; width: 20px; height: 20px; }
+.writing-menu-label { font-size: 11px; font-weight: 500; line-height: 1.2; text-align: center; word-break: keep-all; }
+.writing-menu-tab:hover:not([aria-disabled="true"]) { background: var(--muted-bg); color: var(--tfg); }
+.writing-menu-tab[aria-pressed="true"] { background: var(--pri-soft); color: var(--pri-ink); }
+.writing-menu-tab[aria-pressed="true"] .writing-menu-label { font-weight: 700; }
+.writing-menu-tab[aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
+.writing-menu-tab:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; }
+
+/* 잠긴 이유(회차 패널 머리 아래)와 설정집 패널의 알림·도구·목록 */
+.writing-book-note, .writing-book-name { margin: 0; padding-inline: 24px 12px; }
+.writing-book-note .btn { margin-left: 8px; }
+.writing-book-alert, .writing-book-empty { margin: 0 12px; }
+.writing-book-empty { padding-inline: 12px; }
+.writing-book-tools { display: grid; gap: 8px; padding-inline: 24px 12px; }
+.writing-book-tools input { width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 13.5px; }
+.writing-book-tools p { margin: 0; min-height: 1lh; }
+.writing-book-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.writing-book-kinds button { min-height: 32px; padding: 0 10px; border: 1px solid var(--tline); border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
+.writing-book-kinds button:hover { background: var(--muted-bg); color: var(--tfg); }
+.writing-book-kinds button[aria-pressed="true"] { border-color: var(--tacc); background: var(--pri-soft); color: var(--pri-ink); }
+/* 줄: 첫 줄은 분류 칩·제목·작가 전용 칩, 둘째 줄은 한 줄 요약. 회차 항목의 ⋮ 버튼 자리(오른쪽 여백)는 필요 없다. */
+.writing-book-row { display: grid; gap: 2px; padding-right: 12px; }
+.writing-book-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.writing-book-line strong { flex: 1 1 auto; min-width: 0; }
+.writing-book-line .chip { flex: none; height: 20px; padding: 0 7px; font-size: 11px; }
+.writing-book-row small { overflow: hidden; color: var(--tsub); text-overflow: ellipsis; white-space: nowrap; }
+
+/* 가운데 설정 상세: 원고 열(.editor.writing-editor)과 같은 틀·스크롤이다. 위키 문서(.nw)는 이 열의 폭을 그대로 쓴다. */
+.studio-book-detail { gap: 12px; }
+.studio-book-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.studio-book-bar .btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.studio-book-detail .nw { max-width: none; margin: 0; padding: 8px 0 24px; }
+.studio-book-detail .nw-info .worlds-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.studio-book-docs { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--tline); }
+.studio-book-docs :is(h3, h4, p) { margin: 0; }
+.studio-book-docs h3 { font-size: 18px; }
+.studio-book-docs h4 { margin-top: 8px; font-size: 15px; }
+
+/* 고급 모드(901~1200px)에서는 플롯 패널이 원고 아래 둘째 줄로 내려가므로 왼쪽 묶음(메뉴 + 패널)이 두 줄을 차지한다(writing.css가 .writing-rail에 주던 규칙을 이 묶음이 이어받는다). */
+@media (min-width: 901px) and (max-width: 1200px) { .writing-with-plans .writing-side { grid-row: 1 / 3; } }
+@media (max-width: 900px) {
+  /* 좁은 화면: 메뉴가 가로 줄이 되고 그 아래에 패널이 온다. 설정 카드 목록은 한 줄 띠가 아니라 높이를 묶은 세로 목록이다(요약이 긴 줄을 가로로 밀지 않는다). */
+  .writing-side { flex-direction: column; }
+  .writing-side > .writing-rail { flex: none; }
+  .writing-menu { flex-direction: row; width: auto; padding: 6px 12px; border-right: 0; border-bottom: 1px solid var(--tline); }
+  .writing-menu-tab { flex: none; width: 72px; }
+  .writing-studio .writing-episodes.writing-book-list { flex-direction: column; flex-wrap: nowrap; overflow: auto; max-height: min(40vh, 320px); }
+  .writing-studio .seps.writing-book-list .writing-book-row { max-width: none; }
+}
+@media (pointer: coarse), (max-width: 600px) {
+  .writing-menu-tab { min-height: 56px; }
+  .writing-book-kinds button { min-height: 44px; }
+  .writing-book-tools input { font-size: 16px; }
+}
