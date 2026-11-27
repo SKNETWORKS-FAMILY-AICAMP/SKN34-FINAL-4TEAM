@@ -272,6 +272,14 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).toMatch(/\.admin-pager\s*\{[^}]*align-items\s*:\s*center/)
   })
 
+  it('닉네임 메뉴의 다크 모드 항목(menuitemcheckbox)은 다른 항목과 같은 모양이고 켜짐·꺼짐 글자는 오른쪽 끝에 둔다', () => {
+    // 상단바에 따로 두던 테마 버튼 대신 PopMenu 목록에 menuitemcheckbox 하나가 들어간다. pop-menu.css가 role="menuitem" 전용이면 이 항목만 높이·여백·호버·초점 윤곽선이 없다(jsdom은 CSS를 적용하지 않아 선택자로 지킨다).
+    const popMenuCss = readFileSync(new URL('../presentation/shared/pop-menu.css', import.meta.url), 'utf8')
+    expect(popMenuCss).toMatch(/\.pop-menu-list \[role\^="menuitem"\] \{[^}]*min-height: 40px/)
+    expect(popMenuCss).toMatch(/\.pop-menu-list \[role\^="menuitem"\]:focus-visible \{/)
+    expect(popMenuCss).toMatch(/\.pop-menu-list \[role="menuitemcheckbox"\] \{[^}]*justify-content: space-between/)
+  })
+
   it('900px 이하에서는 브랜드를 가로 스크롤 메뉴 밖 상단바 왼쪽에 둔다(메뉴 안 브랜드가 잘리던 audit 지적)', () => {
     // 상단바 브랜드는 데스크톱에서는 숨기고(사이드바 맨 위 브랜드가 맡는다) 900px 이하에서 보인다.
     expect([value('.adm .admin-brand-top', 'display'), narrow('.adm .admin-brand-top', 'display')]).toEqual(['none', 'flex'])

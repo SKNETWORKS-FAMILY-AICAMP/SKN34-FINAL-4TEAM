@@ -268,6 +268,13 @@ it.each([
   expect(screen.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
 })
 
+it('관리자(/admin)에서는 떠 있는 테마 버튼을 그대로 숨긴다 — 테마는 상단바 닉네임 메뉴의 다크 모드 항목이 맡는다', () => {
+  vi.stubEnv('DEV', true)
+  renderChrome('/admin?tab=users', 'light')
+  expect(screen.getByRole('button', { name: '화면 ID 끄기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+})
+
 const toastNode = () => document.getElementById('toast')!
 
 it('토스트는 role=status 노드 하나를 계속 쓰고 글자만 바꾼다 — 알림마다 노드를 갈아 끼우면 보조기기가 새 알림을 놓칠 수 있다', () => {
