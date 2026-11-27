@@ -51,4 +51,4 @@ def test_research_reports_malformed_model_url_as_provider_error(monkeypatch):
     with pytest.raises(ResearchFailure) as error:
         service.research(ResearchRequest(question='질문'))
 
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')

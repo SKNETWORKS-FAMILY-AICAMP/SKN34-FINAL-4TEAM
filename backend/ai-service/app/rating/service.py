@@ -35,7 +35,9 @@ def rate(data: RatingRequest) -> RatingResponse:
         episodes = [run.result() for run in [pool.submit(contextvars.copy_context().run, _rate, *i) for i in inputs]]
     verdicts = [e.verdict for e in episodes]
     if not any(verdicts):  # 한 회차도 판별하지 못했으면 검토 필요로 감싸지 않고 실패를 그대로 알린다
-        raise RatingFailure(502, episodes[0].error)
+        failure = RatingFailure(502, episodes[0].error)
+        failure.retry = 'output'  # 회차 판별 실패는 모델 출력 문제(502)뿐이다(그 밖의 실패는 바로 올라간다). orchestration._ask가 한 번 다시 부른다(DEC-61)
+        raise failure
     verdict = 'adult' if 'adult' in verdicts else 'general' if all(v == 'general' for v in verdicts) else 'needsReview'
     return RatingResponse(workId=data.workId, verdict=verdict, prohibited=any(e.prohibited for e in episodes), episodes=episodes)
 

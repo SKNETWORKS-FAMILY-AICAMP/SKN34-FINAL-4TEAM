@@ -48,7 +48,9 @@ def _check(found: Finding, cards: dict[str, RequestCard]) -> None:
              and bool(found.message.strip()) and len(found.message) <= MAX_MESSAGE
              and (found.fix is None or _valid_fix(found.fix, found.cardIds, cards)))
     if not valid:
-        raise WorldReviewFailure(502, BAD_FINDING)
+        failure = WorldReviewFailure(502, BAD_FINDING)
+        failure.retry = 'output'  # 모델 출력 검증 실패: 같은 입력으로 다시 부르면 풀릴 수 있어 orchestration._ask가 한 번 다시 부른다(DEC-61)
+        raise failure
 
 
 def _valid_fix(fix: Fix, card_ids: list[str], cards: dict[str, RequestCard]) -> bool:
@@ -79,7 +81,9 @@ def _check_enrich(result: EnrichResult, cards: dict[str, RequestCard]) -> None:
     valid = (1 <= len(fixes) <= MAX_FIXES and len({(f.cardId, f.target, f.episode) for f in fixes}) == len(fixes)
              and len(result.note) <= MAX_MESSAGE and all(_valid_fix(f, list(cards), cards) for f in fixes))
     if not valid:
-        raise WorldReviewFailure(502, BAD_ENRICH)
+        failure = WorldReviewFailure(502, BAD_ENRICH)
+        failure.retry = 'output'  # DEC-61
+        raise failure
 
 
 def impact(request: str, data: WorldReviewRequest, context: dict, plans: list[dict]) -> ImpactResponse:
@@ -103,7 +107,9 @@ def _check_impact(result: ImpactResult, known: dict[str, set[str]]) -> None:
     """ref는 그 종류로 입력에 있던 것만, 모든 문장은 읽을 수 있는 300자 이하여야 한다."""
     sentences = [*result.conflicts, *result.gaps, *(t for a in result.affected for t in (a.title, a.reason))]
     if not (all(a.ref in known[a.kind] for a in result.affected) and all(s.strip() and len(s) <= MAX_MESSAGE for s in sentences)):
-        raise WorldReviewFailure(502, BAD_IMPACT)
+        failure = WorldReviewFailure(502, BAD_IMPACT)
+        failure.retry = 'output'  # DEC-61
+        raise failure
 
 
 def linked_request(work_id: str) -> WorldReviewRequest:

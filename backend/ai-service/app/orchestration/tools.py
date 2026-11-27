@@ -313,7 +313,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
         runtime.stream_writer({'started': feature})
         ran = True
         agent_runtime.report(line, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
-        with tracing.observe(f'step.{feature}', as_type='agent'):
+        with tracing.observe(f'step.{feature}', as_type='agent') as span:
             try:
                 result = call(read, scope)
             except FAILURES as error:
@@ -321,6 +321,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
                 # 지시문 규칙 5(같은 도구를 다시 부르지 않는다)와 부딪쳐 실모델에서 미완료로 끝났다(2026-11-26 E2E).
                 if getattr(error, 'retry', None) != 'output':
                     raise
+                span.update(metadata={'retries': 1, 'retryReason': 'output'})  # 재시도 횟수·원인만 남긴다(원문 없음)
                 with agent_runtime.activity(agent_runtime.RETRY_LABEL, OUTPUT_RETRY):
                     result = call(read, scope)
             step.update(status='completed', result=result.model_dump(mode='json'))

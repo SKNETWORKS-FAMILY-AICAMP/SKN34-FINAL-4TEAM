@@ -60,7 +60,7 @@ def test_mechanical_findings_outside_the_input_are_errors(monkeypatch, bad):
     fake_agent(monkeypatch, bad)
     with pytest.raises(ReviewFailure) as error:
         service.review(mechanical())
-    assert error.value.status == 502
+    assert (error.value.status, error.value.retry) == (502, 'output')
 
 
 def test_empty_draft_is_422_without_model_call(monkeypatch):
