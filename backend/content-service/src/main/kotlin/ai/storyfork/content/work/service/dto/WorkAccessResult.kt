@@ -3,7 +3,8 @@ package ai.storyfork.content.work.service.dto
 import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 
-data class WorkAccessResult(val id: String, val ownerId: String, val title: String, val summary: String, val revision: Int, val worldId: String, val visibility: String, val allowFork: Boolean, val allowForkPublication: Boolean, val source: SourceResponse?, val restricted: Boolean = false, val deleted: Boolean = false) {
+/** [worldLinked]는 work.world_studio_id가 있는지(DEC-46)다. Fork는 세계관이 연결된 원작에서만 만든다. */
+data class WorkAccessResult(val id: String, val ownerId: String, val title: String, val summary: String, val revision: Int, val worldId: String, val visibility: String, val allowFork: Boolean, val allowForkPublication: Boolean, val source: SourceResponse?, val restricted: Boolean = false, val deleted: Boolean = false, val worldLinked: Boolean = false) {
     fun publiclyVisible() = visibility=="public" && !restricted && !deleted
     /**
      * 독자에게 보이는 회차다(독자 쪽 목록·이미지·맥락의 한 곳). 운영이 제한한 회차(원작 회차의 제한을 물려받은 Fork 회차 포함)는 뺀다.

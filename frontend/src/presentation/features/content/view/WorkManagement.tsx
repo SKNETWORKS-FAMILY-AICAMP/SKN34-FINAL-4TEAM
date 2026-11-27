@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { SERIAL_LOCK_NOTICE, serialEpisodeLocked } from '../../../../domain/entities/aiSerial'
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import { initialBuildCompletedOn, worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
+import { FORK_WORLD_REQUIRED } from '../../../../domain/entities/work'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -101,7 +102,7 @@ type Props = {
 }
 
 /**
- * 고른 내 작품의 관리 영역: 왼쪽 사이드바(공용 ManageMenu: 로고·돌아가기 링크·메뉴(개요·회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·내 제보·수정 제안·운영 설정·이력)·알림·테마·계정)와 오른쪽 내용 열(맨 위 알림, 그 아래 고른 메뉴의 내용). 히어로(표지·제목·소개)는 맨 앞 '개요' 탭의 내용이고 그 탭이 기본이다.
+ * 고른 내 작품의 관리 영역: 왼쪽 사이드바(공용 ManageMenu: 로고·돌아가기 링크·메뉴(개요·회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·내 제보·수정 제안·운영 설정·이력)·알림·계정)와 오른쪽 내용 열(맨 위 알림, 그 아래 고른 메뉴의 내용). 히어로(표지·제목·소개)는 맨 앞 '개요' 탭의 내용이고 그 탭이 기본이다.
  * 분기 정책(분기 작품은 포크 정보)과 작품 삭제는 모든 탭 위가 아니라 운영 설정 탭 안에 있다(분기 정책 아래 맨 끝이 삭제): 고른 탭의 내용이 첫 화면 안에서 시작하게.
  * 공용 상단바(Gnb)는 없고 사이드바가 그 역할을 한다. 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
  */
@@ -152,6 +153,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   const deleteError = vm.origin === 'delete' ? vm.error : ''
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다(InboxPage와 같다). 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
+  // Fork는 세계관이 연결된 원작에서만 만든다(서버도 409로 막는다). 데모 작품은 연결 정보가 없어 막지 않는다.
+  const noWorld = !mockup && !w.worldStudioId
   // 공개 회차의 진행 배지와 업로드 안내가 같은 최초 구축 조회를 사용한다.
   const build = useManuscriptBuild(w.id, w.worldStudioId, undefined, { enabled: tab === 'read' && !mockup, refreshKey: buildCheck })
   const buildLabel = !mockup && !build.error ? worldBuildBadge(build.job) : null
@@ -457,7 +460,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                     </label>
                     {/* 분기를 만들지 못한 사유는 누른 버튼 바로 위에 알린다(화면 맨 위 알림은 이 자리에서 보이지 않는다). */}
                     {vm.origin === 'fork' && vm.error && <div className='ep-alert' role='alert'>{vm.error}</div>}
-                    <button className='btn pri' disabled={locked}>
+                    {noWorld && <p id='ep-fork-world-note' className='ep-muted'>{FORK_WORLD_REQUIRED}</p>}
+                    <button className='btn pri' disabled={locked || noWorld} aria-describedby={noWorld ? 'ep-fork-world-note' : undefined}>
                       이 회차에서 분기 만들기
                     </button>
                   </form>

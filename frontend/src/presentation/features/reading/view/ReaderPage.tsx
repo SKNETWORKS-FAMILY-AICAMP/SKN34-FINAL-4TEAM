@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { createPortal } from 'react-dom'
 import { Navigate, useParams } from 'react-router'
 
-import { avatarOf, epsOf, hiddenSourceEpisode, type Theme } from '../../../../domain/entities/work'
+import { avatarOf, epsOf, FORK_WORLD_REQUIRED, forkNeedsWorld, hiddenSourceEpisode, type Theme } from '../../../../domain/entities/work'
 import { qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
@@ -119,6 +119,8 @@ export function ReaderPage() {
   if (!r) return <Navigate replace to={`/work/${id}`} />
   const { work: w, ep: e } = r
   const eps = epsOf(w)
+  // Fork는 세계관이 연결된 원작에서만 만든다. 서버가 미연결을 알린 작품은 포크 버튼을 잠그고 이유를 보인다(서버도 409로 막는다).
+  const noWorld = forkNeedsWorld(w)
   const rk = w.id + r.n
   const selected = vm.selected && vm.sentences[vm.selected.k]
   // 정본 작품에서 비로그인이면 문장 팝업의 회원 전용 동작(댓글·피드백·수정 제안) 이름 앞에 붙는 말입니다(누르면 시트 대신 로그인 화면으로 갑니다).
@@ -203,9 +205,12 @@ export function ReaderPage() {
               <h3>여기서 포크해 볼까요?</h3>
               <p>{w.canonical ? `${r.n}화의 공개된 원고·설정을 기준으로 분기해요.` : `${r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요.`} 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
               <div className="acts">
-                <Go to={qs('/writing-policy', { method: 'fork', work: id, at: String(r.n) })} className="tbtn pri" id="forkHere">✎ {r.n}화에서 포크하기</Go>
+                {noWorld
+                  ? <button type="button" className="tbtn pri" id="forkHere" disabled aria-describedby="fork-world-note">✎ {r.n}화에서 포크하기</button>
+                  : <Go to={qs('/writing-policy', { method: 'fork', work: id, at: String(r.n) })} className="tbtn pri" id="forkHere">✎ {r.n}화에서 포크하기</Go>}
                 {r.forks.map((f) => <Go key={f.id} to={`/work/${f.id}`} className="tbtn">「{f.title.split(': ')[1] || f.title}」 읽기</Go>)}
               </div>
+              {noWorld && <p id="fork-world-note" className="small muted">{FORK_WORLD_REQUIRED}</p>}
             </div>
           )}
           {w.canonical && <EpisodeComments key={`${w.id}/${r.n}`} workId={w.id} n={r.n} quoted={vm.sheet?.kind === 'comment' ? vm.sentences[vm.sheet.k] : undefined} onCloseSheet={closeSheet} />}

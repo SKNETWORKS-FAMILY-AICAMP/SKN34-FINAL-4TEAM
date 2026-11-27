@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react'
 import { useParams } from 'react-router'
-import { hiddenSourceEpisode, isPub } from '../../../../domain/entities/work'
+import { FORK_WORLD_REQUIRED, forkNeedsWorld, hiddenSourceEpisode, isPub } from '../../../../domain/entities/work'
 
 import { CoverOf } from '../../../shared/art'
 import { kfmt, qs } from '../../../shared/format'
@@ -81,6 +81,8 @@ export function WorkPage() {
   if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <UnavailableWork />
   const { work: w, parent: p, visible, last, read, liked, likes, forks, forkList } = d
+  // Fork는 세계관이 연결된 원작에서만 만든다. 서버가 미연결을 알린 작품은 포크 버튼을 잠그고 이유를 보인다(서버도 409로 막는다).
+  const noWorld = forkNeedsWorld(w)
   const first = visible.find(([e, i]) => !hiddenSourceEpisode(w, i + 1, e.p)) ?? visible[0]
   const start = last && visible.some(([e, i]) => i + 1 === last && !hiddenSourceEpisode(w, last, e.p)) ? last : (first?.[1] ?? 0) + 1
   const sv = serialView(w)
@@ -177,7 +179,9 @@ export function WorkPage() {
             ) : w.parentDeleted ? (
               <><h2>삭제된 원작</h2><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
             ) : forkList.length ? (
-              <><h2>이 소설, 다르게 쓰고 싶다면</h2><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to={qs('/writing-policy', { method: 'fork', work: id })} className="tbtn pri">✎ 포크하기</Go></>
+              <><h2>이 소설, 다르게 쓰고 싶다면</h2><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p>{noWorld
+                ? <><button type="button" className="tbtn pri" disabled aria-describedby="fork-world-note">✎ 포크하기</button><p id="fork-world-note" className="small muted">{FORK_WORLD_REQUIRED}</p></>
+                : <Go to={qs('/writing-policy', { method: 'fork', work: id })} className="tbtn pri">✎ 포크하기</Go>}</>
             ) : (
               <><h2>포크를 허용하지 않은 소설</h2><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p></>
             )}

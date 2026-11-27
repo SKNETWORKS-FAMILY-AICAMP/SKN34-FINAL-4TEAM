@@ -319,18 +319,20 @@ it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(개요·설정�
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
-it('테마 전환은 사이드바 맨 아래 줄의 버튼 한 개가 맡는다: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않고 공용 상단바(Gnb)도 없다', async () => {
+it('설정집 화면의 테마 전환은 사이드바 계정 메뉴의 다크 모드 항목이 맡는다: 맨 아래 줄에 테마 버튼은 없고 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않으며 공용 상단바(Gnb)도 없다', async () => {
   await showWorld()
-  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개
-  expect(theme.closest('.ep-menu-account')).toBeTruthy()
-  expect(theme.closest('.ep-menu')).toBeTruthy()
-  expect(theme.closest('.gnb')).toBeNull()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  const avatar = within(sidebar()).getByRole('button', { name: '내 계정 메뉴' })
+  expect(avatar.closest('.ep-menu-account')).toBeTruthy()
+  expect(avatar.closest('.gnb')).toBeNull()
+  fireEvent.click(avatar)
+  expect(within(screen.getByRole('menu', { name: '내 계정 메뉴' })).getByRole('menuitemcheckbox', { name: '다크 모드' })).toBeTruthy()
 })
 
-it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
+it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 둔다(가려진 설정집 화면의 사이드바에는 테마 버튼이 없다)', async () => {
   await showWorld()
   openCard('가람 인물')
-  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 가려진 설정집 화면(hidden)의 것은 접근성 트리에 없다
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개
   const bar = theme.closest('.sbar') as HTMLElement
   expect(bar).toBeTruthy()
   expect(within(bar).getByRole('group', { name: '저장 상태' })).toBeTruthy()
@@ -338,13 +340,14 @@ it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 
   expect(theme.className).toBe('btn sm')
 })
 
-it('작성 마법사도 헤더의 행동 줄(소설 버튼·관리 화면으로 옆)에 테마 버튼을 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
+it('작성 마법사도 헤더의 행동 줄(소설 버튼·관리 화면으로 옆)에 테마 버튼을 따로 두지 않고 상단바(Gnb)에도 없다: 테마는 상단바 계정 메뉴의 다크 모드 항목이 맡는다', async () => {
   await wizard()
-  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
-  expect(screen.getByRole('button', { name: '다크 모드로' }).closest('.gnb')).toBeTruthy() // 한 개
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: '내 계정 메뉴' }))
+  expect(within(screen.getByRole('menu', { name: '내 계정 메뉴' })).getByRole('menuitemcheckbox', { name: '다크 모드' })).toBeTruthy()
 })
 
-it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면은 상단바(Gnb)의 테마 버튼이 맡는다', async () => {
+it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면의 테마는 상단바(Gnb) 계정 메뉴가 맡는다', async () => {
   await show(undefined, '/worldstudio')
   expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
 })
@@ -4782,7 +4785,7 @@ it('시간선 afterId 화살표는 앞선 사건의 점 중심에서 뒤 사건�
 // ── 상단바를 사이드바로 합치기(사용자 요청): 관리 모드는 공용 상단바(Gnb)를 그리지 않고 사이드바가 그 역할을 맡는다 ─────────────────────
 const sidebar = () => screen.getByRole('navigation', { name: '세계관 메뉴' }).closest('.ep-menu') as HTMLElement
 
-it('관리 모드는 공용 상단바(Gnb)를 그리지 않고, 사이드바가 로고·알림·테마·계정을 맡으며 검색 버튼은 두지 않는다(Ctrl K 전역 단축키가 남는다)', async () => {
+it('관리 모드는 공용 상단바(Gnb)를 그리지 않고, 사이드바가 로고·알림·계정을 맡으며 검색 버튼은 두지 않는다(Ctrl K 전역 단축키가 남는다)', async () => {
   await showWorld()
   expect(document.querySelector('.gnb')).toBeNull()
   expect(screen.queryByRole('banner')).toBeNull()
@@ -4793,7 +4796,7 @@ it('관리 모드는 공용 상단바(Gnb)를 그리지 않고, 사이드바가 
   expect(logo.getAttribute('href')).toBe('/')
   expect(logo.textContent).toBe('SFSTORYFORK')
   expect(side.getByRole('link', { name: '알림함' }).getAttribute('href')).toBe('/notifications')
-  expect(side.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
+  expect(side.queryByRole('button', { name: /모드로/ })).toBeNull() // 테마는 계정 메뉴의 다크 모드 항목이 맡는다
   expect(side.getByRole('button', { name: '내 계정 메뉴' }).getAttribute('aria-haspopup')).toBe('menu')
   // 상단바의 '본문으로 바로가기'가 없어진 대신 사이드바 맨 앞의 같은 링크가 내용 열(#ep-content)로 건너뛴다.
   const skip = side.getByRole('link', { name: '본문으로 바로가기' })
@@ -4804,7 +4807,7 @@ it('관리 모드는 공용 상단바(Gnb)를 그리지 않고, 사이드바가 
   expect(document.activeElement).toBe(column)
 })
 
-it('사이드바는 위에서 아래로 로고·접기 토글·내가 만드는 세계관·보기 메뉴·AI 검토·확정 버전 남기기·저장 영역·알림·테마·계정 순서이고, 도구 묶음과 계정 줄은 따로다', async () => {
+it('사이드바는 위에서 아래로 로고·접기 토글·내가 만드는 세계관·보기 메뉴·AI 검토·확정 버전 남기기·저장 영역·알림·계정 순서이고, 도구 묶음과 계정 줄은 따로다', async () => {
   await showWorld()
   const side = within(sidebar())
   const order = [
@@ -4816,12 +4819,11 @@ it('사이드바는 위에서 아래로 로고·접기 토글·내가 만드는 
     side.getByRole('button', { name: '확정 버전 남기기' }),
     side.getByRole('group', { name: '저장 상태' }),
     side.getByRole('link', { name: '알림함' }),
-    side.getByRole('button', { name: '다크 모드로' }),
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
   expect(order[4].closest('.ep-menu-tools')?.contains(order[6])).toBe(true) // AI 검토·확정 버전 남기기·저장 영역이 아래로 밀리는 한 묶음이다
-  expect(order[7].closest('.ep-menu-account')?.contains(order[9])).toBe(true)
+  expect(order[7].closest('.ep-menu-account')?.contains(order[8])).toBe(true)
   expect(order[7].closest('.ep-menu-tools')).toBeNull() // 계정 줄은 그 묶음 밖의 맨 아래 줄이다
   expect(order[0].closest('.ep-menu-top')?.contains(order[1])).toBe(true) // 로고와 접기 토글이 맨 위 한 줄이다
 })

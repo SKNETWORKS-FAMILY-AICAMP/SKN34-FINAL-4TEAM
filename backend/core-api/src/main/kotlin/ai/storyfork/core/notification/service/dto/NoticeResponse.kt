@@ -10,4 +10,6 @@ data class NoticeResponse(
     val targetId: String?,
     val createdAt: Instant,
     val read: Boolean,
+    /** 회차 단위 알림이면 회차 번호, 아니면 null(#941). */
+    val targetEpisode: Int? = null,
 )

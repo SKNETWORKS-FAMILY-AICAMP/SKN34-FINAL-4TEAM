@@ -23,7 +23,7 @@ it('서버 프로필을 표시하고 확인 전 기존 이메일을 유지한다
   expect(nick.autocomplete).toBe('nickname')
   expect(email.autocomplete).toBe('email')
   expect(screen.queryByText(/가입일/)).toBeNull()
-  expect(screen.getByRole('button', { name: '다크 모드로' }).closest('.screen-controls')).toBeNull()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull() // 떠 있는 버튼도 상단바 버튼도 없다: 이 화면의 테마는 상단바 계정 메뉴의 다크 모드 항목이 맡는다
   fireEvent.change(nick, { target: { value: '새이름' } })
   fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'new@example.com' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))

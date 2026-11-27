@@ -12,4 +12,8 @@ data class NoticeCreateRequest(
     val targetId: String? = null,
     /** 사건에서 만든 알림이면 사건 id. 같은 사건의 재전달을 한 번만 반영하는 키다. */
     val sourceEventId: UUID? = null,
+    /** 회차 단위 사건의 회차 번호(#941). 알림을 누르면 그 회차로 간다. */
+    val targetEpisode: Int? = null,
+    /** ai-tool 묶음 요약("<대상> 외 n건")에 다시 쓸 대상 구절(#941). 없으면 묶을 때 문구를 바꾸지 않는다. */
+    val bundleSubject: String? = null,
 )

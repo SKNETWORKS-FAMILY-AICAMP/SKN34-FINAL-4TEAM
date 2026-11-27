@@ -235,7 +235,7 @@ class WorkMcpTools(
 
     @McpTool(
         name = "work_fork_create",
-        description = "공개 원작에서 Fork 작품 생성(POST /api/v1/works/{id}/forks). 기준 회차를 보존하며 정책 위반은 403, 이미 만든 Fork가 있으면 409, 입력 오류는 422다.",
+        description = "공개 원작에서 Fork 작품 생성(POST /api/v1/works/{id}/forks). 기준 회차를 보존하며 정책 위반은 403, 이미 만든 Fork가 있거나 원작에 연결된 세계관이 없으면(FORK_WORLD_REQUIRED) 409, 입력 오류는 422다.",
     )
     fun forkCreate(
         context: McpTransportContext,

@@ -28,7 +28,7 @@ function open(isOpen = true, tools: ReactNode = <button type="button">도구 하
   return onOpenChange
 }
 
-it('위에서 아래로 로고·접기 토글·돌아가기 링크·내용(메뉴)·도구·알림·테마·계정 순서이고, 도구 묶음과 계정 줄은 따로다', () => {
+it('위에서 아래로 로고·접기 토글·돌아가기 링크·내용(메뉴)·도구·알림·계정 순서이고, 도구 묶음과 계정 줄은 따로다', () => {
   open()
   const side = within(document.querySelector<HTMLElement>('.ep-menu')!)
   const order = [
@@ -38,7 +38,6 @@ it('위에서 아래로 로고·접기 토글·돌아가기 링크·내용(메�
     side.getByRole('navigation', { name: '작품 메뉴' }),
     side.getByRole('button', { name: '도구 하나' }),
     side.getByRole('link', { name: '알림함' }),
-    side.getByRole('button', { name: '다크 모드로' }),
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
@@ -48,7 +47,7 @@ it('위에서 아래로 로고·접기 토글·돌아가기 링크·내용(메�
   expect(order[0].closest('.ep-menu-top')?.contains(order[1])).toBe(true) // 로고와 접기 토글이 맨 위 한 줄이다
   expect(order[2].closest('.ep-menu-body')?.contains(order[3])).toBe(true)
   expect(order[4].closest('.ep-menu-tools')?.closest('.ep-menu-body')).toBeTruthy() // 도구는 본문의 마지막 묶음이다
-  expect(order[5].closest('.ep-menu-account')?.contains(order[7])).toBe(true)
+  expect(order[5].closest('.ep-menu-account')?.contains(order[6])).toBe(true)
   expect(order[5].closest('.ep-menu-body')).toBeNull() // 계정 줄은 본문 밖의 맨 아래 줄이다
   expect(screen.queryByRole('button', { name: '소설·세계관·설정 카드·캐릭터챗 검색' })).toBeNull() // 검색 버튼은 두지 않는다: Ctrl K(전역 QuickJump)가 남는다
 })
@@ -57,7 +56,7 @@ it('도구를 주지 않으면 도구 묶음 칸(.ep-menu-tools)을 그리지 �
   open(true, null)
   expect(document.querySelector('.ep-menu-tools')).toBeNull()
   expect(document.querySelector('.ep-menu-body')?.lastElementChild?.tagName).toBe('NAV') // 본문의 마지막은 메뉴다
-  expect(document.querySelector('.ep-menu-account')).toBeTruthy() // 알림·테마·계정 줄은 그대로다
+  expect(document.querySelector('.ep-menu-account')).toBeTruthy() // 알림·계정 줄은 그대로다
 })
 
 it('첫 요소는 본문으로 바로가기 링크라 키보드 첫 Tab이 사이드바를 건너뛰어 내용 열(#ep-content)로 간다 — 공용 상단바가 없는 화면에서 상단바의 같은 링크를 대신한다', () => {
@@ -112,4 +111,16 @@ it('계정 아바타는 상단바와 같은 계정 메뉴를 열고 Esc로 닫�
   fireEvent.keyDown(document, { key: 'Escape' })
   expect(screen.queryByRole('menu')).toBeNull()
   expect(document.activeElement).toBe(avatar)
+})
+
+it('맨 아래 줄에는 테마 버튼이 없고 테마는 계정 메뉴의 다크 모드 항목이 맡는다 — 검색·알림함 항목은 상단바(Gnb)에서 연 메뉴에만 있고 사이드바에는 알림 버튼이 그대로 있다', () => {
+  vi.spyOn(appContainer.resolve('creditLedgerUseCase'), 'balance').mockReturnValue(new Promise(() => {}))
+  open()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '내 계정 메뉴' }))
+  const menu = within(screen.getByRole('menu', { name: '내 계정 메뉴' }))
+  expect(menu.getByRole('menuitemcheckbox', { name: '다크 모드' })).toBeTruthy()
+  expect(menu.queryByRole('menuitem', { name: '검색' })).toBeNull()
+  expect(menu.queryByRole('menuitem', { name: /^알림함/ })).toBeNull()
+  expect(screen.getByRole('link', { name: '알림함' }).closest('.ep-menu-account')).toBeTruthy()
 })

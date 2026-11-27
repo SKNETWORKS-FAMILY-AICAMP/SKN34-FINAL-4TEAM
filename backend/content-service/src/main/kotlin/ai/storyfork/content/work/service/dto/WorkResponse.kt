@@ -28,4 +28,6 @@ data class WorkResponse(
     val episodeViews: Map<Int, Long>? = null,
     /** 이 작품에 연결한 WorldStudio 세계관(1:1, DEC-46). 소유자 응답에서만 채우고 연결이 없거나 공개 응답이면 null이다. */
     val worldStudioId: java.util.UUID? = null,
+    /** WorldStudio 세계관이 연결돼 있는지(DEC-46). 공개 응답에도 싣고(세계관 id는 숨긴다) 화면이 포크 버튼을 잠그는 데 쓴다. Fork는 연결된 원작에서만 만들 수 있다. */
+    val worldLinked: Boolean = false,
 )

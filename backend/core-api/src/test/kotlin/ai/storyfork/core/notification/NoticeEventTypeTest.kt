@@ -56,6 +56,12 @@ class NoticeEventTypeTest {
     }
 
     @Test
+    fun `operator world restrictions are result notices about the world that members cannot turn off`() {
+        assertEquals(listOf("result", false, "world", "운영자가 세계관을 제한했어요"), shape("content.operator.world-restricted"))
+        assertEquals(listOf("result", false, "world", "운영자가 세계관 제한을 해제했어요"), shape("content.operator.world-unrestricted"))
+    }
+
+    @Test
     fun `an operations alert is a result notice that targets the alert and cannot be turned off`() {
         assertEquals(listOf("result", false, "alert", "운영 경고가 발생했어요"), shape("operations.alert.raised"))
     }
