@@ -39,6 +39,8 @@ export function WebShell() {
   const asked = useRef(false)
   const [memberId, setMemberId] = useState<string | null>(null)
   const pendingTap = useRef<string | null>(null)
+  // 웹의 storyfork.ready로만 정한다. onLoadStart로 지우지 않는다: Android는 SPA 이동(pushState)에도 불러 이미 받은 ready를 지우고,
+  // 웹은 계정이 바뀔 때만 다시 보내므로 권한 요청·기기 등록·알림 탭 전달이 멈춘다(새 문서는 웹이 마운트 때 ready를 다시 보낸다).
   const ready = useRef(false)
 
   function send(message: { type: 'storyfork.tap'; id: string } | { type: 'storyfork.device'; installationId: string; token: string | null }) {
@@ -136,7 +138,6 @@ export function WebShell() {
         renderLoading={() => <View style={[styles.center, { backgroundColor: look.background }]}><ActivityIndicator /></View>}
         onShouldStartLoadWithRequest={onShouldStart}
         onNavigationStateChange={(navigation) => { canGoBack.current = navigation.canGoBack; setUrl(navigation.url) }}
-        onLoadStart={() => { ready.current = false; setMemberId(null) }}
         onMessage={onMessage}
         webviewDebuggingEnabled={Platform.OS === 'android' && __DEV__}
         onError={() => setFailed(true)}
