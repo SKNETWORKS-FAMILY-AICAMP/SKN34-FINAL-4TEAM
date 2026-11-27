@@ -128,3 +128,13 @@
 }
 @media (max-width: 600px) { .stage-people { max-height: none; overflow: visible; } }
 @media (pointer: coarse) { .stage-edit textarea, .stage-note-form input, .stage-beat-inputs textarea { font-size: 16px; } }
+/* 집필 AI 제안(#909): 지금 초안·제안을 나란히 비교한다. 승인 카드는 채팅 카드와 같은 컴포넌트라 채팅용 안쪽 여백만 풀어 넓게 쓴다. */
+.proposal-stage .chat-hitl { margin: 0; }
+.stage-proposal-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.stage-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stage-compare-col { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.stage-compare-label { color: var(--tsub); font-size: 13px; font-weight: 700; }
+.stage-compare-text { max-height: 60vh; overflow: auto; padding: 12px 14px; border: 1px solid var(--tline); border-radius: 12px; background: var(--chat-card, var(--tcard)); font-family: var(--story); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.stage-compare-text:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
+.stage-compare-text mark { border-radius: 3px; background: color-mix(in srgb, var(--tacc) 24%, transparent); color: inherit; }
+@media (max-width: 700px) { .stage-compare { grid-template-columns: 1fr; } .stage-compare-text { max-height: 40vh; } }

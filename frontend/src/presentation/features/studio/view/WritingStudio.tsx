@@ -41,6 +41,8 @@ import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
 import { SimulationStage } from '../../../shared/chat/SimulationStage'
+import { ProposalStage } from '../../../shared/chat/ProposalStage'
+import { useProposalStageViewModel } from '../../../shared/chat/useProposalStageViewModel'
 import { useLinkedWorld } from '../../../shared/chat/useSimulationSetupViewModel'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
 import { useWritingChatViewModel } from '../../../shared/chat/useWritingChatViewModel'
@@ -199,6 +201,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [sendNote,setSendNote]=useState('')
   const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied,undefined,getPage,plans.reloadAfterAi)
   const stage=useSimulationStageViewModel(chat)
+  // 집필 AI 제안(원고 반영 승인·계획 수정안)은 편집기 자리에 지금 초안과 나란히 연다(#909). 반영 회차가 열린 회차와 다르면 본문을 대신 비교하지 않는다.
+  // 작가가 편집기에 쓰는 중이면 저절로 열지 않는다(편집기를 가리면 초점과 입력을 잃는다). 채팅의 링크로는 연다.
+  const editorArea=useRef<HTMLDivElement>(null)
+  const proposal=useProposalStageViewModel(chat,active?{number:active.number,body:vm.draft.body}:null,()=>!editorArea.current?.contains(document.activeElement))
   const [setupVersion,setSetupVersion]=useState(0)
   const [stageVisited,setStageVisited]=useState(false)
   useEffect(()=>{if(stage.open)setStageVisited(true)},[stage.open])
@@ -212,8 +218,17 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const stageHeading=useRef<HTMLHeadingElement>(null)
   const [stageFocus,setStageFocus]=useState(0)
   useEffect(()=>{if(stageFocus)stageHeading.current?.focus()},[stageFocus])
-  const openStage=(form=false)=>{setSetupVersion(n=>n+1);stage.show(form);setStageFocus(n=>n+1)}
+  const openStage=(form=false)=>{setSetupVersion(n=>n+1);proposal.hide();stage.show(form);setStageFocus(n=>n+1)}
   const closeStage=()=>{stage.hide();stageButton.current?.focus()}
+  // 제안 화면도 사용자가 열 때만 제목으로 초점을 옮기고(저절로 열린 화면은 빼앗지 않는다), 닫으면 연 링크로 돌려준다(링크가 사라졌거나 저절로 열렸으면 본문 영역으로).
+  // 무대가 열려 있으면 무대가 먼저다(채팅의 링크를 누르면 무대를 닫고 연다). 운영자 열람 모드는 채팅이 없어 승인할 수 없다.
+  const proposalHeading=useRef<HTMLHeadingElement>(null)
+  const proposalOpener=useRef<HTMLElement|null>(null)
+  const [proposalFocus,setProposalFocus]=useState(0)
+  useEffect(()=>{if(proposalFocus)proposalHeading.current?.focus()},[proposalFocus])
+  const showProposal=proposal.open&&!stage.open&&!viewOnly
+  const openProposal=(opener?:HTMLElement)=>{proposalOpener.current=opener??null;stage.hide();proposal.show();setProposalFocus(n=>n+1)}
+  const closeProposal=()=>{proposal.hide();const back=proposalOpener.current;(back?.isConnected?back:main.current)?.focus()}
   const historyLabel={
     versions:'원고 저장본 · 공개',
     compare:active?`${active.number}화 원고 버전 비교`:'원고 버전 비교',
@@ -241,6 +256,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     if(approvalEpisode&&vm.ready&&aligned.current!==key){aligned.current=key;openApproval(approvalEpisode)}
   },[approvalEpisode,vm.ready,chat.threadId])
   const deleteActive=async()=>settled(await vm.deleteEpisode())
+  const openProposalEpisode=(target:number)=>{const e=vm.episodes.find(x=>x.number===target);if(e)pick(e)}
   // 다른 회차의 삭제는 그 회차가 활성 회차가 된 다음 렌더에서 시작한다(삭제는 렌더 시점의 활성 회차를 지운다).
   const [deleting,setDeleting]=useState(0)
   const deleteWhenSelected=useEffectEvent(()=>void deleteActive())
@@ -341,7 +357,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
       {(stage.open||stageVisited)&&<SimulationStage hidden={!stage.open} plansVersion={plans.version+setupVersion} startBlocker={startBlocker} stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
         plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
-      <div className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open}>
+      {showProposal&&<ProposalStage proposal={proposal} chat={chat} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
+      <div ref={editorArea} className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open||showProposal}>
         {active?<>
           {active.hasDraft===false&&!viewOnly&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked||frozen||viewOnly} onChange={e=>vm.edit({title:e.target.value})}/>
@@ -370,7 +387,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         Content 쓰기 승인은 원고 저장 여부로 잠그지 않는다(#687): 원고를 저장하면 작품 revision이 올라 work_update 제안이 낡아진다. */}
     {viewOnly?null:chatOpen?<aside className="studio-chat writing-chat" data-tour="studio-chat" aria-label="AI 채팅">
       <div className="studio-chat-head" {...keepFiles}><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} onOpenSetup={vm.ready&&active?()=>openStage(true):undefined} sendNote={sendNote}/>
+      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} onOpenProposal={openProposal} onOpenSetup={vm.ready&&active?()=>openStage(true):undefined} sendNote={sendNote}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" data-tour="studio-chat" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>

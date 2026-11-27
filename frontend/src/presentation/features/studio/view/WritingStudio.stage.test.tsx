@@ -320,13 +320,18 @@ const withPlanRevision = async (afterSave: () => void) => {
   await within(stage).findByDisplayValue('재회: 카엘이 문을 연다')
   const start = () => within(stage).getByRole('button', { name: '시뮬레이션 시작' }) as HTMLButtonElement
   await waitFor(() => expect(start().disabled).toBe(false)) // 비트에 나온 카엘이 미리 골라져 있다
-  const save = () => fireEvent.click(within(screen.getByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '계획에 저장' }))
+  // 계획 수정안은 채팅의 한 줄 링크로 원고 영역의 제안 화면을 열어 저장하고(#909), 시뮬레이션 버튼으로 무대로 돌아온다.
+  const save = async () => {
+    fireEvent.click(await within(screen.getByRole('complementary', { name: 'AI 채팅' })).findByRole('button', { name: '원고 영역에서 보기' }))
+    fireEvent.click(within(await screen.findByRole('region', { name: '집필 AI 제안' })).getByRole('button', { name: '계획에 저장' }))
+    fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  }
   return { stage, start, save }
 }
 
 it('채팅에서 계획 수정을 저장하면 계획 패널과 시작 양식이 최신 계획을 다시 읽고 회차 초안은 다시 읽지 않는다', async () => {
   const { stage, save } = await withPlanRevision(() => list.mockResolvedValue([plotPlan, scenePlan('재회(긴장)', '카엘이 문을 닫는다')]))
-  save()
+  await save()
   await within(stage).findByDisplayValue('재회(긴장): 카엘이 문을 닫는다')
   fireEvent.click(screen.getByRole('button', { name: '고급' }))
   expect(within(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).getByText('재회(긴장)')).toBeTruthy()
@@ -335,7 +340,7 @@ it('채팅에서 계획 수정을 저장하면 계획 패널과 시작 양식이
 
 it('계획을 다시 읽는 동안에는 옛 비트로 시작하지 못하게 시작을 잠그고 이유를 알린다', async () => {
   const { stage, start, save } = await withPlanRevision(() => list.mockReturnValue(new Promise(() => {})))
-  save()
+  await save()
   await waitFor(() => expect(start().disabled).toBe(true))
   expect(within(stage).getAllByText(/완료 후 시작해 주세요|최신 장면 계획을 확인한 뒤/, { selector: '.stage-reason' }).length).toBeGreaterThan(0)
   expect(send).toHaveBeenCalledTimes(1) // 시작은 보내지지 않았다(저장 승인 한 번뿐)
@@ -343,7 +348,7 @@ it('계획을 다시 읽는 동안에는 옛 비트로 시작하지 못하게 �
 
 it('계획을 다시 읽지 못하면 옛 비트로 시작하지 못하게 시작을 잠그고 다시 불러오기를 보인다', async () => {
   const { stage, start, save } = await withPlanRevision(() => list.mockRejectedValue(new Error('목록을 읽지 못했어요.')))
-  save()
+  await save()
   await within(stage).findByText('장면 계획과 인물을 불러오지 못했어요.')
   expect(start().disabled).toBe(true)
   expect(within(stage).getByText('계획 상태를 확인하지 못했어요. 다시 불러온 뒤 시작해 주세요.')).toBeTruthy()
@@ -358,10 +363,181 @@ it('계획 패널에 저장하지 않은 입력이 있으면 확인 창 없이 �
   await waitFor(() => expect((within(panel).getByRole('button', { name: '장면 계획 추가' }) as HTMLButtonElement).disabled).toBe(false))
   fireEvent.click(within(panel).getByRole('button', { name: '장면 계획 추가' }))
   fireEvent.change(within(panel).getByLabelText('장면 제목'), { target: { value: '내가 쓰던 제목' } })
-  save()
+  await save()
   await within(stage).findByDisplayValue('재회(긴장): 카엘이 문을 닫는다')
   expect(confirm).not.toHaveBeenCalled()
   expect((within(panel).getByLabelText('장면 제목') as HTMLInputElement).value).toBe('내가 쓰던 제목')
   expect(within(panel).getByRole('alert').textContent).toContain('AI가 계획을 바꿨어요')
   expect(model.aiApplied).not.toHaveBeenCalled()
+})
+
+// ── 집필 AI 초안 반영 제안을 원고 영역에 크게 띄운다(#909) ──
+const draftStep: ChatStep = { feature: 'writing_editing', task: 'draft', status: 'completed', result: { text: '새로 쓴 장면' } }
+const proposalReply = (extra: Partial<ChatReply> = {}): ChatReply =>
+  ({ status: 'waiting', steps: [draftStep], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 3, rewritesLeft: 2, ...extra })
+const proposalStage = () => screen.findByRole('region', { name: '집필 AI 제안' })
+const chatPanel = () => screen.getByRole('complementary', { name: 'AI 채팅' })
+
+it('승인 제안이 오면 편집기 자리에 비교 화면이 열리고 지금 초안과 제안을 나란히 보이며, 채팅에는 한 줄과 링크만 남는다(초점은 빼앗지 않는다)', async () => {
+  stored(proposalReply())
+  renderStudio()
+  const stage = await proposalStage()
+  expect(editor().hasAttribute('hidden')).toBe(true)
+  expect(document.activeElement).not.toBe(within(stage).getByRole('heading', { name: '집필 AI 제안' }))
+  expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('원고')).toBeTruthy()
+  // 새 원고는 초안 끝에 이어 붙으므로 오른쪽은 반영 후 모습이고 붙는 글만 강조한다(서버 render_writing)
+  expect(within(within(stage).getByRole('region', { name: '반영 후' })).getByText('새로 쓴 장면').tagName).toBe('MARK')
+  expect(within(stage).getByRole('heading', { name: '3화 초안에 반영할까요?' })).toBeTruthy()
+  const chat = chatPanel()
+  expect(within(chat).getByText('3화 초안 반영 제안 · 반영 여부를 기다려요')).toBeTruthy()
+  expect(within(chat).queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  expect(within(chat).queryByText('새로 쓴 장면')).toBeNull()
+})
+
+it('반영 회차의 초안이 비어 있으면 왼쪽 칸에 빈 칸 대신 안내를 보인다(새 회차 첫 초안)', async () => {
+  const draft = model.draft
+  model.draft = { title: '셋째', body: '', revision: 1 }
+  try {
+    stored(proposalReply())
+    renderStudio()
+    const stage = await proposalStage()
+    expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('아직 쓴 글이 없어요. 반영하면 오른쪽 글이 이 회차의 초안이 돼요.')).toBeTruthy()
+  } finally { model.draft = draft }
+})
+
+it('채팅의 원고 영역에서 보기는 비교 화면을 열고 초점을 제목으로 옮기며, 닫으면 편집기와 그 링크로 초점이 돌아온다', async () => {
+  stored(proposalReply())
+  renderStudio()
+  const stage = await proposalStage()
+  fireEvent.click(within(stage).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('region', { name: '집필 AI 제안' })).toBeNull()
+  expect(editor().hasAttribute('hidden')).toBe(false)
+  const link = within(chatPanel()).getByRole('button', { name: '원고 영역에서 보기' })
+  link.focus()
+  fireEvent.click(link)
+  const reopened = await proposalStage()
+  expect(document.activeElement).toBe(within(reopened).getByRole('heading', { name: '집필 AI 제안' }))
+  fireEvent.click(within(reopened).getByRole('button', { name: '닫기' }))
+  expect(document.activeElement).toBe(within(chatPanel()).getByRole('button', { name: '원고 영역에서 보기' }))
+  expect(editor().hasAttribute('hidden')).toBe(false)
+})
+
+it('시뮬레이션 버튼을 누르면 비교 화면 대신 무대가 열린다(둘이 함께 편집기를 가리지 않는다)', async () => {
+  stored(proposalReply())
+  renderStudio()
+  await proposalStage()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(screen.queryByRole('region', { name: '집필 AI 제안' })).toBeNull()
+})
+
+it('초안에 반영은 기존 승인 요청을 보내고, 결과(반영함)는 채팅과 같은 줄로 비교 화면에 보이며 그 회차 초안을 다시 읽는다', async () => {
+  stored(proposalReply())
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    const applied: ChatStep = { ...draftStep, approval: 'approved', applied: { episode: 3, revision: 5 } }
+    store.reply = { status: 'completed', steps: [applied], missingInputs: [] }
+    onEvent({ type: 'step', step: applied })
+    onEvent({ type: 'done', reply: store.reply })
+  })
+  renderStudio()
+  const stage = await proposalStage()
+  expect(model.aiApplied).not.toHaveBeenCalled()
+  fireEvent.click(within(stage).getByRole('button', { name: '초안에 반영' }))
+  await waitFor(() => expect(model.aiApplied).toHaveBeenCalledWith(3))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  expect(await within(stage).findByText('→ 3화 초안에 반영했어요.')).toBeTruthy()
+  expect(within(stage).queryByRole('button', { name: '초안에 반영' })).toBeNull()
+})
+
+it('반영하지 않기와 다시 쓰기도 채팅 카드와 같은 요청을 보낸다', async () => {
+  stored(proposalReply())
+  send.mockResolvedValue(undefined)
+  renderStudio()
+  const stage = await proposalStage()
+  fireEvent.click(within(stage).getByRole('button', { name: '다시 쓰기 (2번 남음)' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: false, refresh: true } })
+  await within(stage).findByRole('button', { name: '반영하지 않기' })
+  fireEvent.click(within(stage).getByRole('button', { name: '반영하지 않기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  expect(send.mock.calls[1][2]).toMatchObject({ resume: { approved: false } })
+  expect(send.mock.calls[1][2].resume.refresh).toBeUndefined()
+})
+
+it('승인 요청이 실패하면 성공으로 꾸미지 않고 오류를 비교 화면에도 알리며 제안은 그대로 남는다', async () => {
+  stored(proposalReply())
+  send.mockRejectedValue(new Error('충돌: 초안이 그사이 바뀌었어요.'))
+  renderStudio()
+  const stage = await proposalStage()
+  fireEvent.click(within(stage).getByRole('button', { name: '초안에 반영' }))
+  expect(await within(stage).findByText('충돌: 초안이 그사이 바뀌었어요.')).toBeTruthy()
+  expect(within(stage).queryByText(/반영했어요/)).toBeNull()
+  expect(await within(stage).findByRole('button', { name: '초안에 반영' })).toBeTruthy()
+})
+
+it('반영 회차가 열린 회차와 다르면 열린 회차로 비교하지 않고 그 회차를 열라고 안내하며, 반영은 그대로 할 수 있다(#635)', async () => {
+  model.episodes = [...model.episodes, fourth]
+  stored(proposalReply({ approvalEpisode: 4 }))
+  renderStudio()
+  const stage = await proposalStage()
+  await waitFor(() => expect(model.select).toHaveBeenCalledTimes(1)) // 승인 회차로 편집기를 맞추려는 기존 동작
+  expect(within(stage).getByText('4화 초안에 반영하는 제안이에요. 4화를 열어 비교해 주세요.')).toBeTruthy()
+  expect(within(stage).queryByRole('region', { name: /지금 초안/ })).toBeNull()
+  expect(within(stage).queryByText('원고')).toBeNull()
+  expect(within(stage).getByText('새로 쓴 장면')).toBeTruthy()
+  expect((within(stage).getByRole('button', { name: '초안에 반영' }) as HTMLButtonElement).disabled).toBe(false)
+  fireEvent.click(within(stage).getByRole('button', { name: '4화 열기' }))
+  expect(model.select).toHaveBeenCalledTimes(2)
+  expect(model.select).toHaveBeenLastCalledWith(fourth)
+})
+
+it('저장하지 않은 편집이 있으면 반영 전에 먼저 저장하라고 알리고 반영을 잠근다(반영 안 하기·다시 쓰기는 그대로)', async () => {
+  model.dirty = true
+  try {
+    stored(proposalReply())
+    renderStudio()
+    const stage = await proposalStage()
+    expect(within(stage).getByRole('alert').textContent).toContain('먼저 저장해 주세요')
+    expect((within(stage).getByRole('button', { name: '초안에 반영' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((within(stage).getByRole('button', { name: '반영하지 않기' }) as HTMLButtonElement).disabled).toBe(false)
+  } finally { model.dirty = false }
+})
+
+it('저장하지 않은 편집이 다른 회차에 있으면 반영을 잠그지 않는다(반영 회차의 초안만 바뀐다)', async () => {
+  model.dirty = true
+  model.episodes = [...model.episodes, fourth]
+  try {
+    stored(proposalReply({ approvalEpisode: 4 }))
+    renderStudio()
+    const stage = await proposalStage()
+    expect(within(stage).queryByText(/먼저 저장해 주세요/)).toBeNull()
+    expect((within(stage).getByRole('button', { name: '초안에 반영' }) as HTMLButtonElement).disabled).toBe(false)
+  } finally { model.dirty = false }
+})
+
+it('부분 수정은 초안 안의 바뀌는 구간만 강조한다', async () => {
+  stored(proposalReply({ steps: [{ feature: 'writing_editing', task: 'patch', status: 'completed', result: { before: '원', after: '새 원' } }] }))
+  renderStudio()
+  const stage = await proposalStage()
+  expect(within(within(stage).getByRole('region', { name: '지금 초안 · 3화' })).getByText('원').tagName).toBe('MARK')
+  expect(within(within(stage).getByRole('region', { name: '제안' })).getByText('새 원').tagName).toBe('MARK')
+})
+
+it('계획 수정안은 계획 전후를 비교 화면에 보이고 계획에 저장·저장하지 않기를 묻는다', async () => {
+  stored(reviseReply())
+  renderStudio()
+  const stage = await proposalStage()
+  expect(within(within(stage).getByRole('region', { name: '지금 계획' })).getByText(/카엘이 문을 연다/)).toBeTruthy()
+  expect(within(within(stage).getByRole('region', { name: '수정안' })).getByText(/카엘이 문을 닫는다/)).toBeTruthy()
+  expect(within(stage).getByRole('button', { name: '계획에 저장' })).toBeTruthy()
+  expect(within(stage).getByRole('button', { name: '저장하지 않기' })).toBeTruthy()
+})
+
+it('World 제안은 원고 영역으로 옮기지 않고 채팅 카드에 남는다', async () => {
+  stored({ status: 'waiting', missingInputs: [], awaitingApproval: 'world', steps: [{ feature: 'world', task: 'enrich', status: 'completed', world: { task: 'enrich', fixes: [], note: '' } }] })
+  renderStudio()
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' }) // 집필 방식을 읽은 뒤 열린다
+  expect(await within(chat).findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })).toBeTruthy()
+  expect(screen.queryByRole('region', { name: '집필 AI 제안' })).toBeNull()
+  expect(editor().hasAttribute('hidden')).toBe(false)
 })
