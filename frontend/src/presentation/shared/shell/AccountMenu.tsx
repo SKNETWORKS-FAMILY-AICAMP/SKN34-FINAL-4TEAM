@@ -32,8 +32,9 @@ function Item({ onSelect, id, className, label, children }: { onSelect: () => vo
 /**
  * 다크 모드 항목. 켜진 상태는 aria-checked가 알리고(오른쪽 켜짐·꺼짐은 눈으로 보는 표시라 aria-hidden), 눌러도 메뉴는 열린 채 테마만 바뀐다.
  * 테마 구독은 이 항목이 따로 가져, 테마가 바뀔 때 메뉴 전체를 다시 그리지 않는다.
+ * 관리자 상단바의 닉네임 메뉴(PopMenu)도 이 항목을 그대로 쓴다: PopMenu는 role="menuitem"만 눌러서 닫으므로 여기서도 열린 채다.
  */
-function ThemeRow() {
+export function ThemeRow() {
   const { dark, toggle } = useTheme()
   return (
     <button type="button" role="menuitemcheckbox" aria-checked={dark} className="acct-theme" onClick={toggle}>
