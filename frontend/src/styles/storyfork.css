@@ -274,7 +274,8 @@ input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-a
 .note{font-size:12.5px;color:var(--sub);background:var(--muted-bg);border-radius:12px;padding:10px 12px}
 .policy{font-size:12.5px;color:var(--acc-ink);background:var(--acc-soft);border-radius:12px;padding:10px 12px}
 .rowend{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.onb-dismiss{display:inline-flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}
+.onb-steps{display:grid;gap:12px;margin:0;padding-left:1.4em;line-height:1.6}.onb-steps b{display:block}.onb-steps a{white-space:nowrap;font-weight:700}
+.onb-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}.onb-never{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:14px;color:var(--ink2);cursor:pointer}.onb-foot .btn{margin-left:auto}
 .qk{width:min(620px,100%);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:24px;overflow:hidden;animation:up .3s var(--ease);align-self:start;margin-top:10vh}
 .qk input{width:100%;border:0;border-bottom:1px solid var(--line);padding:20px 22px;font-size:17px;outline:none;background:transparent}
 .qk input:focus-visible{box-shadow:inset 0 -2px 0 var(--pri)}

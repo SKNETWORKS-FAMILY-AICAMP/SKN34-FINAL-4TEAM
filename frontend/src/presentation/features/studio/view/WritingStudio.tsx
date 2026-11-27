@@ -28,6 +28,7 @@ import { EpisodeWorldBasisControl } from './EpisodeWorldBasisPanel'
 import { Sheet } from '../../../shared/Sheet'
 import { BackChev,ComposeIcon,FoldIcon,MoreIcon,MoreVerticalIcon,SparkIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { useTheme } from '../../../shared/shell/useTheme'
 import { uiActions } from '../../../shared/ui/uiSlice'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -57,6 +58,28 @@ import './version-panels.css'
 // AI 채팅 빈 상태의 추천 칩. 누르면 입력창에 글만 채운다.
 const chatSuggestions=['다음 장면 아이디어','이 회차 요약','문장 다듬기']
 
+// 사용법 투어(#971)의 화면 투어(첫 진입 1회, 사용법 버튼도 이것): 쓰는 순서대로. 열린 회차가 없거나 잠긴(원작 기준·AI 자율 연재·운영자 열람) 화면에서는 쓸 수 없는 단계의 대상(data-tour)이 그려지지 않아 단계에서 빠진다.
+const tour:TourStep[]=[
+  {target:'studio-episodes',title:'회차 목록',text:'왼쪽 목록에서 쓸 회차를 골라요. 위의 새 회차 버튼으로 다음 회차를 만들고, 회차마다 ⋮ 메뉴에서 회차 설정·체크포인트·발행 이력을 열어요.'},
+  {target:'studio-editor',title:'원고',text:'제목과 본문을 여기서 써요. 입력을 멈추면 2초 뒤 초안만 저장돼요.'},
+  {target:'studio-chat',title:'AI 채팅',text:'AI의 제안은 내가 승인해야 원고에 들어가요.'},
+  {target:'studio-publish',title:'버전 · 공개',text:'저장한 버전은 독자에게 보이지 않고, 공개해야 보여요. AI 채팅과 버전 · 공개 창은 처음 열 때 안내가 한 번 더 나와요.'},
+]
+
+// 패널별 사용법 투어(#971): AI 채팅·버전 · 공개 시트가 처음 열릴 때(화면 투어 다음) 한 번 그 안의 우리만의 기능을 짚는다. 탭 메뉴가 없어 사용법 버튼은 위 화면 투어를 열고, 시트의 대상(data-tour="studio-versions-…")은 시트 안에 있다.
+// 채팅 안의 대상은 공용 채팅 컴포넌트(chat-…)의 앵커다. 시뮬레이션 칩은 빈 대화에서만, 복원·공개 버튼은 저장 버전을 고른 뒤에만 그려져 그때는 그 단계가 빠진다.
+const panelTours:Record<string,TourStep[]>={
+  chat:[
+    {target:'chat-suggest',title:'시뮬레이션 요청',text:"칩을 누르면 예시 문장이 입력칸에 채워져요(보내지는 않아요). 'IF 시뮬레이션'과 '흐름 시뮬레이션'은 세계관이 연결된 작품에서 인물 카드로 장면을 시뮬레이션하고, 결과 카드의 '무대 열기'로 가운데 무대에서 봐요."},
+    {target:'chat-composer',title:'요청 → 제안 → 승인',text:"요청을 적어 보내면 AI가 제안을 만들어요. 제안은 '초안에 반영'을 눌러 승인해야 작업 중인 초안에 들어가고, 반영해도 발행되지 않아요."},
+  ],
+  versions:[
+    {target:'studio-versions-pick',title:'저장 버전 고르기',text:"검토할 저장 버전을 고르면 본문을 미리 볼 수 있고, 그 아래에 복원과 공개 버튼이 나와요. 저장 버전은 상단의 '버전 저장'으로 남겨요."},
+    {target:'studio-versions-restore',title:'복원',text:"'선택 버전을 새 버전으로 복원'은 고른 저장 버전을 새 버전으로 되살려요."},
+    {target:'studio-versions-publish',title:'공개',text:"'이 저장 원고를 공개할 권리가 있음을 확인합니다'에 체크한 뒤 '선택한 저장 버전 공개'를 눌러요. 공개하려면 본문이 5,000자 이상이어야 해요."},
+  ],
+}
+
 /** 회차 설정 시트의 의미 묶음: 묶음 사이는 넉넉히, 묶음 안은 촘촘히(스타일은 writing.css). */
 function Group({title,className,children}:{title:string;className?:string;children:ReactNode}){
   const titleId=useId()
@@ -79,6 +102,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   // 저장·발행·삭제·복원처럼 열린 회차의 원고를 바꾸는 버튼은 요청 중이거나 그 회차가 잠겨 있으면 잠근다. 새 회차는 회차가 하나라도 있으면 잠근다(1화 만들기만 열린다).
   const noWrite=vm.busy||frozen
   const newLocked=serialNewEpisodeLocked(serialOn,vm.episodes.length)
+  // 열린 회차의 원고를 쓰고 저장·공개할 수 있는 상태(원작 기준·AI 자율 연재 잠금·운영자 열람이 아님). 사용법 투어가 이때만 쓰기 단계를 안내한다.
+  const writable=!!vm.active&&!vm.active.inherited&&!viewOnly&&!frozen
   const lockNote=frozen&&<p className="ep-alert ep-changed" role="status">{SERIAL_LOCK_NOTICE}</p>
   // AI·외부 도구(MCP)가 이 작품을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 원고가 있으면 덮지 않고 배너로 알린다(#553).
   const mcp=useMcpChangeWatch({targetType:'work',targetId:id,dirty:vm.dirty,reload:vm.refresh})
@@ -242,10 +267,12 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const openVersions=()=>{setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   const openSettingHistory=()=>{setHistoryView('settings');setVersionsOpen(true)}
   const openPublication=(episode:number|null=null)=>{setHistoryEpisode(episode);setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}
+  // 사용법 투어의 지금 패널: 시트가 열려 있으면 원고 저장본 · 공개 보기일 때만 시트 투어(설정 버전 이력·발행 이력 같은 다른 보기는 투어 없음, 시트 안에서 그 보기로 옮기면 그때 뜬다), 시트가 닫혀 있으면 열린 AI 채팅.
+  const tourPanel=versionsOpen?(historyView==='versions'?'versions':undefined):chatOpen?'chat':undefined
   const events=vm.publicationHistory?.filter(ev=>historyEpisode===null||ev.episode===historyEpisode)
   const lengthReason=selected&&!active?.inherited?publishBlocker(selected.body):''
   return <div className="calm rd studio writing-studio">
-    {/* 상단 바: 왼쪽은 어디서 무엇을 하는지(돌아가기·제목·저장 상태), 오른쪽은 자주 쓰는 네 가지(모드·버전 저장·버전 공개·더보기)만 둔다. */}
+    {/* 상단 바: 왼쪽은 어디서 무엇을 하는지(돌아가기·제목·저장 상태), 오른쪽은 자주 쓰는 네 가지(모드·버전 저장·버전 공개·더보기)와 사용법 버튼만 둔다. */}
     <header ref={bar} className="sbar">
       <div className="writing-bar">
         <button type="button" className="back rback" onClick={goBack}><BackChev />뒤로</button>
@@ -254,6 +281,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         <span ref={statusLine} tabIndex={-1} className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
       </div>
       <div className="writing-bar writing-bar-end">
+        {/* vm.error는 저장 실패·취소 문구에도 쓰여 ready에 넣지 않는다: 작업 중 버튼이 잠기고, 오류가 지워질 때 투어가 도중에 시작된다. 불러오기에 실패하면 대상이 없어 시작하지 않는다. */}
+        <ScreenTour screen="studio" steps={tour} tabs={panelTours} tab={tourPanel} panel ready={vm.ready&&!viewOnly&&!settings.isLoading} className="tbtn"/>
         <div className="svw writing-mode" role="group" aria-label="집필 모드">
           <button type="button" className={mode==='basic'?'on':''} aria-pressed={mode==='basic'} onClick={()=>setMode('basic')}>기본</button>
           <button type="button" className={mode==='advanced'?'on':''} aria-pressed={mode==='advanced'} onClick={()=>setMode('advanced')}>고급</button>
@@ -261,7 +290,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         {/* 인물 시뮬레이션 무대는 편집기를 대신해 중앙에 열린다. 누르면 요청 입력(시작 양식)이, 진행 중이거나 답을 기다리는 장면이 있으면 그 장면이 보인다(끝난 장면은 채팅의 '무대 열기'로 본다). */}
         <button ref={stageButton} type="button" className="tbtn" aria-pressed={stage.open} disabled={!vm.ready||!active||viewOnly} onClick={()=>stage.open?closeStage():openStage(true)}>시뮬레이션</button>
         <button className="tbtn" disabled={noWrite||!active||active.inherited||viewOnly} onClick={()=>void vm.save()}>버전 저장</button>
-        <button className="tbtn pri" disabled={vm.busy||!active} onClick={openVersions}>버전 · 공개</button>
+        <button className="tbtn pri" data-tour={writable?'studio-publish':undefined} disabled={vm.busy||!active} onClick={openVersions}>버전 · 공개</button>
         <PopMenu className="writing-more" label="더보기" icon={<MoreIcon />}>
           <button type="button" role="menuitem" onClick={openPlans}>플롯</button>
           {worldLink.isError
@@ -286,7 +315,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {settings.isError&&vm.ready&&!vm.error&&<div className="ep-alert" role="status">집필 방식을 불러오지 못했어요.<button type="button" className="btn sm" onClick={settings.retry}>다시 불러오기</button></div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
-      <div className="writing-rail">
+      <div className="writing-rail" data-tour="studio-episodes">
         <div className="writing-rail-head">
           <h2>회차</h2>
           {/* 서버가 빈 제목을 거부하므로(UseCase·@NotBlank) 제목 없이 만들 때는 기본 제목을 넘긴다. 제목은 편집기 첫 줄에서 바꾼다. */}
@@ -330,7 +359,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
       {showProposal&&<ProposalStage proposal={proposal} chat={chat} unsaved={vm.dirty} canOpenEpisode={vm.episodes.some(e=>e.number===proposal.view?.openEpisode)} onOpenEpisode={openProposalEpisode} headingRef={proposalHeading} onClose={closeProposal}/>}
-      <div ref={editorArea} className="editor writing-editor" hidden={stage.open||showProposal}>
+      <div ref={editorArea} className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open||showProposal}>
         {active?<>
           {active.hasDraft===false&&!viewOnly&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked||frozen||viewOnly} onChange={e=>vm.edit({title:e.target.value})}/>
@@ -357,10 +386,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     </div>
     {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다.
         Content 쓰기 승인은 원고 저장 여부로 잠그지 않는다(#687): 원고를 저장하면 작품 revision이 올라 work_update 제안이 낡아진다. */}
-    {viewOnly?null:chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">
+    {viewOnly?null:chatOpen?<aside className="studio-chat writing-chat" data-tour="studio-chat" aria-label="AI 채팅">
       <div className="studio-chat-head" {...keepFiles}><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
       <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} onOpenProposal={openProposal} onOpenSetup={vm.ready&&active?()=>openStage(true):undefined} sendNote={sendNote} worldMissing={worldMissing}/>
-    </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
+    </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" data-tour="studio-chat" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>
             <div className="writing-settings">
@@ -439,15 +468,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
             <h2>{historyLabel}</h2>
             <CheckpointPanel key={`${id}:${active.number}`} workId={id} episode={active} disabled={noWrite||vm.dirty||active.inherited||viewOnly} onRevert={vm.revertCheckpoint}/>
             {!active.versions.length?<p>아직 저장한 버전이 없어요. 상단의 버전 저장을 눌러 원고를 남겨 주세요.</p>:<>
-              <label className="field">검토할 저장 버전<select className="inp" value={selected?.id??''} onChange={e=>{setSelection({episode:active.number,id:e.target.value});setRights(false)}}>
+              <label className="field" data-tour="studio-versions-pick">검토할 저장 버전<select className="inp" value={selected?.id??''} onChange={e=>{setSelection({episode:active.number,id:e.target.value});setRights(false)}}>
                 <option value="">버전 선택</option>{active.versions.map((v,i)=><option value={v.id} key={v.id}>버전 {i+1} · {v.title} · {new Date(v.savedAt).toLocaleString('ko-KR')}{active.publishedVersionId===v.id?' · 현재 발행본':''}</option>)}
               </select></label>
               {selected&&<><h3>{selected.title}</h3><div className="writing-preview" tabIndex={0} role="region" aria-label="선택한 저장 버전 원고"><ManuscriptBody workId={id} number={active.number} body={selected.body||'(빈 원고)'}/></div>
                 {selected.authorNote&&<section className="author-note"><h3>작가의 말</h3><p>{selected.authorNote}</p></section>}
-                <button className="btn" disabled={noWrite||active.inherited||viewOnly} onClick={()=>void vm.restore(selected.id)}>선택 버전을 새 버전으로 복원</button>
+                <button className="btn" data-tour="studio-versions-restore" disabled={noWrite||active.inherited||viewOnly} onClick={()=>void vm.restore(selected.id)}>선택 버전을 새 버전으로 복원</button>
                 <label className="writing-rights"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/> 이 저장 원고를 공개할 권리가 있음을 확인합니다.</label>
                 {/* 공개할 때만 본문 5,000자 이상이 필요하다(UC-10). 복원·저장은 분량과 무관하다. */}
-                <button className="btn pri" disabled={noWrite||vm.dirty||!rights||active.inherited||viewOnly||!selected.body.trim()||!!lengthReason} aria-describedby={lengthReason?'publish-length-reason':undefined} onClick={async()=>{if(await vm.publish(selected.id,rights))setRights(false)}}>선택한 저장 버전 공개</button>
+                <button className="btn pri" data-tour="studio-versions-publish" disabled={noWrite||vm.dirty||!rights||active.inherited||viewOnly||!selected.body.trim()||!!lengthReason} aria-describedby={lengthReason?'publish-length-reason':undefined} onClick={async()=>{if(await vm.publish(selected.id,rights))setRights(false)}}>선택한 저장 버전 공개</button>
                 {lengthReason&&<small id="publish-length-reason" className="muted writing-publish-reason">{lengthReason}</small>}
               </>}
             </>}

@@ -18,7 +18,7 @@ export function WorldAiReview({ studio }: { studio: VM }) {
   const close = () => studio.setReviewOpen(false)
   return (
     <>
-      <button type="button" className="btn sm" aria-haspopup="dialog" onClick={() => studio.setReviewOpen(true)}>{reviewButtonLabel(studio.review.findings.length, waiting)}</button>
+      <button type="button" className="btn sm" data-tour="world-review" aria-haspopup="dialog" onClick={() => studio.setReviewOpen(true)}>{reviewButtonLabel(studio.review.findings.length, waiting)}</button>
       {studio.reviewOpen && (
         <Sheet sid="W01" label="AI 검토" panelClass="sheet world-sheet" onClose={close}>
           <div className="world-sheet-head"><button type="button" className="btn sm" onClick={close}>닫기</button></div>

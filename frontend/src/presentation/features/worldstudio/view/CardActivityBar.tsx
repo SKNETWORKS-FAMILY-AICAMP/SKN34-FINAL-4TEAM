@@ -40,7 +40,7 @@ export function CardActivityBar({ pane, paneId, badges, onPane, listOpen, listId
         {CARD_PANES.map(({ id, label }) => {
           const badge = badges[id], on = pane === id
           return (
-            <button key={id} type="button" role="tab" id={`${paneId}-tab-${id}`} className="world-activity-tab" aria-selected={on} aria-controls={paneId} aria-label={tabName(label, badge)} title={label} tabIndex={on ? 0 : -1} onClick={() => onPane(id)}>
+            <button key={id} type="button" role="tab" id={`${paneId}-tab-${id}`} data-tour={`card-${id}`} className="world-activity-tab" aria-selected={on} aria-controls={paneId} aria-label={tabName(label, badge)} title={label} tabIndex={on ? 0 : -1} onClick={() => onPane(id)}>
               <span className="world-activity-icon">
                 <StrokeIcon size={20}>{ICONS[id]}</StrokeIcon>
                 {badge && <span className={'world-activity-badge' + (badge.text ? '' : ' dot') + (id === 'order' ? ' warn' : '')} aria-hidden="true">{badge.text}</span>}

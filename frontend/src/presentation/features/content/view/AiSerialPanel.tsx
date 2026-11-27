@@ -1,4 +1,4 @@
-import { useId, type KeyboardEvent } from 'react'
+import { useEffect, useEffectEvent, useId, type KeyboardEvent } from 'react'
 
 import { BOARD_STATUS, SERIAL_DAYS, SERIAL_DIRECTION_MAX } from '../../../../domain/entities/aiSerial'
 import type { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
@@ -14,9 +14,13 @@ const SUBS = [['settings', '연재 설정'], ['history', '게시판 기록']] as
  * 탭 제목(h2 'AI 집필')은 호출 측(WorkManagement)이 그린다. 서버가 없는 시연(목업)에서는 호출 측이 이 패널을 그리지 않는다.
  * 설정·기록·실행 결과는 모두 서버 응답 그대로이고(기록의 실패 사유도 서버 문구 그대로), 저장·실행의 거절은 서버 문구(또는 코드별 고정 문구)로 알린다.
  */
-export function AiSerialPanel({ workId, useCase, onOpenSettings }: { workId: string; useCase?: SerialUseCase; onOpenSettings?: () => void }) {
+export function AiSerialPanel({ workId, useCase, onOpenSettings, onLoaded }: { workId: string; useCase?: SerialUseCase; onOpenSettings?: () => void; onLoaded?: () => void }) {
   const vm = useAiSerialViewModel(workId, useCase)
   const { form, boards } = vm
+  // 설정을 처음 읽어 오면 호출 측에 알린다(작품 관리의 사용법 투어가 폼이 그려진 뒤에 시작한다). 읽기에 실패하면 알리지 않는다.
+  const loaded = useEffectEvent(() => onLoaded?.())
+  const read = !!form
+  useEffect(() => { if (read) loaded() }, [read])
   const saveWhy = useId()
   const runWhy = useId()
   /** 하위 탭의 방향키·Home·End로 탭을 옮긴다(소설 상세 탭과 같은 키 동작). 선택한 탭만 Tab 순서에 들어간다. */
@@ -51,7 +55,7 @@ export function AiSerialPanel({ workId, useCase, onOpenSettings }: { workId: str
         <>
           <div className='libtabs' role='tablist' aria-label='AI 집필 하위 탭' onKeyDown={moveSub}>
             {SUBS.map(([k, label]) => (
-              <button key={k} type='button' role='tab' id={'ai-stab-' + k} aria-selected={vm.sub === k} aria-controls='ai-spanel' tabIndex={vm.sub === k ? 0 : -1} className={vm.sub === k ? 'on' : ''} onClick={() => vm.setSub(k)}>{label}</button>
+              <button key={k} type='button' role='tab' id={'ai-stab-' + k} data-tour={k === 'history' ? 'manage-serial-history' : undefined} aria-selected={vm.sub === k} aria-controls='ai-spanel' tabIndex={vm.sub === k ? 0 : -1} className={vm.sub === k ? 'on' : ''} onClick={() => vm.setSub(k)}>{label}</button>
             ))}
           </div>
           <div id='ai-spanel' role='tabpanel' aria-labelledby={'ai-stab-' + vm.sub}>
@@ -66,7 +70,7 @@ export function AiSerialPanel({ workId, useCase, onOpenSettings }: { workId: str
                       {onOpenSettings && <button type='button' className='btn sm' onClick={onOpenSettings}>운영 설정 열기</button>}
                     </p>
                   )}
-                  <fieldset className='ep-serial-fields' disabled={!form.enabled}>
+                  <fieldset className='ep-serial-fields' data-tour='manage-serial-fields' disabled={!form.enabled}>
                     <form onSubmit={(event) => { event.preventDefault(); keepFocus(vm.save()) }}>
                       <fieldset disabled={vm.saving}>
                         <legend>연재 요일</legend>
