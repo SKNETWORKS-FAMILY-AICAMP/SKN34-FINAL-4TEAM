@@ -136,5 +136,5 @@
 .stage-compare-label { color: var(--tsub); font-size: 13px; font-weight: 700; }
 .stage-compare-text { max-height: 60vh; overflow: auto; padding: 12px 14px; border: 1px solid var(--tline); border-radius: 12px; background: var(--chat-card, var(--tcard)); font-family: var(--story); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
 .stage-compare-text:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
-.stage-compare-text mark { border-radius: 3px; background: color-mix(in srgb, var(--tacc) 24%, transparent); color: inherit; }
+.stage-compare-text :is(mark, .stage-compare-added) { border-radius: 3px; background: color-mix(in srgb, var(--tacc) 24%, transparent); color: inherit; }
 @media (max-width: 700px) { .stage-compare { grid-template-columns: 1fr; } .stage-compare-text { max-height: 40vh; } }
