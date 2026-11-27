@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { LazyManuscriptEditor as fakeEditor } from '../../../../test/manuscriptEditorFake'
+import { isTourSeen, markTourSeen } from '../../../shared/tour/tourPrefs'
+import { TourAutoStart } from '../../../shared/tour/useScreenTour'
 import { WritingStudio } from './WritingStudio'
 
 const model = vi.hoisted(() => ({
@@ -751,14 +753,14 @@ it('고급 패널은 기본 모드에서 숨겨지고 토글해도 같은 원고
   expect(screen.getByLabelText('원고 본문')).toBe(editor)
 })
 
-it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
+it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)과 사용법 버튼만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
   renderStudio()
   const bar = screen.getByRole('banner')
   expect(within(bar).getByRole('button', { name: '뒤로' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
   expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 버전 1')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
-  expect(names).toEqual(['뒤로', '기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
+  expect(names).toEqual(['뒤로', '사용법', '기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
   for (const name of ['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력']) {
     expect(within(bar).queryByRole('link', { name })).toBeNull()
@@ -768,6 +770,80 @@ it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장
   expect(model.save).toHaveBeenCalledTimes(1)
   fireEvent.click(versionsButton())
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
+})
+
+it('사용법 버튼은 쓰는 순서대로 투어(회차 목록 → 원고 → AI 채팅 → 버전 · 공개)를 시작하고, 쓸 수 없는 회차(원작 기준)에서는 쓰기 단계를 뺀다(#971)', async () => {
+  const first = renderStudio()
+  const help = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(help.disabled).toBe(false))
+  fireEvent.click(help)
+  expect((await screen.findByRole('dialog', { name: '회차 목록' })).querySelector('.tour-count')?.textContent).toBe('1 / 4')
+  for (const title of ['원고', 'AI 채팅', '버전 · 공개']) {
+    fireEvent.click(screen.getByRole('button', { name: '다음' }))
+    await screen.findByRole('dialog', { name: title })
+  }
+  expect(screen.getByRole('dialog').textContent).toContain('처음 열 때 안내가 한 번 더 나와요') // 두 패널의 투어가 따로 있다는 한 줄
+  first.unmount()
+  model.active = { ...originalActive, inherited: true }
+  renderStudio()
+  const again = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(again.disabled).toBe(false))
+  fireEvent.click(again)
+  expect((await screen.findByRole('dialog', { name: '회차 목록' })).querySelector('.tour-count')?.textContent).toBe('1 / 2')
+})
+
+/** 앱처럼 자동 시작을 켠 채 그린다(투어의 첫 진입·패널 열림 자동 시작을 보려면). 기억은 시험이 직접 넣는다. */
+const renderWithTours = () => render(<TourAutoStart.Provider value><WritingStudio id="work-id" /></TourAutoStart.Provider>, {
+  wrapper: ({ children }) => <Provider store={createAppStore({}, {})}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
+})
+const toursSeen = (...panels: string[]) => { localStorage.clear(); markTourSeen('studio'); panels.forEach((p) => markTourSeen('studio', p)) }
+afterEach(() => localStorage.clear())
+
+it('버전 · 공개 시트가 처음 열리면 시트 위에 그 시트의 투어가 저절로 뜨고, Esc는 시트가 아니라 투어만 닫는다(#971)', async () => {
+  toursSeen('chat')
+  renderWithTours()
+  await waitFor(() => expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(false))
+  expect(screen.queryByRole('dialog')).toBeNull() // 화면·채팅 투어는 이미 봤다
+  openVersions()
+  const tip = await screen.findByRole('dialog', { name: '저장 버전 고르기' }) // 시트(대화 상자)가 열려 있어도 그 시트 자신이라 막지 않는다
+  expect(tip.querySelector('.tour-count')?.textContent).toMatch(/^1 \/ \d$/)
+  await waitFor(() => expect(document.querySelector<HTMLElement>('.react-joyride__floater')?.style.opacity).toBe('1'))
+  fireEvent.keyDown(screen.getByRole('button', { name: /^(다음|완료)$/ }), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '저장 버전 고르기' })).toBeNull())
+  expect(isTourSeen('studio', 'versions')).toBe(true)
+  expect(screen.getByRole('navigation', { name: '버전 관리' })).toBeTruthy() // 시트는 그대로 열려 있다
+})
+
+it('버전 · 공개 시트를 설정 버전 이력으로 처음 열면 시트 투어가 뜨지 않고, 시트 안에서 원고 저장본 · 공개로 옮기면 그때 뜬다(#971)', async () => {
+  toursSeen('chat')
+  renderWithTours()
+  await waitFor(() => expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(false))
+  openMore()
+  fireEvent.click(screen.getByRole('menuitem', { name: '설정 버전 이력' }))
+  await screen.findByRole('region', { name: '설정 버전 이력' })
+  await act(async () => { await new Promise((r) => setTimeout(r, 80)) })
+  expect(screen.queryByRole('dialog', { name: '저장 버전 고르기' })).toBeNull()
+  expect(isTourSeen('studio', 'versions')).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '원고 저장본 · 공개' }))
+  await screen.findByRole('dialog', { name: '저장 버전 고르기' })
+})
+
+it('AI 채팅 패널이 처음 열리면 그 패널의 투어(요청 → 제안 → 승인)가 저절로 뜬다(#971)', async () => {
+  toursSeen('versions')
+  renderWithTours()
+  await waitFor(() => expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(false))
+  screen.queryByRole('button', { name: 'AI 채팅 열기' })?.click()
+  // 시뮬레이션 칩 단계는 빈 대화에서만 그려지는 칩을 짚는다: 서버가 없는 이 시험의 채팅에는 칩이 없어 그 단계가 빠진다(앵커는 ChatPanel.test가 본다).
+  const tip = await screen.findByRole('dialog', { name: '요청 → 제안 → 승인' })
+  expect(tip.querySelector('.tour-count')?.textContent).toBe('1 / 1')
+  expect(tip.textContent).toContain("'초안에 반영'")
+})
+
+it('저장 실패 같은 오류 문구가 있어도 사용법 버튼은 잠기지 않는다(오류가 지워질 때 작업 도중 투어가 시작되지 않게)', async () => {
+  model.error = '저장하지 못했어요'
+  renderStudio()
+  const help = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(help.disabled).toBe(false))
 })
 
 it('처리 중이거나 회차가 없으면 상단 바와 메뉴 항목을 기존 조건대로 잠근다', () => {

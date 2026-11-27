@@ -23,6 +23,8 @@ import { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCa
 import { stubCardCategories } from '../../../../test/cardCategories'
 import { LazyMarkdownEditor as fakeEditor } from '../../../../test/markdownEditorFake'
 import * as cardImports from '../../../shared/importCards'
+import { isTourSeen, markTourSeen } from '../../../shared/tour/tourPrefs'
+import { TourAutoStart } from '../../../shared/tour/useScreenTour'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { WorldStudioPage } from './WorldStudioPage'
 
@@ -55,6 +57,9 @@ vi.mock('react-force-graph-2d', () => import('../../../../test/forceGraphFake'))
 const prefs = vi.hoisted(() => ({ filter: { hiddenTypes: [] as string[], hiddenKinds: [] as string[] } as undefined | { hiddenTypes: string[]; hiddenKinds: string[] } }))
 vi.mock('../viewmodel/relationPrefs', async (original) => { const real = await original<typeof import('../viewmodel/relationPrefs')>(); return { ...real, loadFilter: (id: string) => (prefs.filter === undefined ? real.loadFilter(id) : prefs.filter) } })
 beforeEach(() => { localStorage.clear(); prefs.filter = { hiddenTypes: [], hiddenKinds: [] } })
+/** 사용법 투어(#971)의 자동 시작은 앱(App)만 켠다. 첫 진입 투어를 보는 시험만 true로 두고(`mount`가 읽는다) 끝나면 끈다. */
+let tours = false
+afterEach(() => { tours = false })
 // AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 이 화면이 넘기는 값·배너 연결·다시 읽은 뒤의 편집기만 본다.
 const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
 vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
@@ -178,13 +183,15 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
-    <Provider store={createAppStore({ role: 'user' })}>
-      <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
-        <Routes><Route path="/worldstudio/:worldId?" element={<WorldStudioPage />} /></Routes>
-        <Where />
-        <Back />
-      </MemoryRouter>
-    </Provider>,
+    <TourAutoStart.Provider value={tours}>
+      <Provider store={createAppStore({ role: 'user' })}>
+        <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
+          <Routes><Route path="/worldstudio/:worldId?" element={<WorldStudioPage />} /></Routes>
+          <Where />
+          <Back />
+        </MemoryRouter>
+      </Provider>
+    </TourAutoStart.Provider>,
   )
   return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage, deleteStudio }
 }
@@ -1067,6 +1074,141 @@ it('저장 버전이 0이어도 주소에 ?new=1이 없으면(서재 관리하�
   expect(saveStudio).toHaveBeenCalledOnce()
   expect(headerOf().getByText('저장 버전 1개')).toBeTruthy()
   expect(saveBar().queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장했으니 저장할 것이 없다
+})
+
+// ── 사용법 투어(#971): 보기(탭)별 투어와 설정 카드 편집 화면의 투어 ─────────────────────
+
+/** 사용법 버튼은 지금 보기(탭)의 투어를 연다. 첫 단계의 말풍선과 그 제목·단계 수를 돌려준다. */
+async function viewTour() {
+  fireEvent.click(screen.getByRole('button', { name: '사용법' }))
+  const tip = await screen.findByRole('dialog')
+  return { tip, title: tip.querySelector('h3')?.textContent, count: tip.querySelector('.tour-count')?.textContent }
+}
+/** 열린 투어를 다음 단계로 넘기고 그 단계의 말풍선을 돌려준다. */
+const nextStep = (title: string) => { fireEvent.click(screen.getByRole('button', { name: '다음' })); return screen.findByRole('dialog', { name: title }) }
+
+it('세계관 관리는 처음 열면 메뉴 소개(개요 → 설정집 → 관계도 → 시간선 → 소설 연결 → AI 검토 → 확정 버전)가 먼저 뜨고, 끝나면 지금 보기(설정집)의 투어가 이어진다(#971)', async () => {
+  tours = true
+  await show()
+  const intro = await screen.findByRole('dialog', { name: '개요' })
+  expect(intro.querySelector('.tour-count')?.textContent).toBe('1 / 7')
+  for (const title of ['설정집', '관계도', '시간선', '소설 연결', 'AI 검토', '확정 버전']) await nextStep(title)
+  expect(screen.getByRole('dialog').textContent).toContain('다른 보기도 처음 열면 안내가 나오고, 사용법 버튼으로 다시 볼 수 있어요')
+  fireEvent.click(screen.getByRole('button', { name: '완료' }))
+  const book = await screen.findByRole('dialog', { name: '새 설정 만들기' })
+  expect(book.querySelector('.tour-count')?.textContent).toBe('1 / 2')
+  expect(isTourSeen('world')).toBe(true)
+  expect(isTourSeen('world', 'book')).toBe(false)
+})
+
+it('설정집 보기의 사용법은 새 설정 만들기 → 설정 목록을 짚고, 소설을 연결한 세계관에는 공개 범위 한 번에 바꾸기가 더해진다(#971)', async () => {
+  await show()
+  const first = await viewTour()
+  expect({ title: first.title, count: first.count }).toEqual({ title: '새 설정 만들기', count: '1 / 2' }) // 소설을 연결하지 않으면 공개 범위 일괄 변경은 없다
+  expect(first.tip.textContent).toContain("'+ 새 설정'")
+  expect(first.tip.textContent).toContain("'다른 세계관에서 가져오기'")
+  cleanup()
+  await show(undefined, '/worldstudio/qa', { linkedWorkId: 'work-1' })
+  const linked = await viewTour()
+  expect(linked.count).toBe('1 / 3')
+  await nextStep('설정 목록')
+  const bulkTip = await nextStep('공개 범위 한 번에 바꾸기')
+  expect(bulkTip.textContent).toContain("'선택 공개'")
+  expect(bulkTip.textContent).toContain("'선택 비공개'")
+})
+
+it('개요 보기의 사용법은 공개 설정 → 표지(AI로 생성)를 짚는다(#971)', async () => {
+  await show(undefined, '/worldstudio/qa?view=overview')
+  const { tip, title, count } = await viewTour()
+  expect({ title, count }).toEqual({ title: '공개 설정', count: '1 / 2' })
+  expect(tip.textContent).toContain('확정 버전의 공개 설정만')
+  const cover = await nextStep('표지')
+  for (const word of ["'AI로 생성'", "'이 이미지 선택'", "'저장'"]) expect(cover.textContent).toContain(word)
+})
+
+it('시간선 보기의 사용법은 승인한 사건이 회차 순서로 놓이고 방향키로 사건 사이를 이동한다고 안내하며, 사건이 없어도 시작한다(#971)', async () => {
+  await show([person('가람'), eventCard('건국')])
+  fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
+  const { tip, title, count } = await viewTour()
+  expect({ title, count }).toEqual({ title: '사건 시간선', count: '1 / 1' })
+  expect(tip.textContent).toContain('승인한 사건 카드가 회차 순서로')
+  expect(tip.textContent).toContain('방향키(←→↑↓)로 사건 사이를 오가고')
+  cleanup()
+  await show([person('가람')]) // 승인한 사건이 하나도 없는 세계관: 빈 안내만 있어도 사용법이 열린다
+  fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
+  expect((await viewTour()).title).toBe('사건 시간선')
+})
+
+it('관계도 보기의 사용법은 관계 기준 회차 → 전체 관계도 → 그래프에서 만들기 → + 설정 추가 → 그래프 설정을 짚는다(#971)', async () => {
+  await show()
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+  const { tip, title, count } = await viewTour()
+  expect({ title, count }).toEqual({ title: '관계 기준 회차', count: '1 / 5' })
+  for (const word of ["'이 회차 관계 보기'", "'최신으로'"]) expect(tip.textContent).toContain(word)
+  const canvas = await nextStep('전체 관계도')
+  expect(canvas.textContent).toContain('더블클릭하면 그 설정의 편집 화면이 열려요')
+  const create = await nextStep('그래프에서 만들기')
+  for (const word of ['오른쪽 클릭', "'여기에 설정 추가'", "'관계 연결'", '길게 누르기']) expect(create.textContent).toContain(word)
+  await nextStep('+ 설정 추가')
+  const settings = await nextStep('그래프 설정')
+  expect(settings.textContent).toContain('중심 보기')
+})
+
+it('소설 연결 보기의 사용법은 소설 연결을 짚고, 갈라진 공개 Fork가 없으면 Fork 소설 단계는 빠진다(#971)', async () => {
+  await show()
+  fireEvent.click(manageTabs().getByRole('button', { name: '소설 연결' }))
+  const { tip, title, count } = await viewTour()
+  expect({ title, count }).toEqual({ title: '소설 연결', count: '1 / 1' })
+  expect(tip.textContent).toContain("'소설 연결하기'")
+})
+
+it('설정 카드 편집 화면은 처음 열면 메뉴 소개(개요 → 문서 → 관계 → 버전 → 공개 순서)가 먼저 뜨고, 끝나면 지금 화면(문서)의 투어가 이어진다(#971)', async () => {
+  tours = true
+  markTourSeen('world')
+  markTourSeen('world', 'book')
+  await show([person('가람')])
+  openCard('가람 인물')
+  const intro = await screen.findByRole('dialog', { name: '개요' })
+  expect(intro.querySelector('.tour-count')?.textContent).toBe('1 / 5')
+  for (const title of ['문서', '관계', '버전', '공개 순서']) await nextStep(title)
+  expect(screen.getByRole('dialog').textContent).toContain('다른 탭도 처음 열면 안내가 나오고, 사용법 버튼으로 다시 볼 수 있어요')
+  fireEvent.click(screen.getByRole('button', { name: '완료' }))
+  const doc = await screen.findByRole('dialog', { name: '설정 링크' })
+  expect(doc.querySelector('.tour-count')?.textContent).toBe('1 / 2') // 인물 문서가 비어 있어 원고로 채우기 제안 단계가 이어진다
+  expect(isTourSeen('card')).toBe(true)
+  expect(isTourSeen('card', 'doc')).toBe(false)
+})
+
+it('설정 카드 편집 화면의 사용법은 처음 화면(문서)의 투어를 연다: 설정 링크, 비어 있는 인물 문서에는 원고로 채우기 제안이 더해진다(#971)', async () => {
+  await show([person('가람')])
+  openCard('가람 인물')
+  const { tip, title, count } = await viewTour()
+  expect({ title, count }).toEqual({ title: '설정 링크', count: '1 / 2' })
+  expect(tip.textContent).toContain("'설정 링크'")
+  expect((await nextStep('원고로 채우기 제안')).textContent).toContain('연결된 소설 원고에서')
+  cleanup()
+  await show([person('가람', '이미 쓴 본문')]) // 문서가 채워져 있으면 채우기 제안 단계는 없다
+  openCard('가람 인물')
+  expect((await viewTour()).count).toBe('1 / 1')
+})
+
+it('설정 카드의 개요·관계·버전·공개 순서 화면 사용법은 그 화면의 차별점을 짚는다(#971)', async () => {
+  await show([person('가람')])
+  openCard('가람 인물')
+  const run = async (tab: string, first: string, count: string) => {
+    openPane(tab)
+    const result = await viewTour()
+    expect({ title: result.title, count: result.count }).toEqual({ title: first, count })
+    fireEvent.click(screen.getByRole('button', { name: '투어 닫기' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    return result.tip
+  }
+  const reach = await run('개요', '공개 범위', '1 / 2')
+  expect(reach.textContent).toContain('N화부터')
+  await run('관계', '관계 편집', '1 / 2')
+  await run('버전', '확정 버전 남기기', '1 / 2')
+  const order = await run('공개 순서', '공개 순서 확인', '1 / 1')
+  expect(order.textContent).toContain('저장은 막지 않아요')
 })
 
 it('처음 저장하면 관리 모드로 바뀌고 초점이 헤더 제목으로 간다', async () => {

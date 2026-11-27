@@ -10,9 +10,15 @@ it('온보딩 단계 목록의 바로가기는 시트의 링크 규칙(--pri-ink
   expect(body).toContain('text-decoration:underline')
 })
 
-// 좁은 화면에서 .rowend가 줄을 바꿔도 '다시 보지 않기' 설명이 버튼에서 떨어져 건너뛰기 옆으로 가지 않게, 둘을 한 묶음으로 두고 묶음 안에서 줄을 바꾼다(#961).
-it('다시 보지 않기 묶음은 안에서 줄바꿈하는 inline-flex다', () => {
-  const body = css.match(/\.onb-dismiss\{([^}]*)\}/)?.[1] ?? ''
-  expect(body).toContain('display:inline-flex')
+// 바로가기 글이 줄 끝에서 '홈 / 목록 보기'처럼 갈라지지 않게 한 덩어리로 두고, 단계 제목은 한 줄을 차지해 훑어보기 쉽게 한다(UX 개선).
+it('바로가기는 줄바꿈하지 않고 단계 제목은 한 줄을 차지한다', () => {
+  expect(css.match(/\.onb-steps a\{([^}]*)\}/)?.[1] ?? '').toContain('white-space:nowrap')
+  expect(css.match(/\.onb-steps b\{([^}]*)\}/)?.[1] ?? '').toContain('display:block')
+})
+
+// 아래 줄은 왼쪽에 '다음부터 보지 않기' 선택, 오른쪽 끝에 주 버튼이다. 좁으면 줄을 바꾸되 주 버튼은 오른쪽에 남는다.
+it('아래 줄은 선택과 주 버튼을 양 끝에 둔다', () => {
+  const body = css.match(/\.onb-foot\{([^}]*)\}/)?.[1] ?? ''
+  expect(body).toContain('justify-content:space-between')
   expect(body).toContain('flex-wrap:wrap')
 })

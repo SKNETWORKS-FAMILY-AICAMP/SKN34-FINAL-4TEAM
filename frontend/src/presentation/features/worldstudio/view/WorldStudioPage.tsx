@@ -14,6 +14,7 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ManageMenu } from '../../../shared/shell/ManageMenu'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { labelOf } from '../viewmodel/settingBoard'
@@ -43,6 +44,45 @@ import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
+// 사용법 투어(#971)의 화면 투어(첫 진입 1회, 메뉴 소개): 관리 모드 사이드바의 보기 버튼(data-tour="world-<보기>")과 도구 버튼으로 무엇을 하는 곳인지 한 문장씩 알린다. 접힌 사이드바의 대상은 보이지 않아 단계에서 빠진다. 사용법 버튼은 이것이 아니라 지금 보기의 투어를 연다.
+const tour: TourStep[] = [
+  { target: 'world-overview', title: '개요', text: '세계관 이름·설명·공개 설정·표지를 고치고 현황을 봐요. 표지는 AI로 만들 수도 있어요.' },
+  { target: 'world-book', title: '설정집', text: '설정 카드를 만들고 분류해요. 소설을 연결한 세계관은 카드마다 몇 화부터 공개할지 정해요.' },
+  { target: 'world-people', title: '관계도', text: '설정 사이의 관계를 한 그래프에서 보고 만들어요. 관계는 회차별로 기록돼요.' },
+  { target: 'world-timeline', title: '시간선', text: '승인한 사건 카드를 회차 순서로 가로 시간축에 놓아 보여요.' },
+  { target: 'world-novel', title: '소설 연결', text: '이 세계관을 소설 하나와 1:1로 연결해요. 연결된 소설과 그 Fork 소설도 여기서 봐요.' },
+  { target: 'world-review', title: 'AI 검토', text: 'AI는 검토와 제안만 하고, 설정에 반영하는 건 내가 해요.' },
+  { target: 'world-versions', title: '확정 버전', text: '독자에게는 확정한 버전만 보여요. 저장하지 않은 변경이 있으면 먼저 저장해야 해요. 다른 보기도 처음 열면 안내가 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
+]
+
+// 보기별 사용법 투어(#971): 보기(탭)에 처음 들어갈 때(화면 투어 다음) 그 보기의 우리만의 기능과 쓰는 법을 짚는다. 대상은 data-tour="world-<보기>-<이름>"이고, 사용법 버튼은 지금 보기의 투어를 연다.
+// 소설을 연결하지 않은 세계관의 공개 범위 일괄 변경·갈라진 Fork가 없는 소설 연결처럼 화면에 없는 대상의 단계는 빠진다.
+const tabTours: Record<string, TourStep[]> = {
+  overview: [
+    { target: 'world-overview-publish', title: '공개 설정', text: '세계관을 공개·비공개로 정하고 장르를 골라요. 공개 화면에는 확정 버전의 공개 설정만, 연결한 소설이 발행한 회차까지 보여요. 저장해야 적용돼요.' },
+    { target: 'world-overview-cover', title: '표지', text: "표지는 '이미지 선택'으로 올리거나 'AI로 생성'으로 만들어요. 생성한 결과는 '이 이미지 선택'을 누른 뒤 '저장'해야 표지가 돼요." },
+  ],
+  book: [
+    { target: 'world-book-tools', title: '새 설정 만들기', text: "'+ 새 설정'에서 인물·장소·사건 같은 유형을 고르면 새 카드의 편집 화면이 열려요. '다른 세계관에서 가져오기'로 카드를 복사해 올 수도 있어요." },
+    { target: 'world-book-list', title: '설정 목록', text: "줄을 누르면 미리보기가 열리고, '수정하기'로 카드 작성 화면(문서·개요·관계·버전·공개 순서)을 열어요." },
+    { target: 'world-book-bulk', title: '공개 범위 한 번에 바꾸기', text: "카드를 골라 일괄 공개 회차(N화부터)를 넣고 '선택 공개'를, 숨기려면 '선택 비공개'를 눌러요. 소설을 연결한 세계관에서만 보이고, 저장한 뒤 확정 버전을 남겨야 독자에게 반영돼요." },
+  ],
+  people: [
+    { target: 'world-people-episode', title: '관계 기준 회차', text: "관계는 '시작 회차'와 함께 기록돼요. 회차를 넣고 '이 회차 관계 보기'를 누르면 그 회차 시점의 관계가 보이고, '최신으로'로 돌아와요." },
+    { target: 'world-people-canvas', title: '전체 관계도', text: '설정 카드와 관계가 한 그래프에 모두 보여요. 노드를 누르면 그 설정과 이웃이 강조되고, 더블클릭하면 그 설정의 편집 화면이 열려요.' },
+    // 바로 앞 단계와 같은 대상이면 joyride가 말풍선을 다시 띄우지 않아(불투명도 0) 캔버스 아래 조작 안내 줄을 짚는다.
+    { target: 'world-people-hint', title: '그래프에서 만들기', text: "빈 곳이나 노드를 오른쪽 클릭하면 메뉴가 열려요(터치는 길게 누르기). 빈 곳은 '여기에 설정 추가', 노드는 '관계 연결'을 골라 상대 노드를 누르면 관계 작성 시트가 열려요." },
+    { target: 'world-people-add', title: '+ 설정 추가', text: "왼쪽 위 '+ 설정 추가'로도 새 설정을 캔버스에 바로 더해요." },
+    { target: 'world-people-settings', title: '그래프 설정', text: '톱니 버튼에서 화면 맞춤·배치 정돈, 설정 찾기와 유형·관계 종류 필터, 중심 보기를 써요.' },
+  ],
+  timeline: [
+    { target: 'world-timeline-board', title: '사건 시간선', text: '승인한 사건 카드가 회차 순서로 가로 시간축에 놓여요. 방향키(←→↑↓)로 사건 사이를 오가고 Enter로 고르면 내용과 관련 설정이 보여요.' },
+  ],
+  novel: [
+    { target: 'world-novel-link', title: '소설 연결', text: "세계관은 소설 하나에만 연결돼요. '소설 연결하기'로 내 소설을 고르고, 연결한 뒤에는 '소설 작성하기'로 그 작품 관리로 가요." },
+    { target: 'world-novel-forks', title: 'Fork 소설', text: '연결한 소설에서 갈라진 공개 Fork 소설을 모아 봐요. 회차를 하나 이상 발행한 공개 Fork만 보여요.' },
+  ],
+}
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 
 /**
@@ -259,12 +299,15 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
             </>
           )}
         >
+          {/* 첫 렌더는 목록 단계라 이 구역이 hidden이다: 편집 화면이 보일 때 시작해야 대상이 잡힌다(jsdom은 checkVisibility가 없어 브라우저에서만 재현). */}
+          <ScreenTour screen="world" steps={tour} tabs={tabTours} tab={vm.view} ready={vm.flow.screen === 'editor'} className="btn sm weak tour-side" />
           <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
+                  data-tour={`world-${id}`}
                   aria-current={vm.view === id ? 'page' : undefined}
                   onClick={(e) => {
                     // 900px 이하의 가로 스크롤 줄에서 가장자리에 잘린 메뉴를 눌러도 그 버튼이 줄 안에 다 보이게 옆으로만 옮긴다(세로는 위 effect가 내용 카드 머리로 옮긴다).
@@ -319,7 +362,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           {view === 'novel' && <WorldNovelTab vm={vm} />}
           <div hidden={manage ? view !== 'book' : step !== 'cards'}><WorldCardBoard vm={vm} onPreviewEdit={onPreviewEdit} /></div>
           {timeline && (
-            <section className="world-confirmed" aria-label="시간선">
+            <section className="world-confirmed" aria-label="시간선" data-tour="world-timeline-board">
               <h3>저장된 시간선</h3>
               <WorldTimeline settings={vm.saved?.settings ?? []} onOpenCard={vm.editCard} />
             </section>
@@ -354,7 +397,7 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
   const why = !supported ? '목업에서는 확정 버전을 지원하지 않아요.' : vm.dirty || vm.relationDirty ? '저장하지 않은 변경이 있어요. 먼저 세계관을 저장하세요.' : vm.sealIssues[0]?.message ?? ''
   return (
     <>
-      <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
+      <button type="button" className="btn sm" data-tour="world-versions" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
       {why && <span id={reason} className="small muted">{why}</span>}
     </>
   )
