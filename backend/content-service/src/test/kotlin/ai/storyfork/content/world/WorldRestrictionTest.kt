@@ -1,6 +1,8 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.controller.InternalWorldStudioController
 import ai.storyfork.content.world.service.InternalWorldStudioService
@@ -38,7 +40,8 @@ class WorldRestrictionTest {
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = InternalWorldStudioService(worlds, revisions, drafts, links, manager)
+    private val outbox = mock(ContentEventOutboxRepository::class.java)
+    private val service = InternalWorldStudioService(worlds, revisions, drafts, links, outbox, manager)
     private val t0 = Instant.parse("2026-11-01T00:00:00Z")
 
     private fun world(visibility: String = "public", genre: String? = "genre-01", saved: UUID? = null, at: Instant = t0, restricted: Boolean = false) =
@@ -79,7 +82,50 @@ class WorldRestrictionTest {
         `when`(worlds.lockLive(id)).thenReturn(null)
 
         assertEquals(404, failure { service.restrict(id, true) }.status)
-        verifyNoInteractions(links)
+        verifyNoInteractions(links, outbox)
+    }
+
+    /** 저장소에 건넨 outbox 행이다(세계관 제한이 커밋된 뒤 쓰는 운영자 조치 알림 사건). */
+    private fun saved() = mockingDetails(outbox).invocations.filter { it.method.name == "save" }.map { it.arguments[0] as ContentEventOutboxEntity }
+
+    @Test fun `restrict and unrestrict record one operator event for the world owner only when the flag really changes`() {
+        val row = world()
+        `when`(worlds.lockLive(row.id)).thenReturn(row)
+        `when`(drafts.findAllById(listOf(row.id))).thenReturn(listOf(WorldDraft(row.id, "용의 땅")))
+
+        service.restrict(row.id, false) // 이미 해제 상태
+        service.restrict(row.id, true)
+        service.restrict(row.id, true) // 멱등 재요청
+        service.restrict(row.id, false)
+
+        val events = saved()
+        assertEquals(listOf("content.operator.world-restricted", "content.operator.world-unrestricted"), events.map { it.type })
+        assertEquals(listOf(row.ownerSubject.toString(), row.ownerSubject.toString()), events.map { it.recipientId })
+        assertEquals(listOf("world" to row.id.toString(), "world" to row.id.toString()), events.map { it.targetType to it.targetId })
+        assertEquals(listOf("용의 땅", "용의 땅"), events.map { it.detailTitle })
+        assertEquals(listOf(null, null), events.map { it.detailEpisode })
+    }
+
+    @Test fun `a failed event write does not fail a restriction that is already committed`() {
+        val row = world()
+        `when`(worlds.lockLive(row.id)).thenReturn(row)
+        `when`(drafts.findAllById(listOf(row.id))).thenReturn(listOf(WorldDraft(row.id, "용의 땅")))
+        `when`(outbox.save(any(ContentEventOutboxEntity::class.java) ?: ContentEventOutboxEntity())).thenThrow(IllegalStateException("db down"))
+
+        assertTrue(service.restrict(row.id, true).restricted)
+        assertTrue(row.restricted)
+    }
+
+    @Test fun `the event is recorded even when the linked-work lookup fails after the commit, so a retry cannot lose it`() {
+        val row = world()
+        `when`(worlds.lockLive(row.id)).thenReturn(row)
+        `when`(drafts.findAllById(listOf(row.id))).thenReturn(listOf(WorldDraft(row.id, "용의 땅")))
+        `when`(links.linkedWorkIds(listOf(row.id))).thenThrow(IllegalStateException("content db down"))
+
+        assertThrows(IllegalStateException::class.java) { service.restrict(row.id, true) }
+
+        assertTrue(row.restricted)
+        assertEquals(listOf("content.operator.world-restricted"), saved().map { it.type })
     }
 
     @Test fun `the public list queries leave out restricted worlds and the live lookup leaves out deleted ones`() {
