@@ -5,7 +5,7 @@ import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 import { boardKindCounts, boardRows, BOOK_SORTS, type CardKind } from '../../../shared/worldBoard'
 import { useCardCategories } from '../../../shared/useCardCategories'
 import { pageItems } from '../../../shared/pageItems'
-import { settingBoardEntries } from './settingBoard'
+import { settingBoardEntries } from '../../../shared/settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
 type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'cardQuery' | 'setCardQuery' | 'review' | 'linkedWorkId'>

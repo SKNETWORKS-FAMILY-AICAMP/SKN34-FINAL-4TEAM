@@ -12,7 +12,7 @@ import { kindOf, type BoardRow } from '../../../shared/worldBoard'
 import { cardRelationEntries } from '../viewmodel/cardRelationEntries'
 import { revealBadge } from '../viewmodel/cardVisibility'
 import { KNOWLEDGE_KINDS } from '../viewmodel/relationView'
-import { useCardImageUrl, type CardImages } from '../viewmodel/useCardImages'
+import { useCardImageUrl, type CardImages } from '../../../shared/useCardImages'
 import '../../reading/view/publicWiki.css'
 
 /** 정보 상자의 대표 이미지: 읽는 동안·읽지 못하면 비워 둔다(CSS가 이미지 없는 행을 감춘다. 이유는 편집 화면의 개요가 알린다). */

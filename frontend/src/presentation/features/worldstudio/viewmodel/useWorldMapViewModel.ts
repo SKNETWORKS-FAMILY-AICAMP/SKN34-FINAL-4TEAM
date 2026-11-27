@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { CardType } from '../../../../domain/entities/studioCards'
-import { summaryOf } from './settingBoard'
+import { summaryOf } from '../../../shared/settingBoard'
 
 export const mapColors = { 인물:'#7960c7', 장소:'#328a7d', 조직:'#527daf', 규칙:'#a16c20', 사건:'#b45f86', 관계:'#93617d', 설정:'#64748b' }
 export type MapKind = keyof typeof mapColors

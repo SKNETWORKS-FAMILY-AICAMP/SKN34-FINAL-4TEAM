@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { cardTypePatch, type CardType } from '../../../../domain/entities/studioCards'
-import { putRelation } from '../../../../domain/entities/studioRelations'
-import { newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
-import { boardKindCounts, boardRows } from '../../../shared/worldBoard'
+import { cardTypePatch, type CardType } from '../../domain/entities/studioCards'
+import { putRelation } from '../../domain/entities/studioRelations'
+import { newSetting, type StudioSetting } from '../../domain/entities/studioWorld'
+import { boardKindCounts, boardRows } from './worldBoard'
 import { labelOf, settingBoardEntries, settingLinks } from './settingBoard'
-import type { CardCategory } from '../../../../domain/entities/cardCategory'
+import type { CardCategory } from '../../domain/entities/cardCategory'
 
 const card = (title: string, type: CardType, text = ''): StudioSetting => {
   const s = newSetting()

@@ -772,13 +772,13 @@ it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
 })
 
-it('사용법 버튼은 쓰는 순서대로 투어(회차 목록 → 원고 → AI 채팅 → 버전 · 공개)를 시작하고, 쓸 수 없는 회차(원작 기준)에서는 쓰기 단계를 뺀다(#971)', async () => {
+it('사용법 버튼은 쓰는 순서대로 투어(왼쪽 메뉴 → 회차 목록 → 원고 → AI 채팅 → 버전 · 공개)를 시작하고, 쓸 수 없는 회차(원작 기준)에서는 쓰기 단계를 뺀다(#971·#986)', async () => {
   const first = renderStudio()
   const help = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
   await waitFor(() => expect(help.disabled).toBe(false))
   fireEvent.click(help)
-  expect((await screen.findByRole('dialog', { name: '회차 목록' })).querySelector('.tour-count')?.textContent).toBe('1 / 4')
-  for (const title of ['원고', 'AI 채팅', '버전 · 공개']) {
+  expect((await screen.findByRole('dialog', { name: '왼쪽 메뉴' })).querySelector('.tour-count')?.textContent).toBe('1 / 5')
+  for (const title of ['회차 목록', '원고', 'AI 채팅', '버전 · 공개']) {
     fireEvent.click(screen.getByRole('button', { name: '다음' }))
     await screen.findByRole('dialog', { name: title })
   }
@@ -789,7 +789,7 @@ it('사용법 버튼은 쓰는 순서대로 투어(회차 목록 → 원고 → 
   const again = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
   await waitFor(() => expect(again.disabled).toBe(false))
   fireEvent.click(again)
-  expect((await screen.findByRole('dialog', { name: '회차 목록' })).querySelector('.tour-count')?.textContent).toBe('1 / 2')
+  expect((await screen.findByRole('dialog', { name: '왼쪽 메뉴' })).querySelector('.tour-count')?.textContent).toBe('1 / 3')
 })
 
 /** 앱처럼 자동 시작을 켠 채 그린다(투어의 첫 진입·패널 열림 자동 시작을 보려면). 기억은 시험이 직접 넣는다. */

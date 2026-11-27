@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 import { PlusIcon } from '../../../shared/icons'
-import { useCardImageUrl, type CardImages } from '../viewmodel/useCardImages'
+import { useCardImageUrl, type CardImages } from '../../../shared/useCardImages'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>

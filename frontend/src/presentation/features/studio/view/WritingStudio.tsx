@@ -51,6 +51,8 @@ import { VersionGraph } from './VersionGraph'
 import { LazyManuscriptEditor } from './LazyManuscriptEditor'
 import type { ManuscriptEditorHandle } from './ManuscriptEditor'
 import { ResizeSeparator } from './ResizeSeparator'
+import { StudioBookDetail, StudioBookList, StudioBookNote, StudioMenu } from './StudioWorldBook'
+import { useStudioWorldBookViewModel } from '../viewmodel/useStudioWorldBookViewModel'
 import './version-panels.css'
 
 // AI 채팅 빈 상태의 추천 칩. 누르면 입력창에 글만 채운다.
@@ -58,6 +60,7 @@ const chatSuggestions=['다음 장면 아이디어','이 회차 요약','문장 
 
 // 사용법 투어(#971)의 화면 투어(첫 진입 1회, 사용법 버튼도 이것): 쓰는 순서대로. 열린 회차가 없거나 잠긴(원작 기준·AI 자율 연재·운영자 열람) 화면에서는 쓸 수 없는 단계의 대상(data-tour)이 그려지지 않아 단계에서 빠진다.
 const tour:TourStep[]=[
+  {target:'studio-rail',title:'왼쪽 메뉴',text:'회차 목록과 이 소설에 연결한 세계관의 설정집을 오가며 볼 수 있고, 설정집은 읽기만 해서 쓰던 원고는 그대로 있어요.'},
   {target:'studio-episodes',title:'회차 목록',text:'왼쪽 목록에서 쓸 회차를 골라요. 위의 새 회차 버튼으로 다음 회차를 만들고, 회차마다 ⋮ 메뉴에서 회차 설정·체크포인트·발행 이력을 열어요.'},
   {target:'studio-editor',title:'원고',text:'제목과 본문을 여기서 써요. 입력을 멈추면 2초 뒤 초안만 저장돼요.'},
   {target:'studio-chat',title:'AI 채팅',text:'AI의 제안은 내가 승인해야 원고에 들어가요.'},
@@ -199,6 +202,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [sendNote,setSendNote]=useState('')
   const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied,undefined,getPage,plans.reloadAfterAi)
   const stage=useSimulationStageViewModel(chat)
+  // 왼쪽 메뉴의 설정집 보기(#986): 연결된 세계관의 설정 카드를 읽기만 한다. 상세는 가운데 원고 자리를 차지하되 편집기는 숨기기만 한다. 소설의 마지막 회차는 지금 읽은 회차 목록에서 구한다.
+  const book=useStudioWorldBookViewModel({link:worldLink,episodeLimit:vm.ready?Math.max(0,...vm.episodes.map(e=>e.number)):undefined,onOpenCard:stage.hide})
   const [setupVersion,setSetupVersion]=useState(0)
   const [stageVisited,setStageVisited]=useState(false)
   useEffect(()=>{if(stage.open)setStageVisited(true)},[stage.open])
@@ -212,7 +217,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const stageHeading=useRef<HTMLHeadingElement>(null)
   const [stageFocus,setStageFocus]=useState(0)
   useEffect(()=>{if(stageFocus)stageHeading.current?.focus()},[stageFocus])
-  const openStage=(form=false)=>{setSetupVersion(n=>n+1);stage.show(form);setStageFocus(n=>n+1)}
+  const openStage=(form=false)=>{book.closeCard();setSetupVersion(n=>n+1);stage.show(form);setStageFocus(n=>n+1)}
   const closeStage=()=>{stage.hide();stageButton.current?.focus()}
   const historyLabel={
     versions:'원고 저장본 · 공개',
@@ -298,12 +303,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {settings.isError&&vm.ready&&!vm.error&&<div className="ep-alert" role="status">집필 방식을 불러오지 못했어요.<button type="button" className="btn sm" onClick={settings.retry}>다시 불러오기</button></div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
-      <div className="writing-rail" data-tour="studio-episodes">
+      <div className="writing-side">
+      <StudioMenu book={book}/>
+      <div className="writing-rail" data-tour="studio-episodes" hidden={book.view==='book'}>
         <div className="writing-rail-head">
           <h2>회차</h2>
           {/* 서버가 빈 제목을 거부하므로(UseCase·@NotBlank) 제목 없이 만들 때는 기본 제목을 넘긴다. 제목은 편집기 첫 줄에서 바꾼다. */}
           <button type="button" className="writing-icon-btn" aria-label="새 회차" title={newLocked?SERIAL_LOCK_NOTICE:'새 회차'} disabled={vm.busy||newLocked||viewOnly} onClick={async()=>{if(await vm.create('새 회차')){setRights(false);setSelection({episode:0,id:''})}}}><ComposeIcon /></button>
         </div>
+        <StudioBookNote book={book} workId={id} viewOnly={viewOnly}/>
         <div className="writing-rail-split">
           <nav ref={list} id={listId} className="seps writing-episodes" aria-label="회차 목록" style={active?{flexBasis:`${split}%`}:undefined}>
             {vm.episodes.map(e=>{
@@ -337,11 +345,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
           </>}
         </div>
       </div>
+      {book.opened&&<StudioBookList book={book} hidden={book.view!=='book'}/>}
+      </div>
       {/* 시뮬레이션 무대가 열려 있는 동안은 편집기 자리를 대신한다. 편집기는 숨기기만 해 입력·되돌리기 기록을 지킨다. */}
       {(stage.open||stageVisited)&&<SimulationStage hidden={!stage.open} plansVersion={plans.version+setupVersion} startBlocker={startBlocker} stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
         plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
-      <div className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open}>
+      {/* 설정집 상세(#986)도 편집기 자리를 대신하되 편집기는 숨기기만 한다(저장하지 않은 입력·자동 저장을 지킨다). 무대가 열려 있으면 무대가 먼저다. */}
+      {!stage.open&&<StudioBookDetail book={book}/>}
+      <div className="editor writing-editor" data-tour={writable?'studio-editor':undefined} hidden={stage.open||!!book.card}>
         {active?<>
           {active.hasDraft===false&&!viewOnly&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
           <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked||frozen||viewOnly} onChange={e=>vm.edit({title:e.target.value})}/>
