@@ -5,9 +5,15 @@ from langfuse import Langfuse
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from app import tracing
+from app import agent_runtime, tracing
 
 _keys = count()
+
+
+@pytest.fixture(autouse=True)
+def no_retry_wait(monkeypatch):
+    """일시 장애 재시도(DEC-61)의 1초 대기를 테스트에서 건너뛴다."""
+    monkeypatch.setattr(agent_runtime, 'sleep', lambda seconds: None)
 
 
 @pytest.fixture

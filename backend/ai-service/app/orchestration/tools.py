@@ -4,6 +4,7 @@
 외부 전송 동의는 도구가 Content가 확인한 상태(바깥 그래프 상태 = 실행 context, 메인 에이전트 상태의 inputs·retrievalScope)에서 읽는다.
 모델이 만든 ID·문구는 인가 근거가 아니다. 결과는 단계(steps[])에 기능·상태·원본 결과로 남기고, ToolMessage의 content는 메인 에이전트가
 읽을 요약 JSON, artifact는 원본 결과다. 기능 실패는 `[실패] <기능>: <고정 문구>`와 단계 failed, 조건이 거짓이면 skipped다.
+업무 Agent의 출력 문제(502, `error.retry == 'output'`)는 그 업무를 같은 입력으로 한 번 더 부르고 진행 목록에 보인다(DEC-61). 두 번째 실패는 단계 실패다.
 
 작가 입력이 빠지면 도구 안에서 interrupt({steps, missingInputs})로 멈춘다(기존 waiting·resume 계약). interrupt 앞에는 부수효과를 두지 않는다
 (resume 때 그 도구 호출만 처음부터 다시 실행된다). 대화가 없으면 멈출 수 없어 needs_input, 작가가 거절하면 cancelled로 남은 호출을 막는다.
@@ -60,6 +61,7 @@ HISTORY_TURNS = 5
 GUARD_TURNS, GUARD_REPLY = 3, 300  # Decision Guard가 받는 이전 턴 수와 답변 앞부분 글자 수(#781). 판정 입력을 짧게 두어 끌려감·지연을 줄인다
 FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
             WorldReviewFailure, RatingFailure)
+OUTPUT_RETRY = '출력 문제'  # 출력 문제를 같은 입력으로 다시 부를 때 진행 목록 대상(DEC-61)
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 NO_QA_TARGET = '질문할 작품과 회차를 확인할 수 없어요.'
 NO_PUBLISHED = '발행한 회차가 없어 원고는 근거로 쓰지 않았어요. 세계관 설정만 봤어요.'
@@ -273,7 +275,16 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
         ran = True
         agent_runtime.report(line, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
         with tracing.observe(f'step.{feature}', as_type='agent'):
-            step.update(status='completed', result=call(read, scope).model_dump(mode='json'))
+            try:
+                result = call(read, scope)
+            except FAILURES as error:
+                # 출력 문제(스키마 위반·잘림·빈 응답)는 같은 입력으로 한 번만 더 부른다(DEC-61). 메인 에이전트에게 다시 부르게 하면
+                # 지시문 규칙 5(같은 도구를 다시 부르지 않는다)와 부딪쳐 실모델에서 미완료로 끝났다(2026-11-26 E2E).
+                if getattr(error, 'retry', None) != 'output':
+                    raise
+                with agent_runtime.activity(agent_runtime.RETRY_LABEL, OUTPUT_RETRY):
+                    result = call(read, scope)
+            step.update(status='completed', result=result.model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)

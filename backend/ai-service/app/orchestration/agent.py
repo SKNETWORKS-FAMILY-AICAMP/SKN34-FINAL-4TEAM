@@ -1,6 +1,6 @@
 """메인 에이전트(#473): LangChain `create_agent` 하나가 요청 해석·호출 순서·서브 에이전트 호출·답변 종합을 맡는다.
 
-모델은 `ChatOpenAI`(Responses API, store=False, reasoning_effort=high(#619), 자동 재시도 없음, 병렬 도구 호출 켬)이며 도구는 판정된 기능의 `ask_*`뿐이다.
+모델은 `ChatOpenAI`(Responses API, store=False, reasoning_effort=high(#619), SDK 숨은 재시도 없음, 병렬 도구 호출 켬)이며 도구는 판정된 기능의 `ask_*`뿐이다.
 Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 해당하지 않는 간단한 작업용 Content MCP 도구 10개(`mcp_tools.py`, #554: 읽기 6 자동·쓰기 4 작가 승인 뒤 실행)가
 있다. 선택지로 되묻는 `ask_author`(#794)는 기능과 무관하게 노출하고 도구 한도에 세지 않으며, 부르면 남은 호출 없이 clarify로 끝난다.
 모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
@@ -16,13 +16,14 @@ Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 �
   `ModelCallLimitMiddleware`(라이브러리): 메인 모델 호출 8회(2026-11-17 5회 → #554에서 올림).
   재개(resume) 뒤에도 세도록 체크포인트에 남는 thread 한도를 쓴다. 메인 에이전트 상태는 턴마다 새로 시작한다.
 - `MainModelMiddleware`: 메인 모델 호출을 Langfuse `main_agent` generation으로 남기고, 제공사 오류·전송 끊김·잘린 응답은 끝낸 단계를 보존한 채
-  고정 실패 문구로 끝낸다(예외로 올리면 단계 결과를 잃는다).
+  고정 실패 문구로 끝낸다(예외로 올리면 단계 결과를 잃는다). 일시 장애(연결 끊김·시간 초과·429·5xx)만 쓰던 답을 버리고 1초 뒤 한 번 다시 부른다(DEC-61).
 - `AnswerStream`: 메인 모델이 쓰는 답변 본문 조각을 custom stream으로 흘린다(#618, SSE `answer`). 이 모델에만 단 콜백이라
   업무 Agent 호출은 스트리밍으로 바뀌지 않는다(`stream_mode='messages'`는 하위 모델 호출까지 바꿔 쓰지 않는다).
 """
 
 import operator
 import os
+from asyncio import sleep
 from typing import Annotated, Any, NotRequired
 
 import httpx2
@@ -49,6 +50,8 @@ MODEL_CALLS = 8  # 메인 모델 호출 상한(턴당). 마지막 호출은 도�
 TOOL_CALLS = 3  # 서브 에이전트 호출 상한(턴당). 기능마다 1회다.
 RESUME_SCOPE = 'resume_scope'  # 쓰기 승인 이어가기 요청이 설정으로 넘기는 새 조회 토큰(#678). dict라 체크포인트 metadata에 남지 않는다
 RESEARCH_CALLS = 2  # ask_research만 턴당 2회: 웹 고증과 공개 세계관 참고를 한 턴에 함께 한다(#640, 같은 task 중복은 막지 않는다)
+# 메인 모델의 일시 장애: 제공사 일시 오류에 더해 스트림을 읽던 중의 끊김·조각 시간 초과도 SDK가 감싸지 않아 같이 본다.
+MAIN_TRANSIENT = (*agent_runtime.TRANSIENT, httpx2.HTTPError, TimeoutError)
 FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이름
 # 제안 다시 받기(#662) 때 실행하지 않은 세계관 수정의 ToolMessage. 도구 답은 데이터라(프롬프트 규칙 4) 이 글만으로는 모델이 다시 제안하지 않고,
 # DynamicToolMiddleware가 이 메시지를 보고 다시 읽기 → 재제안을 tool_choice로 강제한다(_refresh_next).
@@ -298,7 +301,14 @@ class MainModelMiddleware(AgentMiddleware):
         failed = ModelResponse(result=[AIMessage(content=text, name=FAILED)])
         with tracing.observe('main_agent', as_type='generation', model=request.model.model_name, prompt=self.prompt) as generation:
             try:
-                response = await handler(request)
+                try:
+                    response = await handler(request)
+                except MAIN_TRANSIENT:  # 쓰던 답은 버리고 한 번만 다시 쓴다(DEC-61). 두 번째 실패는 아래 except가 고정 실패로 끝낸다
+                    request.runtime.stream_writer({'answer': None})
+                    generation.update(metadata={'retries': 1, 'retryReason': 'transient'})
+                    with agent_runtime.activity(agent_runtime.RETRY_LABEL, agent_runtime.RETRY_TARGET):
+                        await sleep(agent_runtime.RETRY_WAIT)
+                        response = await handler(request)
             except (OpenAIError, ValueError, httpx2.HTTPError, TimeoutError) as error:
                 # langchain-openai는 응답 오류도 ValueError로 올리고, 스트림을 읽던 중의 끊김·조각 시간 초과는 SDK가 감싸지 않는다.
                 # 모두 실패로 끝낸다. 제공사 오류가 아니면 원인이 가려지지 않게 예외 종류를 남긴다(메시지는 입력을 담을 수 있어 남기지 않는다).
