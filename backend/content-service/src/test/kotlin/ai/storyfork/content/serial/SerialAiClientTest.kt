@@ -81,9 +81,10 @@ class SerialAiClientTest {
         assertEquals(emptyDocs, failureDetail(422, """{"detail":"$emptyDocs"}"""))
     }
 
-    @Test fun `only the statuses 409 and 422 explain themselves`() {
-        // 계약의 '장면이 끝나지 않음'(AI 502)·장면 시간 초과(504)도 AI 문구지만 이번 범위 밖이다: 이 줄이 바뀌면 의도한 변경이어야 한다.
-        for (status in listOf(200, 400, 401, 402, 403, 404, 429, 500, 502, 503, 504)) {
+    @Test fun `only the statuses 409 422 502 and 504 explain themselves`() {
+        // 진단을 위해 장면 미완료·검사 불합격·형식 오류(AI 502)와 장면 시간 초과(504)의 AI 문구도 보인다(2026-11-28 사용자 결정, 이전의 '502 제외'를 대체). 이 줄이 바뀌면 의도한 변경이어야 한다.
+        for (status in listOf(409, 422, 502, 504)) assertEquals(noCharacters, failureDetail(status, """{"detail":"$noCharacters"}"""), status.toString())
+        for (status in listOf(200, 400, 401, 402, 403, 404, 429, 500, 503)) {
             assertNull(failureDetail(status, """{"detail":"$noCharacters"}"""), status.toString())
         }
     }
@@ -93,8 +94,7 @@ class SerialAiClientTest {
             """{"detail":[{"type":"missing","loc":["body","world"],"msg":"Field required"}]}""", """{"detail":{"msg":"객체"}}""", """{"detail":42}""",
             """{"detail":true}""", """{"detail":null}""", """{"code":"OTHER"}""", """{}""",
         )) {
-            assertNull(failureDetail(422, body), body)
-            assertNull(failureDetail(409, body), body)
+            for (status in listOf(409, 422, 502, 504)) assertNull(failureDetail(status, body), "$status $body")
         }
     }
 
@@ -103,6 +103,7 @@ class SerialAiClientTest {
         assertNull(failureDetail(409, """{"detail":"x","code":"SERIAL_REVIEW_FAILED"}"""))
         assertNull(failureDetail(422, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}"""))
         assertNull(failureDetail(409, """{"detail":"x","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        for (status in listOf(502, 504)) for (code in listOf("SERIAL_REVIEW_FAILED", "CREDIT_LIMIT_EXCEEDED")) assertNull(failureDetail(status, """{"detail":"x","code":"$code"}"""), "$status $code")
         // 다른 code와 문자열이 아닌 code는 그대로 설명한다.
         assertEquals("문구", failureDetail(422, """{"detail":"문구","code":"OTHER"}"""))
         assertEquals("문구", failureDetail(422, """{"detail":"문구","code":42}"""))
@@ -110,8 +111,8 @@ class SerialAiClientTest {
     }
 
     @Test fun `an unreadable body or a blank sentence explains nothing`() {
-        for (body in listOf(null, "", "   ", "not json", "[1,2]", "\"text\"", """{"detail":""}""", """{"detail":"   "}""", """{"detail":"\n\t"}""")) {
-            assertNull(failureDetail(422, body), body.toString())
+        for (body in listOf(null, "", "   ", "not json", "[1,2]", "\"text\"", "<html><body>502 Bad Gateway</body></html>", """{"detail":""}""", """{"detail":"   "}""", """{"detail":"\n\t"}""")) {
+            for (status in listOf(422, 502, 504)) assertNull(failureDetail(status, body), "$status $body")
         }
     }
 
@@ -130,7 +131,7 @@ class SerialAiClientTest {
         val limit = aiFailure(answer(402, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}"""))
         assertEquals(listOf<Any?>(false, true, null), listOf(limit.reviewFailed, limit.limitExceeded, limit.detail))
 
-        val plain = aiFailure(answer(502, """{"detail":"$emptyDocs"}"""))
+        val plain = aiFailure(answer(503, """{"detail":"$emptyDocs"}"""))
         assertEquals(listOf<Any?>(false, false, null), listOf(plain.reviewFailed, plain.limitExceeded, plain.detail))
     }
 
