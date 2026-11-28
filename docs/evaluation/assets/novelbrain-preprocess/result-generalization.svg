@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="526" viewBox="0 0 860 526" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="860" height="526" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">결과 ③ 안 써 본 작품에서도 같은 폭으로 오른다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">시점 쌍 정확도 · 검색 = 한 다리 연결 + BM25</text>
+<text x="30" y="106" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">전체 52편 (1,664쌍)</text>
+<text x="258" y="139" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="124" width="308.0" height="22" rx="4" fill="#2563eb"/>
+<text x="586.0" y="140" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">61.6%</text>
+<text x="258" y="173" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="158" width="376.0" height="22" rx="4" fill="#16a34a"/>
+<text x="654.0" y="174" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">75.2%</text>
+<text x="30" y="204" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">변경을 고르는 데 안 쓴 37편</text>
+<text x="258" y="237" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="222" width="312.5" height="22" rx="4" fill="#2563eb"/>
+<text x="590.5" y="238" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">62.5%</text>
+<text x="258" y="271" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="256" width="381.5" height="22" rx="4" fill="#16a34a"/>
+<text x="659.5" y="272" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">76.3%</text>
+<text x="30" y="302" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">변경을 고르는 데 쓴 15편</text>
+<text x="258" y="335" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="320" width="297.0" height="22" rx="4" fill="#2563eb"/>
+<text x="575.0" y="336" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">59.4%</text>
+<text x="258" y="369" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="354" width="363.5" height="22" rx="4" fill="#16a34a"/>
+<text x="641.5" y="370" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">72.7%</text>
+<text x="30" y="400" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">한 번도 안 쓴 새 작품 13편 (412쌍)</text>
+<text x="258" y="433" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="418" width="278.0" height="22" rx="4" fill="#2563eb"/>
+<text x="556.0" y="434" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">55.6%</text>
+<text x="258" y="467" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="452" width="348.5" height="22" rx="4" fill="#16a34a"/>
+<text x="626.5" y="468" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">69.7%</text>
+<text x="30" y="510" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">새 작품은 20편 중 13편만 V2를 돌렸다(본문 4.5).</text>
+</svg>

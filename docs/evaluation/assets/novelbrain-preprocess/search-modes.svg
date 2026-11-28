@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="490" viewBox="0 0 940 490" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="940" height="490" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">검색을 용도에 따라 둘로 나눈다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">나누는 이유는 누설이다. 넓게 찾는 구성은 인물이 몰라야 할 내용도 함께 가져온다.</text>
+<rect x="30" y="92" width="420" height="250" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="48" y="124" font-size="17" fill="#2563eb" text-anchor="start" font-weight="bold">작가용 검색</text>
+<text x="48" y="146" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal">작가가 작품 전체에서 찾을 때</text>
+<text x="48" y="178" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">찾는 범위</text>
+<text x="166" y="178" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">세계관 전체 + 원고</text>
+<text x="48" y="208" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">방식</text>
+<text x="166" y="208" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">그래프(PPR) + 원고 벡터</text>
+<text x="166" y="228" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">+ BM25 합산</text>
+<text x="48" y="258" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">인물 시점 거르기</text>
+<text x="166" y="258" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">없음</text>
+<text x="48" y="288" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">이유</text>
+<text x="166" y="288" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">작가는 작품 전체를 안다.</text>
+<text x="166" y="308" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">넓게 잘 찾는 것이 먼저다.</text>
+<rect x="490" y="92" width="420" height="250" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+<text x="508" y="124" font-size="17" fill="#16a34a" text-anchor="start" font-weight="bold">인물(페르소나) 검색</text>
+<text x="508" y="146" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal">인물 시뮬레이션에서 인물이 떠올릴 때</text>
+<text x="508" y="178" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">찾는 범위</text>
+<text x="626" y="178" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">그 인물에 한 다리로 이어진 카드</text>
+<text x="508" y="208" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">방식</text>
+<text x="626" y="208" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">시점 거르기 + BM25</text>
+<text x="508" y="238" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">인물 시점 거르기</text>
+<text x="626" y="238" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">있음 (기준 회차 뒤 · 남의 기억 제외)</text>
+<text x="508" y="268" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">이유</text>
+<text x="626" y="268" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">인물은 그 시점에</text>
+<text x="626" y="288" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">아는 것만 말해야 한다.</text>
+<rect x="30" y="366" width="880" height="100" rx="10" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="46" y="392" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">작가용 구성을 인물에게 그대로 쓰면 (V2 세계관 52편, 3,328문항 중 해당 문항 수)</text>
+<text x="46" y="416" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">기준 회차 뒤 항목 922 · 다른 인물의 기억 201 · 그 인물이 못 본 장면의 원고 375</text>
+<text x="46" y="436" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">인물 검색은 같은 순서로 16 · 0 · 0이다.</text>
+<text x="46" y="456" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">이 평가가 잰 것은 인물 검색뿐이다. 작가용 검색의 품질은 재지 않았다.</text>
+</svg>

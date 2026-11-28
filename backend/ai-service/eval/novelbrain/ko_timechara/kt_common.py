@@ -9,6 +9,9 @@ from pathlib import Path
 NB = Path(__file__).resolve().parents[1]
 if str(NB) not in sys.path:
     sys.path.insert(0, str(NB))
+SIM = NB.parent / 'simulation'   # sim_via(로컬 게이트웨이 어댑터)의 위치. novelbrain 모듈 이름이 앞서도록 뒤에 붙인다
+if str(SIM) not in sys.path:
+    sys.path.append(str(SIM))
 
 from cost import LIMIT_USD  # noqa: E402
 from prepare import DATA, SEED  # noqa: E402

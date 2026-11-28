@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="768" viewBox="0 0 860 768" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="860" height="768" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">결과 ① 세계관의 연결이 좋아질수록 시점에 맞게 답한다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">공통 21편 · 672쌍 · 검색 = 한 다리 연결 + BM25</text>
+<text x="30" y="106" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">전처리 · 인물 기준 지식 F1 (0~100)</text>
+<text x="258" y="139" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">서비스 전처리</text>
+<rect x="270" y="124" width="10.0" height="22" rx="4" fill="#ea580c"/>
+<text x="288.0" y="140" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">2.0</text>
+<text x="258" y="173" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="158" width="348.5" height="22" rx="4" fill="#2563eb"/>
+<text x="626.5" y="174" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">69.7</text>
+<text x="258" y="207" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">시작 시점 시제품</text>
+<rect x="270" y="192" width="401.5" height="22" rx="4" fill="#60a5fa"/>
+<text x="679.5" y="208" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">80.3</text>
+<text x="258" y="241" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">1차 개선</text>
+<rect x="270" y="226" width="412.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="690.0" y="242" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">82.4</text>
+<text x="258" y="275" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="260" width="412.0" height="22" rx="4" fill="#16a34a"/>
+<text x="690.0" y="276" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">82.4</text>
+<text x="30" y="306" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">NovelBrain 검색 · 문맥에 정답 사건이 든 비율</text>
+<text x="258" y="339" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">서비스 전처리</text>
+<rect x="270" y="324" width="2.0" height="22" rx="4" fill="#ea580c"/>
+<text x="280" y="340" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.1%</text>
+<text x="258" y="373" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="358" width="125.5" height="22" rx="4" fill="#2563eb"/>
+<text x="403.5" y="374" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">25.1%</text>
+<text x="258" y="407" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">시작 시점 시제품</text>
+<rect x="270" y="392" width="187.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="465.0" y="408" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">37.4%</text>
+<text x="258" y="441" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">1차 개선</text>
+<rect x="270" y="426" width="183.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="461.0" y="442" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">36.6%</text>
+<text x="258" y="475" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="460" width="216.5" height="22" rx="4" fill="#16a34a"/>
+<text x="494.5" y="476" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">43.3%</text>
+<text x="30" y="506" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">인물 시뮬레이션 · 시점 쌍 정확도</text>
+<text x="258" y="539" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">검색 없이 답함</text>
+<rect x="270" y="524" width="47.0" height="22" rx="4" fill="#9ca3af"/>
+<text x="325.0" y="540" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">9.4%</text>
+<text x="258" y="573" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">서비스 전처리</text>
+<rect x="270" y="558" width="64.0" height="22" rx="4" fill="#ea580c"/>
+<text x="342.0" y="574" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">12.8%</text>
+<text x="258" y="607" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">기존 평가용 세계관</text>
+<rect x="270" y="592" width="300.0" height="22" rx="4" fill="#2563eb"/>
+<text x="578.0" y="608" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">60.0%</text>
+<text x="258" y="641" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">시작 시점 시제품</text>
+<rect x="270" y="626" width="339.5" height="22" rx="4" fill="#60a5fa"/>
+<text x="617.5" y="642" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">67.9%</text>
+<text x="258" y="675" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">1차 개선</text>
+<rect x="270" y="660" width="338.5" height="22" rx="4" fill="#60a5fa"/>
+<text x="616.5" y="676" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">67.7%</text>
+<text x="258" y="709" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">V2</text>
+<rect x="270" y="694" width="370.0" height="22" rx="4" fill="#16a34a"/>
+<text x="648.0" y="710" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">74.0%</text>
+<text x="30" y="752" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">서비스 전처리 열은 운영 프롬프트 버전이 아닌 조건에서 잰 값이다(본문 6절).</text>
+</svg>

@@ -38,15 +38,16 @@ class Request:
 
 
 class Planner:
-    """llm 대용: 캐시에 있으면 그 응답, 없으면 요청을 모으고 Pending, 영구 실패한 요청은 LlmFailure."""
+    """llm 대용: 캐시에 있으면 그 응답, 없으면 요청을 모으고 Pending, 영구 실패한 요청은 LlmFailure. 요청은 종류에 맞는 Llm(`Llm.for_kind`)의 캐시를 본다."""
 
     def __init__(self, llm: Llm, failed=frozenset()):
         self.llm, self.failed, self.requests = llm, failed, {}
 
     def ask(self, kind, instructions, input, *, schema=None, max_output_tokens=4000):
-        key = self.llm._path(instructions, input, schema, max_output_tokens).stem
-        if self.llm.is_cached(instructions, input, schema=schema, max_output_tokens=max_output_tokens):
-            return self.llm.ask(kind, instructions, input, schema=schema, max_output_tokens=max_output_tokens)
+        llm = self.llm.for_kind(kind)
+        key = llm._path(instructions, input, schema, max_output_tokens).stem
+        if llm.is_cached(instructions, input, schema=schema, max_output_tokens=max_output_tokens):
+            return llm.ask(kind, instructions, input, schema=schema, max_output_tokens=max_output_tokens)
         if key in self.failed:
             raise LlmFailure('batch_failed')
         self.requests[key] = Request(kind, instructions, input, schema, max_output_tokens)
@@ -120,7 +121,7 @@ def estimate(requests: dict, batch: bool, chars_per_token: float, out_tokens: di
 
 
 class SyncExecutor:
-    """요청을 스레드로 하나씩 호출한다(Llm.ask: 캐시·장부·재시도 포함). 실패한 요청의 키를 돌려준다."""
+    """요청을 스레드로 하나씩 호출한다(Llm.ask: 캐시·장부·재시도 포함, 종류에 맞는 Llm으로). 실패한 요청의 키를 돌려준다."""
 
     def __init__(self, llm: Llm, workers: int = 12):
         self.llm, self.workers = llm, workers
@@ -131,7 +132,7 @@ class SyncExecutor:
         def one(item):
             key, r = item
             try:
-                self.llm.ask(r.kind, r.instructions, r.input, schema=r.schema, max_output_tokens=r.max_output_tokens)
+                self.llm.for_kind(r.kind).ask(r.kind, r.instructions, r.input, schema=r.schema, max_output_tokens=r.max_output_tokens)
             except LlmFailure:
                 with lock:
                     failed.add(key)
@@ -306,4 +307,4 @@ def cost_report(llm: Llm) -> None:
     """종류별 호출 수·토큰·추정 금액과 합계."""
     for kind, b in sorted(llm.cost.summary().items()):
         print(f"  {kind:8s} 호출 {b['calls']:5d} (Batch {b['batch']}, 실패 {b['failed']}) 입력 {b['in']:>10,} 출력 {b['out']:>9,} 토큰 → ${b['usd']:.3f}")
-    print(f'  장부 합계 ${llm.cost.spent():.3f} / 상한 ${llm.limit_usd:.2f}')
+    print(f'  장부 합계 ${llm.cost.spent():.3f}' + ('' if llm.limit_usd is None else f' / 상한 ${llm.limit_usd:.2f}'))   # 구독 경로(금액 0) Llm은 상한이 없다

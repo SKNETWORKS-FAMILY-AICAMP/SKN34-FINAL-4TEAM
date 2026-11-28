@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="970" height="452" viewBox="0 0 970 452" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="970" height="452" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">평가를 세 층으로 나눠 잰다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">한 열의 세 층은 같은 작품·같은 질문에서 잰다. 어느 층에서 점수를 잃는지 가려 본다.</text>
+<rect x="30" y="92" width="270" height="232" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="46" y="122" font-size="16" fill="#2563eb" text-anchor="start" font-weight="bold">① 전처리</text>
+<text x="46" y="144" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal">원고 → 세계관 카드·연결</text>
+<text x="46" y="174" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">묻는 것</text>
+<text x="100" y="174" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">누가 무엇을 아는지</text>
+<text x="100" y="194" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">맞게 담았나</text>
+<text x="46" y="224" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">지표</text>
+<text x="100" y="224" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">인물 기준 지식 F1</text>
+<text x="100" y="244" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">사건 재현율 · 인물 쪼개짐</text>
+<text x="46" y="274" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">채점</text>
+<text x="100" y="274" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">정답표와 코드 대조</text>
+<line x1="306" y1="208.0" x2="344" y2="208.0" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="350" y="92" width="270" height="232" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+<text x="366" y="122" font-size="16" fill="#16a34a" text-anchor="start" font-weight="bold">② NovelBrain 검색</text>
+<text x="366" y="144" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal">세계관 → 인물의 문맥(상위 6개)</text>
+<text x="366" y="174" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">묻는 것</text>
+<text x="420" y="174" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">필요한 기억은 꺼내고</text>
+<text x="420" y="194" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">몰라야 할 것은 안 꺼냈나</text>
+<text x="366" y="224" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">지표</text>
+<text x="420" y="224" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">문맥에 정답 사건이 든 비율</text>
+<text x="420" y="244" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">검색 손실 · 노출</text>
+<text x="366" y="274" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">채점</text>
+<text x="420" y="274" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">코드</text>
+<line x1="626" y1="208.0" x2="664" y2="208.0" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="670" y="92" width="270" height="232" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="686" y="122" font-size="16" fill="#ea580c" text-anchor="start" font-weight="bold">③ 인물 시뮬레이션(응답)</text>
+<text x="686" y="144" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal">문맥 → 답</text>
+<text x="686" y="174" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">묻는 것</text>
+<text x="740" y="174" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">꺼낸 문맥으로</text>
+<text x="740" y="194" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">시점에 맞게 답했나</text>
+<text x="686" y="224" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">지표</text>
+<text x="740" y="224" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">시점 쌍 정확도</text>
+<text x="740" y="244" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">문맥이 충분할 때 정답률</text>
+<text x="686" y="274" font-size="12" fill="#6b7280" text-anchor="start" font-weight="bold">채점</text>
+<text x="740" y="274" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">선택형 문항, 코드 채점</text>
+<rect x="30" y="350" width="910" height="78" rx="10" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="46" y="376" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">시점 쌍 정확도 (대표 지표)</text>
+<text x="46" y="398" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">같은 사건을 사건 앞·뒤 시점에서, 또는 그 자리에 있던 인물·없던 인물에게 묻는다(직접 겪음 / 전해 들음 / 모름).</text>
+<text x="46" y="418" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">쌍의 두 문항을 모두 맞혀야 1점이라 "항상 안다"·"항상 모른다"로 답하면 0점이다. 채점 모델이 없어 재현할 수 있다.</text>
+</svg>
