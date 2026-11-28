@@ -90,8 +90,10 @@ export type ChatStep = {
 /** 작가의 승인을 기다리는 Content 쓰기 도구(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자다. label은 서버의 도구별 고정 문구다. */
 export type PendingAction = { tool: string; label: string; args: Record<string, unknown> }
 export type ChatStatus = 'completed' | 'failed' | 'clarify' | 'rejected' | 'unsupported' | 'needs_input' | 'waiting' | 'cancelled'
-/** 되묻기 선택지(#794). 누르면 message를 새 채팅 메시지로 보낸다(resume이 아니다). form이면 메시지 대신 그 양식(시뮬레이션 시작)을 연다. */
-export type ChatChoice = { label: string; message: string; form?: 'simulation' | null }
+/** 되묻기 선택지(#794). 누르면 message를 새 채팅 메시지로 보낸다(resume이 아니다). form이면 메시지 대신 그 양식(simulation: 시뮬레이션 시작)을 열거나 그 화면(world: 작품 관리 세계관 탭, #910)으로 이동한다. */
+export type ChatChoice = { label: string; message: string; form?: 'simulation' | 'world' | null }
+/** 세계관 없는 작품이 원고로 세계관을 만들거나 내 세계관을 연결하는 작품 관리 세계관 탭(#910). */
+export const worldTabHref = (workId: string) => `/content?work=${encodeURIComponent(workId)}&tab=world`
 export type ChatReply = {
   status: ChatStatus
   message?: string | null

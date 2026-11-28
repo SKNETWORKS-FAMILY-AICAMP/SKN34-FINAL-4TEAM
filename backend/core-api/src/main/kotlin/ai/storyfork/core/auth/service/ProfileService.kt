@@ -12,6 +12,7 @@ import ai.storyfork.core.auth.service.dto.MemberResponse
 import ai.storyfork.core.auth.service.dto.NicknameRequest
 import ai.storyfork.core.auth.service.dto.ResetRequest
 import ai.storyfork.core.auth.service.dto.TokenRequest
+import ai.storyfork.core.notification.repository.PushDeviceRepository
 import java.time.Instant
 import java.util.Locale
 import java.util.UUID
@@ -31,6 +32,7 @@ class ProfileService(
     private val members: MemberRepository,
     private val challenges: ProfileChallengeRepository,
     private val sessions: SessionRepository,
+    private val pushDevices: PushDeviceRepository,
     private val passwords: PasswordEncoder,
     private val secrets: AuthTokenHelper,
     private val mail: JavaMailSender,
@@ -129,6 +131,7 @@ class ProfileService(
         challenges.delete(challenge)
         challenges.findById(ProfileChallengeId(id, "email")).ifPresent(challenges::delete)
         sessions.revokeAll(id)
+        pushDevices.deleteAllForMember(id)
     }
 
     // Only read the entity after acquiring its member lock; another request may have replaced it.

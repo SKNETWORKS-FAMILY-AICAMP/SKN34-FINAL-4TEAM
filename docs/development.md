@@ -86,7 +86,9 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 
 ### 모바일 앱
 
-모바일 앱(`mobile/`, Expo·React Native)은 Compose에 포함되지 않고 로컬에서 직접 실행합니다. Node 22.13+·24.3+·26+(React Native 0.88의 `engines`)와 npm이 필요하며 iOS는 Xcode(시뮬레이터)·CocoaPods, Android는 Android Studio를 씁니다. `mobile/`에서 `npm install`을 실행한 뒤 같은 디렉터리에서 `npx expo run:ios` 또는 `npx expo run:android`로 개발 빌드를 만들어 실행합니다. `ios/`·`android/`는 Expo가 생성하는 폴더라 커밋하지 않고 `google-services.json`·`GoogleService-Info.plist`·`.env*`도 커밋하지 않습니다. 앱은 STORYFORK 웹을 WebView로 보이고 알림(웹이 읽은 알림 → 로컬 알림, iOS는 APNs 제외)만 맡습니다. Android FCM 푸시·Core 기기 토큰 API는 [#943](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/943) 후속입니다. 웹 주소(`EXPO_PUBLIC_API_BASE_URL`)·`xcrun simctl push` 방법·결정은 [모바일 README](../mobile/README.md)를 따릅니다. 로컬 단위 검증은 `(cd mobile && npx tsc --noEmit && npm test)`이며 `npm test`는 별도 러너 없이 `node --test`(`--experimental-strip-types`, Node 22.13+)입니다.
+모바일 앱(`mobile/`, Expo·React Native)은 Compose에 포함되지 않고 로컬에서 직접 실행합니다. Node 22.13+·24.3+·26+(React Native 0.88의 `engines`)와 npm이 필요하며 iOS는 Xcode(시뮬레이터)·CocoaPods, Android는 Android Studio를 씁니다. `mobile/`에서 `npm install`을 실행한 뒤 같은 디렉터리에서 `npx expo run:ios` 또는 `npx expo run:android`로 개발 빌드를 만들어 실행합니다. `ios/`·`android/`는 Expo가 생성하는 폴더라 커밋하지 않고 `google-services.json`·`GoogleService-Info.plist`·`.env*`도 커밋하지 않습니다. 앱은 STORYFORK 웹을 WebView로 보이고 알림(웹이 읽은 알림 → 로컬 알림, iOS는 APNs 제외)만 맡습니다. 웹 주소(`EXPO_PUBLIC_API_BASE_URL`)·`xcrun simctl push` 방법·결정은 [모바일 README](../mobile/README.md)를 따릅니다. 로컬 단위 검증은 `(cd mobile && npx tsc --noEmit && npm test)`이며 `npm test`는 별도 러너 없이 `node --test`(`--experimental-strip-types`, Node 22.13+)입니다.
+
+Android는 [모바일 README](../mobile/README.md)의 Firebase·SNS 설정으로 원격 알림을 검증합니다. `record_android=true`로 CI를 수동 실행하면 별도 Android 에뮬레이터 작업에서 실제 Core SSE와 로컬 알림을 검증하고 시연 영상을 저장합니다.
 
 ## 검증
 

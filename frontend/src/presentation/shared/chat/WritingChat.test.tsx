@@ -3,6 +3,7 @@
 import { act, cleanup, fireEvent, render as renderIn, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createAppStore } from '../../../app/store'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
@@ -19,6 +20,17 @@ const useCase = { sessions, history, send, open, writingEpisode, feedback, trunc
 afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
 // 입력 대기 카드의 초안 읽기(useEpisodeDraft)가 쓰는 useAsyncData는 세션 스토어를 읽는다.
 const render = (ui: ReactElement) => { const store = createAppStore(); return renderIn(ui, { wrapper: ({ children }) => <Provider store={store}>{children}</Provider> }) }
+
+it('세계관이 없다고 확인된 작품의 빈 대화는 세계관 탭으로 가는 안내를 보이고, 아니면 보이지 않는다(#910)', async () => {
+  sessions.mockResolvedValue([])
+  const { unmount } = render(<MemoryRouter><WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="안내" suggestions={[]} worldMissing /></MemoryRouter>)
+  const link = await screen.findByRole('link', { name: '세계관 탭에서 만들기·연결하기' })
+  expect(link.getAttribute('href')).toBe('/content?work=w&tab=world')
+  unmount()
+  render(<MemoryRouter><WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="안내" suggestions={[]} /></MemoryRouter>)
+  expect(await screen.findByText('안내')).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '세계관 탭에서 만들기·연결하기' })).toBeNull()
+})
 
 it('discards a message edit when switching to another conversation', async () => {
   sessions.mockResolvedValue([
@@ -1541,6 +1553,17 @@ describe('되묻기 선택지(#794)', () => {
     expect(within(group).getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
   })
 
+  it('세계관 선택지는 메시지를 보내지 않고 작품 관리 세계관 탭으로 이동하는 링크이며, 양식 함수 없이도 보인다(#910)', async () => {
+    openThread([{ request: '시뮬레이션', reply: clarify([
+      { label: '원고에서 세계관 추출하기', message: '원고에서 세계관을 추출할게요.', form: 'world' }, { label: '내 세계관 연결하기', message: '내 세계관을 연결할게요.', form: 'world' }]) }])
+    render(<MemoryRouter><WritingChat workId="w 1" basis={basis} emptyTitle="" emptyText="" suggestions={[]} /></MemoryRouter>)
+    const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
+    const links = within(group).getAllByRole('link')
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/content?work=w%201&tab=world', '/content?work=w%201&tab=world'])
+    fireEvent.click(links[0])
+    expect(send).not.toHaveBeenCalled()
+  })
+
   it('기획 결과에는 계획 N대로 쓰기 버튼이 보인다', async () => {
     openThread([{ request: '다음 화 기획해줘', reply: { status: 'completed', message: '계획 두 개예요.', missingInputs: [], steps: [
       { feature: 'writing_editing', status: 'completed', result: { plans: [{ title: '항구', beats: ['도착'] }, { title: '숲', beats: ['추격'] }], notes: [] } }] } }])
@@ -1662,4 +1685,46 @@ it('작품 정보 수정은 제목·소개를 고칠 수 있고, 빈 제목으�
   fireEvent.click(screen.getByRole('button', { name: '고치지 않기' }))
   expect(screen.getByRole('button', { name: '실행' })).toBeTruthy()
   expect(send).not.toHaveBeenCalled()
+})
+
+// ── 원고 영역으로 옮긴 승인 제안(#909): 집필실이 onOpenProposal을 주면 채팅에는 한 줄과 링크만 남는다 ──
+describe('원고 반영 제안 한 줄(#909)', () => {
+  const renderWith = (onOpenProposal?: (opener?: HTMLElement) => void) =>
+    render(<WritingChat workId="w" basis={basis} emptyTitle="" emptyText="" suggestions={[]} onOpenProposal={onOpenProposal} />)
+
+  it('onOpenProposal이 있으면 승인 카드 대신 한 줄과 원고 영역에서 보기 링크만 보이고, 링크가 호스트에 연 버튼을 알린다', async () => {
+    writingApproval(2)
+    const open = vi.fn()
+    renderWith(open)
+    expect(await screen.findByText('2화 초안 반영 제안 · 반영 여부를 기다려요')).toBeTruthy()
+    for (const name of ['초안에 반영', '반영하지 않기', /다시 쓰기/]) expect(screen.queryByRole('button', { name })).toBeNull()
+    expect(screen.queryByRole('heading', { name: '2화 초안에 반영할까요?' })).toBeNull()
+    const link = screen.getByRole('button', { name: '원고 영역에서 보기' })
+    fireEvent.click(link)
+    expect(open).toHaveBeenCalledWith(link)
+  })
+
+  it('계획 수정안도 한 줄로 줄인다', async () => {
+    openThread([{ request: '계획 고쳐 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', steps: [{ feature: 'writing_editing', task: 'revise_plan', status: 'completed',
+      planRevision: { kind: 'scene', before: { title: '재회', content: 'a' }, after: { title: '재회', content: 'b' } } }] } }])
+    renderWith(vi.fn())
+    expect(await screen.findByText('계획 수정안 · 저장 여부를 기다려요')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '계획에 저장' })).toBeNull()
+  })
+
+  it('World 제안·Content 작업 승인은 onOpenProposal이 있어도 채팅 카드 그대로다', async () => {
+    openThread([{ request: '설정 보강', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world', steps: [{ feature: 'world', task: 'enrich', status: 'completed', world: { task: 'enrich', fixes: [], note: '' } }] } }])
+    renderWith(vi.fn())
+    expect(await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '원고 영역에서 보기' })).toBeNull()
+  })
+
+  it('onOpenProposal이 없는 화면(세계관 작업실 등)은 지금처럼 승인 카드 전체를 보인다', async () => {
+    writingApproval(2)
+    renderWith()
+    expect(await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '초안에 반영' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '다시 쓰기 (2번 남음)' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '원고 영역에서 보기' })).toBeNull()
+  })
 })

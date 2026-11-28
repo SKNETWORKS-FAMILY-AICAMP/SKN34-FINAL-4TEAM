@@ -371,3 +371,93 @@ def test_activity_reports_running_then_done_or_failed_with_a_short_target(monkey
 def test_activity_outside_a_graph_run_reports_nothing():
     with agent_runtime.activity('웹 검색', '질문'):  # REST 업무 API·워커에는 SSE가 없다
         pass
+
+
+# 일시 장애 자동 재시도(#908, DEC-61)
+
+
+def provider_error(kind):
+    import httpx
+    import openai
+    request = httpx.Request('POST', 'http://provider.test')
+    if kind == 'connection':
+        return openai.APIConnectionError(request=request)
+    if kind == 'timeout':
+        return openai.APITimeoutError(request=request)
+    status = {'rate': 429, 'server': 500}[kind]
+    cls = openai.RateLimitError if kind == 'rate' else openai.InternalServerError
+    return cls('provider', response=httpx.Response(status, request=request), body=None)
+
+
+@pytest.fixture
+def waits(monkeypatch):
+    """재시도 대기(sleep)를 건너뛰고 대기 초를 모은다."""
+    seen = []
+    monkeypatch.setattr(agent_runtime, 'sleep', seen.append)
+    return seen
+
+
+@pytest.mark.parametrize('kind', ['connection', 'timeout', 'rate', 'server'])
+def test_a_transient_provider_error_is_retried_once_after_a_second_with_the_same_input(monkeypatch, waits, spans, kind):
+    seen = fake_chat(monkeypatch, text='{"text": "주인공"}', fails=[provider_error(kind)])
+    rows = []
+    monkeypatch.setattr(agent_runtime, 'get_stream_writer', lambda: rows.append)
+
+    _, parsed = run(schema=Answer)
+
+    assert parsed == Answer(text='주인공') and seen['calls'] == 2 and waits == [1]
+    assert [(r['activity']['label'], r['activity']['target'], r['activity']['status']) for r in rows] == [
+        ('다시 시도하는 중', '일시 장애', 'running'), ('다시 시도하는 중', '일시 장애', 'done')]
+    [span] = [s for s in spans() if s.name == 'test.generation']
+    assert span.attributes['langfuse.observation.metadata.retries'] == 1
+    assert span.attributes['langfuse.observation.metadata.retryReason'] == 'transient'
+    assert '서윤' not in str({k: v for k, v in span.attributes.items() if 'metadata' in k})  # 추적 metadata에는 입력·출력을 싣지 않는다
+
+
+def test_a_transient_error_twice_is_the_fixed_503_after_one_retry(monkeypatch, waits):
+    seen = fake_chat(monkeypatch, fails=[provider_error('rate'), provider_error('connection')])
+    rows = []
+    monkeypatch.setattr(agent_runtime, 'get_stream_writer', lambda: rows.append)
+
+    with pytest.raises(Failure) as error:
+        run(schema=Answer)
+
+    assert (error.value.status, str(error.value)) == (503, '테스트 모델 호출에 실패했습니다.')
+    assert seen['calls'] == 2 and waits == [1] and not hasattr(error.value, 'retry')
+    assert [r['activity']['status'] for r in rows] == ['running', 'failed']
+
+
+def test_a_non_transient_provider_error_is_not_retried(monkeypatch, waits):
+    import httpx
+    import openai
+    bad = openai.BadRequestError('bad', response=httpx.Response(400, request=httpx.Request('POST', 'http://x')), body=None)
+    seen = fake_chat(monkeypatch, fails=[bad])
+
+    with pytest.raises(Failure) as error:
+        run(schema=Answer)
+
+    assert error.value.status == 503 and seen['calls'] == 1 and waits == []
+
+
+@pytest.mark.parametrize('kwargs', [
+    {'text': '{"wrong": 1}'},
+    {'text': '{"text": "잘린"}', 'status': 'incomplete'},
+    {'error': ValueError('response error')},
+])
+def test_an_unusable_output_is_marked_retryable_by_the_main_agent_and_is_not_retried_here(monkeypatch, waits, kwargs):
+    seen = fake_chat(monkeypatch, **kwargs)
+
+    with pytest.raises(Failure) as error:
+        run(schema=Answer)
+
+    assert error.value.status == 502 and error.value.retry == 'output' and seen['calls'] == 1 and waits == []
+
+
+def test_outside_the_writing_chat_a_transient_error_is_not_retried(monkeypatch, waits):
+    """DEC-61 재시도는 집필 AI 채팅(그래프 실행) 안에서만이다. REST 업무 API·연재·회귀 평가 워커는 지금처럼 바로 503이다."""
+    seen = fake_chat(monkeypatch, fails=[provider_error('rate')])
+
+    with pytest.raises(Failure) as error:
+        run(schema=Answer)
+
+    assert error.value.status == 503 and seen['calls'] == 1 and waits == []

@@ -35,7 +35,7 @@ class NoticeBundleServiceTest {
     private val notices = mock(NoticeRepository::class.java)
     private val preferences = mock(NoticePreferenceRepository::class.java)
     private val stream = mock(NoticeStream::class.java)
-    private val service = NoticeService(notices, preferences, mock(MemberRepository::class.java), stream)
+    private val service = NoticeService(notices, preferences, mock(MemberRepository::class.java), stream, mock(org.springframework.context.ApplicationEventPublisher::class.java))
 
     private fun <T : Any> eq(value: T): T = ArgumentMatchers.eq(value) ?: value
     private fun anyTime(): Instant = ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH

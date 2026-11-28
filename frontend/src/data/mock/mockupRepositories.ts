@@ -28,17 +28,19 @@ export const mockupAuthRepository: AuthRepository = {
   logoutAll: async () => {},
 }
 
+const demoUnsupported = () => Promise.reject(new Error('데모에서는 지원하지 않아요.'))
+
 export const mockupNotificationRepository: NotificationRepository = {
   list: async () => ({ items: [], nextCursor: null }),
   unreadCount: async () => 0,
+  get: demoUnsupported,
   markRead: async () => {},
   markAllRead: async () => {},
   remove: async () => {},
   getPrefs: async () => ({ read: true, creator: true, aiTool: true }),
   savePrefs: async (prefs) => prefs,
+  syncPushDevice: demoUnsupported,
 }
-
-const demoUnsupported = () => Promise.reject(new Error('데모에서는 지원하지 않아요.'))
 
 /** 데모 회원은 탈퇴 요청이 없고, 탈퇴·복구는 실제 계정을 바꾸지 않도록 미지원 오류로 답합니다. */
 export const mockupWithdrawalRepository: WithdrawalRepository = {

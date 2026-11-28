@@ -147,5 +147,7 @@ items에 서로 다른 id와 text를 1~32개 전달한다. Content 워커의 배
 
 1. 동결 이진 ONNX 번들과 G2 원본 5,129건 체크포인트를 확인한다. G2는 역빈도 제곱근 가중 교차엔트로피로 학습된 기존 가중치를 사용한다. scripts/export_feedback_model.py에 --g2를 주면 검증된 설정·가중치에서 동적 배치 ONNX를 생성한다. 런타임은 8개 logit에 softmax 후 argmax를 적용한다.
 2. 두 검증 번들(manifest.json, tokenizer.json, model.onnx)을 별도 읽기 전용 볼륨에 준비한다. FEEDBACK_MODEL_VOLUME, FEEDBACK_G2_VOLUME을 지정한다. AI에서 FEEDBACK_MODEL_DIR 및 FEEDBACK_G2_DIR로 각각 마운트되는지 확인한다. 임계값은 FEEDBACK_THRESHOLD로 설정한다. 시작 시 번들 SHA가 다르면 해당 모델이 필요한 요청은 503을 반환한다. 볼륨을 복구하고 AI 프로세스를 다시 시작한다.
-3. 기존 Compose 파일에 infrastructure/docker-compose.feedback.yaml을 합쳐 설정을 검토한다. Content 승인 배포 시 V48/V49를 순서대로 적용하고 새 댓글에 대해 단건→배치→저장→counts 조회를 점검한다. 대시보드는 DB 조회만 한다. 기존 댓글 전체를 일괄 재처리하지 않는다.
+3. 기존 Compose 파일에 infrastructure/docker-compose.feedback.yaml을 합쳐 설정을 검토한다. Content 승인 배포 시 V48(콘텐츠 이벤트), V49/V50(댓글 분석)을 순서대로 적용하고 새 댓글에 대해 단건→배치→저장→counts 조회를 점검한다. 대시보드는 DB 조회만 한다. 기존 댓글 전체를 일괄 재처리하지 않는다.
 4. 임계값만 되돌릴 때 FEEDBACK_THRESHOLD=0.50으로 AI를 재시작한다. 기존 결과에는 원래 임계값이 남으며 집계는 각 버전과 임계값을 구분한다. 감정·공격성 및 기존 멀티라벨 결과는 독립적으로 보존한다.
+
+이전 개발 브랜치의 댓글용 V48이 이력에 있으면 적용을 중단한다. 해당 DB를 백업·보존하고 새 스키마에서 검증한다. 공유 DB에서 이력을 덮어쓰거나 자동 repair하지 않는다.

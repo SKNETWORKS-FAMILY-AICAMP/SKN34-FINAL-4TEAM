@@ -10,6 +10,12 @@ const notifications = (userId: string, items: unknown[]) => JSON.stringify({ typ
 const ids = (r: { fresh: AppNotification[] }) => r.fresh.map((n) => n.id)
 
 describe('receive (웹 → 앱 메시지)', () => {
+  it('알림 목록을 받기 전에도 로그인한 WebView를 확인하고 최초 목록은 기준선으로 둔다', () => {
+    const ready = receive(initialBridgeState, JSON.stringify({ type: 'storyfork.ready', account: 'u1' }))
+    assert.equal(ready.state.userId, 'u1')
+    assert.deepEqual(receive(ready.state, notifications('u1', [item('a')])).fresh, [])
+    assert.deepEqual(receive(ready.state, JSON.stringify({ type: 'storyfork.ready', account: null })).state, initialBridgeState)
+  })
   it('로그인 뒤 첫 알림 목록은 기준선만 만들고 알리지 않는다', () => {
     const first = receive(initialBridgeState, notifications('u1', [item('b'), item('a')]))
     assert.deepEqual(first.fresh, [])

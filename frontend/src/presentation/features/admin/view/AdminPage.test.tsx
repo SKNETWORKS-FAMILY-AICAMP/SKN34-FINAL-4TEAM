@@ -673,6 +673,30 @@ it('상단바 닉네임 버튼이 프로필·로그아웃 메뉴를 열고, 바�
   expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: '프로필' }).getAttribute('aria-current')).toBe('page')
 })
 
+it('상단바에 테마 버튼은 없고 닉네임 메뉴가 프로필 · 다크 모드 · 로그아웃 순서로 열려, 다크 모드 항목이 테마를 바꾸고 메뉴를 열어 둔다', async () => {
+  const store = createAppStore({ role: 'admin' })
+  render(<Provider store={store}><MemoryRouter initialEntries={['/admin?tab=data']}><AdminPage /></MemoryRouter></Provider>)
+  const button = await screen.findByRole('button', { name: /계정 메뉴/ })
+  // 상단바에 따로 있던 테마 버튼(☾)은 없고, 테마 전환은 이 메뉴의 항목 하나뿐이다.
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(within(document.querySelector('.adm .top') as HTMLElement).getAllByRole('button')).toEqual([button])
+  fireEvent.click(button)
+  const menu = screen.getByRole('menu')
+  expect([...menu.children].map((el) => el.getAttribute('role'))).toEqual(['menuitem', 'menuitemcheckbox', 'menuitem'])
+  expect(within(menu).getAllByRole('menuitem').map((el) => el.textContent)).toEqual(['프로필', '로그아웃'])
+  const theme = within(menu).getByRole('menuitemcheckbox', { name: '다크 모드' })
+  expect([theme.getAttribute('aria-checked'), theme.querySelector('em')?.textContent]).toEqual(['false', '꺼짐'])
+  // 방향키가 다크 모드 항목에도 닿는다.
+  fireEvent.keyDown(within(menu).getByRole('menuitem', { name: '프로필' }), { key: 'ArrowDown' })
+  expect(document.activeElement).toBe(theme)
+  fireEvent.click(theme)
+  expect(store.getState().ui.theme).toBe('dark')
+  expect([theme.getAttribute('aria-checked'), theme.querySelector('em')?.textContent]).toEqual(['true', '켜짐'])
+  // 눌러도 메뉴는 열린 채이고 초점도 항목에 남는다.
+  expect(screen.getByRole('menu')).toBe(menu)
+  expect([button.getAttribute('aria-expanded'), document.activeElement]).toEqual(['true', theme])
+})
+
 it('API 표시는 데모 탭에만 둔다: 메뉴 ‘데모’ 배지와 제목 옆 ‘데모 화면’ 칩은 데모 탭(캐릭터챗)에만 있고 실제 API 탭(크레딧 포함)에는 둘 다, 범례 줄도 없다', async () => {
   renderAdmin('works')
   const menu = await screen.findByRole('navigation', { name: '관리자 업무' })

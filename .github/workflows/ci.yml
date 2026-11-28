@@ -6,6 +6,11 @@ on:
   pull_request:
   # 비교 기준이 없는 수동 실행은 모든 서비스/시나리오를 선택한다.
   workflow_dispatch:
+    inputs:
+      record_android:
+        description: Android 에뮬레이터 시연 녹화
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -55,6 +60,117 @@ jobs:
         run: python3 infrastructure/ci/ci.py plan
       - if: ${{ steps.plan.outputs.service_needed == 'true' }}
         run: python3 -m unittest discover -s infrastructure/ci -p 'test_*.py' -v
+
+  android-demo:
+    name: Android emulator demo
+    needs: mobile
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.record_android }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: storyfork_test
+          POSTGRES_USER: content_test
+          POSTGRES_PASSWORD: ci-test-only
+        ports: ["127.0.0.1:5432:5432"]
+        options: --health-cmd "pg_isready -U content_test -d storyfork_test" --health-interval 3s --health-timeout 3s --health-retries 20
+      rabbitmq:
+        image: rabbitmq:4-management
+        env:
+          RABBITMQ_DEFAULT_USER: storyfork
+          RABBITMQ_DEFAULT_PASS: ci-mobile-broker
+        ports: ["127.0.0.1:5672:5672", "127.0.0.1:15672:15672"]
+        options: --health-cmd "rabbitmq-diagnostics -q ping" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      EXPO_PUBLIC_API_BASE_URL: http://127.0.0.1:5173
+      AUTH_PUBLIC_ORIGIN: http://127.0.0.1:5173
+      APP_CORS_ALLOWED_ORIGIN: http://127.0.0.1:5173
+      CORE_RABBITMQ_HOST: 127.0.0.1
+      CORE_RABBITMQ_USER: storyfork
+      CORE_RABBITMQ_PASSWORD: ci-mobile-broker
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare the Android emulator and SDK
+        run: |
+          sudo chown "$USER" /dev/kvm
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmdline-tools;23.0"
+          tools="$ANDROID_HOME/cmdline-tools/23.0/bin"
+          "$tools/sdkmanager" "platform-tools" "emulator" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.1.12297006" "system-images;android-35;google_apis;x86_64"
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/storyfork-avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$tools/avdmanager" create avd --name storyfork-ci --path "$ANDROID_AVD_HOME/storyfork-ci.avd" --package "system-images;android-35;google_apis;x86_64"
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx storyfork-ci
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+      - name: Build the Android development APK
+        working-directory: mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npx expo prebuild --platform android --no-install
+          mkdir -p android/app/src/debug/assets
+          npx expo export:embed --platform android --dev true --entry-file index.ts --bundle-output android/app/src/debug/assets/index.android.bundle --assets-dest android/app/src/debug/res
+          cd android
+          ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 --no-daemon
+      - name: Start actual Core and web
+        run: |
+          pnpm --dir frontend install --frozen-lockfile
+          (cd backend/core-api && ./gradlew bootJar --no-daemon)
+          nohup java -jar backend/core-api/build/libs/*-SNAPSHOT.jar > "$RUNNER_TEMP/core.log" 2>&1 &
+          nohup pnpm --dir frontend dev --host 127.0.0.1 > "$RUNNER_TEMP/web.log" 2>&1 &
+          curl --fail --silent --show-error --retry 60 --retry-all-errors --retry-delay 2 http://127.0.0.1:5173/api/v1/health
+          curl --fail --silent --show-error --output /dev/null -H "Origin: $AUTH_PUBLIC_ORIGIN" "$AUTH_PUBLIC_ORIGIN/api/v1/auth/csrf"
+      - name: Record actual WebView login, local notification and tap
+        run: |
+          adb start-server
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+          "$ANDROID_HOME/emulator/emulator" -avd storyfork-ci -port 5554 -no-window -noaudio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          emulator_pid=$!
+          finish() {
+            result=$?
+            if (( result != 0 )); then
+              timeout 8 adb devices -l || true
+              if [[ $(timeout 4 adb get-state 2>/dev/null) == device ]]; then
+                timeout 10 adb exec-out screencap -p > "$RUNNER_TEMP/storyfork-android/failure.png" || true
+                timeout 8 adb logcat -d -s AndroidRuntime ReactNative ReactNativeJS chromium | tail -100
+              else
+                tail -40 "$RUNNER_TEMP/emulator.log"
+              fi
+            fi
+            kill "$emulator_pid" 2>/dev/null || true
+            exit "$result"
+          }
+          mkdir -p "$RUNNER_TEMP/storyfork-android"
+          trap finish EXIT
+          for ((attempt=0; attempt<120; attempt++)); do
+            kill -0 "$emulator_pid"
+            if [[ $(timeout 4 adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r") == 1 ]]; then break; fi
+            sleep 2
+          done
+          if (( attempt == 120 )); then echo "Android emulator boot timed out"; exit 1; fi
+          adb install mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          node mobile/scripts/android-demo.mjs "$RUNNER_TEMP/storyfork-android"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: storyfork-android-943
+          path: |
+            ${{ runner.temp }}/storyfork-android/
+            mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
 
   configuration:
     name: Compose configuration
@@ -472,7 +588,7 @@ jobs:
   required:
     name: Required CI
     if: ${{ always() }}
-    needs: [changes, configuration, service, mobile, system]
+    needs: [changes, configuration, service, mobile, system, android-demo]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -487,4 +603,5 @@ jobs:
           SYSTEM_NEEDED: ${{ needs.changes.outputs.system_needed }}
           CONFIGURATION_NEEDED: ${{ needs.changes.outputs.infra }}
           MOBILE_NEEDED: ${{ needs.changes.outputs.mobile }}
+          ANDROID_DEMO_NEEDED: ${{ github.event_name == 'workflow_dispatch' && inputs.record_android }}
         run: python3 infrastructure/ci/ci.py required

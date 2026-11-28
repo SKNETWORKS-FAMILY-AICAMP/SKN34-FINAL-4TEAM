@@ -59,6 +59,21 @@ class ContentEventOutboxPublisherTest {
         verify(outbox).save(reader)
     }
 
+    @Test fun `a row with detail sends only the detail fields it has`() {
+        val full = row("reader-1").apply { detailTitle = "별의 숲"; detailEpisode = 3; detailSubject = "원고"; detailReason = "신고 사유" }
+        val titleOnly = row("reader-2").apply { detailTitle = "별의 숲" }
+        pending(full, titleOnly)
+
+        publisher.publishPending()
+
+        val (first, second) = sends().map { mapper.readTree(it.getArgument<Message>(2).body).path("detail") }
+        assertEquals("별의 숲", first.path("title").asString())
+        assertEquals(3, first.path("episodeNumber").asInt())
+        assertEquals("원고", first.path("subject").asString())
+        assertEquals("신고 사유", first.path("reason").asString())
+        assertEquals(setOf("title"), second.propertyNames().toSet())
+    }
+
     @Test fun `rows go out oldest first and each one is marked as soon as it is sent`() {
         val first = row("reader-1")
         val second = row("reader-2")

@@ -174,7 +174,7 @@ describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
 })
 
 describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
-  // 긴 안내(소설·세계관·설정 카드·캐릭터챗 검색)는 1100px 아래에서 GNB 한 줄에 다 들어가지 않아 짧은 표시(검색)로 바꾼다. 600px 이하는 돋보기 아이콘만(font-size:0)이다.
+  // 긴 안내(소설·세계관·설정 카드·캐릭터챗 검색)는 1100px 아래에서 GNB 한 줄에 다 들어가지 않아 짧은 표시(검색)로 바꾼다. 600px 이하는 검색 버튼 자체를 숨긴다(아래 '상단바의 검색·알림 숨김').
   const narrow = (selector: string) => sheet.filter((r) => r.media === '(max-width:1100px)' && r.selectors.includes(selector)).map((r) => r.body.trim())
 
   it('짧은 표시(.ls)는 기본으로 숨기고 1100px 이하에서 긴 표시(.lf)와 서로 바꿔 보인다', () => {
@@ -270,6 +270,14 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(value('.adm td', 'vertical-align')).toBe('middle')
     expect([value('.adm td .btn', 'margin-top'), values('.adm td .btn', 'margin-top', '(max-width:600px),(pointer:coarse)'), values('.adm td .admin-inline:has(.inp) .btn', 'margin-top')]).toEqual([undefined, [], []])
     expect(opsCss).toMatch(/\.admin-pager\s*\{[^}]*align-items\s*:\s*center/)
+  })
+
+  it('닉네임 메뉴의 다크 모드 항목(menuitemcheckbox)은 다른 항목과 같은 모양이고 켜짐·꺼짐 글자는 오른쪽 끝에 둔다', () => {
+    // 상단바에 따로 두던 테마 버튼 대신 PopMenu 목록에 menuitemcheckbox 하나가 들어간다. pop-menu.css가 role="menuitem" 전용이면 이 항목만 높이·여백·호버·초점 윤곽선이 없다(jsdom은 CSS를 적용하지 않아 선택자로 지킨다).
+    const popMenuCss = readFileSync(new URL('../presentation/shared/pop-menu.css', import.meta.url), 'utf8')
+    expect(popMenuCss).toMatch(/\.pop-menu-list \[role\^="menuitem"\] \{[^}]*min-height: 40px/)
+    expect(popMenuCss).toMatch(/\.pop-menu-list \[role\^="menuitem"\]:focus-visible \{/)
+    expect(popMenuCss).toMatch(/\.pop-menu-list \[role="menuitemcheckbox"\] \{[^}]*justify-content: space-between/)
   })
 
   it('900px 이하에서는 브랜드를 가로 스크롤 메뉴 밖 상단바 왼쪽에 둔다(메뉴 안 브랜드가 잘리던 audit 지적)', () => {
@@ -425,8 +433,8 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
 describe('storyfork.css 모바일 상단바 polish', () => {
   const mobile = '(max-width:600px)'
 
-  it('390px에서 로고·검색·알림·테마·아바타가 한 줄에 담기도록 가로 간격은 4px이고 로고는 16px이다 (줄 사이 간격 10px은 그대로)', () => {
-    // 한 줄 폭 358px(390 − 좌우 16px)에 로고(18px일 때 130px)·44·79·44·44px를 간격 10px로 놓으면 381px라 아바타만 둘째 줄로 내려갔다. 4px·16px이면 약 347px이다.
+  it('390px 상단바의 줄 사이 간격은 10px, 가로 간격은 4px이고 로고는 16px이다 — 첫 줄은 로고·아바타뿐이고 검색·알림은 숨긴다', () => {
+    // 예전에는 한 줄 폭 358px(390 − 좌우 16px)에 로고·검색·알림·테마·아바타를 놓느라 간격을 4px·16px로 줄였다. 지금은 첫 줄이 가벼워졌지만 값은 그대로 둔다.
     expect(value('.gnb .in', 'gap', mobile)).toBe('10px 4px')
     expect(value('.gnb .logo', 'font-size', mobile)).toBe('16px')
   })
@@ -474,12 +482,32 @@ describe('storyfork.css 상단바(.gnb) 계정 아바타 계약', () => {
   it('아바타는 상단바가 좁아져도 줄어들지 않는다 — 601~900px에서 메뉴·검색과 한 줄에 놓이면 flex 축소로 38×20 타원이 됐다', () => {
     expect(sheet.some((r) => r.media === '' && r.selectors.includes('.gnb .avatar') && /flex:\s*none/.test(r.body))).toBe(true)
   })
-  it('901~1023px에서는 검색 칸이 줄어 한 줄에 맞춘다 — 검색 최소 폭 260px 때문에 테마·아바타가 찌그러지고 가로로 58px 넘쳤다. 넓은 화면에서는 글자 폭(약 300px) 그대로라 안내 문구가 두 줄로 꺾이지 않는다(260px로 묶으면 꺾였다). 테마 버튼도 줄지 않는다', () => {
+  it('901~1023px에서는 검색 칸이 줄어 한 줄에 맞춘다 — 검색 최소 폭 260px 때문에 알림·아바타가 찌그러지고 가로로 넘쳤다. 넓은 화면에서는 글자 폭(약 300px) 그대로라 안내 문구가 두 줄로 꺾이지 않는다(260px로 묶으면 꺾였다)', () => {
     // 줄어드는 규칙은 짧은 안내('검색')만 보이는 901~1100px에만 둔다. 1101px 이상은 긴 안내가 보이므로 원래 규칙(최소 260px, 글자 폭) 그대로다.
     const search = sheet.find((r) => r.media === '(min-width:901px) and (max-width:1100px)' && r.selectors.includes('.gnb .search'))
     expect(search?.body).toMatch(/min-width:\s*0/)
     expect(search?.body).toMatch(/flex:\s*0 1 260px/)
     expect(sheet.some((r) => r.media === '(min-width:901px)' && r.selectors.includes('.gnb .search'))).toBe(false)
-    expect(sheet.some((r) => r.media === '' && r.selectors.includes('.gnb .thm') && /flex:\s*none/.test(r.body))).toBe(true)
+  })
+})
+
+describe('storyfork.css 상단바의 검색·알림 숨김(600px 이하)과 그 자리를 잇는 계정 메뉴 항목', () => {
+  const mobile = '(max-width:600px)'
+
+  it('600px 이하에서는 상단바의 검색 버튼과 알림 링크를 숨기고(계정 메뉴의 검색·알림함 항목이 대신한다) 601px 이상은 그대로 보인다', () => {
+    expect(value('.gnb .search', 'display', mobile)).toBe('none')
+    expect(value('.gnb .gnb-noti', 'display', mobile)).toBe('none')
+    expect(values('.gnb .search', 'display')).toEqual([])
+    expect(values('.gnb .gnb-noti', 'display')).toEqual([])
+  })
+
+  it('계정 메뉴의 검색·알림함 항목과 그 구분선(.acct-m)은 601px부터 숨겨 600px 이하에서만 보인다', () => {
+    expect(value('.pop.acctm .acct-m', 'display', '(min-width:601px)')).toBe('none')
+    expect(values('.pop.acctm .acct-m', 'display')).toEqual([])
+  })
+
+  it('계정 메뉴는 화면 높이 안에서 스크롤한다 — 600px 이하에서는 항목이 늘어 작은 폰에서 로그아웃이 화면 밖으로 잘렸다(dvh를 모르는 브라우저는 앞의 vh를 쓴다)', () => {
+    expect(values('.pop.acctm', 'max-height')).toEqual(['calc(100vh - 80px)', 'calc(100dvh - 80px)'])
+    expect(value('.pop.acctm', 'overflow-y')).toBe('auto')
   })
 })

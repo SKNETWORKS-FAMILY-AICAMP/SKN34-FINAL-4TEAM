@@ -8,6 +8,15 @@ const item = { id: '3f0c1b52-8f7e-4a53-9a45-0d3a9c7a1e11', kind: 'creation', sum
 type Call = [string, { method?: string; body?: string; headers: Record<string, string> }]
 const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
 const prefsBody = { items: [{ kind: 'reading', enabled: false, mutable: true }, { kind: 'creation', enabled: true, mutable: true }, { kind: 'ai-tool', enabled: false, mutable: true }, { kind: 'result', enabled: true, mutable: false }] }
+const installationId = '7da43875-6da5-4f2a-9f11-a7bb40adcd07'
+const signal = new AbortController().signal
+/** CSRF·세션 목록은 전역 fetch로 읽으므로 login 뒤에 세션 목록을 답하는 대역으로 바꾼다. order에는 읽은 경로를 순서대로 남긴다. */
+const stubSessions = (sessions: { id: string; current: boolean }[], order: string[] = []) => vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+  order.push(path)
+  return path.endsWith('/csrf')
+    ? Response.json({ csrfToken: 'n-csrf' })
+    : Response.json({ sessions: sessions.map((s) => ({ ...s, deviceLabel: '', createdAt: '2026-11-26T04:00:00Z' })) })
+}))
 
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'n-csrf' }) : Response.json({ accessToken: 'n-bearer', user: { id: 'u1', email: 'u1@example.invalid', nickname: 'U', operator: false } })))
@@ -77,5 +86,47 @@ describe('HttpNotificationRepository', () => {
 
   it('미읽음 수를 읽는다', async () => {
     expect(await new HttpNotificationRepository(vi.fn().mockResolvedValue(Response.json({ count: 3 }))).unreadCount()).toBe(3)
+  })
+
+  it('알림 한 건은 id로 읽고, 형식이 다르거나 서버 오류면 거부한다', async () => {
+    const fetcher = vi.fn(async () => Response.json(item))
+    expect(await new HttpNotificationRepository(fetcher).get(item.id)).toEqual(item)
+    const [url, init] = callsOf(fetcher)[0]
+    expect(url).toBe('/api/v1/me/notifications/' + item.id)
+    expect(init.headers.Authorization).toBe('Bearer n-bearer')
+    await expect(new HttpNotificationRepository(vi.fn(async () => Response.json({ ...item, kind: 'unknown' }))).get(item.id)).rejects.toThrow()
+    await expect(new HttpNotificationRepository(vi.fn(async () => new Response(null, { status: 404 }))).get(item.id)).rejects.toThrow()
+  })
+
+  it('앱 기기 토큰은 현재 웹 세션으로 등록한다', async () => {
+    stubSessions([{ id: 'another', current: false }, { id: 'current', current: true }])
+    const fetcher = vi.fn(async () => new Response(null, { status: 204 }))
+    await new HttpNotificationRepository(fetcher).syncPushDevice({ installationId, token: 'rotated-token' }, signal)
+    const [url, init] = callsOf(fetcher)[0]
+    expect(url).toBe('/api/v1/me/push-devices')
+    expect(init.method).toBe('POST')
+    expect(init.headers['X-CSRF-TOKEN']).toBe('n-csrf')
+    expect(JSON.parse(String(init.body))).toEqual({ installationId, sessionId: 'current', platform: 'android', token: 'rotated-token' })
+  })
+
+  it('현재 세션이 없으면 등록하지 않고, 권한이 꺼지면 이 설치만 해제한다', async () => {
+    stubSessions([])
+    const fetcher = vi.fn(async () => new Response(null, { status: 204 }))
+    const repo = new HttpNotificationRepository(fetcher)
+    await expect(repo.syncPushDevice({ installationId, token: 'token' }, signal)).rejects.toThrow()
+    expect(fetcher).not.toHaveBeenCalled()
+    await repo.syncPushDevice({ installationId, token: null }, signal)
+    const [url, init] = callsOf(fetcher)[0]
+    expect(url).toBe('/api/v1/me/push-devices/' + installationId)
+    expect(init).toMatchObject({ method: 'DELETE' })
+    expect(init.headers['X-CSRF-TOKEN']).toBe('n-csrf')
+  })
+
+  it('앱 기기 등록의 CSRF 토큰은 세션 조회 뒤 POST 직전에 받는다(사이에 다른 요청이 끼면 Core가 403으로 거절)', async () => {
+    const order: string[] = []
+    stubSessions([{ id: 'current', current: true }], order)
+    const fetcher = vi.fn<typeof fetch>(async (path) => { order.push(String(path)); return new Response(null, { status: 204 }) })
+    await new HttpNotificationRepository(fetcher).syncPushDevice({ installationId, token: 'token' }, signal)
+    expect(order).toEqual(['/api/v1/auth/sessions', '/api/v1/auth/csrf', '/api/v1/me/push-devices'])
   })
 })

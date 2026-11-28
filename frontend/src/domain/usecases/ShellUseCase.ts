@@ -1,5 +1,5 @@
 import type { FeedbackRepository } from '../repositories/FeedbackRepository'
-import type { NotificationPrefs, NotificationRepository } from '../repositories/NotificationRepository'
+import type { NotificationPrefs, NotificationRepository, PushDevice } from '../repositories/NotificationRepository'
 
 /** 모든 화면 상단 메뉴(GNB) 배지와 U42 알림함 */
 export class ShellUseCase {
@@ -17,9 +17,11 @@ export class ShellUseCase {
   }
 
   listNotifications(cursor?: string | null, signal?: AbortSignal) { return this.notificationRepository.list(cursor, signal) }
+  getNotification(id: string, signal?: AbortSignal) { return this.notificationRepository.get(id, signal) }
   getPrefs(signal?: AbortSignal) { return this.notificationRepository.getPrefs(signal) }
   markRead(id: string) { return this.notificationRepository.markRead(id) }
   markAllRead(upTo: string) { return this.notificationRepository.markAllRead(upTo) }
   removeNotification(id: string) { return this.notificationRepository.remove(id) }
   savePrefs(prefs: NotificationPrefs) { return this.notificationRepository.savePrefs(prefs) }
+  syncPushDevice(device: PushDevice, signal: AbortSignal) { return this.notificationRepository.syncPushDevice(device, signal) }
 }

@@ -108,6 +108,15 @@ describe('공용 채팅 메시지', () => {
     expect(screen.queryByRole('heading')).toBeNull()
     expect(screen.queryByRole('button', { name: '요약' })).toBeNull()
   })
+
+  it('사용법 투어(#971)의 앵커: 추천 칩은 빈 대화에서만, 입력 양식은 늘 data-tour가 붙는다', () => {
+    const { rerender } = render(<ChatPanel messages={[]} suggestions={['요약']} />)
+    expect(screen.getByRole('list', { name: '추천 질문' }).getAttribute('data-tour')).toBe('chat-suggest')
+    expect(document.querySelector('form.chat-composer')?.getAttribute('data-tour')).toBe('chat-composer')
+    rerender(<ChatPanel messages={[{ id: 'a', role: 'user', text: '안녕' }]} suggestions={['요약']} />)
+    expect(screen.queryByRole('list', { name: '추천 질문' })).toBeNull()
+    expect(document.querySelector('form.chat-composer')?.getAttribute('data-tour')).toBe('chat-composer')
+  })
 })
 
 describe('공용 채팅 입력', () => {

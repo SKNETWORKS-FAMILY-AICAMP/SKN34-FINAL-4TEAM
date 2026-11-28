@@ -14,8 +14,9 @@ import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-private const val WORK_RESTRICTED = "content.operator.work-restricted"
-private const val WORK_UNRESTRICTED = "content.operator.work-unrestricted"
+/** 운영자 작품·회차 제한 알림 사건 종류. 회차 제한은 같은 종류에 detailEpisode를 싣는다(#941, InternalEpisodeService). */
+internal const val WORK_RESTRICTED = "content.operator.work-restricted"
+internal const val WORK_UNRESTRICTED = "content.operator.work-unrestricted"
 
 /** 운영 서비스 전용 작품 조회·제한 플래그 변경. 소유권 검사 없이 서비스 토큰으로만 보호된다. */
 @Service
@@ -47,7 +48,7 @@ class InternalWorkService(private val works: WorkRepository, private val nicknam
         val row = works.lockAll(listOf(id)).singleOrNull()?.takeIf { it.deletedAt == null } ?: missing()
         if (row.restricted != restricted) {
             row.restricted = restricted
-            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (restricted) WORK_RESTRICTED else WORK_UNRESTRICTED, row.ownerId, "work", row.id))
+            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (restricted) WORK_RESTRICTED else WORK_UNRESTRICTED, row.ownerId, "work", row.id, detailTitle = row.title))
         }
         return view(row)
     }

@@ -88,14 +88,14 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
             <label>세계관 설명<textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={20000} rows={4} /></label>
           </div>
           <div className="world-info-card">
-            <fieldset className="world-publish world-compact">
+            <fieldset className="world-publish world-compact" data-tour="world-overview-publish">
               <legend>공개 설정</legend>
               <PublishFields value={publication} onChange={(change) => setPublication((current) => ({ ...current, ...change }))} />
               <p className="small muted">저장하면 적용돼요. 공개 화면에는 확정 버전의 공개 설정만, 소설이 발행한 회차까지 보여요.</p>
               {visibilityChanged && <PublicCardsNotice vm={vm} visibility={publication.visibility} />}
             </fieldset>
           </div>
-          <div className="world-info-card world-cover-edit" role="group" aria-label="표지">
+          <div className="world-info-card world-cover-edit" role="group" aria-label="표지" data-tour="world-overview-cover">
             <span className="world-cover-label">표지</span>
             <div className="world-cover-now cov"><img src={coverSrc(vm.cover.url)} alt={vm.cover.url ? '현재 표지' : '기본 표지'} /></div>
             <div className="ep-cover-pick">

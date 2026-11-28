@@ -1,6 +1,8 @@
 package ai.storyfork.content.episode
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.episode.controller.InternalEpisodeController
 import ai.storyfork.content.episode.entity.EpisodeCurrentEntity
 import ai.storyfork.content.episode.entity.EpisodeEntity
@@ -35,7 +37,8 @@ class EpisodeRestrictionTest {
     private val works = mock(WorkRepository::class.java)
     private val current = mock(EpisodeCurrentRepository::class.java)
     private val episodes = mock(EpisodeRepository::class.java)
-    private val service = InternalEpisodeService(works, current, episodes)
+    private val outbox = mock(ContentEventOutboxRepository::class.java)
+    private val service = InternalEpisodeService(works, current, episodes, outbox)
     private val work = WorkEntity(id = "work", ownerId = "author", title = "작품")
 
     /** 쿼리 한 줄이다: [번호, 발행 버전 제목, 초안 제목, 발행 상태, 제한 여부, 상속 여부]. */
@@ -112,6 +115,26 @@ class EpisodeRestrictionTest {
         verify(works, times(2)).lockAll(listOf("work"))
     }
 
+    /** 저장소에 건넨 outbox 행이다(같은 트랜잭션에서 쓰는 운영자 조치 알림 사건). */
+    private fun saved() = mockingDetails(outbox).invocations.filter { it.method.name == "save" }.map { it.arguments[0] as ContentEventOutboxEntity }
+
+    @Test fun `restrict and unrestrict record one operator event for the work owner with the episode only when the flag really changes`() {
+        `when`(works.lockAll(listOf("work"))).thenReturn(listOf(work))
+        rows(row(1, "1화"), row(2, "2화"))
+        `when`(episodes.findByWorkIdAndSequence("work", 2)).thenReturn(EpisodeEntity(id = "e2", workId = "work", sequence = 2))
+
+        service.restrict("work", 2, false) // 이미 해제 상태
+        service.restrict("work", 2, true)
+        service.restrict("work", 2, true) // 멱등 재요청
+        service.restrict("work", 2, false)
+
+        val events = saved()
+        assertEquals(listOf("content.operator.work-restricted", "content.operator.work-unrestricted"), events.map { it.type })
+        assertEquals(listOf("author", "author"), events.map { it.recipientId })
+        assertEquals(listOf("work" to "work", "work" to "work"), events.map { it.targetType to it.targetId })
+        assertEquals(listOf("작품" to 2, "작품" to 2), events.map { it.detailTitle to it.detailEpisode })
+    }
+
     @Test fun `an inherited episode is 409 EPISODE_INHERITED and nothing changes`() {
         `when`(works.lockAll(listOf("work"))).thenReturn(listOf(work))
         rows(row(1, "상속", inherited = true))
@@ -120,6 +143,7 @@ class EpisodeRestrictionTest {
 
         assertEquals(409 to "EPISODE_INHERITED", failure.status to failure.code)
         verify(episodes, never()).findByWorkIdAndSequence(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
+        verifyNoInteractions(outbox)
     }
 
     @Test fun `an unknown episode number is 404 and nothing changes`() {

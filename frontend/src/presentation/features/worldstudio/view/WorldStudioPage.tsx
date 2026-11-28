@@ -14,9 +14,10 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ManageMenu } from '../../../shared/shell/ManageMenu'
+import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
-import { labelOf } from '../viewmodel/settingBoard'
+import { labelOf } from '../../../shared/settingBoard'
 import { useCardCategories } from '../../../shared/useCardCategories'
 import { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { UNLISTED_HINT } from '../viewmodel/worldPublication'
@@ -43,13 +44,52 @@ import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
+// 사용법 투어(#971)의 화면 투어(첫 진입 1회, 메뉴 소개): 관리 모드 사이드바의 보기 버튼(data-tour="world-<보기>")과 도구 버튼으로 무엇을 하는 곳인지 한 문장씩 알린다. 접힌 사이드바의 대상은 보이지 않아 단계에서 빠진다. 사용법 버튼은 이것이 아니라 지금 보기의 투어를 연다.
+const tour: TourStep[] = [
+  { target: 'world-overview', title: '개요', text: '세계관 이름·설명·공개 설정·표지를 고치고 현황을 봐요. 표지는 AI로 만들 수도 있어요.' },
+  { target: 'world-book', title: '설정집', text: '설정 카드를 만들고 분류해요. 소설을 연결한 세계관은 카드마다 몇 화부터 공개할지 정해요.' },
+  { target: 'world-people', title: '관계도', text: '설정 사이의 관계를 한 그래프에서 보고 만들어요. 관계는 회차별로 기록돼요.' },
+  { target: 'world-timeline', title: '시간선', text: '승인한 사건 카드를 회차 순서로 가로 시간축에 놓아 보여요.' },
+  { target: 'world-novel', title: '소설 연결', text: '이 세계관을 소설 하나와 1:1로 연결해요. 연결된 소설과 그 Fork 소설도 여기서 봐요.' },
+  { target: 'world-review', title: 'AI 검토', text: 'AI는 검토와 제안만 하고, 설정에 반영하는 건 내가 해요.' },
+  { target: 'world-versions', title: '확정 버전', text: '독자에게는 확정한 버전만 보여요. 저장하지 않은 변경이 있으면 먼저 저장해야 해요. 다른 보기도 처음 열면 안내가 나오고, 사용법 버튼으로 다시 볼 수 있어요.' },
+]
+
+// 보기별 사용법 투어(#971): 보기(탭)에 처음 들어갈 때(화면 투어 다음) 그 보기의 우리만의 기능과 쓰는 법을 짚는다. 대상은 data-tour="world-<보기>-<이름>"이고, 사용법 버튼은 지금 보기의 투어를 연다.
+// 소설을 연결하지 않은 세계관의 공개 범위 일괄 변경·갈라진 Fork가 없는 소설 연결처럼 화면에 없는 대상의 단계는 빠진다.
+const tabTours: Record<string, TourStep[]> = {
+  overview: [
+    { target: 'world-overview-publish', title: '공개 설정', text: '세계관을 공개·비공개로 정하고 장르를 골라요. 공개 화면에는 확정 버전의 공개 설정만, 연결한 소설이 발행한 회차까지 보여요. 저장해야 적용돼요.' },
+    { target: 'world-overview-cover', title: '표지', text: "표지는 '이미지 선택'으로 올리거나 'AI로 생성'으로 만들어요. 생성한 결과는 '이 이미지 선택'을 누른 뒤 '저장'해야 표지가 돼요." },
+  ],
+  book: [
+    { target: 'world-book-tools', title: '새 설정 만들기', text: "'+ 새 설정'에서 인물·장소·사건 같은 유형을 고르면 새 카드의 편집 화면이 열려요. '다른 세계관에서 가져오기'로 카드를 복사해 올 수도 있어요." },
+    { target: 'world-book-list', title: '설정 목록', text: "줄을 누르면 미리보기가 열리고, '수정하기'로 카드 작성 화면(문서·개요·관계·버전·공개 순서)을 열어요." },
+    { target: 'world-book-bulk', title: '공개 범위 한 번에 바꾸기', text: "이 쪽에서 카드를 골라 일괄 공개 회차(N화부터)를 넣고 '선택 공개'를, 숨기려면 '선택 비공개'를 눌러요. 필터와 상관없이 모든 설정은 '전체 공개'·'전체 비공개'로 바꿔요. 소설을 연결한 세계관에서만 보이고, 저장한 뒤 확정 버전을 남겨야 독자에게 반영돼요." },
+  ],
+  people: [
+    { target: 'world-people-episode', title: '관계 기준 회차', text: "관계는 '시작 회차'와 함께 기록돼요. 회차를 넣고 '이 회차 관계 보기'를 누르면 그 회차 시점의 관계가 보이고, '최신으로'로 돌아와요." },
+    { target: 'world-people-canvas', title: '전체 관계도', text: '설정 카드와 관계가 한 그래프에 모두 보여요. 노드를 누르면 그 설정과 이웃이 강조되고, 더블클릭하면 그 설정의 편집 화면이 열려요.' },
+    // 바로 앞 단계와 같은 대상이면 joyride가 말풍선을 다시 띄우지 않아(불투명도 0) 캔버스 아래 조작 안내 줄을 짚는다.
+    { target: 'world-people-hint', title: '그래프에서 만들기', text: "빈 곳이나 노드를 오른쪽 클릭하면 메뉴가 열려요(터치는 길게 누르기). 빈 곳은 '여기에 설정 추가', 노드는 '관계 연결'을 골라 상대 노드를 누르면 관계 작성 시트가 열려요." },
+    { target: 'world-people-add', title: '+ 설정 추가', text: "왼쪽 위 '+ 설정 추가'로도 새 설정을 캔버스에 바로 더해요." },
+    { target: 'world-people-settings', title: '그래프 설정', text: '톱니 버튼에서 화면 맞춤·배치 정돈, 설정 찾기와 유형·관계 종류 필터, 중심 보기를 써요.' },
+  ],
+  timeline: [
+    { target: 'world-timeline-board', title: '사건 시간선', text: '승인한 사건 카드가 회차 순서로 가로 시간축에 놓여요. 방향키(←→↑↓)로 사건 사이를 오가고 Enter로 고르면 내용과 관련 설정이 보여요.' },
+  ],
+  novel: [
+    { target: 'world-novel-link', title: '소설 연결', text: "세계관은 소설 하나에만 연결돼요. '소설 연결하기'로 내 소설을 고르고, 연결한 뒤에는 '소설 작성하기'로 그 작품 관리로 가요." },
+    { target: 'world-novel-forks', title: 'Fork 소설', text: '연결한 소설에서 갈라진 공개 Fork 소설을 모아 봐요. 회차를 하나 이상 발행한 공개 Fork만 보여요.' },
+  ],
+}
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 
 /**
  * 세계관 관리·작성 화면. 두 화면이다.
  * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀이지만 공용 상단바(Gnb)는 그리지 않는다 — 왼쪽 사이드바(`.ep-menu`)가 상단바 역할을 맡고 오른쪽에 내용 열(`.ep-content`)이 있다. 사이드바는 위에서 아래로
  *   맨 위 줄(STORYFORK 로고 + 접기 토글), 서재로 돌아가는 링크, 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집), 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·`확정 버전 남기기`·상시 저장 영역,
- *   맨 아래 줄(알림·테마 버튼·계정 아바타)이다. 검색 버튼은 두지 않는다(Ctrl K 전역 단축키). 901px 이상에서는 맨 위 토글로 사이드바를 접을 수 있고 접으면 토글만 남고 서재로 돌아가는 링크와 저장 영역이 상단 줄(`.ep-top`)로 옮겨 간다(두 곳 동시 노출 없음).
+ *   맨 아래 줄(알림·계정 아바타, 테마는 계정 메뉴의 `다크 모드` 항목)이다. 검색 버튼은 두지 않는다(Ctrl K 전역 단축키). 901px 이상에서는 맨 위 토글로 사이드바를 접을 수 있고 접으면 토글만 남고 서재로 돌아가는 링크와 저장 영역이 상단 줄(`.ep-top`)로 옮겨 간다(두 곳 동시 노출 없음).
  *   내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 고른 보기의 내용(기본은 설정집 게시판, 개요는 세계관 지표 띠와 그 아래 정보 편집 폼(구획 카드), 소설 연결은 연결된 소설과 Fork)이 있다.
  *   관계도 보기(`?view=people`)는 세계관 머리를 그리지 않고(이름은 화면 밖 h1, '관계 입력 미적용' 칩만 남는다) React Flow 캔버스가 내용 열 전체 폭 × 화면의 남은 높이를 채운다(관계는 캔버스에서 바로 만들고 그 아래에는 폼·표가 없다, `CharacterCards`, `world-studio.css`). 관리 모드에는 푸터도 없다.
  *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다. 사이드바가 없는 작성 모드와 세계관 없는 만들기 화면은 공용 상단바(Gnb)와 푸터가 그대로다.
@@ -57,7 +97,7 @@ const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relation
  * 설정집 화면은 편집 화면 뒤에서 지우지 않고 숨겨 두어 필터·적용하지 않은 관계 입력·후보 검토 상태를 지킨다. 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
  * 소설 작성은 실행 모드의 작품 생성 화면에서 시작한다.
  * 세계관이 열린 화면(주소에 id가 있는 경로)은 떠 있는 테마 버튼(GlobalChrome)을 그리지 않는다(집필실과 같은 규칙, 열린 채팅의 전송 버튼을 덮지 않게).
- * 테마 버튼은 공용 상단바(Gnb)가 있는 작성 모드·세계관 없는 만들기 화면에서는 상단바의 것 하나가 맡고(세계관 없는 만들기 화면의 떠 있는 버튼은 CSS가 숨긴다), 상단바가 없는 설정집 화면은 사이드바 맨 아래 줄, 편집 화면은 `WorldCardStudio` 상단 바에 있다.
+ * 테마 전환은 공용 상단바(Gnb)가 있는 작성 모드·세계관 없는 만들기 화면에서는 상단바 계정 메뉴의 `다크 모드` 항목이 맡고(세계관 없는 만들기 화면의 떠 있는 버튼은 CSS가 숨긴다), 상단바가 없는 설정집 화면은 사이드바 계정 메뉴의 같은 항목, 편집 화면은 `WorldCardStudio` 상단 바의 버튼이다.
  * 관리 주소는 세계관을 읽는 동안·읽지 못했을 때도 상단바를 그리지 않는다(사이드바가 나타날 때 상단바가 사라지며 화면이 밀리지 않게, 그 사이의 뒤로 가기 링크는 상단 줄에 있다).
  */
 export function WorldStudioPage() {
@@ -142,7 +182,7 @@ export function WorldStudioPage() {
  * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
  * 공개 세계관인데 공개로 둔 설정이 없으면 그 경고와 `전체 공개`를 보인다(어느 탭에서든 보여야 한다).
  * 작성 모드(만든 직후의 마법사)도 같은 줄어든 히어로다(`data-view="wizard"`): 행동 줄에 소설 버튼 한 자리(연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`, 데모는 새 소설 폼으로 가는 `소설 작성하기`)와 `관리 화면으로`가 있고
- * 그 위에 연결된 소설 상태 줄(정보만)이 있다. 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다. 테마 전환 버튼은 이 화면 안에 두지 않고 공용 상단바(Gnb)가 맡는다.
+ * 그 위에 연결된 소설 상태 줄(정보만)이 있다. 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다. 테마 전환 버튼은 이 화면 안에 두지 않고 공용 상단바(Gnb)의 계정 메뉴가 맡는다.
  */
 function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
   const saved = vm.saved ?? world
@@ -214,7 +254,7 @@ function WorldPublish({ vm }: { vm: VM }) {
 /**
  * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 사이드바 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
  * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)가 공용 상단바(Gnb)를 대신하고 공용 `ManageMenu`(shared/shell)가 그린다. 맨 위 줄은 STORYFORK 로고 + 접기 토글이고 그 아래 서재로 돌아가는 링크와 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)로 화면을 바꾸며,
- * 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트)·`확정 버전 남기기`와 상시 저장 영역(도구 묶음 `.ep-menu-tools`), 맨 아래 줄(`.ep-menu-account`)에 알림·테마·계정이 있다.
+ * 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트)·`확정 버전 남기기`와 상시 저장 영역(도구 묶음 `.ep-menu-tools`), 맨 아래 줄(`.ep-menu-account`)에 알림·계정이 있다(테마는 계정 메뉴의 `다크 모드` 항목).
  * 내용 열 맨 위에는 오류·상태·AI 변경 알림(`notices`)이 있다(사이드바 위에 끼어 사이드바를 아래로 밀지 않게 페이지의 위쪽이 아니라 여기에 그린다).
  * 보기마다 내용 열은 그 보기의 내용만 보인다: 개요(작품 관리 개요 같은 세계관 지표 띠 `WorldOverviewMetrics` + 이름·설명·공개·장르·표지 편집 구획 카드 `WorldInfoPanel`, `.ep-dash`)·설정집(게시판)·관계도·시간선·소설 연결(연결된 소설과 Fork, `WorldNovelTab`).
  * 게시판·관계 편집기·(한 번 연) 개요 폼은 다른 보기에서도 숨겨 둘 뿐 지우지 않아 필터·선택·적용하지 않은 관계 입력·쓰던 이름과 고른 표지가 남고, 소설 연결은 볼 때만 그린다.
@@ -259,12 +299,15 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
             </>
           )}
         >
+          {/* 첫 렌더는 목록 단계라 이 구역이 hidden이다: 편집 화면이 보일 때 시작해야 대상이 잡힌다(jsdom은 checkVisibility가 없어 브라우저에서만 재현). */}
+          <ScreenTour screen="world" steps={tour} tabs={tabTours} tab={vm.view} ready={vm.flow.screen === 'editor'} className="btn sm weak tour-side" />
           <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
+                  data-tour={`world-${id}`}
                   aria-current={vm.view === id ? 'page' : undefined}
                   onClick={(e) => {
                     // 900px 이하의 가로 스크롤 줄에서 가장자리에 잘린 메뉴를 눌러도 그 버튼이 줄 안에 다 보이게 옆으로만 옮긴다(세로는 위 effect가 내용 카드 머리로 옮긴다).
@@ -319,7 +362,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           {view === 'novel' && <WorldNovelTab vm={vm} />}
           <div hidden={manage ? view !== 'book' : step !== 'cards'}><WorldCardBoard vm={vm} onPreviewEdit={onPreviewEdit} /></div>
           {timeline && (
-            <section className="world-confirmed" aria-label="시간선">
+            <section className="world-confirmed" aria-label="시간선" data-tour="world-timeline-board">
               <h3>저장된 시간선</h3>
               <WorldTimeline settings={vm.saved?.settings ?? []} onOpenCard={vm.editCard} />
             </section>
@@ -354,7 +397,7 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
   const why = !supported ? '목업에서는 확정 버전을 지원하지 않아요.' : vm.dirty || vm.relationDirty ? '저장하지 않은 변경이 있어요. 먼저 세계관을 저장하세요.' : vm.sealIssues[0]?.message ?? ''
   return (
     <>
-      <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
+      <button type="button" className="btn sm" data-tour="world-versions" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
       {why && <span id={reason} className="small muted">{why}</span>}
     </>
   )

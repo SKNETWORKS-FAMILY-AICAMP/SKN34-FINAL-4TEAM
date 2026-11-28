@@ -25,6 +25,7 @@ AI 에이전트(집필 AI 채팅 밖의 외부 MCP 클라이언트 포함)가 Co
 | `content.mcp.work-changed` | `ai-tool` | `work` | 작품 id | AI가 MCP로 「작품명」 3화 원고를 수정했어요 |
 
 - 문구는 사건의 선택 필드 `detail`(`title`·`episodeNumber`·`subject`)로 Core가 만든다(#941, [알림 사건 계약](../notification-event-contract.md#메시지-본문-json-utf-8)). `detail`이 없으면 이전 고정 문구("AI가 MCP로 작품을 수정했어요")다.
+- 현재 Content의 MCP 쓰기 도구 사건(`McpChangeNotice`)은 아직 `detail`을 싣지 않아 이전 고정 문구가 나가고 "외 n건"도 나오지 않는다. MCP 사건의 `detail` 발행은 #941 후속(PR 2b)이다.
 
 - 수신자(`recipientId`)는 그 콘텐츠의 주인(작가)이다. 대부분의 도구는 소유자만 성공하므로 호출자가 곧 주인이고, 운영자도 부를 수 있는 `work_notice_*`는 작품 소유자를 조회해 보낸다.
 - 회차·플롯·작품 공지·작품에 딸린 설정 변경도 `work` 대상이다(묶음 단위는 작품). 회차 번호는 `detail.episodeNumber`에 실어 문구와 이동 회차에 쓴다(#941).
@@ -42,10 +43,11 @@ AI 에이전트(집필 AI 채팅 밖의 외부 MCP 클라이언트 포함)가 Co
 | `content.operator.comment-restored` | `result` | `work` | 댓글이 달린 작품 id | 댓글 작성자 | 운영자가 숨긴 「작품명」 3화의 내 댓글을 다시 게시했어요 |
 
 - 문구 예시는 `detail`이 있을 때다(#941). 회차 단위 제한·댓글은 `detail.episodeNumber`, 작품 전체 제한은 회차 없이 "운영자가 「작품명」을 제한했어요"다. 사유는 있을 때만 붙인다(결정 2026-11-26: 운영자가 바로 제한하는 API에는 사유 입력이 없고, 신고 처리로 제한한 경우에만 신고 사유가 있다). `detail`이 없으면 이전 고정 문구다.
-- 세계관 제한·해제 사건은 Core에 종류만 추가했고, Content 발행은 #941 후속 작업이다.
 
-- Content 내부 API(`InternalWorkService.restrict`, `InternalCommentService.hide`·`restore`)가 **상태가 실제로 바뀔 때만**(멱등 재요청은 제외) 같은 트랜잭션에서 `content_event_outbox`에 쓴다.
-- 운영자 알림은 묶지 않고(결정 5는 `ai-tool`만) 화면 자동 새로고침도 하지 않는다. 알림을 누르면 기존처럼 `/work/{id}`로 간다.
+- Content 내부 API(`InternalWorkService.restrict`, `InternalEpisodeService.restrict`(회차 제한, #941), `InternalCommentService.hide`·`restore`)가 **상태가 실제로 바뀔 때만**(멱등 재요청은 제외) 같은 트랜잭션에서 `content_event_outbox`에 쓴다. `detail`은 작품 제목(`title`)과, 회차 제한·댓글이면 회차 번호(`episodeNumber`)다.
+- 세계관 제한·해제(`InternalWorldStudioService.restrict`, #941)는 WorldStudio 트랜잭션이 커밋된 뒤 실제로 바뀐 경우만 세계관 소유자에게 쓴다(outbox는 Content DB라 같은 트랜잭션에 넣을 수 없다). `detail.title`은 운영 목록과 같은 세계관 이름이다. 기록이 실패해도 제한 요청은 성공으로 두고 로그만 남긴다.
+- 사유(`detail.reason`)는 아직 싣지 않는다: 운영자 직접 제한 API에는 사유 입력이 없고, 신고 처리 제한의 신고 사유를 Content로 넘기는 일은 #941 후속이다.
+- 운영자 알림은 묶지 않고(결정 5는 `ai-tool`만) 화면 자동 새로고침도 하지 않는다. 알림을 누르면 기존처럼 `/work/{id}`로, 세계관 제한·해제 알림은 `/worldstudio/{id}`로 간다.
 
 ## Content: 사건을 남기는 도구
 

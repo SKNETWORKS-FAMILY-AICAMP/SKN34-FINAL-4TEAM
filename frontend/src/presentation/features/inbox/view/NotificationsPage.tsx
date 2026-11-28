@@ -33,7 +33,7 @@ export function NotificationsPage() {
             <label className="ck" key={k}><input type="checkbox" checked={vm.prefs![k]} disabled={vm.saving} onChange={(e) => vm.setPref(k, e.target.checked)} /> {l}</label>
           ))}</div>}
           {failed('prefs')}
-          <p className="small muted">결과·크레딧·권리·보안 알림은 필수 알림이에요. 알림은 앱 안에서만 확인할 수 있고, 직접 삭제하기 전까지 보관해요.</p>
+          <p className="small muted">결과·크레딧·권리·보안 알림은 필수 알림이에요. 알림함에는 직접 삭제하기 전까지 보관해요.</p>
         </section>
         <div className="panel" style={{ marginTop: 14 }}>
           {vm.live === 'offline' && <p className="small muted" role="status">실시간 연결이 끊겼어요. 자동으로 다시 연결하는 중이고, 그동안 도착한 알림은 다시 연결되면 보여요.</p>}

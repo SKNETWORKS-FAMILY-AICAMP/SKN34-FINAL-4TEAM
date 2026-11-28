@@ -68,10 +68,11 @@ class WorkInterestService(
     @Transactional(transactionManager="contentTransactionManager")
     fun episodePublished(id: String, author: String, number: Int) {
         if(current.findByWorkIdAndSequence(id,number)?.publishedVersionId!=null) return
-        if(!access.get(id).publiclyVisible()) return
+        val work=access.get(id)
+        if(!work.publiclyVisible()) return
         val now=Instant.now().truncatedTo(ChronoUnit.MICROS)
         outbox.saveAll(interests.findAllByWorkId(id).filter {it.memberId!=author}.map {
-            ContentEventOutboxEntity(UUID.randomUUID(),EPISODE_PUBLISHED,it.memberId,"work",id,now)
+            ContentEventOutboxEntity(UUID.randomUUID(),EPISODE_PUBLISHED,it.memberId,"work",id,now,detailTitle=work.title,detailEpisode=number)
         })
     }
 }

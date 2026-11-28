@@ -72,7 +72,7 @@ export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy
         <div className='ep-title-row'>
           <h1 className={editing === 'info' ? 'sr-only' : undefined}>{w.title}</h1>
           {editing !== 'info' && (
-            <button ref={infoButton} type='button' className='btn sm' disabled={blocked} onClick={() => onEditingChange('info')}>
+            <button ref={infoButton} type='button' className='btn sm' data-tour='manage-overview-info' disabled={blocked} onClick={() => onEditingChange('info')}>
               작품 정보 편집
             </button>
           )}
@@ -190,7 +190,7 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
     onClose()
   }
   return (
-    <div className='ep-hero-cover'>
+    <div className='ep-hero-cover' data-tour='manage-overview-cover'>
       <div className='cover ep-cover'>
         {current
           ? <StoredImage target={target} id={current.id} alt='작품 표지' revision={media.revision} />

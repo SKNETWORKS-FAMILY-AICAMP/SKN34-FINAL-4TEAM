@@ -25,7 +25,7 @@ from pydantic import BaseModel
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
 from app.simulation.errors import PROMPT_UNAVAILABLE, SimulationFailure
-from app.simulation.models import Action, Monologue, Narration, PlanDraft, Verdict
+from app.simulation.models import Action, Monologue, Narration, PlanDraft, Verdict, verdict_for
 from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, NARRATE_INSTRUCTIONS, PLAN_INSTRUCTIONS
 
 
@@ -58,8 +58,10 @@ def narrate(data: dict, instructions: str | None = None, model: str | None = Non
 
 
 def check(data: dict) -> Verdict:
-    """생성 문단을 오류 1~3과 IF 전제·비트 진행 기준으로 한 번에 판정한다. 나레이션(self.id 없음)은 미래 정보 누설만 판정한다."""
-    return _parse('check', CHECK_INSTRUCTIONS, data, Verdict, 1500, 60)
+    """생성 문단을 오류 1~3과 IF 전제·비트 진행 기준으로 한 번에 판정한다. 판정하는 것은 요청한 검사(data['checks'])뿐이다:
+    응답 형식이 그 종류·개수로 좁혀 있어(verdict_for) self.id가 있는 인물 시점 나레이션도 요청한 검사만 돌려준다."""
+    narrowed = _parse('check', CHECK_INSTRUCTIONS, data, verdict_for(data['checks']), 1500, 60)
+    return Verdict.model_validate(narrowed.model_dump())  # 좁힌 형식은 제공사에 보내는 용도다: 호출자에게는 일반 Verdict를 돌려준다
 
 
 def _endpoint(name: str) -> tuple[str | None, str | None, str | None, str | None]:

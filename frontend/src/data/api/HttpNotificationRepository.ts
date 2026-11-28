@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import type { NotificationPage } from '../../domain/entities/notification'
-import type { NotificationPrefs, NotificationRepository } from '../../domain/repositories/NotificationRepository'
-import { authVersion, protectedRequest } from './auth'
+import type { AppNotification, NotificationPage } from '../../domain/entities/notification'
+import type { NotificationPrefs, NotificationRepository, PushDevice } from '../../domain/repositories/NotificationRepository'
+import { authVersion, protectedRequest, sessions } from './auth'
 import { csrf } from './csrf'
 
 const kind = z.enum(['reading', 'creation', 'result', 'credit', 'rights-security', 'ai-tool'])
@@ -13,6 +13,7 @@ const notice = z.object({
 const pageSchema = z.object({ items: z.array(notice), nextCursor: z.string().nullable() })
 const prefsSchema = z.object({ items: z.array(z.object({ kind: z.string(), enabled: z.boolean(), mutable: z.boolean() })) })
 const base = '/api/v1/me/notifications'
+const devices = '/api/v1/me/push-devices'
 
 /** 인증된 Core 알림 API(/api/v1/me/notifications·notification-preferences) 구현. 데모 데이터는 섞지 않습니다. */
 export class HttpNotificationRepository implements NotificationRepository {
@@ -42,6 +43,11 @@ export class HttpNotificationRepository implements NotificationRepository {
     return z.object({ count: z.number().int().nonnegative() }).parse(await (await this.request(`${base}/unread-count`, { signal })).json()).count
   }
 
+  async get(id: string, signal?: AbortSignal): Promise<AppNotification> {
+    const response = await protectedRequest(`${base}/${encodeURIComponent(id)}`, { signal }, authVersion(), false, { fetcher: this.fetcher })
+    return notice.parse(await response.json())
+  }
+
   /** 이미 없어졌거나(404) 이미 읽은 알림은 같은 결과(읽음)이므로 성공으로 봅니다. */
   async markRead(id: string) { await this.request(`${base}/${encodeURIComponent(id)}/read`, { method: 'PATCH', okStatuses: [404] }) }
   async markAllRead(upTo: string) { await this.request(`${base}/read-all`, { method: 'POST', body: { upTo } }) }
@@ -51,6 +57,28 @@ export class HttpNotificationRepository implements NotificationRepository {
   async savePrefs(prefs: NotificationPrefs) {
     const body = { items: [{ kind: 'reading', enabled: prefs.read }, { kind: 'creation', enabled: prefs.creator }, { kind: 'ai-tool', enabled: prefs.aiTool }] }
     return toPrefs(prefsSchema.parse(await (await this.request('/api/v1/me/notification-preferences', { method: 'PUT', body })).json()))
+  }
+
+  /**
+   * request()를 거치지 않는다: 계정이 바뀌면 이전 계정 기준으로 모은 세션으로 보내지 않도록 인증 버전을 맨 처음 고정한다.
+   * Core는 CSRF 토큰을 받은 뒤 다른 요청이 끼면 그 토큰을 거절(403)하므로, 세션 조회를 먼저 하고 토큰은 요청 직전에 받는다.
+   */
+  async syncPushDevice({ installationId, token }: PushDevice, signal: AbortSignal) {
+    const version = authVersion()
+    const options = { fetcher: this.fetcher }
+    if (token === null) {
+      await protectedRequest(`${devices}/${encodeURIComponent(installationId)}`,
+        { signal, method: 'DELETE', headers: { 'X-CSRF-TOKEN': await csrf(signal) } }, version, false, options)
+      return
+    }
+    const current = (await sessions(signal)).find((session) => session.current)
+    if (!current) throw new Error('현재 웹 로그인 세션을 확인할 수 없어요.')
+    await protectedRequest(devices, {
+      signal,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': await csrf(signal) },
+      body: JSON.stringify({ installationId, sessionId: current.id, platform: 'android', token }),
+    }, version, false, options)
   }
 }
 

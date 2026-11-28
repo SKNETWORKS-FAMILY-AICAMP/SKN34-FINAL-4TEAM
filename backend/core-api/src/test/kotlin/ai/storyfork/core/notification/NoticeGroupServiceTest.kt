@@ -25,7 +25,8 @@ import org.springframework.data.domain.PageRequest
 class NoticeGroupServiceTest {
     private val me = UUID.randomUUID()
     private val notices = mock(NoticeRepository::class.java)
-    private val service = NoticeService(notices, mock(NoticePreferenceRepository::class.java), mock(MemberRepository::class.java), mock(NoticeStream::class.java))
+    private val service = NoticeService(notices, mock(NoticePreferenceRepository::class.java), mock(MemberRepository::class.java),
+        mock(NoticeStream::class.java), mock(org.springframework.context.ApplicationEventPublisher::class.java))
 
     private fun notice(summary: String, id: UUID = UUID.randomUUID()) =
         NoticeEntity(id, me, "creation", summary, "work", "w1", Instant.parse("2026-11-11T00:00:00Z"))

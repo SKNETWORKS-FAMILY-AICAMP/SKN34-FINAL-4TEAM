@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { WORLD_COVER_TYPES } from '../../../../domain/entities/studioWorld'
-import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+import { WORLD_COVER_TYPES } from '../../domain/entities/studioWorld'
+import type { WorldStudioUseCase } from '../../domain/usecases/WorldStudioUseCase'
 
 /** `made`는 객체 주소를 만든 순간 채워져, 떠날 때 기다리지 않고 바로 해제한다(아직 읽는 중이면 끊긴 요청이 주소를 만들지 않는다). */
 type Entry = { controller: AbortController; url: Promise<string>; made: { url?: string } }

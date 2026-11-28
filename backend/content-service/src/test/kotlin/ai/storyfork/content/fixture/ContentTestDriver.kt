@@ -16,6 +16,7 @@ class ContentTestDriver(
     private val context: ai.storyfork.content.context.service.ContextService,
     private val proposals: ai.storyfork.content.proposal.service.ProposalService,
     private val mapper: JsonMapper,
+    private val workRows: ai.storyfork.content.work.repository.WorkRepository,
 ) {
     private inline fun <reified T> convert(value: Any): T = mapper.convertValue(value,T::class.java)
     fun create(owner: String,data: CreateWorkRequest): WorkResponse = convert(works.create(owner,convert(data)))
@@ -38,7 +39,16 @@ class ContentTestDriver(
     fun saveSetting(id: String,sid: String,owner: String,data: SettingRequest): WorldView = convert(world.saveDraft(id,sid,owner,convert(data)))
     fun commitSetting(id: String,sid: String,owner: String,expected: Int): WorldView = convert(world.commit(id,sid,owner,expected))
     fun revertSetting(id: String,sid: String,owner: String,data: RevertRequest): WorldView = convert(world.revert(id,sid,owner,convert(data)))
-    fun fork(id: String,owner: String,data: ForkRequest): WorkResponse = convert(forks.create(id,owner,convert(data)))
+    /**
+     * Fork는 세계관이 연결된 원작에서만 만들 수 있다(409 FORK_WORLD_REQUIRED). 연결이 없는 원작은 만드는 동안만 임의 세계관 id를 걸고 끝나면 되돌린다:
+     * 연결 없는 원작(옛 설정집 방식)에서 갈라진 Fork를 다루는 시험이 만든 뒤에도 그 상태를 그대로 이어 쓰게 한다.
+     */
+    fun fork(id: String,owner: String,data: ForkRequest): WorkResponse {
+        val unlinked=workRows.findById(id).map {it.worldStudioId==null}.orElse(false)
+        if(unlinked) linkWorld(id,java.util.UUID.randomUUID())
+        try {return convert(forks.create(id,owner,convert(data)))} finally {if(unlinked) linkWorld(id,null)}
+    }
+    private fun linkWorld(id: String,world: java.util.UUID?) {workRows.findById(id).ifPresent {it.worldStudioId=world;workRows.saveAndFlush(it)}}
     fun change(id: String,owner: String,data: ChangeRequest): WorldView = convert(forks.decideChange(id,owner,convert(data)))
     fun readContext(id: String,owner: String?,episode: Int,query: String,character: String): StoryContext = convert(context.read(id,owner,ai.storyfork.content.context.service.dto.ContextRequest(episode,query,character)))
     fun generationRequest(id: String,owner: String,episode: Int,query: String,character: String) = ai.storyfork.content.proposal.client.dto.GenerationPayload(context.read(id,owner,ai.storyfork.content.context.service.dto.ContextRequest(episode,query,character)),query)
@@ -51,6 +61,7 @@ class ContentTestConfig {
     @Bean fun testDriver(works: ai.storyfork.content.work.service.WorkService,episodes: ai.storyfork.content.episode.service.EpisodeService,
         versions: ai.storyfork.content.episode_version.service.EpisodeVersionService,publication: ai.storyfork.content.publication.service.PublicationService,
         world: ai.storyfork.content.world.service.WorldService,forks: ai.storyfork.content.fork.service.ForkService,
-        context: ai.storyfork.content.context.service.ContextService,proposals: ai.storyfork.content.proposal.service.ProposalService,mapper: JsonMapper) =
-        ContentTestDriver(works,episodes,versions,publication,world,forks,context,proposals,mapper)
+        context: ai.storyfork.content.context.service.ContextService,proposals: ai.storyfork.content.proposal.service.ProposalService,mapper: JsonMapper,
+        workRows: ai.storyfork.content.work.repository.WorkRepository) =
+        ContentTestDriver(works,episodes,versions,publication,world,forks,context,proposals,mapper,workRows)
 }

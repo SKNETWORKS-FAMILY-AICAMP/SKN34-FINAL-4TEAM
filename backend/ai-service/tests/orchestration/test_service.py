@@ -24,7 +24,9 @@ from app.research.errors import ResearchFailure
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
 from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
-from app.simulation import scene_agent
+from app.manuscript_review import service as manuscript_review
+from app.manuscript_review.errors import ReviewFailure
+from app.simulation import scene_agent, service as simulation
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import SimulationPlan
 from app.world_review import service as world_review
@@ -653,12 +655,9 @@ def test_world_without_a_target_fails_the_step_without_reading_the_world(monkeyp
 
 
 @pytest.mark.parametrize('task, where, failure', [
-    ('check', 'world_review_read', WorldReviewFailure(409, '이 작품에 연결된 세계관이 없어 설정집을 다룰 수 없어요.')),
     ('check', 'world_review_read', ContentMcpFailure(404, '세계관을 찾을 수 없어요.')),
     ('check', 'world_review', WorldReviewFailure(502, '설정집 검토 모델 응답을 확인할 수 없습니다.')),
-    ('enrich', 'world_read', WorldReviewFailure(409, '이 작품에 연결된 세계관이 없어 설정집을 다룰 수 없어요.')),
     ('enrich', 'world_enrich', WorldReviewFailure(502, '설정 보강 모델 응답의 카드·수정안을 확인할 수 없습니다.')),
-    ('impact', 'world_review_read', WorldReviewFailure(409, '이 작품에 연결된 세계관이 없어 설정집을 다룰 수 없어요.')),
     ('impact', 'mcp', ContentMcpFailure(422, '문맥 한도를 넘어요. 회차 또는 인물 범위를 좁혀 주세요.')),
     ('impact', 'world_impact', WorldReviewFailure(502, '설정 영향 분석 모델 응답의 참조를 확인할 수 없습니다.')),
 ])
@@ -667,6 +666,100 @@ def test_world_failure_fails_the_step_with_its_message_and_starts_no_new_step(mo
     result = run(target=TARGET, inputs={'research': WEB})
     assert result.status == 'failed'
     assert [(s.status, s.error) for s in result.steps] == [('failed', str(failure))]
+
+
+NO_WORLD_FAILS = [
+    (Step('world', task='check'), 'world_review_read', WorldReviewFailure(409, world_review.NO_LINKED_WORLD), '세계관'),
+    (Step('world', task='enrich'), 'world_read', WorldReviewFailure(409, world_review.NO_LINKED_WORLD), '세계관'),
+    (Step('world', task='impact'), 'world_review_read', WorldReviewFailure(409, world_review.NO_LINKED_WORLD), '세계관'),
+    (Step('manuscript_review', check='semantic'), 'manuscript_review', ReviewFailure(409, manuscript_review.NO_LINKED_WORLD), '설정 검수'),
+    ('character_simulation', 'sim_plan', SimulationFailure(409, simulation.NO_LINKED_WORLD), '인물 시뮬레이션'),
+]
+EXTRACT = {'label': '원고에서 세계관 추출하기', 'form': 'world'}
+LINK = {'label': '내 세계관 연결하기', 'form': 'world'}
+
+
+def no_world_choices(result):
+    return [{'label': c.label, 'form': c.form} for c in result.choices]
+
+
+def no_world_list(monkeypatch, listed):
+    """세계관 목록 조회만 바꾼다(listed가 예외면 던진다). 다른 조회는 fake_agents 대역을 그대로 쓴다."""
+    real = tools.content_mcp.call
+
+    def call(tool, args):
+        if tool != 'world_studio_list':
+            return real(tool, args)
+        if isinstance(listed, Exception):
+            raise listed
+        return listed
+
+    monkeypatch.setattr(tools.content_mcp, 'call', call)
+
+
+@pytest.mark.parametrize('step, where, failure, name', NO_WORLD_FAILS)
+def test_a_task_that_needs_a_world_fails_with_the_guidance_and_choices_to_the_world_tab(monkeypatch, step, where, failure, name):
+    # 턴을 멈추는 되묻기가 아니라 실패 단계다: 메인 에이전트가 다른 결과와 함께 답하고, 선택지만 응답에 덧붙는다(#910 리뷰)
+    fake_agents(monkeypatch, plan(step, 'research'), fail={where: failure})
+    result = run('요청', target=TARGET, inputs={'research': WEB})
+    message = f'이 작품에 연결된 세계관이 없어 {name} 기능을 쓸 수 없어요. 원고로 세계관을 만들거나 내 세계관을 연결해 주세요.'
+    assert (result.status, [(s.status, s.error) for s in result.steps]) == ('failed', [('failed', message)])
+    assert no_world_choices(result) == [EXTRACT]  # 연결할 수 있는 내 세계관이 없다
+    assert all(len(c.label) <= 20 for c in result.choices)
+
+
+def test_other_results_of_the_turn_are_kept_next_to_the_no_world_guidance(monkeypatch):
+    fake_agents(monkeypatch, plan(['story_context', Step('world', task='check')]),
+                fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
+    result = run('관계 알려주고 설정 검토해줘', target=TARGET, inputs={'story_context': QA})
+    assert sorted((s.feature, s.status) for s in result.steps) == [('story_context', 'completed'), ('world', 'failed')]
+    assert result.message == '종합 답변' and no_world_choices(result) == [EXTRACT]
+
+
+def test_two_world_tasks_in_one_batch_without_a_world_show_the_choices_once(monkeypatch):
+    fake_agents(monkeypatch, plan([Step('world', task='check'), Step('manuscript_review', check='semantic')]),
+                fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD),
+                      'manuscript_review': ReviewFailure(409, manuscript_review.NO_LINKED_WORLD)})
+    result = run('설정 검토하고 설정 검수해줘', target=TARGET)
+    assert [s.status for s in result.steps] == ['failed', 'failed'] and no_world_choices(result) == [EXTRACT]
+
+
+def test_a_fork_that_inherits_the_original_world_gets_no_guidance(monkeypatch):
+    # World는 연결만 보고 409를 내므로 Fork 상속 세계관이 있으면 추출·연결로 보내지 않는다(Content가 Fork 상속 회차 추출을 거절한다)
+    fake_agents(monkeypatch, plan(Step('world', task='check')), fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
+    monkeypatch.setattr(tools.content_mcp, 'inherited_world', lambda work, episode: {'worldId': 'origin'})
+    result = run('설정 검토해줘', target=TARGET)
+    assert ([(s.status, s.error) for s in result.steps], result.choices) == ([('failed', world_review.NO_LINKED_WORLD)], [])
+
+
+def test_the_link_choice_shows_only_when_the_author_has_a_world_linked_to_no_work(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), fail={'sim_plan': SimulationFailure(409, simulation.NO_LINKED_WORLD)})
+    no_world_list(monkeypatch, [{'worldId': 'w1', 'linkedWorkId': 'other'}, {'worldId': 'w2', 'linkedWorkId': None}])
+    assert no_world_choices(run(REQUEST, target=TARGET)) == [EXTRACT, LINK]
+    no_world_list(monkeypatch, [{'worldId': 'w1', 'linkedWorkId': 'other'}])
+    assert no_world_choices(run(REQUEST, target=TARGET)) == [EXTRACT]
+
+
+def test_a_failing_world_list_still_offers_both_choices(monkeypatch):
+    fake_agents(monkeypatch, plan('world'), fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
+    no_world_list(monkeypatch, ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.'))
+    result = run('설정 검토해줘', target=TARGET)
+    assert (result.status, no_world_choices(result)) == ('failed', [EXTRACT, LINK])
+
+
+def test_other_conflicts_and_failures_of_a_world_task_stay_failed_steps(monkeypatch):
+    fake_agents(monkeypatch, plan('world'), fail={'world_review_read': WorldReviewFailure(409, '다른 충돌이에요.')})
+    result = run('설정 검토해줘', target=TARGET)
+    assert (result.status, [(s.status, s.error) for s in result.steps], result.choices) == ('failed', [('failed', '다른 충돌이에요.')], [])
+
+
+def test_the_no_world_guidance_has_no_retry_mark_and_shows_every_time(monkeypatch):
+    thread = str(uuid4())
+    for _ in range(2):  # 대화에서 한 번만 보이는 상태는 없다
+        fake_agents(monkeypatch, plan('world'), fail={'world_review_read': WorldReviewFailure(409, world_review.NO_LINKED_WORLD)})
+        result = write_turn(thread, request='설정 검토해줘', target=TARGET)
+        assert (result.status, no_world_choices(result)) == ('failed', [EXTRACT])
+        assert 'retry' not in result.steps[0].model_dump()  # 다시 시도할 실패가 아니다(DEC-61)
 
 
 def test_world_runs_in_plan_order_and_never_asks_for_an_input(monkeypatch):
@@ -1421,8 +1514,8 @@ def test_the_simulation_plan_history_counts_the_last_five_turns_without_the_ones
 
 
 def test_planning_failure_fails_the_step_without_running_anything(monkeypatch):
-    message = '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.'
-    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'), fail={'sim_plan': SimulationFailure(409, message)})
+    message = '시뮬레이션 모델 응답을 확인할 수 없습니다.'
+    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'), fail={'sim_plan': SimulationFailure(502, message)})
     result = run(REQUEST, target=TARGET, inputs={'research': WEB})
     assert result.status == 'failed'
     assert [(s.status, s.error) for s in result.steps] == [('failed', message)]
@@ -2375,6 +2468,11 @@ def test_writing_without_a_world_runs_with_no_settings_and_tells_the_author(monk
     result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
     assert json.loads(next(args[0] for name, args, _ in calls if name == called).context)['settings'] == []
     assert (result.steps[0].status, result.steps[0].result.gaps) == ('completed', [tools.NO_WORLD_SETTINGS])
+
+
+def test_the_no_world_gaps_of_writing_and_qa_point_to_the_world_tab():
+    for gap in (tools.NO_WORLD_SETTINGS, story_qa.NO_WORLD):
+        assert gap.endswith('작품 관리의 세계관 탭에서 원고로 세계관을 만들거나 내 세계관을 연결할 수 있어요.')
 
 
 def test_a_world_without_settings_known_yet_writes_without_a_notice(monkeypatch):

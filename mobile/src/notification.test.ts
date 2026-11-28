@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { noticeLabel, noticeTarget, payloadTarget } from './notification.ts'
+import { noticeLabel, noticeTarget, payloadTarget, pushNoticeId, shouldRequestNotificationPermission } from './notification.ts'
+
+it('Android가 초기 denied 상태를 반환해도 권한을 한 번 요청하고 실제 알림 UUID만 전달한다', () => {
+  const initial = { status: 'denied', granted: false, canAskAgain: true }
+  assert.equal(shouldRequestNotificationPermission(initial, false), true)
+  assert.equal(shouldRequestNotificationPermission(initial, true), false)
+  assert.equal(shouldRequestNotificationPermission({ ...initial, canAskAgain: false }, false), false)
+  const id = '7565d1dc-ae47-4fdf-af1c-cf278520a7e0'
+  assert.equal(pushNoticeId({ noticeId: id }), id)
+  assert.equal(pushNoticeId({ noticeId: '/admin' }), null)
+})
 
 // 웹 frontend/src/domain/__tests__/noticeTarget.test.ts와 같은 기대값이다. 규칙을 고치면 두 곳을 함께 고친다.
 describe('noticeTarget', () => {

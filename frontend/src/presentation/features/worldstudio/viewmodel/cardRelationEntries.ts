@@ -3,7 +3,7 @@ import { relationShortName } from '../../../../domain/entities/studioRelations'
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import type { RelationEntry } from '../../../shared/cardRelations'
 import { kindOf as groupOf } from '../../../shared/worldBoard'
-import { settingLinks } from './settingBoard'
+import { settingLinks } from '../../../shared/settingBoard'
 
 /**
  * 작가 편집 화면의 카드(`cardId`)에 이어진 것을 카드별 관계도의 입력으로: 이 카드를 끝점으로 하는 승인된 관계(짧은 이름 `relationShortName` — 서버에서 읽은 자유 관계는 label이고 본문이 이름이 되지 않는다 — 과

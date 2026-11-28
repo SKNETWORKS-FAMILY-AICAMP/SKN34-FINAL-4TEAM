@@ -1,9 +1,12 @@
 """업무 Agent 공통 실행(#373): LangChain `create_agent` + 커스텀 미들웨어로 모델 호출 1회를 실행한다.
 
-Story Context Q&A·Writing·웹 조사·Review·Rating이 같은 방식으로 쓴다. 모델은 `ChatOpenAI`(Responses API, store=False, 자동 재시도 없음)이고
+Story Context Q&A·Writing·웹 조사·Review·Rating이 같은 방식으로 쓴다. 모델은 `ChatOpenAI`(Responses API, store=False, SDK 숨은 재시도 없음)이고
 구조화 출력은 제공사 strict JSON schema(ProviderStrategy)다. `ModelCallMiddleware`(AgentMiddleware 상속)가 모델 호출을 Langfuse
 generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류·불완전(토큰 한도로 잘린) 응답·스키마 위반을 기능의 고정 실패 문구로 바꾼다.
-호출 한도는 라이브러리 ModelCallLimitMiddleware가 지킨다(업무 Agent는 모델 호출 1회). 실패를 fallback·재시도로 숨기지 않는다.
+호출 한도는 라이브러리 ModelCallLimitMiddleware가 지킨다(업무 Agent는 모델 호출 1회). 실패를 fallback으로 숨기지 않는다.
+재시도는 DEC-61의 두 가지뿐이다: 집필 AI 채팅 안(그래프 실행)의 일시 장애(연결·시간 초과·429·5xx)는 1초 뒤 같은 입력으로 한 번 더 부르고
+진행 목록에 보인다(REST 업무 API·연재·회귀 평가처럼 채팅 밖에서는 재시도하지 않는다). 출력 문제(502)는
+이 모듈이 다시 부르지 않고 `output_problem`으로 `retry = 'output'`만 단다(서비스가 모델 출력을 검증해 올리는 502도 이 헬퍼로 단다). 집필 채팅의 `orchestration.tools._ask`가 같은 입력으로 한 번 더 부른다.
 
 여러 단계를 도는 Agent(인물 시뮬레이션)의 공통 진행 이벤트·사용량 장부도 여기 둔다. 미들웨어가 상태의 `step`에 단계 결과를 남기면
 `ProgressMiddleware`가 LangGraph custom stream으로 흘리고(바깥 오케스트레이션이 SSE `step`으로 중계), `UsageLedger`(콜백)가 그 단계까지
@@ -19,6 +22,7 @@ generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류
 import json
 import os
 from contextlib import contextmanager
+from time import sleep
 from typing import Any, NotRequired
 from uuid import uuid4
 
@@ -29,7 +33,7 @@ from langchain_core.callbacks import BaseCallbackHandler, adispatch_custom_event
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.config import get_stream_writer
-from openai import OpenAIError
+from openai import APIConnectionError, InternalServerError, OpenAIError, RateLimitError
 from pydantic import BaseModel
 
 from app import tracing
@@ -39,29 +43,39 @@ MODEL_EVENT = 'agent.model'  # 모델 호출 하나의 {name, ms, failed, inputT
 STEP_EVENT = 'agent.step'  # 단계 결과 하나(SSE step 항목). 사용량 장부가 이 단계까지의 호출을 묶는다
 
 
+TRANSIENT = (APIConnectionError, RateLimitError, InternalServerError)  # 일시 장애(APITimeoutError는 APIConnectionError). 같은 입력으로 한 번 더 부른다(DEC-61)
+RETRY_WAIT = 1  # 일시 장애 재시도 전 대기(초)
+RETRY_LABEL, RETRY_TARGET = '다시 시도하는 중', '일시 장애'
 TARGET_CHARS = 40  # 진행 목록 대상(회차·카드 이름·검색어)은 앞 40자만 보인다. 도구 인자 원문은 싣지 않는다
 
 
-def report(id: str, label: str, status: str, target: str | None = None, feature: str | None = None) -> None:
-    """진행 목록 한 줄 {id, label, target, status(running|done|failed), feature}을 알린다. 같은 id가 화면의 한 줄을 갱신한다."""
+def _writer():
+    """지금 실행 중인 그래프(집필 AI 채팅)의 stream writer. 그래프 실행 밖(REST 업무 API·워커)에는 SSE가 없어 None이다."""
     try:
-        write = get_stream_writer()
-    except (RuntimeError, KeyError):  # 그래프 실행 밖(REST 업무 API·워커)에는 SSE가 없다
+        return get_stream_writer()
+    except (RuntimeError, KeyError):
+        return None
+
+
+def report(id: str, label: str, status: str, target: str | None = None, feature: str | None = None, write=None) -> None:
+    """진행 목록 한 줄 {id, label, target, status(running|done|failed), feature}을 알린다. 같은 id가 화면의 한 줄을 갱신한다.
+    write를 주면 그 writer로 보낸다(업무 Agent 안처럼 바깥 그래프의 writer를 미리 잡아 둔 곳)."""
+    if not (write := write or _writer()):
         return
     write({'activity': {'id': id, 'label': label, 'target': target[:TARGET_CHARS] if target else None, 'status': status, 'feature': feature}})
 
 
 @contextmanager
-def activity(label: str, target: str | None = None):
+def activity(label: str, target: str | None = None, write=None):
     """감싼 작업을 running으로 알리고 끝나면 done, 예외면 failed로 알린 뒤 예외를 그대로 올린다."""
     id = uuid4().hex
-    report(id, label, 'running', target)
+    report(id, label, 'running', target, write=write)
     try:
         yield
     except Exception:
-        report(id, label, 'failed', target)
+        report(id, label, 'failed', target, write=write)
         raise
-    report(id, label, 'done', target)
+    report(id, label, 'done', target, write=write)
 
 
 class StepState(AgentState):
@@ -118,19 +132,35 @@ class UsageLedger(BaseCallbackHandler):
         tracing.client().start_observation(name=self.name, as_type='span', metadata=record).end()
 
 
+def output_problem(failure: Exception) -> Exception:
+    """DEC-61 출력 문제 표식을 달아 돌려준다(orchestration._ask가 같은 입력으로 한 번 다시 부른다)."""
+    failure.retry = 'output'
+    return failure
+
+
 class ModelCallMiddleware(AgentMiddleware):
     """모델 호출 하나를 추적하고, 결과를 쓸 수 있는지 확인한다. 실패는 failure(status, 고정 문구)로 올린다."""
 
-    def __init__(self, name: str, label: str, failure: type[Exception], trace: dict, settings: dict, prompt=None):
+    def __init__(self, name: str, label: str, failure: type[Exception], trace: dict, settings: dict, prompt=None, write=None):
         super().__init__()
         self.observation, self.label, self.failure, self.trace, self.settings, self.prompt = name, label, failure, trace, settings, prompt
+        self.write = write  # 집필 AI 채팅의 stream writer. 있을 때만 일시 장애를 한 번 다시 부르고 그 줄을 진행 목록에 보인다(DEC-61)
 
     def wrap_model_call(self, request, handler):
-        unusable = self.failure(502, f'{self.label} 모델 응답을 확인할 수 없습니다.')
+        unusable = output_problem(self.failure(502, f'{self.label} 모델 응답을 확인할 수 없습니다.'))
         with tracing.observe(self.observation, as_type='generation', model=request.model.model_name, input=self.trace,
                              prompt=self.prompt) as generation:
             try:
-                response = handler(request.override(model_settings={**request.model_settings, **self.settings}))
+                called = request.override(model_settings={**request.model_settings, **self.settings})
+                try:
+                    response = handler(called)
+                except TRANSIENT:  # 숨은 SDK 재시도 대신 보이는 재시도 한 번. 두 번째도 실패하면 아래 except가 고정 503으로 끝낸다
+                    if self.write is None:  # 채팅 밖(REST 업무 API·연재·회귀 평가)은 재시도하지 않는다
+                        raise
+                    generation.update(metadata={'retries': 1, 'retryReason': 'transient'})
+                    with activity(RETRY_LABEL, RETRY_TARGET, write=self.write):
+                        sleep(RETRY_WAIT)
+                        response = handler(called)
             # 스키마 위반(pydantic ValidationError는 ValueError)과 langchain-openai가 응답의 error를 올리는 ValueError는 쓸 수 없는 응답이다.
             except (StructuredOutputValidationError, ValueError):
                 raise unusable from None
@@ -236,7 +266,8 @@ def run(name: str, label: str, failure: type[Exception], instructions: str, data
         chat, tools=[WEB_SEARCH] if web_search else [], system_prompt=managed.text, checkpointer=False,
         response_format=ProviderStrategy(schema, strict=True) if schema else None,
         middleware=[*([credit] if credit is not None else []),
-                    ModelCallMiddleware(name, label, failure, trace, {'tool_choice': 'required'} if web_search else {}, managed.client),
+                    ModelCallMiddleware(name, label, failure, trace, {'tool_choice': 'required'} if web_search else {}, managed.client,
+                                        write=_writer()),  # 업무 Agent는 따로 그래프를 돌아 바깥 채팅의 writer를 여기서 잡는다
                     ModelCallLimitMiddleware(run_limit=1, exit_behavior='error')])
     state = agent.invoke({'messages': [HumanMessage(json.dumps(data, ensure_ascii=False))]})
     return state['messages'][-1], state.get('structured_response')

@@ -23,6 +23,7 @@ import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
 import { OnboardingSheet } from './presentation/shared/shell/OnboardingSheet'
 import { PolicySheet } from './presentation/shared/shell/PolicySheet'
 import { QuickJump } from './presentation/shared/shell/QuickJump'
+import { TourAutoStart } from './presentation/shared/tour/useScreenTour'
 
 const AdminPage = lazy(() => import('./presentation/features/admin/view/AdminPage').then((m) => ({ default: m.AdminPage })))
 const ReportsPage = lazy(() => import('./presentation/features/reports/view/ReportsPage').then((m) => ({ default: m.ReportsPage })))
@@ -107,6 +108,7 @@ function App() {
   const mockup = import.meta.env.MODE === 'mockup'
   return (
     <RestoreContext.Provider value={restoring}>
+    <TourAutoStart.Provider value>
       {restoreError === 'lock' && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
       {restoreError === 'connection' && <p role="alert">서버 연결에 실패했어요. 잠시 후 다시 시도해 주세요.</p>}
       <RouteErrorBoundary pathname={pathname}>
@@ -157,6 +159,7 @@ function App() {
         </Suspense>
       </RouteErrorBoundary>
       {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /><OnboardingSheet /></>}
+    </TourAutoStart.Provider>
     </RestoreContext.Provider>
   )
 }

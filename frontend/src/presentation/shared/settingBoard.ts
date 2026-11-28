@@ -1,10 +1,10 @@
-import { cardLinks } from '../../../../domain/entities/cardLinks'
-import { categoryName, type CardCategory } from '../../../../domain/entities/cardCategory'
-import { cardTypeOf, isCard } from '../../../../domain/entities/studioCards'
-import { relationLabel } from '../../../../domain/entities/studioRelations'
-import type { SettingItem, StudioSetting } from '../../../../domain/entities/studioWorld'
-import { kindOf, type BoardEntry } from '../../../shared/worldBoard'
-import { plainCardText } from '../../../shared/cardSections'
+import { cardLinks } from '../../domain/entities/cardLinks'
+import { categoryName, type CardCategory } from '../../domain/entities/cardCategory'
+import { cardTypeOf, isCard } from '../../domain/entities/studioCards'
+import { relationLabel } from '../../domain/entities/studioRelations'
+import type { SettingItem, StudioSetting } from '../../domain/entities/studioWorld'
+import { kindOf, type BoardEntry } from './worldBoard'
+import { plainCardText } from './cardSections'
 
 /*
  * 설정 카드 단계의 게시판: 편집 중인 설정(`StudioSetting[]`)을 공개 설정집과 같은 게시판 원자료(`BoardEntry`)로 바꾼다.

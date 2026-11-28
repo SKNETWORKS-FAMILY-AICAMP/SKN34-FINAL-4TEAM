@@ -24,7 +24,7 @@ data class GeneratedSummary(val summary: String, val credits: BigDecimal)
 data class GeneratedEpisode(val summary: String, val title: String, val text: String, val credits: BigDecimal, val reviewPassed: Boolean = true)
 
 /**
- * AI 호출 실패다. [reviewFailed]는 검수 2회 실패(422), [limitExceeded]는 크레딧 상한 초과(402), [detail]은 인물 시뮬레이션이 막은 실패를 AI가 설명한 문구(409·422)이고 그 밖의 모든 실패(연결·시간 초과·응답 오류)는 셋 다 false·null이다.
+ * AI 호출 실패다. [reviewFailed]는 검수 2회 실패(422), [limitExceeded]는 크레딧 상한 초과(402), [detail]은 인물 시뮬레이션이 막거나 끝내지 못한 실패를 AI가 설명한 문구(409·422·502·504)이고 그 밖의 모든 실패(연결·시간 초과·그 밖의 응답 오류)는 셋 다 false·null이다.
  * 셋은 실행 실패 사유를 일반 실패 문구와 구분하는 데만 쓴다. 원문·응답 본문은 메시지에 싣지 않는다(원인으로만 남는다).
  */
 class SerialAiFailure(val reviewFailed: Boolean = false, cause: Throwable? = null, val limitExceeded: Boolean = false, val detail: String? = null) :
@@ -51,13 +51,16 @@ internal fun isLimitExceeded(status: Int, body: String?): Boolean = status == 40
 
 private val SEPARATE_CODES = setOf("SERIAL_REVIEW_FAILED", "CREDIT_LIMIT_EXCEEDED")
 
+private val EXPLAINED_STATUSES = setOf(409, 422, 502, 504)
+
 /**
- * AI 오류 응답이 인물 시뮬레이션이 막은 실패의 설명 문구([SerialAiFailure.detail])를 갖는가. 인물 카드 없음(409)·필수 인물 문서 비어 있음(422)처럼 엔진이 막은 실패는 {detail: 고정 문장}이고 code가 없다
- * (409·422의 문장은 고정이며 필수 인물 문서 안내에만 작가 자신의 카드 제목이 들어간다. 모델이 쓴 이유가 섞이는 장면 미완료는 502라서 이 규칙에서 뺀다). 409·422이고 detail이 문자열일 때만이다: FastAPI의 요청 검증 실패도 422지만 detail이 배열이다.
- * code가 검수 실패·크레딧 상한 초과이면 따로 구분되므로 제외한다. 문구는 [cleanReason]이 다듬고, 읽을 수 없거나 비면 null이다(일반 실패 문구로 남는다).
+ * AI 오류 응답이 설명 문구([SerialAiFailure.detail])를 갖는가. 인물 시뮬레이션이 막거나 끝내지 못한 실패는 {detail: 문장}이고 code가 없다: 인물 카드 없음·필수 인물 문서 비어 있음(409·422)의 문장은 고정이며
+ * (필수 인물 문서 안내에만 작가 자신의 카드 제목이 들어간다), 장면 미완료·검사 불합격·형식 오류(502)와 장면 시간 초과(504)의 문장에는 모델이 쓴 이유가 섞일 수 있지만 진단을 위해 그대로 남긴다(2026-11-28 사용자 결정, 이전의 502 제외를 대체).
+ * [EXPLAINED_STATUSES]이고 detail이 문자열일 때만이다: FastAPI의 요청 검증 실패도 422지만 detail이 배열이다.
+ * code가 검수 실패·크레딧 상한 초과이면 따로 구분되므로 제외한다. 문구는 [cleanReason]이 다듬고, 읽을 수 없거나 비면 null이다(일반 실패 문구로 남는다). 이 문구는 소유자의 게시판 기록 사유로만 쓴다.
  */
 internal fun failureDetail(status: Int, body: String?): String? =
-    if ((status != 409 && status != 422) || errorCode(body) in SEPARATE_CODES) null else stringField(body, "detail")?.let(::cleanReason)
+    if (status !in EXPLAINED_STATUSES || errorCode(body) in SEPARATE_CODES) null else stringField(body, "detail")?.let(::cleanReason)
 
 /** AI 오류 응답([error])을 호출 실패로 바꾼다: 검수 실패·상한 초과·설명 문구 여부는 응답의 상태와 본문으로 정한다. 본문은 실패의 메시지에 싣지 않고 원인으로만 남긴다. */
 internal fun aiFailure(error: RestClientResponseException): SerialAiFailure {

@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from pydantic import ValidationError
 
+from app import agent_runtime
 from app.content_mcp import service as content_mcp
 from app.novelbrain.models import Card, world_snapshot
 from app.rating import agent
@@ -35,7 +36,8 @@ def rate(data: RatingRequest) -> RatingResponse:
         episodes = [run.result() for run in [pool.submit(contextvars.copy_context().run, _rate, *i) for i in inputs]]
     verdicts = [e.verdict for e in episodes]
     if not any(verdicts):  # 한 회차도 판별하지 못했으면 검토 필요로 감싸지 않고 실패를 그대로 알린다
-        raise RatingFailure(502, episodes[0].error)
+        # 회차 판별 실패는 모델 출력 문제(502)뿐이라(그 밖의 실패는 바로 올라간다) 출력 문제로 표시한다
+        raise agent_runtime.output_problem(RatingFailure(502, episodes[0].error))
     verdict = 'adult' if 'adult' in verdicts else 'general' if all(v == 'general' for v in verdicts) else 'needsReview'
     return RatingResponse(workId=data.workId, verdict=verdict, prohibited=any(e.prohibited for e in episodes), episodes=episodes)
 

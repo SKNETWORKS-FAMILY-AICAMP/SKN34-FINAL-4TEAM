@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type 
 
 import './pop-menu.css'
 
-const ITEMS = '[role="menuitem"]:not(:disabled):not([aria-disabled="true"])'
+const ITEMS = '[role^="menuitem"]:not(:disabled):not([aria-disabled="true"])'
 /** 창 가장자리에서 띄우는 여백(px) */
 const EDGE = 8
 
@@ -42,7 +42,8 @@ function anchor(menu: HTMLElement | null, button: HTMLElement | null) {
 
 /**
  * 아이콘 버튼 하나가 여는 작은 메뉴(popover)다. 바깥 클릭·Escape·Tab·항목 선택으로 닫히고, 닫히면 초점이 버튼으로 돌아온다.
- * 항목은 쓰는 쪽이 role="menuitem"으로 그린다(↑↓·Home·End로 옮긴다). 버튼 모양과 열리는 방향은 className으로 정한다.
+ * 항목은 쓰는 쪽이 role="menuitem"으로 그린다(↑↓·Home·End로 옮긴다). 켜고 끄는 항목은 role="menuitemcheckbox"로 그리면 같은 방식으로 옮겨 다니되 눌러도 메뉴가 닫히지 않는다(고르면 닫히는 것은 role="menuitem"뿐이다).
+ * 버튼 모양과 열리는 방향은 className으로 정한다.
  * 잠긴 항목(disabled)은 초점을 받지 못하므로, 그 항목이 aria-describedby로 가리키는 사유는 메뉴의 설명으로도 이어 메뉴에 들어설 때 읽히게 한다.
  * 항목이 아닌 안내 문단(id가 있는 `.pop-menu-note`: 고를 항목이 없는 이유, 불러오는 중)도 같은 방식으로 메뉴의 설명이 된다.
  * 고를 수 있는 항목이 하나도 없으면 초점을 메뉴 자체에 둔다(버튼에 남기면 열린 메뉴의 이름과 사유가 읽히지 않는다). 항목이 늦게 도착하면 그때 첫 항목으로 옮긴다.
@@ -103,7 +104,7 @@ export function PopMenu({ label, icon, className = '', children }: { label: stri
 
   return <div ref={root} className={`pop-menu ${className}`.trim()} onKeyDown={key}>
     <button ref={trigger} type="button" className="pop-menu-btn" aria-label={label} title={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>{icon}</button>
-    {/* 항목을 고르면(그 항목의 동작이 먼저 실행된 뒤) 닫고 초점을 버튼으로 돌린다. 시트를 여는 항목이면 시트가 그 버튼을 '연 요소'로 기억한다. */}
+    {/* 항목을 고르면(그 항목의 동작이 먼저 실행된 뒤) 닫고 초점을 버튼으로 돌린다. 시트를 여는 항목이면 시트가 그 버튼을 '연 요소'로 기억한다. menuitemcheckbox는 여기에 걸리지 않아 눌러도 열린 채다. */}
     {open && <div ref={list} role="menu" aria-label={label} tabIndex={-1} className="pop-menu-list" onClick={e => { if (e.target instanceof Element && e.target.closest('[role="menuitem"]')) close() }}>{children}</div>}
   </div>
 }

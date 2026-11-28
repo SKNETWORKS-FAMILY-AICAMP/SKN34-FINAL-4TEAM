@@ -5,7 +5,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.content_mcp import service as content_mcp
 from app.novelbrain.models import world_snapshot
 from app.novelbrain.service import bm25_rank, episode_settings
@@ -20,7 +20,7 @@ FILES = {
     ONNX_FILE: 'dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88',
     'tokenizer.json': '0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39',
 }
-NO_WORLD = '이 작품에 연결된 세계관이 없어 설정·관계는 확인하지 못했어요.'
+NO_WORLD = '이 작품에 연결된 세계관이 없어 설정·관계는 확인하지 못했어요. 작품 관리의 세계관 탭에서 원고로 세계관을 만들거나 내 세계관을 연결할 수 있어요.'
 NO_SETTINGS = '기준 회차까지 공개된 세계관 설정·관계에서 질문에 쓸 근거를 찾지 못했어요.'
 BAD_WORLD = 'Content 세계관 응답을 확인할 수 없습니다.'
 # shortcut: 시연 규모라 공개 카드·관계를 모두 보내고 8건이 넘을 때만 질문과 BM25로 맞는 8건을 고른다. 세계관이 커져 누락이 잦으면 NovelBrain recall로 바꾼다.
@@ -106,7 +106,7 @@ def answer(data: AnswerRequest) -> AnswerResponse:
             check.update(metadata={'citedIds': sorted(alias.get(i, i) for i in cited), 'invalidIds': sorted(cited - alias.keys()),
                                    'claims': len(result.claims), 'gaps': len(result.gaps)})
             if not all(claim.sourceIds and set(claim.sourceIds) <= alias.keys() for claim in result.claims):
-                raise StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
+                raise agent_runtime.output_problem(StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.'))
         result = result.model_copy(update={'claims': [
             claim.model_copy(update={'sourceIds': [alias[i] for i in claim.sourceIds]}) for claim in result.claims]})
         qa.update(output=result.model_dump())

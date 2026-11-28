@@ -51,6 +51,11 @@ describe('발표용 목업 저장소', () => {
     await expect(mockupNotificationRepository.unreadCount()).resolves.toBe(0)
   })
 
+  it('앱 알림 한 건 조회와 기기 등록은 성공을 흉내 내지 않고 데모 미지원 오류를 낸다', async () => {
+    await expect(mockupNotificationRepository.get('n1')).rejects.toThrow('데모에서는 지원하지 않아요')
+    await expect(mockupNotificationRepository.syncPushDevice({ installationId: 'i1', token: null }, new AbortController().signal)).rejects.toThrow('데모에서는 지원하지 않아요')
+  })
+
   it('원고 가져오기와 첨부 이름 변경은 성공을 흉내 내지 않고 데모 미지원 오류를 낸다', async () => {
     const file = new File(['x'], '원고.txt')
     const repo = createMockupManuscriptRepository(createMockupWritingRepository())

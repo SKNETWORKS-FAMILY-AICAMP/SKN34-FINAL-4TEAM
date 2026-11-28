@@ -255,7 +255,7 @@ a.world-card-link{text-decoration:none}
 /* 편집 화면의 AI 채팅은 설정집 화면의 채팅(.world-chat)과 같은 면이다: 집필실의 브랜드 틴트 대신 주변과 같은 --tbg. 틴트를 정하는 변수(--chat-bg)를 덮어 writing.css의 background가 그 값을 쓰게 한다(집필실 /studio의 채팅은 그대로).
    머리글·왼쪽 선·입력 카드와 추천 칩의 면(--chat-card)은 두 화면의 규칙이 이미 같다. */
 .writing-studio.world-card-studio .writing-chat{--chat-bg:var(--tbg)}
-/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래의 맨 위로 버튼(#top, 전역 셸, 600px 넘게 스크롤하면 나타남)이 채팅 전송 버튼을 덮지 않게 한다. 테마 전환은 이 화면에서 떠 있지 않고 상단(설정집 화면은 상단바, 편집 화면은 상단 바)에 있다(GlobalChrome).
+/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래의 맨 위로 버튼(#top, 전역 셸, 600px 넘게 스크롤하면 나타남)이 채팅 전송 버튼을 덮지 않게 한다. 테마 전환은 이 화면에서 떠 있지 않고 설정집 화면은 사이드바 계정 메뉴, 편집 화면은 상단 바에 있다(GlobalChrome).
    데스크톱은 채팅이 오른쪽 열이라(설정집 화면 .world-chat은 .episode-app.with-chat의 350px 열이고 1200px 이하는 300px, 편집 화면 .writing-chat도 같은 폭) 버튼을 그 왼쪽으로 비킨다: right = 열 폭 + 기존 오프셋 24px.
    설정집 화면의 900px 이하 채팅은 body에 그려지는 서랍(.back-dim, z-index 100)이라 #top(z-index 50)이 그 막 아래로 가려져 겹치지 않는다. 채팅이 문서 끝에 쌓이는 편집 화면의 좁은 화면은 문서 끝을 비워 마지막 줄(채팅 안내 글)과 전송 버튼이 버튼 위에서 멈추게 한다:
    #top은 bottom:24px에서 높이 50px라 맨 위가 화면 아래에서 74px이고, 아래 여백은 그 74px + 여유 10px = 84px다. */

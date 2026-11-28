@@ -57,7 +57,7 @@ const work = (count: number): Work => ({
   episodes: Array.from({ length: count }, (_, i) => episode(i + 1)), draft: { title: '', body: '', revision: 0 },
 })
 const vm = { busy: false, coverRevision: 0, loadHistory: async () => {}, history: null }
-// 사이드바 맨 아래 줄(알림·테마·계정)이 공용 스토어를 읽어 Provider로 감싼다. 접기 상태는 호출 측(EpisodePage)이 갖는다.
+// 사이드바 맨 아래 줄(알림·계정)이 공용 스토어를 읽어 Provider로 감싼다. 접기 상태는 호출 측(EpisodePage)이 갖는다.
 const render = (ui: ReactElement) => {
   const store = createAppStore()
   const wrap = (node: ReactElement) => <Provider store={store}>{node}</Provider>

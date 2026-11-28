@@ -13,6 +13,7 @@ import { appContainer } from '../../../../app/appContainer'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import { createAppStore } from '../../../../app/store'
 import { settings as serialSettings } from '../../../../test/serialFixtures'
+import { FORK_WORLD_REQUIRED } from '../../../../domain/entities/work'
 
 /** 상단바·푸터는 공용 Gnb·Footer라 이 화면 테스트에서는 호출만 기록하는 대역으로 바꾼다(실제 Gnb는 Redux 스토어가 필요하다). */
 const shell = vi.hoisted(() => ({ gnb: vi.fn(), footer: vi.fn() }))
@@ -104,6 +105,162 @@ const stubPreviewUrl = () => {
 }
 /** 표지 업로드(PUT .../cover)에 대한 서버 응답. url은 요청 경로의 콘텐츠 경로여야 한다. */
 const coverReply = (path: string) => Response.json({ id: '33333333-3333-4333-8333-333333333333', filename: 'cover.png', mediaType: 'image/png', kind: 'IMAGE', byteSize: 3, createdAt: '2026-11-03T00:00:00Z', url: `${path}/content` })
+
+// ── 사용법 투어(#971): 탭별 투어 ─────────────────────────────────────────
+
+/** 사용법 버튼은 지금 탭의 투어를 연다: 탭 내용을 읽어 오는 동안은 잠겨 있다가 열리면 눌러 첫 단계의 제목과 단계 수를 돌려준다. */
+async function tabTour() {
+  const button = screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(button.disabled).toBe(false))
+  fireEvent.click(button)
+  const tip = await screen.findByRole('dialog')
+  return { tip, title: tip.querySelector('h3')?.textContent, count: tip.querySelector('.tour-count')?.textContent }
+}
+/** 열린 투어를 다음 단계로 넘기고 그 단계의 말풍선을 돌려준다. */
+const nextStep = (title: string) => { fireEvent.click(screen.getByRole('button', { name: '다음' })); return screen.findByRole('dialog', { name: title }) }
+
+it('개요 탭의 사용법은 AI로 표지 만들기 → 작품 정보 편집을 짚고, AI 표지는 고른 뒤 저장해야 바뀐다고 알린다(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  const { tip, title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: 'AI로 표지 만들기', count: '1 / 2' })
+  for (const word of ["'표지 편집'", "'AI로 생성'", "'생성 요청'", "'이 이미지 선택'", "'저장'"]) expect(tip.textContent).toContain(word)
+  expect((await nextStep('작품 정보 편집')).textContent).toContain('제목·소개·장르·해시태그')
+})
+
+it('공개 회차 탭의 사용법은 집필실 열기 → 여러 회차 올리기를 짚는다(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  toReadTab()
+  await screen.findByText(/아직 공개한 회차가 없어요/)
+  const { title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '집필실 열기', count: '1 / 2' })
+  const tip = await nextStep('여러 회차 올리기')
+  expect(tip.textContent).toContain("'회차 파일 일괄 업로드'")
+  expect(tip.textContent).toContain("'원고로 세계관 만들기'")
+})
+
+it('세계관·설정집 탭의 사용법은 원고로 세계관 만들기 → 세계관 연결을 짚고, 연결 단계는 설정 위키에 나오는 범위와 Fork 조건을 안내한다(#971)', async () => {
+  stubCover()
+  myWorlds([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }))
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  await screen.findByRole('region', { name: '설정집' })
+  const { title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '원고로 세계관 만들기', count: '1 / 2' }) // 분기 작품이 아니라 이어받는 원작 세계관 단계는 없다
+  const tip = await nextStep('세계관 연결')
+  expect(tip.textContent).toContain('확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드')
+  expect(tip.textContent).toContain('Fork')
+})
+
+it('세계관이 없는 분기 작품의 세계관·설정집 탭 사용법에는 이어받는 원작 세계관 단계가 더해진다(#971)', async () => {
+  stubCover()
+  myWorlds([])
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([myFork]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook),
+    'GET /api/v1/works/w/inherited-world': () => Response.json(inheritedAnswer),
+  }), '내 포크')
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  await screen.findByRole('region', { name: '이어받는 원작 세계관' })
+  expect((await tabTour()).count).toBe('1 / 3') // 원고로 세계관 만들기 → 이어받는 원작 세계관 → 세계관 연결(화면 순서)
+  const tip = await nextStep('이어받는 원작 세계관')
+  expect(tip.textContent).toContain("'내 세계관으로 만들어 수정하기'")
+  await nextStep('세계관 연결')
+})
+
+it('이야기 분기 탭의 사용법은 세계관이 연결된 작품만 분기할 수 있다는 조건을 알린다(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)], worldStudioId: WORLD_ID }]) }))
+  fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
+  const { tip, title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '이 회차에서 분기', count: '1 / 1' }) // 분기를 열 수 있는 작품이라 막힌 이유 단계는 빠진다
+  expect(tip.textContent).toContain(FORK_WORLD_REQUIRED)
+})
+
+it('분기를 만들 수 없는 작품(비공개·분기 정책 꺼짐)의 이야기 분기 탭 사용법은 분기를 여는 방법을 안내한다(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
+  const { tip, title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '분기를 열려면', count: '1 / 1' })
+  expect(tip.textContent).toContain('운영 설정의 분기 정책')
+})
+
+it('운영 설정 탭의 사용법은 설정을 읽은 뒤에 열려 집필 방식 → 분기 정책을 짚는다(#971)', async () => {
+  stubCover()
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(true) // 설정을 읽는 중
+  await screen.findByRole('button', { name: '집필 방식 저장' })
+  const { tip, title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '집필 방식', count: '1 / 2' })
+  expect(tip.textContent).toContain('AI 협업은 넓은 화면에서 집필실에 AI 채팅이 함께 열리고')
+  expect(tip.textContent).toContain('인물 카드가 필요하다는 확인 창')
+  const policy = await nextStep('분기 정책')
+  expect(policy.textContent).toContain("'분기 정책 편집'")
+  expect(policy.textContent).toContain('둘은 별개예요')
+})
+
+it('탭을 떠났다 다시 열면 그 탭을 다시 읽는 동안 사용법 버튼이 잠긴다(#971)', async () => {
+  stubCover()
+  let reads = 0
+  let answer!: (reply: Response) => void
+  const second = new Promise<Response>((resolve) => { answer = resolve })
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/operating-settings': () => (++reads === 1 ? Response.json(unsetSettings) : second),
+  }))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  await screen.findByRole('button', { name: '집필 방식 저장' })
+  const help = () => screen.getByRole<HTMLButtonElement>('button', { name: '사용법' })
+  await waitFor(() => expect(help().disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: '개요' }))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  await screen.findByText('운영 설정을 불러오고 있어요…')
+  expect(help().disabled).toBe(true) // 다시 읽는 중에는 지난 방문의 '읽었음'으로 열리지 않는다
+  await act(async () => { answer(Response.json(unsetSettings)) })
+  await screen.findByRole('button', { name: '집필 방식 저장' })
+  await waitFor(() => expect(help().disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' })) // 같은 탭을 다시 눌러도 패널이 그대로라 '읽었음'을 비우지 않는다
+  expect(help().disabled).toBe(false)
+})
+
+it('AI 집필 탭의 사용법은 운영 설정에서 AI 자율 집필을 켜야 입력이 열린다고 알리며 연재 설정 → 게시판 기록을 짚는다(#971)', async () => {
+  stubCover()
+  myWorlds([])
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockResolvedValue(serialSettings({ enabled: false }))
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'boards').mockResolvedValue([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+  await screen.findByRole('button', { name: '설정 저장' })
+  const { tip, title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '연재 설정', count: '1 / 2' })
+  expect(tip.textContent).toContain("운영 설정의 집필 방식에서 'AI 자율 집필'을 켜야")
+  const history = await nextStep('게시판 기록')
+  expect(history.textContent).toContain("'지금 마감·실행'")
+})
+
+it('받은 피드백 탭의 사용법은 두 목록을 읽은 뒤에 열려 독자 제보 → 독자 수정 제안을 짚는다(#971)', async () => {
+  stubCover()
+  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
+  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: '받은 피드백' }))
+  await screen.findByRole('heading', { level: 3, name: '독자 제보 0' })
+  const { title, count } = await tabTour()
+  expect({ title, count }).toEqual({ title: '독자 제보', count: '1 / 2' }) // 목록이 비어도 구획이 있어 시작한다
+  expect((await nextStep('독자 수정 제안')).textContent).toContain("'승인하고 초안에 반영'")
+})
+
+it('내 제보·수정 제안과 이력 탭에는 투어가 없어 사용법 버튼이 잠긴다(#971)', async () => {
+  stubCover()
+  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listMine').mockResolvedValue([])
+  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'mine').mockResolvedValue([])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  fireEvent.click(screen.getByRole('button', { name: '내 제보·수정 제안' }))
+  await screen.findByRole('heading', { level: 3, name: '내 제보 0' })
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: '사용법' }).disabled).toBe(true)
+})
 
 // ── 작품 만들기 (/content) ─────────────────────────────────────────────
 
@@ -401,7 +558,7 @@ it('puts the work menu, then the account row in the sidebar — no tool group; �
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
-  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 제보·수정 제안 링크)은 없고, 알림·테마·계정은 본문 밖의 맨 아래 줄이다.
+  // 사이드바 본문의 마지막은 메뉴다: 도구 묶음(회차 작성하기·내 제보·수정 제안 링크)은 없고, 알림·계정은 본문 밖의 맨 아래 줄이다.
   expect(document.querySelector('.ep-menu-tools')).toBeNull()
   expect(order[0].closest('.ep-menu-body')?.lastElementChild).toBe(order[0])
   expect(order[1].closest('.ep-menu-account')?.contains(order[2])).toBe(true)
@@ -1524,7 +1681,7 @@ it('does not delete or leave when the fork deletion is not confirmed', async () 
 
 it('opens the management page of a newly created fork', async () => {
   stubCover()
-  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)] }
+  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)], worldStudioId: WORLD_ID }
   const created = { ...owned, id: 'f1', title: '새 포크', source: { workId: 'w', title: '옛 제목', episode: 1, version: 1, direction: '다른 선택' } }
   const fetcher = contentApi({ 'GET /api/v1/works': () => Response.json([original]), 'POST /api/v1/works/w/forks': () => Response.json(created) })
   await openWork(fetcher)
@@ -1558,7 +1715,7 @@ it('shows why creating a work failed inside the form next to 작품 만들기, n
 
 it('shows why creating a fork failed inside the fork form next to its button, not at the top of the page', async () => {
   stubCover()
-  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)] }
+  const original = { ...owned, visibility: 'public', allowFork: true, episodes: [episode(1)], worldStudioId: WORLD_ID }
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([original]), 'POST /api/v1/works/w/forks': () => Response.json({ detail: '이미 이 원작에서 만든 분기가 있어요.' }, { status: 409 }) }))
   fireEvent.click(screen.getByRole('button', { name: '이야기 분기' }))
   fireEvent.change(screen.getByLabelText('분기 작품 제목'), { target: { value: '새 포크' } })

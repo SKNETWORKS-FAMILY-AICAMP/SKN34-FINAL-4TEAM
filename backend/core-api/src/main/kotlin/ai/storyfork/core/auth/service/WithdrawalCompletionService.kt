@@ -5,6 +5,7 @@ import ai.storyfork.core.auth.repository.MemberRepository
 import ai.storyfork.core.auth.repository.ProfileChallengeRepository
 import ai.storyfork.core.auth.repository.SessionRepository
 import ai.storyfork.core.auth.repository.WithdrawalRepository
+import ai.storyfork.core.notification.repository.PushDeviceRepository
 import java.time.Instant
 import java.util.UUID
 import org.springframework.data.domain.PageRequest
@@ -22,6 +23,7 @@ class WithdrawalCompletionService(
     private val members: MemberRepository,
     private val withdrawals: WithdrawalRepository,
     private val sessions: SessionRepository,
+    private val pushDevices: PushDeviceRepository,
     private val challenges: ProfileChallengeRepository,
     private val passwords: PasswordEncoder,
 ) {
@@ -54,6 +56,7 @@ class WithdrawalCompletionService(
         member.restricted = true
         challenges.deleteAllByMemberId(member.id)
         sessions.revokeAll(member.id)
+        pushDevices.deleteAllForMember(member.id)
         withdrawal.status = AuthWithdrawal.COMPLETED
         withdrawal.completedAt = now
         return true

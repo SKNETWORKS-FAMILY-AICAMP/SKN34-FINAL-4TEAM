@@ -31,7 +31,7 @@ def plan(data: PlanRequest, credit: agent_runtime.CreditMiddleware | None = None
                                         prompt_name='writing_editing.plan', max_tokens=4000, timeout=50,
                                         trace=data.model_dump(exclude={'context'}), schema=PlanOutput, credit=credit)
     if not 1 <= len(result.plans) <= (1 if data.single else 3) or any(not p.beats or len(p.beats) > 12 for p in result.plans):
-        raise WritingFailure(502, BAD_PLAN)
+        raise agent_runtime.output_problem(WritingFailure(502, BAD_PLAN))
     return PlanResponse(**result.model_dump(), **agent_runtime.meta(message))
 
 
@@ -69,7 +69,7 @@ def revise_plan(data: PlanReviseRequest) -> PlanRevision | None:
     if after == before:
         return None
     if not after.title.strip() or _utf16(after.title) > PLAN_TITLE_MAX or _utf16(after.content) > PLAN_CONTENT_MAX:
-        raise WritingFailure(502, BAD_REVISION)
+        raise agent_runtime.output_problem(WritingFailure(502, BAD_REVISION))
     return PlanRevision(planId=data.plan.id, kind=data.plan.kind, revision=data.revision, before=before, after=after, **agent_runtime.meta(message))
 
 
@@ -85,5 +85,5 @@ def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | P
                                    trace=data.model_dump(exclude={'context'}))
     text = message.text.strip()
     if not text:
-        raise WritingFailure(502, '집필 모델 응답을 확인할 수 없습니다.')
+        raise agent_runtime.output_problem(WritingFailure(502, '집필 모델 응답을 확인할 수 없습니다.'))
     return text, agent_runtime.meta(message)
