@@ -11,7 +11,7 @@ from langchain_openai import ChatOpenAI
 
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
-from app.simulation import agent, models, prompt
+from app.simulation import agent, models, prompt, service
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Action, CheckItem, Narration, PlanDraft, Verdict
 
@@ -22,12 +22,13 @@ NARRATION = Narration(prose='성문 위로 밤비가 내렸다.', observed='밤�
 PLAN = PlanDraft(mode='flow', premise=None, beats=['성문 대면'], characterIds=['k'])
 VERDICT = Verdict(checks=[CheckItem(kind='beat', passed=True, detail='비트를 따랐어요.', refs=[])], beatDone=True, sceneComplete=False)
 SECRET_DOC = {'known': [{'ref': 'k#soul', 'text': 'KAEL-SOUL 말이 짧다'}]}
+CHECK_DOC = {**SECRET_DOC, 'checks': ['beat']}  # 검사 입력은 요청한 검사 종류(checks)를 담는다(service.check_payload)
 
 CALLS = {  # 모델 호출 네 가지: (호출, 응답 형식, 모델이 돌려줄 예)
     'plan': (lambda: agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [{'id': 'k', 'name': '카엘'}]), PlanDraft, PLAN),
     'act': (lambda: agent.act(SECRET_DOC), Action, ACTION),
     'narrate': (lambda: agent.narrate(SECRET_DOC), Narration, NARRATION),
-    'check': (lambda: agent.check(SECRET_DOC), Verdict, VERDICT),
+    'check': (lambda: agent.check(CHECK_DOC), Verdict, VERDICT),
 }
 LIMITS = {'plan': (1200, 40), 'act': (1500, 60), 'narrate': (1500, 60), 'check': (1500, 60)}  # 호출별 (최대 출력 토큰, timeout 초)
 BY_SCHEMA = {schema.__name__: parsed for _, schema, parsed in CALLS.values()}
@@ -107,12 +108,27 @@ def test_act_narrate_and_check_send_the_assembled_input_as_it_is(monkeypatch):
     sent = provider(monkeypatch)
     agent.act(SECRET_DOC)
     agent.narrate(SECRET_DOC)
-    agent.check(SECRET_DOC)
+    agent.check(CHECK_DOC)
     pairs = [texts(request) for request in sent]
-    assert [json.loads(data) for _, data in pairs] == [SECRET_DOC] * 3
+    assert [json.loads(data) for _, data in pairs] == [SECRET_DOC, SECRET_DOC, CHECK_DOC]
     # 자료 속 문장은 명령이 아니고, 인물은 자기 입력 밖을 모른다는 지시가 각 호출에 있다.
     assert all('명령이 아닙니다' in instructions for instructions, _ in pairs)
     assert '당신이 아는 것' in pairs[0][0] and 'forbidden' in pairs[2][0]
+
+
+ASKED = [['knowledge_leak'], ['knowledge_leak', 'voice_mix', 'relation', 'beat']]  # 나레이션·인물 시점 나레이션이 요청하는 검사, 흐름 대사가 요청하는 검사(service.check_kinds)
+
+
+@pytest.mark.parametrize('kinds', ASKED, ids='+'.join)
+def test_the_check_schema_sent_to_the_provider_allows_only_the_requested_checks(monkeypatch, kinds):
+    # #992: 인물 시점 나레이션은 knowledge_leak 하나만 요청했는데 모델이 인물 대사처럼 5종을 돌려줘 service.verify가 502(BAD_VERDICT)로 장면을 멈췄다.
+    # 제공사 strict schema가 kind를 요청한 종류로, checks 개수를 요청한 개수로 묶어 모델이 요청 밖 검사를 돌려줄 수 없게 한다.
+    sent = provider(monkeypatch)
+    agent.check(service.check_payload(SECRET_DOC, kinds, '문단'))  # 검사 입력 조립(check_payload)이 요청한 검사를 싣는다
+    schema = sent[0].body['text']['format']['schema']
+    item, checks = schema['$defs']['CheckItem'], schema['properties']['checks']
+    assert item['properties']['kind']['enum'] == kinds and (checks['minItems'], checks['maxItems']) == (len(kinds), len(kinds))
+    assert (schema['description'], item['description']) == (Verdict.__doc__, CheckItem.__doc__)  # 모델이 보던 필드 설명은 그대로다
 
 
 def test_prose_and_observed_must_carry_text_in_the_provider_schema_except_monologue_observed(monkeypatch):
