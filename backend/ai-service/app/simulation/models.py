@@ -3,11 +3,12 @@
 결과 DTO(`SimulationResult`)는 계약 JSON 모양 그대로이며 오케스트레이션 단계 결과와 턴마다의 step 이벤트가 같은 모양을 쓴다.
 `Scene`은 장면 에이전트 상태에 남는 장면(결과 + 턴별 기록 + 작가의 메모)이고 `SceneAction`은 작가의 장면 조작(resume.scene)이다.
 모델 출력 DTO(`PlanDraft`·`Action`·`Narration`·`Verdict`)는 Structured Outputs 스키마라 길이·개수 제약을 두지 않고, 한도는 service가 다시 검증한다.
+`Verdict`만 예외로 호출마다 `verdict_for`가 요청한 검사 종류·개수로 좁혀 제공사에 보낸다(#992).
 """
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, create_model, model_validator
 
 Mode = Literal['if', 'flow']
 # 서술 시점: 전지적 / 인물의 3인칭 제한 / 인물의 1인칭. 인물은 카드 id다. 비트마다 바뀔 수 있다.
@@ -183,3 +184,14 @@ class Verdict(BaseModel):
     checks: list[CheckItem]
     beatDone: bool
     sceneComplete: bool
+
+
+def verdict_for(kinds: list[str]) -> type[Verdict]:
+    """요청한 검사 종류(kinds)로 좁힌 검사 모델 출력 형식. 제공사 strict schema의 kind enum과 checks 개수(minItems·maxItems)가 요청과 같아
+    모델이 요청 밖 검사를 돌려줄 수 없다(#992: 인물 시점 나레이션이 knowledge_leak 하나만 요청했는데 5종을 돌려줘 502였다).
+    제공사에 보내는 스키마만 좁히고 파싱은 `Verdict` 그대로라 종류·개수·근거 ref의 최종 검증은 `service.verify`가 한다.
+    단일 값 `Literal`은 const로 나가므로, 이 스키마가 이미 실호출로 쓰는 enum 모양 그대로 값만 좁힌다(종류가 하나여도 같다).
+    """
+    n = len(kinds)
+    item = create_model('CheckItem', __base__=CheckItem, __doc__=CheckItem.__doc__, kind=(CheckKind, Field(json_schema_extra={'enum': kinds})))
+    return create_model('Verdict', __base__=Verdict, __doc__=Verdict.__doc__, checks=(list[item], Field(json_schema_extra={'minItems': n, 'maxItems': n})))
