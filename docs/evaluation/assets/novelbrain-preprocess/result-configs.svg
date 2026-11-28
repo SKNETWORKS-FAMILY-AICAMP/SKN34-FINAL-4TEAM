@@ -2,7 +2,7 @@
 <rect width="860" height="534" fill="#ffffff"/>
 <defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
 <text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">결과 ② 인물에 한 다리로 이어진 카드 + BM25가 가장 높다</text>
-<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">시점 쌍 정확도 · 52편, 1,664쌍</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">인물 검색으로 본 시점 쌍 정확도 · 52편, 1,664쌍</text>
 <text x="30" y="106" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">기존 평가용 세계관</text>
 <text x="258" y="139" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">한 다리 연결 + BM25 (채택)</text>
 <rect x="270" y="124" width="308.0" height="22" rx="4" fill="#16a34a"/>
@@ -16,7 +16,7 @@
 <text x="258" y="241" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">그래프 + BM25 합산</text>
 <rect x="270" y="226" width="279.0" height="22" rx="4" fill="#60a5fa"/>
 <text x="557.0" y="242" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">55.8%</text>
-<text x="258" y="275" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">인물 거르기 없는 구성</text>
+<text x="258" y="275" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">인물 거르기 없는 구성(작가용 구성)</text>
 <rect x="270" y="260" width="226.5" height="22" rx="4" fill="#60a5fa"/>
 <text x="504.5" y="276" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">45.3%</text>
 <text x="258" y="309" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">한 다리 연결 + PPR 순위</text>
