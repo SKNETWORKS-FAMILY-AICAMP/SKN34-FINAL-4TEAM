@@ -200,6 +200,9 @@ class WorkMcpToolsTest {
         Case("work_context_read", mapOf("id" to WORK, "episode" to 2, "includeSettings" to false), label = "work_context_read without settings") {
             verify(contexts).read(WORK, ME, ContextRequest(2, "", "", includeSettings = false))
         },
+        Case("work_context_read", mapOf("id" to WORK, "episode" to 2, "draftEpisode" to 3, "basisVersionId" to "v2")) {
+            verify(contexts).readForDraft(WORK, ME, ContextRequest(2, "", ""), 3, "v2")
+        },
         Case("work_context_public_read", mapOf("id" to WORK, "episode" to 2, "query" to "질의", "character" to "인물"), public = true) {
             verify(contexts).read(WORK, null, ContextRequest(2, "질의", "인물"))
         },
@@ -336,7 +339,7 @@ class WorkMcpToolsTest {
 
     @Test fun `the context tools require the basis episode and treat query and character as optional`() {
         // 설정 제외(includeSettings)는 작성자용에만 있다(#602)
-        for ((name, extra) in listOf("work_context_read" to setOf("includeSettings"), "work_context_public_read" to emptySet())) {
+        for ((name, extra) in listOf("work_context_read" to setOf("includeSettings", "draftEpisode", "basisVersionId"), "work_context_public_read" to emptySet())) {
             val schema = specs.single { it.tool().name() == name }.tool().inputSchema()
 
             assertEquals(setOf("id", "episode", "query", "character") + extra, (schema["properties"] as Map<*, *>).keys, name)

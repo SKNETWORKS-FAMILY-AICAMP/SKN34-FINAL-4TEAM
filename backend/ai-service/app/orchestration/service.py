@@ -350,6 +350,13 @@ def apply(state: State) -> State:
                 else:
                     # 장면은 지문 + "대사" 문단을 빈 줄로 이어 Text 경로(초안 뒤에 잇기)로 반영한다.
                     result = step['result'] if feature == 'writing_editing' else {'text': '\n\n'.join(t['prose'] for t in step['result']['turns'])}
+                    call = (state.get('writingCall') or {}) if feature == 'writing_editing' else {}
+                    legacy_fork = target.get('fork') and 'forkBasis' not in call and call.get('call') in ('draft', 'plan_and_draft')
+                    if call.get('forkBasis') or legacy_fork:
+                        current = tools._read_context(target, '', include_settings=False, fork_draft=True)
+                        basis = call.get('forkBasis')
+                        if tools._fork_basis(target, current) != basis or (basis and expected_revision is None):
+                            raise ContentMcpFailure(409, '집필 기준이 변경되어 반영하지 않았어요. 제안은 대화에 남아 있어요.')
                     step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result, expected_revision=expected_revision)
         except ContentMcpFailure as error:
             step.update(status='failed', error=str(error))
@@ -405,6 +412,9 @@ def finish(state: State) -> State:
         qa = {'question': question, 'answer': answer[:2000]}
     reply = _response({**state, **done}).model_dump(mode='json')
     turn = [{'request': state['request'], 'qa': qa, 'reply': reply, 'attachments': _refs(state.get('attachments', []))}]
+    plan_bases = {str(i): step['forkBasis'] for i, step in enumerate(state['steps']) if step.get('forkBasis')}
+    if plan_bases:
+        turn[0]['planBases'] = plan_bases
     if state.get('replaceHistory'):
         return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False, 'attachments': [],
                 'summary': None}

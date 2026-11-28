@@ -426,7 +426,17 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
         # 다음 턴 모델은 지난 검수의 fix 번호를 받지 못해 추측하므로 작가가 고른 번호만 쓴다. 화면이 체크박스를 그리도록 그 검수 단계를 이번 턴 앞에 싣는다.
         return _fix(runtime, reviewed, None if earlier else fix, shown=[reviewed] if earlier else [])
 
-    base, recipe = None, {}
+    base, recipe, basis = None, {}, None
+
+    def bind_context(target, context, drafting):
+        nonlocal base, basis
+        basis = _fork_basis(target, json.loads(context))
+        if target.get('fork') and drafting:
+            recipe['forkBasis'] = basis  # None이면 Content가 보호 대상으로 선택하지 않은 회차다.
+        if basis and drafting:
+            if base is None:
+                current = content_mcp.read_draft(target['workId'], target['episode'])
+                base = {'body': current.body, 'revision': current.revision}
 
     def run(inputs, scope):
         nonlocal base
@@ -445,20 +455,32 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
             return _recorded(recipe, 'patch', PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
         if 'draft' in data:
             draft, gaps = DraftRequest.model_validate(data['draft']), []
-            if target and not draft.context:
-                draft.context, gaps = _allowed_context(target, draft.plan, fork_draft=bool(target.get("fork")))
+            if target and (not draft.context or target.get("fork")):
+                allowed, gaps = _allowed_context(target, draft.plan, fork_draft=bool(target.get("fork")))
+                bind_context(target, allowed, True)
+                if basis or not draft.context:
+                    draft.context = allowed
+                if basis and draft.episodeNumber != target['episode']:
+                    raise WritingFailure(409, '계획의 반영 회차가 달라 집필하지 않았어요.')
             return _recorded(recipe, 'draft', draft, gaps)
         if not target:
             raise WritingFailure(422, NO_WRITING_TARGET)
-        context, gaps = _allowed_context(target, request, fork_draft=task != "plan" and bool(target.get("fork")))
-        planned = PlanRequest(episodeNumber=target['episode'], request=request, context=context, previousPlans=_previous_plans(turn))
+        context, gaps = _allowed_context(target, request, fork_draft=bool(target.get("fork")))
+        bind_context(target, context, task != 'plan')
+        # 메인 에이전트가 이력으로 재서술한 요청은 이전 계획을 되살릴 수 있다.
+        instruction = turn['request'] if basis else request
+        plans = _previous_plans(turn, basis)
+        planned = PlanRequest(episodeNumber=target['episode'], request=instruction, context=context, previousPlans=plans)
         if task == 'plan':  # 기획은 원고가 아니라 반영·다시 쓰기가 없다
             return writing.plan(planned).model_copy(update={'gaps': gaps})
         return _recorded(recipe, 'plan_and_draft', planned, gaps)
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
     needs = lambda inputs, scope: task == 'patch' and not selected and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
-    return _written(_ask(runtime, 'writing_editing', run, needs=needs, task_kind=task), recipe, base)
+    command = _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
+    if basis and task == 'plan' and (steps := command.update.get('steps')) and steps[-1]['status'] == 'completed':
+        steps[-1]['forkBasis'] = basis
+    return _written(command, recipe, base)
 
 
 def _written(command: Command, recipe: dict, base: dict | None) -> Command:
@@ -562,11 +584,25 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None, shown: li
     return _written(_ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch', shown=shown), recipe, base or None)
 
 
-def _previous_plans(turn: dict) -> list[dict]:
+def _fork_basis(target: dict, context: dict) -> dict | None:
+    recent = context.get('recentSource')
+    if recent is None:
+        return None
+    if not isinstance(recent, dict) or not recent.get('versionId'):
+        raise ContentMcpFailure(502, '포크 기준 판본을 확인할 수 없어요.')
+    return {'policy': 'fork-source-only-v1', 'workId': target['workId'], 'episode': target['episode'],
+            'versionId': recent['versionId'], 'span': recent.get('span'), 'sha256': recent.get('sha256')}
+
+
+def _previous_plans(turn: dict, basis: dict | None) -> list[dict]:
     """최근 HISTORY_TURNS턴 중 가장 최근의 기획 결과(계획 대안). 없으면 빈 목록."""
     for past in reversed(previous(turn)[-HISTORY_TURNS:]):
-        for step in (past.get('reply') or {}).get('steps', []):
+        for index, step in enumerate((past.get('reply') or {}).get('steps', [])):
             if step['feature'] == 'writing_editing' and step['status'] == 'completed' and 'plans' in (step.get('result') or {}):
+                if basis and (past.get('planBases') or {}).get(str(index)) != basis:
+                    if turn['request'].startswith('이전 계획 없이 '):
+                        return []
+                    raise Clarify('이전 계획의 작품·판본·보호 기준을 확인할 수 없어요. 새로 진행하려면 “이전 계획 없이”로 시작해 창작 요청을 적어 주세요.')
                 return step['result']['plans']
     return []
 
