@@ -1,4 +1,4 @@
-"""#659 자율 연재 실행 흐름: 선택지, 회차 요약, 장면 미리보기, 투표·제안 종합 → 기획 → 인물 시뮬레이션 → 장면을 뼈대로 집필(최소 분량) → 검수(1회 재작성), 요청 안 모든 모델 호출의 크레딧 누적·상한."""
+"""#659 자율 연재 실행 흐름: 선택지, 회차 요약, 장면 미리보기, 투표·제안 종합 → 기획 → 인물 시뮬레이션 → 장면을 뼈대로 집필(최소 분량, 모자라면 분량 재작성 1회) → 검수(검수 재작성 1회), 요청 안 모든 모델 호출의 크레딧 누적·상한."""
 
 import asyncio
 from types import SimpleNamespace
@@ -20,6 +20,7 @@ from .stubs import (CHOICE, CHOICES, CONTEXT, DRAFT, EPISODE_SUMMARY, FAIL, KAEL
                     choices_request, episode, sent, simulation as simulation_request, staged_engine, story, summaries_request)
 
 ENGINE_CALLS = 13  # 대역 엔진이 한 장면(나레이션 → 카엘 → 리나 → 나레이션)에 부르는 모델 호출: 계획 1·연출 4·나레이션 2·인물 2·검사 4, 호출마다 1,100토큰
+SHORT_ISSUE = f'분량이 {len(SHORT[0])}자로 최소 5,000자에 못 미친다. 비트마다 장면을 풀어 5,000자 이상으로 쓴다.'  # 분량 재작성이 받는 지적
 
 
 def choices(**overrides):
@@ -256,7 +257,7 @@ def test_a_scene_that_runs_past_its_time_limit_fails_as_a_timeout(monkeypatch):
     assert (error.value.status, str(error.value)) == (504, '인물 시뮬레이션이 제한 시간 안에 끝나지 않았습니다.') and len(calls) == 2
 
 
-def test_a_short_draft_fails_the_review_without_a_model_review_and_is_rewritten_once_with_its_length_in_the_issues(monkeypatch):
+def test_a_short_first_draft_is_rewritten_once_for_its_length_alone_before_any_model_review(monkeypatch):
     engine = staged_engine(monkeypatch)
     calls = answers(monkeypatch, SUMMARY, PLAN, SHORT, REWRITE, PASS)
 
@@ -264,19 +265,36 @@ def test_a_short_draft_fails_the_review_without_a_model_review_and_is_rewritten_
 
     assert (result.text, result.review.passed) == (REWRITE[0], True) and len(calls) == 5  # 다시 쓸 원고에는 모델 검수를 쓰지 않는다
     rewrite = sent(calls[3])[1]
-    assert rewrite['issues'] == [f'분량이 {len(SHORT[0])}자로 최소 5,000자에 못 미친다. 비트마다 장면을 풀어 5,000자 이상으로 쓴다.'] and rewrite['scene'] == SCENE
+    assert rewrite['issues'] == [SHORT_ISSUE] and rewrite['scene'] == SCENE
     assert sent(calls[4])[0] == REVIEW_INSTRUCTIONS and sent(calls[4])[1]['text'] == REWRITE[0]
     assert result.credits == 16.57 and result.usage.model_dump() == {'inputTokens': 14700, 'outputTokens': 1870} and engine.events == ENGINE_CALLS
 
 
-def test_two_short_drafts_are_422_review_failed(monkeypatch):
+def test_a_short_first_draft_is_lengthened_before_the_review_so_a_failed_review_still_gets_its_own_rewrite(monkeypatch):
+    engine = staged_engine(monkeypatch)
+    calls = answers(monkeypatch, SUMMARY, PLAN, SHORT, DRAFT, FAIL, REWRITE, PASS)
+
+    result = run_episode()
+
+    assert (result.text, result.review.passed) == (REWRITE[0], True) and len(calls) == 7  # 집필 3회(첫 원고·분량 재작성·검수 재작성), 모델 검수 2회
+    assert [sent(call)[0] for call in calls[2:]] == [DRAFT_INSTRUCTIONS, DRAFT_INSTRUCTIONS, REVIEW_INSTRUCTIONS, DRAFT_INSTRUCTIONS, REVIEW_INSTRUCTIONS]
+    assert sent(calls[3])[1]['issues'] == [SHORT_ISSUE]  # 분량 재작성은 분량 지적만 받고
+    assert sent(calls[4])[1]['text'] == DRAFT[0]  # 첫 모델 검수는 늘린 원고를 본다
+    assert sent(calls[5])[1]['issues'] == FAIL[0]['issues']  # 검수 재작성은 분량 지적이 아니라 검수 지적을 받는다
+    assert result.credits == 17.7 and result.usage.model_dump() == {'inputTokens': 15600, 'outputTokens': 2100} and engine.events == ENGINE_CALLS  # 장면은 한 번만 돈다
+
+
+@pytest.mark.parametrize('replies, model_reviews', [([SHORT, SHORT], 0), ([DRAFT, FAIL, SHORT], 1)], ids=['short-after-length-rewrite', 'short-after-review-rewrite'])
+def test_a_draft_still_short_after_its_one_rewrite_is_422_and_gets_no_model_review_or_third_write(monkeypatch, replies, model_reviews):
     staged_engine(monkeypatch)
-    calls = answers(monkeypatch, SUMMARY, PLAN, SHORT, SHORT)
+    calls = answers(monkeypatch, SUMMARY, PLAN, *replies)
 
     with pytest.raises(SerialFailure) as error:
         run_episode()
 
-    assert (error.value.status, error.value.code) == (422, 'SERIAL_REVIEW_FAILED') and len(calls) == 4
+    assert (error.value.status, error.value.code, str(error.value)) == (422, 'SERIAL_REVIEW_FAILED', '검수를 통과하지 못했습니다.')
+    instructions = [sent(call)[0] for call in calls[2:]]
+    assert instructions.count(DRAFT_INSTRUCTIONS) == 2 and instructions.count(REVIEW_INSTRUCTIONS) == model_reviews
 
 
 @pytest.mark.parametrize('length, model_calls', [(4999, 5), (5000, 4)])
@@ -419,12 +437,12 @@ def test_the_draft_and_review_prompts_are_about_the_simulated_scene(instructions
 
 
 def test_the_worst_case_total_of_model_timeouts_fits_the_content_read_limit(monkeypatch):
-    # 가장 긴 경로(종합 → 기획 → 시뮬레이션 계획·장면 → 집필 → 검수 실패 → 재작성 → 재검수): 호출마다 정한 timeout과 장면의 시간 상한을 더한 합이
+    # 가장 긴 경로(종합 → 기획 → 시뮬레이션 계획·장면 → 집필 → 분량 재작성 → 검수 실패 → 검수 재작성 → 재검수): 호출마다 정한 timeout과 장면의 시간 상한을 더한 합이
     # Content 읽기 한도 35분(2,100초)에서 4분 여유를 둔 안에 든다. 시뮬레이션 계획 호출(app/simulation/agent.plan)의 timeout은 40초다.
     staged_engine(monkeypatch)
-    calls = answers(monkeypatch, SUMMARY, PLAN, DRAFT, FAIL, REWRITE, PASS)
+    calls = answers(monkeypatch, SUMMARY, PLAN, SHORT, DRAFT, FAIL, REWRITE, PASS)
 
     run_episode()
 
     total = sum(call['init']['timeout'] for call in calls) + 40 + service.SIMULATION_TIMEOUT
-    assert len(calls) == 6 and total <= 35 * 60 - 240
+    assert len(calls) == 7 and total <= 35 * 60 - 240
