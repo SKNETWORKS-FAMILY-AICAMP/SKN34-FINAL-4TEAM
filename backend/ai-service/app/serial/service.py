@@ -28,13 +28,14 @@ from app.writing.models import BeatPlan, PlanRequest
 
 CHOICE_COUNT, CHOICE_MAX = 4, 300  # 선택지 수와 글자 수(계약)
 SCENE_MAX, SUMMARY_MAX, EPISODE_SUMMARY_MAX, TITLE_MAX = 1500, 1000, 400, 120  # 장면 미리보기(계약)·투표 종합 문장·회차 요약(계약)·회차 제목(Content 한도 120자)
-MIN_TEXT = 5000  # 회차 원고 최소 분량(글자). 직전 회차들과 비슷한 분량은 프롬프트가 맡고, 이 아래면 분량만 맞추는 재작성을 1회 하며(검수 재작성과 따로 센다) 그래도 모자라면 검수 실패다.
+MIN_TEXT = 4000  # 회차 원고 최소 분량(글자). 직전 회차들과 비슷한 분량은 프롬프트가 맡고, 이 아래면 쓸 때마다 분량 재작성을 1회 하며(검수 재작성과 따로 센다) 그래도 모자라면 검수 실패다.
 # 집필은 Writing 기본(4,000토큰·120초)보다 넉넉히: 5,000자 이상은 약 3,500~4,500토큰이고 추론 토큰도 출력 한도에 들어 12,000토큰으로 잡았다.
 DRAFT_TOKENS, DRAFT_TIMEOUT = 12000, 195
 # 인물 시뮬레이션 장면 하나(대화 없이 끝까지, 엔진의 턴 한도 안에서 보통 16턴 안팎, 턴마다 연출·집필·검사 호출)를 기다리는 시간 상한(초).
-# 회차 실행의 최악 시간 합계는 Content 읽기 한도(35분)에서 나온다: 종합 30+기획 50+시뮬레이션 계획 40+장면 1,005+집필 195+분량 재작성 195+검수 50+검수 재작성 195+재검수 50
-# = 1,810초(여유 290초). 시간이 모자라면 집필·검수 timeout을 올리지 말고 장면 상한이나 호출 수를 줄인다(분량 재작성 호출(#995)이 늘어난 만큼 장면 상한을 1,200에서 195초 줄였다).
-SIMULATION_TIMEOUT = 1005
+# 회차 실행의 최악 시간 합계는 Content 읽기 한도(35분)에서 나온다: 종합 30+기획 50+시뮬레이션 계획 40+장면 810+집필 195+분량 재작성 195+검수 50+검수 재작성 195+분량 재작성 195+재검수 50
+# = 1,810초(여유 290초). 시간이 모자라면 집필·검수 timeout을 올리지 말고 장면 상한이나 호출 수를 줄인다(분량 재작성(#995)이 집필 호출을 둘 늘린 만큼 장면 상한을 1,200에서 390초 줄였다.
+# 장면 포함 회차 실행 전체의 실측은 123~127초(2026-11-28)).
+SIMULATION_TIMEOUT = 810
 NO_INPUT = '투표와 제안 글이 없어 연재 방향대로 이어 갔습니다.'
 SCENE_TIMEOUT = '인물 시뮬레이션이 제한 시간 안에 끝나지 않았습니다.'
 SCENE_UNFINISHED = '인물 시뮬레이션 장면이 끝나지 않았습니다.'
@@ -82,9 +83,9 @@ def simulate(data: SimulationRequest) -> SimulationResponse:
 async def episode(data: EpisodeRequest) -> EpisodeResponse:
     """투표·제안 종합 → 기획 → 인물 시뮬레이션(장면 1개) → 장면을 뼈대로 집필 → 검수. 1위 선택지가 중심 전개다.
 
-    첫 원고가 최소 분량에 못 미치면 모델 검수 없이 분량만 맞추는 재작성을 한 번 하고(검수 재작성 횟수에 세지 않는다) 그래도 모자라면 422다. 검수에 실패하면 지적을 넣어
-    원고를 한 번 다시 쓰고(장면은 다시 돌리지 않는다) 다시 검수하며, 또 실패하면 422다. 집필은 최대 3회, 모델 검수는 최대 2회다. 비동기인 이유: 장면 에이전트는 연출 분류기의
-    HTTP 클라이언트가 묶인 앱의 이벤트 루프에서 돌아야 하고(요청마다 새 루프를 만들면 두 번째부터 깨진다), 블로킹 모델 호출은 스레드로 보낸다.
+    원고는 쓸 때마다(첫 원고도 검수 재작성 원고도) 최소 분량에 못 미치면 모델 검수 없이 분량 재작성을 한 번 하고(검수 재작성 횟수에 세지 않는다) 그래도 모자라면 422다.
+    검수에 실패하면 지적을 넣어 원고를 한 번 다시 쓰고(장면은 다시 돌리지 않는다) 다시 검수하며, 또 실패하면 422다. 집필은 최대 4회, 모델 검수는 최대 2회다. 비동기인 이유: 장면
+    에이전트는 연출 분류기의 HTTP 클라이언트가 묶인 앱의 이벤트 루프에서 돌아야 하고(요청마다 새 루프를 만들면 두 번째부터 깨진다), 블로킹 모델 호출은 스레드로 보낸다.
     """
     credit = agent_runtime.CreditMiddleware(data.creditLimit, SerialFailure)
     world = simulation.world_from(data.world, data.episodeNumber - 1)  # 세계관 오류·인물 카드 없음은 모델을 부르기 전에 실패한다
@@ -97,14 +98,10 @@ async def episode(data: EpisodeRequest) -> EpisodeResponse:
     if not title or len(title) > TITLE_MAX:
         raise SerialFailure(502, writing.BAD_PLAN)
     scene = await _simulate(data, plan, world, credit)
-    text = await asyncio.to_thread(_write, data, plan, scene, [], credit)
-    if short := _short_issues(text):  # 분량 재작성: 모델 검수 없이 분량만 맞추고, 아래 검수 재작성 1회와 따로 센다
-        text = await asyncio.to_thread(_write, data, plan, scene, short, credit)
-        if _short_issues(text):
-            raise SerialFailure(422, REVIEW_FAILED)
+    text = await _write_enough(data, plan, scene, [], credit)
     review = await asyncio.to_thread(_review, data, title, scene, text, credit)
     if not review.passed:
-        text = await asyncio.to_thread(_write, data, plan, scene, review.issues, credit)
+        text = await _write_enough(data, plan, scene, review.issues, credit)
         review = await asyncio.to_thread(_review, data, title, scene, text, credit)
         if not review.passed:
             raise SerialFailure(422, REVIEW_FAILED)
@@ -176,10 +173,21 @@ def _write(data: EpisodeRequest, plan: BeatPlan, scene: str, issues: list[str], 
     return text
 
 
+async def _write_enough(data: EpisodeRequest, plan: BeatPlan, scene: str, issues: list[str], credit: agent_runtime.CreditMiddleware) -> str:
+    """원고를 쓰고, 최소 분량에 못 미치면 분량 지적을 더해 한 번 다시 쓴다. 검수 재작성 횟수에 세지 않고, 그래도 모자라면 모델 검수 없이 422다.
+
+    다시 쓰는 글은 앞선 원고 없이 장면에서 새로 쓰므로 검수 지적(issues)을 함께 넣어야 고친 내용이 되살아나지 않는다. 분량 지적을 맨 앞에 두는 건 _write가 앞 5개만 싣기 때문이다.
+    """
+    text = await asyncio.to_thread(_write, data, plan, scene, issues, credit)
+    if short := _short_issues(text):
+        text = await asyncio.to_thread(_write, data, plan, scene, short + issues, credit)
+        if _short_issues(text):
+            raise SerialFailure(422, REVIEW_FAILED)
+    return text
+
+
 def _review(data: EpisodeRequest, title: str, scene: str, text: str, credit: agent_runtime.CreditMiddleware) -> Review:
-    """새 원고를 설정 충돌·개연성·19세 이용가·1위 선택지·시뮬레이션 장면 반영으로 검수한다. 최소 분량에 못 미치면 모델 검수 없이 실패다(다시 쓸 원고에 모델 호출을 쓰지 않는다)."""
-    if issues := _short_issues(text):
-        return Review(passed=False, issues=issues)
+    """최소 분량 이상인 새 원고를 설정 충돌·개연성·19세 이용가·1위 선택지·시뮬레이션 장면 반영으로 검수한다."""
     brief = {'episodeNumber': data.episodeNumber, 'title': title, 'scene': scene, 'text': text, 'choice': data.choice and data.choice.text}
     _, result = agent_runtime.run('serial.review', '검수', SerialFailure, REVIEW_INSTRUCTIONS, {**brief, 'context': data.context},
                                   prompt_name='serial.episode_review_v3', max_tokens=2000, timeout=50, trace=brief, schema=Review, credit=credit)
@@ -187,7 +195,7 @@ def _review(data: EpisodeRequest, title: str, scene: str, text: str, credit: age
 
 
 def _short_issues(text: str) -> list[str]:
-    """최소 분량에 못 미치는 원고의 지적 한 줄(분량 재작성과 검수가 같은 문구를 쓴다). 충분하면 빈 목록이다."""
+    """최소 분량에 못 미치는 원고의 분량 지적 한 줄. 충분하면 빈 목록이다."""
     if len(text) >= MIN_TEXT:
         return []
     return [f'분량이 {len(text)}자로 최소 {MIN_TEXT:,}자에 못 미친다. 비트마다 장면을 풀어 {MIN_TEXT:,}자 이상으로 쓴다.']
