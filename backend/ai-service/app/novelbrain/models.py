@@ -5,6 +5,7 @@
 DEC-47 이전에 저장한 문서의 `memory`(옛 MEMORY.md)는 읽을 때 `episodes[0]`(00회차) 앞에 이어 붙여 옮기므로 카드에는 없다.
 """
 
+import hashlib
 import re
 from typing import Literal
 
@@ -98,7 +99,34 @@ def _docs(raw) -> tuple[str, str, dict[int, str]]:
     return '', '', {}
 
 
-def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
+def _writing_quotes(build: dict, episode: int) -> list[str]:
+    """Content가 원고 판본에 연결한 인용만 사용한다. 편집된 카드 자유 본문은 근거가 아니다."""
+    quotes = []
+    for item in build.get('evidence', []):
+        at, quote = item.get('episode'), item.get('quote')
+        start, end = item.get('start'), item.get('end')
+        if (type(at) is int and 0 < at <= episode and item.get('sourceId') and isinstance(quote, str) and quote
+                and type(start) is int and type(end) is int and start >= 0 and end - start == len(quote.encode('utf-16-le')) // 2
+                and hashlib.sha256(quote.encode()).hexdigest() == item.get('quoteHash')):
+            quotes.append(quote)
+    return list(dict.fromkeys(quotes))
+
+
+def _writing_card(card: dict, meta: dict, episode: int) -> Card | None:
+    build = meta.get('manuscriptBuild') or {}
+    gates = (meta.get('revealFromEpisode'), (meta.get('preprocessing') or {}).get('firstEpisode'), build.get('firstAppearanceEpisode'))
+    if any(_reveal(n) is None or n > episode for n in gates if n is not None):
+        return None
+    quotes = _writing_quotes(build, episode)
+    published = meta.get('revealFromEpisode') is not None
+    if not quotes and not published:
+        return None
+    # 원문 근거와 현재 카드 제목이 독립적으로 바뀔 수 있다. 확인할 수 없는 이름은 역할명으로도 추정하지 않는다.
+    title = card['title'] if published or any(card['title'] in q for q in quotes) else card['cardType']
+    return Card(id=card['id'], cardType=card['cardType'], title=title, text='\n'.join(quotes))
+
+
+def world_snapshot(read: dict, episode: int, *, for_writing: bool = False) -> WorldSnapshot:
     """`world_studio_read(id, episode)` 응답(dict)을 스냅샷으로 바꾼다. `episode`는 관계를 읽은 회차다.
 
     삭제된(`lifecycle=removed`) 카드·관계, 끝점이 없거나 삭제된 카드인 관계는 뺀다. 읽을 수 없는 응답은 입력을 담지 않은 ValueError다.
@@ -106,10 +134,20 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
     """
     try:
         cards = []
+        # InheritedWorldResponse는 Content가 포크 상한까지 공개한 카드만 반환한다.
+        if for_writing and 'upto' in read:
+            if type(read['upto']) is not int or not 0 <= read['upto'] <= episode:
+                raise ValueError('상속 문맥의 기준 회차가 일치하지 않습니다.')
+            episode = read['upto']
         for c in read['cards']:
             if c.get('lifecycle') == 'removed':
                 continue
             meta = c.get('semanticMetadata') or {}
+            if for_writing:
+                card = _writing_card(c, meta, episode)
+                if card is not None:
+                    cards.append(card)
+                continue
             soul, goal, episodes = _docs(meta.get('characterDocs')) if c['cardType'] == 'character' else ('', '', {})
             cards.append(Card(id=c['id'], cardType=c['cardType'], title=c['title'], text=strip_card_links(c['body']), soul=soul, goal=goal,
                               episodes=episodes, revealFromEpisode=_reveal(meta.get('revealFromEpisode'))))
@@ -120,10 +158,17 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
             if r.get('lifecycle') == 'removed' or source not in ids or target not in ids:
                 continue
             direction, category = r.get('direction'), r.get('category')
+            body = r.get('body') or ''
+            if for_writing:
+                build = (r.get('semanticMetadata') or {}).get('manuscriptBuild') or {}
+                quotes = _writing_quotes(build, episode)
+                if build and not quotes:
+                    continue
+                body = '\n'.join(quotes)
             relations.append(Relation(id=relation_id, source=source, target=target, label=r.get('label') or '',
                                       category=category if category in _CATEGORIES else None,
                                       direction=direction if direction in _DIRECTIONS else None,
-                                      polarity='denied' if r.get('polarity') == 'denied' else 'asserted', body=strip_card_links(r.get('body') or '')))
+                                      polarity='denied' if r.get('polarity') == 'denied' else 'asserted', body=strip_card_links(body)))
         return WorldSnapshot(worldId=read['worldId'], episode=episode, cards=cards, relations=relations)
     except (LookupError, TypeError, AttributeError, ValueError):
         raise ValueError('세계관 응답 형식을 확인할 수 없습니다.') from None

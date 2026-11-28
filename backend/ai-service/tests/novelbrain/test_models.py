@@ -209,3 +209,39 @@ def test_world_snapshot_reads_the_relation_category_and_does_not_fail_on_an_unkn
     snapshot = world_snapshot(read([card('kael', '카엘'), card('lira', '리라')], [link]), 1)
 
     assert [r.category for r in snapshot.relations] == [expected]
+
+def test_dated_card_and_inherited_card_keep_titles_without_unversioned_free_text():
+    rows = [card('a', '작가 카드', meta={'revealFromEpisode': 1}),
+            card('b', '시점 미상'), card('c', '미래', meta={'revealFromEpisode': 3})]
+    view = read(rows, [relation('r', 'a', 'b', '동료', 'directed')])
+    assert [c.title for c in world_snapshot(view, 1, for_writing=True).cards] == ['작가 카드']
+    inherited_cards = [rows[0], card('b', '둘째', meta={'revealFromEpisode': 1}), rows[2]]
+    inherited = world_snapshot({**view, 'cards': inherited_cards, 'workId': 'fork', 'upto': 1}, 1, for_writing=True)
+    assert [(c.id, c.text) for c in inherited.cards] == [('a', ''), ('b', '')]
+    assert [(r.label, r.body) for r in inherited.relations] == [('동료', '')]
+    assert [c.text for c in world_snapshot(view, 1).cards] == ['본문'] * 3
+
+
+def test_inherited_snapshot_cannot_widen_its_content_cutoff():
+    view = {**read([card('a', '미래', meta={'revealFromEpisode': 3})], []), 'workId': 'fork', 'upto': 1}
+    assert not world_snapshot(view, 4, for_writing=True).cards
+    with pytest.raises(ValueError):
+        world_snapshot({**view, 'upto': 3}, 1, for_writing=True)
+
+def test_writing_filters_mixed_evidence_and_preserves_all_owner_fields():
+    from hashlib import sha256
+
+    def proof(n, text):
+        return {'sourceId': f'v{n}', 'episode': n, 'start': 2, 'end': 2 + len(text.encode('utf-16-le')) // 2,
+                'quote': text, 'quoteHash': sha256(text.encode()).hexdigest()}
+    early = proof(1, '새가 🐦 날았다.')
+    future = proof(3, '새는 변신했다.')
+    invalid = {**early, 'quote': '새의 비밀이다.'}
+    meta = {'preprocessing': {'firstEpisode': 1}, 'manuscriptBuild': {'evidence': [early, future, invalid]},
+            'characterDocs': DOCS}
+    rows = [card('a', '새', meta=meta), card('b', '다른 이름', meta={**meta, 'revealFromEpisode': 3}),
+            card('c', '별칭', meta={**meta, 'preprocessing': {'firstEpisode': 3}})]
+    view = read(rows)
+    result = world_snapshot(view, 1, for_writing=True)
+    assert [(c.title, c.text, c.soul, c.goal, c.episodes) for c in result.cards] == [('새', early['quote'], '', '', {})]
+    assert world_snapshot(view, 1).cards[0].goal == DOCS['goal']

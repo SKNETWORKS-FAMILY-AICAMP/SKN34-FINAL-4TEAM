@@ -643,7 +643,7 @@ def _allowed_context(target: dict, query: str) -> tuple[str, list[str]]:
         settings, gaps = [], [NO_WORLD_SETTINGS]
     else:
         try:
-            settings = episode_settings(world_snapshot(world, episode), episode)
+            settings = episode_settings(world_snapshot(world, episode, for_writing=True), episode)
         except ValueError:
             raise WritingFailure(502, BAD_WORLD) from None
     text = json.dumps({**context, 'settings': settings}, ensure_ascii=False, separators=(',', ':'))
