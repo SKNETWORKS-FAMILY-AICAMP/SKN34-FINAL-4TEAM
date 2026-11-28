@@ -7,6 +7,8 @@ Content가 권한·판본·선택 범위를 확정해 허용 자료만 보낸다
 선택 밖 문장은 구조적으로 바뀌지 않는다. 모델 호출은 create_agent + 공통 미들웨어(app/agent_runtime.py)로 1회 실행한다.
 """
 
+import json
+
 from app import agent_runtime
 from app.writing.errors import WritingFailure
 from app.writing.models import (PLAN_CONTENT_MAX, PLAN_TITLE_MAX, DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanOutput, PlanPick,
@@ -18,6 +20,22 @@ BAD_PLAN = '기획 모델 응답을 확인할 수 없습니다.'
 BAD_REVISION = '계획 수정 모델 응답을 확인할 수 없습니다.'
 
 
+def _writing_input(data: DraftRequest | PlanRequest) -> dict:
+    """첫 포크 회차의 모델 뷰. 자유 서술에는 문장별 공개 근거가 없다.
+    검증된 원문과 발췌는 그대로 전달하고 원본 제안·체크포인트는 변경하지 않는다.
+    """
+    payload = data.model_dump()
+    try:
+        context = json.loads(data.context)
+    except ValueError:  # 기존 API는 일반 문자열 문맥도 받는다.
+        return payload
+    if isinstance(context, dict) and isinstance(context.get('recentSource'), dict):
+        # 원문 인용을 카드 제목/관계의 증명으로 다시 붙이지 않는다.
+        context.update(title='', summary='', settings=[])
+        payload['context'] = json.dumps(context, ensure_ascii=False, separators=(',', ':'))
+    return payload
+
+
 def draft(data: DraftRequest) -> DraftResponse:
     """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다."""
     text, meta = _write('draft', 4000, DRAFT_INSTRUCTIONS, data)
@@ -27,7 +45,7 @@ def draft(data: DraftRequest) -> DraftResponse:
 def plan(data: PlanRequest, credit: agent_runtime.CreditMiddleware | None = None) -> PlanResponse:
     """요청과 허용 문맥으로 전개 계획을 만든다. 원고 문장은 만들지 않는다. credit은 AI 자율 연재(요청의 모든 모델 호출을 같은 크레딧에 센다)만 준다."""
     # 바로 집필은 기획(50초)+원고(120초)를 한 단계에서 잇는다. Content 중계 읽기 한도 3분 안에 끝나야 한다.
-    message, result = agent_runtime.run('writing.plan', '기획', WritingFailure, PLAN_INSTRUCTIONS, data.model_dump(),
+    message, result = agent_runtime.run('writing.plan', '기획', WritingFailure, PLAN_INSTRUCTIONS, _writing_input(data),
                                         prompt_name='writing_editing.plan', max_tokens=4000, timeout=50,
                                         trace=data.model_dump(exclude={'context'}), schema=PlanOutput, credit=credit)
     if not 1 <= len(result.plans) <= (1 if data.single else 3) or any(not p.beats or len(p.beats) > 12 for p in result.plans):
@@ -80,7 +98,8 @@ def _utf16(text: str) -> int:
 
 def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | PatchRequest) -> tuple[str, dict]:
     # 허용 문맥(context)은 설정 본문을 담아 추적 결정 범위 밖이라 남기지 않는다.
-    message, _ = agent_runtime.run('writing.generation', '집필', WritingFailure, instructions, data.model_dump(),
+    message, _ = agent_runtime.run('writing.generation', '집필', WritingFailure, instructions,
+                                   _writing_input(data) if isinstance(data, DraftRequest) else data.model_dump(),
                                    prompt_name=f'writing_editing.{kind}', max_tokens=max_tokens, timeout=120,
                                    trace=data.model_dump(exclude={'context'}))
     text = message.text.strip()

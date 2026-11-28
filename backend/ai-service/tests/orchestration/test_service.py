@@ -3627,3 +3627,80 @@ def test_a_summary_that_breaks_outside_the_failure_handling_does_not_leave_the_c
         chats(thread, TURNS[5])
     conversation('rename', thread, ME, '새 제목')  # 턴은 저장됐고 도는 실행은 없다
     assert conversation('history', thread, ME).title == '새 제목'
+
+
+def test_fork_writer_requests_checkpoint_context_for_draft(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('draft')))
+    recent = {'branch': 'original', 'episode': 2, 'versionId': 'v2', 'text': '등불을 껐다.'}
+    def read(tool, args):
+        calls.append(('mcp', (tool, args), {}))
+        if tool == 'work_context_read':
+            assert args == {'id': 'work', 'episode': 2, 'query': DRAFT['draft']['plan'], 'includeSettings': False,
+                            'draftEpisode': TARGET['episode'], 'basisVersionId': 'v2'}
+            return {**CONTEXT, 'recentSource': recent}
+        if tool == 'episode_read':
+            return {'draft': {'title': '초안', 'body': '', 'revision': 4}}
+        return NO_WORLD[tool]
+    monkeypatch.setattr(tools.content_mcp, 'call', read)
+    run('써줘', target={**TARGET, 'fork': True, 'baseEpisode': 2, 'episodeVersionId': 'v2'},
+        inputs={'writing_editing': {'draft': {**DRAFT['draft'], 'episodeNumber': TARGET['episode']}}})
+    payload = next(args[0] for name, args, _ in calls if name == 'draft')
+    assert json.loads(payload.context) == {**CONTEXT, 'settings': [], 'recentSource': recent}
+
+@pytest.mark.parametrize("protected", [False, True])
+def test_first_fork_plan_history_requires_matching_protected_basis(monkeypatch, protected):
+    thread = str(uuid4())
+    target = {**TARGET, "fork": True, "baseEpisode": 2, "episodeVersionId": "v2"}
+    recent = {"versionId": "v2", "text": "허용된 원문"}
+    def stub(task, first):
+        calls = fake_agents(monkeypatch, plan(writing_step(task)))
+        original = tools.content_mcp.call
+        def read(tool, args):
+            if tool == "work_context_read" and first and args.get("draftEpisode") == target["episode"]:
+                return {**CONTEXT, "recentSource": recent, "summary": "미공개카드표식"}
+            return original(tool, args)
+        monkeypatch.setattr(tools.content_mcp, "call", read)
+        return calls
+    before = stub("plan", protected)
+    original = write_turn(thread, request="새 전개를 제안해 줘", target=target)
+    if protected:
+        payload = next(args[0] for name, args, _ in before if name == "writing_plan")
+        model_view = json.loads(tools.writing._writing_input(payload)["context"])
+        assert model_view["recentSource"] == recent and model_view["summary"] == ""
+    after = stub("draft", True)
+    result = write_turn(thread, request="첫 번째 안으로 써 줘", target=target)
+    if protected:
+        payload = next(args[0] for name, args, _ in after if name == "plan_and_draft")
+        assert payload.previousPlans == [BEAT]
+        assert payload.request == "첫 번째 안으로 써 줘"
+    else:
+        assert result.status == "clarify" and "plan_and_draft" not in names(after)
+    assert original.steps[0].result.plans == [BEAT]
+
+@pytest.mark.parametrize("change", ["none", "version", "revision"])
+def test_first_fork_approval_checks_used_basis_and_revision(monkeypatch, change):
+    calls = fake_agents(monkeypatch, plan(writing_step("draft")))
+    target = {**TARGET, "fork": True, "baseEpisode": 2, "episodeVersionId": "v2"}
+    recent = {"versionId": "v2", "text": "허용된 원문"}
+    thread, writes, revision = str(uuid4()), [], 4
+    def read(tool, args):
+        if tool == "work_context_read":
+            return {**CONTEXT, "recentSource": recent}
+        if tool == "episode_read":
+            return {"draft": {"title": "초안", "body": "기존 원고", "revision": revision}}
+        if tool == "episode_update_draft":
+            writes.append(args)
+            return {"draft": {"revision": revision + 1}}
+        return NO_WORLD[tool]
+    monkeypatch.setattr(tools.content_mcp, "call", read)
+    pending = write_turn(thread, request="새 주민이 도착하는 장면", target=target)
+    assert pending.awaitingApproval == "writing_editing"
+    assert next(args[0] for name, args, _ in calls if name == "plan_and_draft").request == "새 주민이 도착하는 장면"
+    if change == "version":
+        recent["versionId"] = "another"
+    if change == "revision":
+        revision += 1
+    done = write_turn(thread, resume={"approved": True})
+    assert done.steps[0].result.text == pending.steps[0].result.text
+    assert len(writes) == int(change == "none")
+    assert done.status == ("completed" if change == "none" else "failed")

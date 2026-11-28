@@ -48,6 +48,20 @@ class ContextServiceTest {
         assertTrue(excerptText().contains("원작 본문"))
     }
 
+    @Test fun `fork draft reads only the pinned basis and keeps older writing targets unchanged`() {
+        fork(sourceDeleted = false)
+        val work = access.published("fork")
+        `when`(access.own("fork", "author")).thenReturn(work.copy(source = work.source!!.copy(pinnedContentVersionId = "v1")))
+        `when`(publication.nextEpisodeNumber("fork")).thenReturn(2)
+        val request = ContextRequest(episode = 1, includeSettings = false)
+        val result = service.readForDraft("fork", "author", request, 2, "v1")
+        assertEquals("원작 본문", result.recentSource!!.text())
+        assertEquals(listOf(1), result.episodes.map { it.number })
+        assertNull(service.readForDraft("fork", "author", request, 1, "v1").recentSource)
+        assertEquals(409, assertThrows(ContentFailure::class.java) {
+            service.readForDraft("fork", "author", request, 2, "sibling")
+        }.status)
+    }
     // Writing은 옛 설정 문서를 버리므로(#523) 설정을 빼고 읽으면 그 길이가 예산을 깎지 않는다(#602).
     private fun ownerWithLargeSettings() {
         `when`(access.own("work", "author")).thenReturn(WorkAccessResult("work", "author", "작품", "", 0, "world", "public", false, false, null))

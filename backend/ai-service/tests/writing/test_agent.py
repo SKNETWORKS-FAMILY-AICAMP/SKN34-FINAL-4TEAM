@@ -209,3 +209,28 @@ def test_revise_plan_keeps_the_original_content_when_only_the_title_changes(monk
     # 모델이 내용 앞뒤 공백을 지워 돌려줘도 저장할 내용은 원문 그대로다.
     _, result = revise(monkeypatch, '새 제목', '카엘이 리나를 만난다.', original=' 카엘이 리나를 만난다.\n')
     assert (result.after.title, result.after.content) == ('새 제목', ' 카엘이 리나를 만난다.\n')
+
+
+@pytest.mark.parametrize('after_reveal', [False, True])
+def test_first_fork_separates_source_from_unscoped_prose(monkeypatch, after_reveal):
+    seen = fake_openai(monkeypatch, text='새 장면')
+    address = '“교수님.”'
+    reveal = '고양이의 정체는 그 교수였다.'
+    source = address + (reveal if after_reveal else '')
+    context = {'recentSource': {'text': source}, 'episodes': [{'excerpts': [{'text': source}]}],
+               'summary': reveal, 'settings': [{'title': '고양이', 'text': reveal},
+                                               {'type': 'relation', 'text': reveal}], 'draft': '초안'}
+    agent.draft(DraftRequest(episodeNumber=3, plan='다른 선택', context=json.dumps(context)))
+    final = json.loads(json.loads(seen['messages'][-1].content)['context'])
+    assert final['recentSource']['text'] == source and final['episodes'] == context['episodes']
+    assert final['draft'] == '초안' and (reveal in json.dumps(final, ensure_ascii=False)) == after_reveal
+    assert '분기 이후' in seen['messages'][0].content and '미확인 과거' in seen['messages'][0].content
+
+
+def test_fork_planning_keeps_source_and_distinguishes_future_creation(monkeypatch):
+    seen = fake_openai(monkeypatch, text=plan_json(('새 선택', ['문을 연다.'])))
+    data = PlanRequest(episodeNumber=2, request='새 선택', context=json.dumps({
+        'recentSource': {'text': '“교수님.”'}, 'summary': '미공개 본문', 'settings': [{'text': '미공개 본문'}]}))
+    agent.plan(data)
+    assert '미공개 본문' not in json.loads(seen['messages'][-1].content)['context']
+    assert '분기 이후' in seen['messages'][0].content

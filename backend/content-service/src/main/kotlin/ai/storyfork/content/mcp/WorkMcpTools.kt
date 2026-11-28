@@ -265,7 +265,14 @@ class WorkMcpTools(
         @McpToolParam(description = "원문 발췌를 고를 검색어", required = false) query: String?,
         @McpToolParam(description = "인물 시점으로 좁힐 인물 이름. 생략하면 전체 문맥", required = false) character: String?,
         @McpToolParam(description = "false면 설정(settings)을 빼고 읽는다. 생략하면 true", required = false) includeSettings: Boolean?,
-    ): StoryContextResponse = mcpTool { contexts.read(id, context.requireCaller().memberId, contextRequest(episode, query, character, includeSettings)) }
+        @McpToolParam(description = "포크 새 원고의 반영 회차", required = false) draftEpisode: Int? = null,
+        @McpToolParam(description = "집필 기준 회차의 발행 판본", required = false) basisVersionId: String? = null,
+    ): StoryContextResponse = mcpTool {
+        val owner = context.requireCaller().memberId
+        val request = contextRequest(episode, query, character, includeSettings)
+        if (draftEpisode == null) contexts.read(id, owner, request)
+        else contexts.readForDraft(id, owner, request, draftEpisode, basisVersionId)
+    }
 
     @McpTool(
         name = "work_context_public_read",

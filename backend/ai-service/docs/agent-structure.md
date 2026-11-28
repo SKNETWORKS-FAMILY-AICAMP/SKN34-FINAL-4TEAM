@@ -109,3 +109,6 @@ tests/
 - 검색 품질 평가(#825)의 고정 스냅샷 임계값 테스트는 기능 패키지가 아니라 평가 묶음이라 `tests/retrieval_eval/`에 두고 고정 입력은 같은 디렉터리의 `fixtures/`에 둡니다. 고정 입력은 `eval/novelbrain/ko.py snapshot`이 실제 E5 결과를 얼려 만들고 테스트는 모델을 부르지 않으며, 정확도 측정 결과는 이 테스트가 아니라 `ko.py run`이 만든 `eval/novelbrain/results/`입니다. [검색 품질 평가](../../../docs/evaluation/retrieval.md)
 
 세부 정책과 금액·실행 한도·자동 발행 조건은 [루트 기획 목표](../../../README.md)에 남아 있습니다.
+
+### 첫 포크 회차의 기획·집필 입력
+고정 발행본의 recentSource가 있는 경우 writing.agent는 모델에 보낼 복사본에서 작품 제목·소개와 설정 목록을 비운다. 카드 제목·본문과 관계 설명에는 문장별 공개 위치가 없어 카드의 공개 회차만으로 본문 전체를 허용할 수 없다. 원문 발췌, recentSource와 작성 중인 원고는 유지한다. 공개 뒤 카드 서술을 선택적으로 허용하려면 판본·공개 위치와 서술 사이의 대응이 필요하다. writing_editing.plan과 writing_editing.draft의 코드 시드는 분기 이전 상태와 이후 창작을 구분한다. 운영에서는 production 라벨의 본문이 선택된다.
