@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useEffectEvent, useRef, useState } from 'react'
-import { ACTIONS, EVENTS, type EventData, type Step } from 'react-joyride'
+import { EVENTS, type EventData, type Step } from 'react-joyride'
 
 import { isTourSeen, markTourSeen, type TourScreen } from './tourPrefs'
 
@@ -67,14 +67,15 @@ export function useScreenTour({ screen, steps, tabs, tab, panel = false, ready }
   const tabbed = !!tabs && !panel
   const canStart = ready && (!tabbed || !!(tab && tabs[tab]?.length))
   const start = () => { if (!tabbed) begin(steps); else if (tab) begin(tabs[tab], tab) }
-  // joyride에서 닫기(✕)·Esc는 '다음 단계'라서 투어를 끝내는 신호로 쓰려면 step:after의 close를 직접 본다.
+  // 투어를 끝내고 이 투어(화면·탭)를 본 것으로 기억한다. 건너뛰기·완료·✕는 joyride의 tour:end로, Esc는 ScreenTour가 직접 부른다.
+  // joyride의 닫기(close)는 '이 단계를 마치고 다음으로'라서 투어를 끝내지 않고, 그 신호(step:after의 close)와 Esc 처리는 말풍선이 다 뜬 뒤(lifecycle tooltip)에만 온다:
+  // 스크롤 이동이 끝나지 않는 동안(숨은 탭은 requestAnimationFrame이 멈춘다) ✕는 다음 단계로 넘어가고 Esc는 무시됐다(#991). 그래서 ✕는 건너뛰기와 같은 동작으로 둔다.
   const at = active?.tab
-  const onEvent = useCallback(({ type, action }: EventData) => {
-    if (type === EVENTS.TOUR_END || (type === EVENTS.STEP_AFTER && action === ACTIONS.CLOSE)) {
-      markTourSeen(screen, at)
-      pending.current = false
-      setActive(null)
-    }
+  const end = useCallback(() => {
+    markTourSeen(screen, at)
+    pending.current = false
+    setActive(null)
   }, [screen, at])
-  return { active: active?.steps ?? null, canStart, start, onEvent }
+  const onEvent = useCallback(({ type }: EventData) => { if (type === EVENTS.TOUR_END) end() }, [end])
+  return { active: active?.steps ?? null, canStart, start, onEvent, end }
 }

@@ -45,13 +45,18 @@ export function ScreenTour({ screen, steps, tabs, tab, panel, ready = true, clas
 }) {
   const tour = useScreenTour({ screen, steps, tabs, tab, panel, ready })
   const running = tour.active !== null
-  // 투어가 떠 있는 동안 Esc·Tab은 투어만 받는다: 아래 시트(집필실 버전·공개 패널)가 같은 키로 닫히거나 초점을 가져오지 않게 body에서 막는다(joyride의 Esc는 body에 달려 있어 그대로 동작한다).
+  const { end } = tour
+  // 투어가 떠 있는 동안 Esc·Tab은 투어만 받는다: 아래 시트(집필실 버전·공개 패널)가 같은 키로 닫히거나 초점을 가져오지 않게 body에서 막는다.
+  // Esc는 여기서 투어를 끝낸다: joyride의 Esc 처리는 말풍선이 다 뜬 뒤에만 받고 '다음 단계'로 보낸다(#991).
   useEffect(() => {
     if (!running) return
-    const keep = (e: KeyboardEvent) => { if (e.key === 'Escape' || e.key === 'Tab') e.stopPropagation() }
+    const keep = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') end()
+      if (e.key === 'Escape' || e.key === 'Tab') e.stopPropagation()
+    }
     document.body.addEventListener('keydown', keep)
     return () => document.body.removeEventListener('keydown', keep)
-  }, [running])
+  }, [running, end])
   return (
     <>
       <button type="button" className={className} aria-haspopup="dialog" disabled={!tour.canStart} onClick={tour.start}>사용법</button>
@@ -67,6 +72,7 @@ export function ScreenTour({ screen, steps, tabs, tab, panel, ready = true, clas
           floatingOptions={{ hideArrow: true, shiftOptions: { crossAxis: true } }}
           styles={{ floater: { filter: 'none' } }}
           options={{
+            closeButtonAction: 'skip', // ✕는 건너뛰기와 같다: joyride의 close는 '다음 단계'다
             skipBeacon: true,
             blockTargetInteraction: true,
             overlayClickAction: false,
