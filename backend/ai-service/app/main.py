@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.images.router import router as images_router
 
+from app.comment_feedback.router import router as feedback_router
+from app.comment_feedback.service import load_classifier, load_primary
 from app import prompts, tracing
 from app.evaluation.router import router as evaluation_router
 from app.health.router import router as health_router
@@ -32,6 +34,8 @@ async def lifespan(application: FastAPI):
     SDK의 종료 훅(atexit)에 맡기면 안 된다: uvicorn은 SIGTERM으로 정상 종료한 뒤 그 시그널을 다시 올려 프로세스를 끝내므로
     (컨테이너는 init: true) atexit이 돌지 않아, 요청 뒤 SDK 전송 주기(5초) 안에 재시작하면 마지막 요청의 trace가 사라진다.
     """
+    application.state.feedback_classifier = load_classifier()
+    application.state.feedback_primary = load_primary()
     if tracing.enabled():  # 운영 화면이 모든 프롬프트를 처음부터 보이게 등록한다(#705). Langfuse가 느려도 기동을 늦추지 않게 따로 돈다
         threading.Thread(target=prompts.register_all, name='prompt-register', daemon=True).start()
     try:
@@ -49,6 +53,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+    application.include_router(feedback_router)
     application.include_router(health_router)
     application.include_router(images_router)
     application.include_router(evaluation_router)

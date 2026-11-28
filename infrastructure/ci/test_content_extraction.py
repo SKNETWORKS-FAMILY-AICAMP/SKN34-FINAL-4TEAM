@@ -52,7 +52,7 @@ class ContentExtractionTest(unittest.TestCase):
         # V46 adds the episode operator restriction (episode leaf, 운영자 콘텐츠 관리 결정 A).
         # V47 adds image generation jobs to the proposal leaf (#332).
         # V48 adds the notice detail columns to content_event_outbox (work leaf, #941).
-        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42,44,45,46,47,48],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
+        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42,44,45,46,47,48,49,50],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
         created=set()
         for path in files:
             for statement in re.split(r'(?=CREATE TABLE )',path.read_text()):

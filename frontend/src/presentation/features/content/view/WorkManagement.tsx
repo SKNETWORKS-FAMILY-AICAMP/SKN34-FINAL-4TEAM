@@ -13,6 +13,7 @@ import { Pager } from '../../../shared/Pager'
 import { ManageMenu } from '../../../shared/shell/ManageMenu'
 import { ScreenTour, type TourStep } from '../../../shared/tour/ScreenTour'
 import { EditSuggestionInbox } from '../../inbox/view/EditSuggestionInbox'
+import { CommentFeedbackInbox } from './CommentFeedbackInbox'
 import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
 import { MyCommentsReports } from '../../library/view/MyCommentsReports'
 import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
@@ -478,8 +479,12 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           {tab === 'feedback' && (
             // 독자가 이 작품에 보낸 문장 제보·수정 제안. 작가 피드백함(/inbox)의 View를 그대로 쓰고, 서버에 workId로 이 작품 것만 묻는다.
             <div className='ep-feedback'>
-              <FeedbackReportInbox workId={w.id} onLoaded={loadedOf('reports')} />
-              {!mockup && <EditSuggestionInbox workId={w.id} onLoaded={loadedOf('suggestions')} />}
+              {!mockup && <CommentFeedbackInbox key={w.id} workId={w.id} episodes={w.episodes} />}
+              <details>
+                <summary>문장 제보·수정 제안</summary>
+                <FeedbackReportInbox workId={w.id} onLoaded={loadedOf('reports')} />
+                {!mockup && <EditSuggestionInbox workId={w.id} onLoaded={loadedOf('suggestions')} />}
+              </details>
             </div>
           )}
         </div>

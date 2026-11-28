@@ -93,3 +93,29 @@ Core는 회원·인증·세션·크레딧·정산·회원 알림을 유지한다
 - 기능표는 동작별 이전 범위와 근거 PR을 기록한다. 병합과 최신 head Required CI 성공을 실제 확인하기 전 완료 체크를 올리지 않는다. 코드 이동·데이터 이전·배포 완료를 각각 구분한다.
 
 참고: [서비스 책임](service-boundaries.md), [콘텐츠 실행·클라이언트 현황](../../backend/content-service/README.md), [Core 구현 지침](../../backend/core-api/AGENTS.md).
+
+### 회차 댓글 피드백 분석
+
+Content가 댓글과 분석 상태의 정본이다. PostgreSQL V48은 신규 댓글 INSERT와 본문 변경을 같은
+트랜잭션의 분석 대기 행으로 기록한다. 마이그레이션은 기존 댓글에 작업을 만들지 않는다.
+작품 소유자와 기존 정책상 읽기가 허용된 운영자는
+`GET /api/v1/works/{id}/episodes/{number}/comments/{commentId}/feedback-analysis`로 조회한다.
+다른 작품·회차, 분석 기록이 없는 댓글, 숨김·삭제 댓글은 404다. Core의 회원 인증 및 닉네임 계약은 기존과 같다.
+
+Content 스케줄러는 커밋된 본문만 읽고 기존 내부 토큰으로 AI에 요청한다. 결과에는 댓글 ID,
+본문 revision, 상태, 피드백 여부, 확률, 모델 버전, 임계값 및 실패 코드가 있다. 결과 작성 전에는
+판정 필드가 null이다. 상태는 PENDING → RUNNING → COMPLETED 또는 FAILED다. 연결 실패·시간 초과·5xx는
+30초 뒤 재시도하며 정상적인 실패 응답은 총 3번까지 시도한다. 인증·응답 계약 오류는 즉시 FAILED다.
+유효한 리스 동안 다른 워커의 중복 요청을 차단한다. 워커가 응답 수신 직후 종료되면 리스 만료 후
+AI 추론이 다시 실행될 수 있다. 현재 claim ID에 대한 결과 하나만 저장한다.
+
+본문을 변경하면 SHA256과 revision을 갱신하고 이전 요청·결과를 무효화한다. 스포일러만 바꾸면
+재분석하지 않는다. 삭제·숨김은 분석 행을 제거하고, 숨김을 해제하면 현재 본문을 다시 대기시킨다.
+분류 결과에는 댓글 숨김·삭제 권한이 없다. 항목·감정·공격성 모델은 별도 결과로 다룬다.
+
+### 댓글 대표 항목
+
+댓글 분석은 독자 제보 유형과 별도다. V49에서 기존 완료 행의 aspectVersion과 primaryAspect는 null로 유지한다.
+현재 결과는 댓글별 한 행이며 완료 행을 수정할 때 기존 버전·임계값·본문 SHA·revision을 이력에 보존한다.
+작품 권한을 확인한 GET /api/v1/works/{id}/comment-feedback/counts는 현재 공개 댓글의 완료 행을 모델·임계값·대표 항목 버전·항목·이진 판정별로 집계한다. episode 쿼리로 회차를 제한한다.
+POST /api/v1/works/{id}/episodes/{number}/comments/{commentId}/feedback-analysis/retry는 권한이 있는 요청의 FAILED 행만 다시 등록한다. 이미 실행 중이거나 완료된 행은 409다.

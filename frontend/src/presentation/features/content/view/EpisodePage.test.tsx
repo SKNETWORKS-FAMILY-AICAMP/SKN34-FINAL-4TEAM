@@ -1780,6 +1780,11 @@ const dashMetric = (name: string) => screen.getByText(name, { selector: '.ep-das
 
 it('개요 탭 히어로 아래에 대시보드가 있고, 공개 작품의 독자 지표는 공개 상세의 값이며 최근 발행 이력과 바로가기가 같은 작품 데이터로 보인다', async () => {
   stubCover()
+  const originalFetch = globalThis.fetch
+  vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) =>
+    String(input) === '/api/v1/works/w/comment-feedback?offset=0&size=0'
+      ? Promise.resolve(Response.json({ total: 2, items: [] }))
+      : originalFetch(input, init))
   const readerStats = vi.spyOn(appContainer.resolve('readingUseCase'), 'readerStats').mockResolvedValue({ likes: 3, views: 12 })
   vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
   vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
@@ -1795,7 +1800,7 @@ it('개요 탭 히어로 아래에 대시보드가 있고, 공개 작품의 독�
   expect(dashMetric('공개 회차')).toBe('1화')
   expect(dashMetric('총 글자 수')).toBe('5자') // 내가 쓴 공개 회차의 글자만('1화 본문')
   expect(within(screen.getByText('총 글자 수', { selector: '.ep-dash dt' }).parentElement!).getByText('공백 포함')).toBeTruthy() // 기준은 이름이 아니라 값 아래 보조 줄
-  await waitFor(() => expect(dashMetric('받은 피드백')).toBe('0건'))
+  await waitFor(() => expect(dashMetric('받은 피드백')).toBe('2건'))
   const recent = within(await screen.findByRole('region', { name: '최근 발행 이력' }))
   expect((await recent.findByRole('listitem')).textContent).toContain('1화 · 발행')
   expect(screen.getByRole('link', { name: '소설 상세 보기' }).getAttribute('href')).toBe('/work/w')

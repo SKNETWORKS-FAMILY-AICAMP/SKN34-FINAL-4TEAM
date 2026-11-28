@@ -104,6 +104,8 @@ export type AppCradle = {
   writingChatUseCase: import('../../domain/usecases/WritingChatUseCase').WritingChatUseCase | null
   episodeRepository: EpisodeRepository
   episodeCommentUseCase: import('../../domain/usecases/EpisodeCommentUseCase').EpisodeCommentUseCase
+  commentFeedback: typeof import('../../data/content/commentFeedback').commentFeedback
+  commentFeedbackCount: typeof import('../../data/content/commentFeedback').commentFeedbackCount
   episodeCommentRepository: import('../../domain/repositories/EpisodeCommentRepository').EpisodeCommentRepository
   workNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
   workNoticeRepository: import('../../domain/repositories/WorkNoticeRepository').WorkNoticeRepository

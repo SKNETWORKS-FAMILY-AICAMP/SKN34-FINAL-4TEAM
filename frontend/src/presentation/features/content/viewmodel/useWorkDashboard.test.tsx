@@ -18,6 +18,7 @@ const setup = (over: { visibility?: 'public' | 'private'; mockup?: boolean; hist
   const use = {
     reading: { readerStats: vi.fn(over.fail === 'reader' ? offline : async () => over.stats === undefined ? { likes: 9, views: 7 } : over.stats) },
     episodes: { history: vi.fn(async () => ({ versions: [], proposals: [], publicationHistory: [], ...over.history }) as History) },
+    commentCount: vi.fn(over.fail === 'feedback' ? offline : async () => 2),
     reports: { listInbox: vi.fn(over.fail === 'feedback' ? offline : async () => [{}, {}, {}] as never[]) },
     suggestions: { inbox: vi.fn(async () => [{}, {}] as never[]) },
   }
@@ -48,7 +49,7 @@ it('독자 지표를 못 읽으면 실패로 알리고 0으로 바꾸지 않는�
   const { result } = setup({ fail: 'reader' })
   await waitFor(() => expect(result.current.reader.isError).toBe(true))
   expect(result.current.reader.data).toBeUndefined()
-  await waitFor(() => expect(result.current.feedback.data).toBe(5))
+  await waitFor(() => expect(result.current.feedback.data).toBe(2))
 })
 
 it('서버 없는 시연(목업)의 공개 작품은 독자 지표를 읽지 않고 집계 없음(null)이다', async () => {
@@ -73,11 +74,11 @@ it('발행 이력이 비어 있으면 빈 목록이고, 응답에 발행 이력�
   await waitFor(() => expect(missing.result.current.publications.isError).toBe(true))
 })
 
-it('받은 피드백은 독자 제보와 수정 제안의 개수 합이고 이 작품 것만 묻는다', async () => {
+it('받은 피드백은 피드백으로 분류된 댓글 수이고 이 작품 것만 묻는다', async () => {
   const { use, result } = setup()
-  await waitFor(() => expect(result.current.feedback.data).toBe(5))
-  expect(use.reports.listInbox).toHaveBeenCalledWith('w')
-  expect(use.suggestions.inbox).toHaveBeenCalledWith('w')
+  await waitFor(() => expect(result.current.feedback.data).toBe(2))
+  expect(use.commentCount).toHaveBeenCalled()
+  expect(use.suggestions.inbox).not.toHaveBeenCalled()
 })
 
 it('목업은 서버 수정 제안을 부르지 않고 독자 제보만 센다', async () => {
