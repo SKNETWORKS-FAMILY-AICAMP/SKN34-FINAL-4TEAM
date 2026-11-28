@@ -16,6 +16,7 @@ import ai.storyfork.content.serial.client.GeneratedSummary
 import ai.storyfork.content.serial.client.SerialAiClient
 import ai.storyfork.content.serial.client.SerialAiFailure
 import ai.storyfork.content.serial.client.SerialScene
+import ai.storyfork.content.serial.client.aiFailure
 import ai.storyfork.content.serial.domain.CleanProposal
 import ai.storyfork.content.serial.domain.RankedChoice
 import ai.storyfork.content.serial.domain.RankedProposal
@@ -42,6 +43,9 @@ import ai.storyfork.content.world.service.dto.ReaderWorldCardResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -51,6 +55,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
@@ -290,6 +299,89 @@ class SerialRunnerTest {
         verify(serial).fail("b1", sentence, at)
         verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
         verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    // ---- 회차 실행: AI 오류 응답이 게시판 사유가 되기까지(진단을 위해 502·504의 AI 문구도 보인다, 2026-11-28 사용자 결정)
+
+    /** AI가 돌려준 오류 응답(FastAPI의 JSONResponse: charset 없는 application/json의 UTF-8 본문)을 SerialAiClient와 같은 규칙(aiFailure)으로 호출 실패로 바꿔 던지게 하고 회차 실행을 한 번 돈다. */
+    private fun runWithAiAnswer(status: Int, body: String) {
+        reset(serial, credits, ai)
+        queue()
+        val headers = HttpHeaders().apply { set(HttpHeaders.CONTENT_TYPE, "application/json") }
+        val code = HttpStatusCode.valueOf(status)
+        val bytes = body.toByteArray(Charsets.UTF_8)
+        // 실제 RestClient의 기본 오류 처리처럼 예외 메시지에 응답 본문이 들어간다(원인을 그대로 로그에 찍으면 새는 것을 아래 로그 시험이 잡는다).
+        val message = "$status error: \"$body\""
+        val error = if (code.is4xxClientError) HttpClientErrorException.create(message, code, "error", headers, bytes, null) else HttpServerErrorException.create(message, code, "error", headers, bytes, null)
+        `when`(ai.episode(anyMap())).thenThrow(aiFailure(error))
+
+        runner.tick(now)
+    }
+
+    /** 예약은 해제하고 이 사유로 게시판을 닫으며 차감·발행은 없다. */
+    private fun assertFailedWith(reason: String) {
+        verify(credits).release(owner, key)
+        verify(serial).fail("b1", reason, at)
+        verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+        verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `a scene the engine stopped or ran out of time for keeps the AI sentence as the reason`() {
+        val cases = listOf(
+            502 to "그림자이(가) 검사를 통과하지 못해 멈췄어요: 호칭·관계 오류. 직함 대신 이름으로 부르는 장면이 설정과 맞지 않아요.",
+            504 to "인물 시뮬레이션이 제한 시간 안에 끝나지 않았습니다.",
+        )
+        for ((status, sentence) in cases) {
+            runWithAiAnswer(status, """{"detail":"$sentence"}""")
+
+            assertFailedWith(sentence)
+        }
+    }
+
+    @Test fun `the AI sentence is tidied and capped at 300 characters before it becomes the reason`() {
+        runWithAiAnswer(502, """{"detail":"  첫 줄\n둘째\t\t줄  ${"가".repeat(400)}"}""")
+
+        assertFailedWith("첫 줄 둘째 줄 " + "가".repeat(291))
+    }
+
+    @Test fun `a 502 or 504 with no readable sentence says generation failed`() {
+        val bodies = listOf("", "<html><body>502 Bad Gateway</body></html>", """{"detail":[{"type":"missing","loc":["body","world"],"msg":"Field required"}]}""", """{"detail":42}""")
+        for (status in listOf(502, 504)) for (body in bodies) {
+            runWithAiAnswer(status, body)
+
+            assertFailedWith("AI 생성에 실패했습니다.")
+        }
+    }
+
+    @Test fun `the other AI answers keep the reasons they had`() {
+        val noCharacters = "연결된 세계관에 인물 카드가 없어 시뮬레이션을 실행할 수 없어요."
+        val cases = listOf(
+            Triple(409, """{"detail":"$noCharacters"}""", noCharacters),
+            Triple(422, """{"detail":"검수를 통과하지 못했습니다.","code":"SERIAL_REVIEW_FAILED"}""", "검수를 통과하지 못했습니다."),
+            Triple(402, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}""", "크레딧 상한을 넘었습니다."),
+            // 그 밖의 상태는 detail이 문장이어도 일반 문구다.
+            Triple(500, """{"detail":"Internal Server Error"}""", "AI 생성에 실패했습니다."),
+        )
+        for ((status, body, reason) in cases) {
+            runWithAiAnswer(status, body)
+
+            assertFailedWith(reason)
+        }
+    }
+
+    @Test fun `the log never carries the rest of the AI answer`() {
+        val logger = LoggerFactory.getLogger(SerialRunner::class.java) as Logger
+        val logs = ListAppender<ILoggingEvent>().also { it.start(); logger.addAppender(it) }
+        try {
+            runWithAiAnswer(502, """{"detail":"장면이 끝나지 않았습니다.","trace":"BODY-ONLY-FIELD"}""")
+        } finally {
+            logger.detachAppender(logs)
+        }
+
+        val text = logs.list.joinToString("\n") { it.formattedMessage }
+        assertTrue(text.contains("serial run b1 failed"), text)
+        assertFalse(text.contains("BODY-ONLY-FIELD") || text.contains("\"detail\""), text)
+        assertTrue(logs.list.all { it.throwableProxy == null })
     }
 
     @Test fun `a review failure or a credit limit overrun keeps its own reason even when an AI sentence came along`() {
@@ -1142,6 +1234,16 @@ class SerialRunnerTest {
         verify(credits).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
         neverSettled()
         neverAdded()
+    }
+
+    @Test fun `a failed simulation never shows the reader the sentence the AI gave`() {
+        simulationStubs()
+        `when`(ai.simulate(anyMap())).thenThrow(SerialAiFailure(detail = "그림자이(가) 검사를 통과하지 못해 멈췄어요: 호칭·관계 오류."))
+
+        val failure = status { runner.submit("w", member, simulation()) }
+
+        // 독자가 쓰는 시뮬레이션 미리보기에는 AI 문구가 아니라 고정 문구를 돌려준다(AI 문구는 소유자 기록의 회차 실행 실패 사유에만 쓴다).
+        assertEquals(listOf(502, "시뮬레이션 미리보기를 만들지 못했어요. 크레딧은 차감되지 않았어요."), listOf(failure.status, failure.message))
     }
 
     @Test fun `not enough credit for a simulation passes the conflict through and calls nothing else`() {
