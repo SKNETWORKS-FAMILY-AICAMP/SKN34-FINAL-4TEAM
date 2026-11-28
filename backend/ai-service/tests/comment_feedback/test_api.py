@@ -104,8 +104,12 @@ def test_positive_batch_requires_loaded_g2(client):
 
 
 def test_frozen_class_mapping():
-    import numpy as np
     from app.comment_feedback.service import PrimaryClassifier
     model = object.__new__(PrimaryClassifier)
-    model._scores = lambda texts, classes: np.eye(classes)
+    class Scores:
+        def argmax(self, axis):
+            assert axis == 1
+            return range(8)
+
+    model._scores = lambda texts, classes: Scores()
     assert model.labels(["문장"] * 8) == ["plot","logic","character","style","typo","schedule","overall_work","other"]

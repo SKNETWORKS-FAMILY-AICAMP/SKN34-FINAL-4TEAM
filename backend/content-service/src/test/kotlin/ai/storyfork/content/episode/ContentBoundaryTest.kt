@@ -186,7 +186,7 @@ class ContentBoundaryTest {
         // V45 adds the autonomous writing mode to the V40 work_automation_version CHECK (work leaf, #659),
         // V46 adds the operator's episode restriction (episode leaf), V47 adds image generation jobs (proposal leaf, #332),
         // and V48 adds the notice detail columns to content_event_outbox (work leaf, #941).
-        assertEquals((1..23) + (25..31) + (36..48), versions.sorted())
+        assertEquals((1..23) + (25..31) + (36..50), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->
