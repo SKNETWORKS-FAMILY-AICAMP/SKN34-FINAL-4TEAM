@@ -39,7 +39,7 @@ SCENE = '\n\n'.join(['나레이션 1', '카엘의 대사 1', '리나의 대사 2
 
 
 def story(opening: str, length: int = 6000) -> str:
-    """정확히 length자인 원고(기본은 최소 분량 5,000자를 넘는 길이, 경계를 재려고 공백 없이 채운다)."""
+    """정확히 length자인 원고(기본은 최소 분량 4,000자를 넘는 길이, 경계를 재려고 공백 없이 채운다)."""
     return opening + '가' * (length - len(opening))
 
 

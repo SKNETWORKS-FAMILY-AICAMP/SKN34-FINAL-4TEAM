@@ -737,6 +737,18 @@ def test_a_violation_may_cite_the_identity_of_another_character_but_not_somethin
         service.verify(verdict('card:y#identity'), ['relation'], payload)
 
 
+def test_a_verdict_with_checks_nobody_asked_for_is_rejected_not_trimmed_to_the_requested_one():
+    # #992: 인물 시점 나레이션은 knowledge_leak 하나만 요청했는데 모델이 5종을 돌려줬다. 요청 밖 검사는 걸러 쓰지 않고 502다.
+    payload = {'direction': {'currentBeat': {'ref': 'beat:1', 'text': '성문 대면'}}}
+    kinds = ['knowledge_leak', 'voice_mix', 'relation', 'premise', 'beat']
+    five = Verdict(checks=[CheckItem(kind=k, passed=k != 'beat', detail='d', refs=['beat:1'] if k == 'beat' else []) for k in kinds],
+                   beatDone=False, sceneComplete=False)
+    with pytest.raises(SimulationFailure) as error:
+        service.verify(five, ['knowledge_leak'], payload)
+    assert (error.value.status, str(error.value)) == (502, service.BAD_VERDICT)
+    service.verify(Verdict(checks=five.checks[:1], beatDone=False, sceneComplete=False), ['knowledge_leak'], payload)  # 요청한 검사만 있으면 통과한다
+
+
 def test_the_instructions_name_the_inputs_the_code_sends():
     assert 'actionStyle' in prompt.ACT_INSTRUCTIONS and 'actionStyle' in prompt.CHECK_INSTRUCTIONS and 'others' in prompt.CHECK_INSTRUCTIONS
     assert 'alreadyWritten' in prompt.NARRATE_INSTRUCTIONS and 'speech' in prompt.DIRECTOR_INSTRUCTIONS
