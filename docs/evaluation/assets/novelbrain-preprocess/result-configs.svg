@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="534" viewBox="0 0 860 534" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="860" height="534" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">결과 ② 인물에 한 다리로 이어진 카드 + BM25가 가장 높다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">시점 쌍 정확도 · 52편, 1,664쌍</text>
+<text x="30" y="106" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">기존 평가용 세계관</text>
+<text x="258" y="139" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">한 다리 연결 + BM25 (채택)</text>
+<rect x="270" y="124" width="308.0" height="22" rx="4" fill="#16a34a"/>
+<text x="586.0" y="140" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">61.6%</text>
+<text x="258" y="173" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">두 다리 확장 + BM25</text>
+<rect x="270" y="158" width="289.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="567.0" y="174" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">57.8%</text>
+<text x="258" y="207" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">지금 서비스 구성(원고 벡터 포함)</text>
+<rect x="270" y="192" width="288.0" height="22" rx="4" fill="#ea580c"/>
+<text x="566.0" y="208" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">57.6%</text>
+<text x="258" y="241" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">그래프 + BM25 합산</text>
+<rect x="270" y="226" width="279.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="557.0" y="242" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">55.8%</text>
+<text x="258" y="275" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">인물 거르기 없는 구성</text>
+<rect x="270" y="260" width="226.5" height="22" rx="4" fill="#60a5fa"/>
+<text x="504.5" y="276" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">45.3%</text>
+<text x="258" y="309" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">한 다리 연결 + PPR 순위</text>
+<rect x="270" y="294" width="118.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="396.0" y="310" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">23.6%</text>
+<text x="258" y="343" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">검색 없음</text>
+<rect x="270" y="328" width="44.0" height="22" rx="4" fill="#9ca3af"/>
+<text x="322.0" y="344" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">8.8%</text>
+<text x="30" y="374" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">V2 세계관 (응답을 돌린 구성만)</text>
+<text x="258" y="407" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">한 다리 연결 + BM25 (채택)</text>
+<rect x="270" y="392" width="377.0" height="22" rx="4" fill="#16a34a"/>
+<text x="655.0" y="408" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">75.4%</text>
+<text x="258" y="441" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">그래프 + BM25 합산</text>
+<rect x="270" y="426" width="320.0" height="22" rx="4" fill="#60a5fa"/>
+<text x="598.0" y="442" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">64.0%</text>
+<text x="258" y="475" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">검색 없음</text>
+<rect x="270" y="460" width="44.0" height="22" rx="4" fill="#9ca3af"/>
+<text x="322.0" y="476" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">8.8%</text>
+<text x="30" y="518" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">V2에서 나머지 구성은 응답을 돌리지 않았다(문맥 지표만 있음, 본문 4.3).</text>
+</svg>
