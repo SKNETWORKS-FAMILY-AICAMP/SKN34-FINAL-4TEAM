@@ -2451,6 +2451,32 @@ def linked_writing_world(monkeypatch, calls, read=WRITING_WORLD, fail=None):
     monkeypatch.setattr(tools.content_mcp, 'call', call)
 
 
+@pytest.mark.parametrize('basis, fork', [(1, True), (4, True), (1, False), (4, False)])
+def test_writing_selects_evidence_at_the_basis_without_editing_world(monkeypatch, basis, fork):
+    import hashlib
+    def card(id, n, quote, field):
+        evidence = {'episode': n, 'quote': quote, 'start': 0, 'end': len(quote), 'sourceId': f'v{n}',
+                    'quoteHash': hashlib.sha256(quote.encode()).hexdigest()}
+        meta = {'manuscriptBuild': {'evidence': [evidence]}}
+        if field == 'preprocessing':
+            meta[field] = {'firstEpisode': n}
+        else:
+            meta[field]['firstAppearanceEpisode'] = n
+        return {'id': id, 'title': id, 'body': '미확인 자유본문', 'cardType': 'event', 'semanticMetadata': meta}
+    early = card('등장', 1, '등장이 확인됐다.', 'preprocessing')
+    late = card('재회', 4, '재회가 확인됐다.', 'manuscriptBuild')
+    world = {'worldId': 'w', 'cards': [early, late], 'relationships': []}
+    original = json.dumps(world)
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    linked_writing_world(monkeypatch, calls, world)
+    write_turn(str(uuid4()), request='다음 장면', target={**TARGET, 'episode': basis + 1, 'baseEpisode': basis, 'fork': fork})
+    ctx = json.loads(next(args[0] for name, args, _ in calls if name == 'writing_plan').context)
+    assert ctx['draft'] == CONTEXT['draft']
+    assert [r['ref'] for r in ctx['settings']] == (['card:등장', 'card:재회'] if basis == 4 else ['card:등장'])
+    assert ctx['settings'][0]['text'] == '등장이 확인됐다.'
+    assert '미확인 자유본문' not in str(ctx)
+    assert json.dumps(world) == original
+
 def test_writing_context_replaces_the_old_settings_with_the_worldstudio_cards_known_at_the_basis_episode(monkeypatch):
     calls = fake_agents(monkeypatch, plan(writing_step('plan')))
     linked_writing_world(monkeypatch, calls)
@@ -3627,29 +3653,3 @@ def test_a_summary_that_breaks_outside_the_failure_handling_does_not_leave_the_c
         chats(thread, TURNS[5])
     conversation('rename', thread, ME, '새 제목')  # 턴은 저장됐고 도는 실행은 없다
     assert conversation('history', thread, ME).title == '새 제목'
-
-@pytest.mark.parametrize('basis, fork', [(1, True), (4, True), (1, False), (4, False)])
-def test_writing_selects_evidence_at_the_basis_without_editing_world(monkeypatch, basis, fork):
-    import hashlib
-    def card(id, n, quote, field):
-        evidence = {'episode': n, 'quote': quote, 'start': 0, 'end': len(quote), 'sourceId': f'v{n}',
-                    'quoteHash': hashlib.sha256(quote.encode()).hexdigest()}
-        meta = {'manuscriptBuild': {'evidence': [evidence]}}
-        if field == 'preprocessing':
-            meta[field] = {'firstEpisode': n}
-        else:
-            meta[field]['firstAppearanceEpisode'] = n
-        return {'id': id, 'title': id, 'body': '미확인 자유본문', 'cardType': 'event', 'semanticMetadata': meta}
-    early = card('등장', 1, '등장이 확인됐다.', 'preprocessing')
-    late = card('재회', 4, '재회가 확인됐다.', 'manuscriptBuild')
-    world = {'worldId': 'w', 'cards': [early, late], 'relationships': []}
-    original = json.dumps(world)
-    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
-    linked_writing_world(monkeypatch, calls, world)
-    write_turn(str(uuid4()), request='다음 장면', target={**TARGET, 'episode': basis + 1, 'baseEpisode': basis, 'fork': fork})
-    ctx = json.loads(next(args[0] for name, args, _ in calls if name == 'writing_plan').context)
-    assert ctx['draft'] == CONTEXT['draft']
-    assert [r['ref'] for r in ctx['settings']] == (['card:등장', 'card:재회'] if basis == 4 else ['card:등장'])
-    assert ctx['settings'][0]['text'] == '등장이 확인됐다.'
-    assert '미확인 자유본문' not in str(ctx)
-    assert json.dumps(world) == original
