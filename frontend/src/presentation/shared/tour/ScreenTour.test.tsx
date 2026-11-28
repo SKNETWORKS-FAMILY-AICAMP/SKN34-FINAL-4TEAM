@@ -132,6 +132,47 @@ it.each(endings)('%s로 끝내면 그 화면을 본 것으로 기억하고 말�
   expect(isTourSeen('studio')).toBe(true)
 })
 
+// 닫기(✕)·Esc는 어느 단계에서든 한 번에 투어를 끝낸다(#991).
+const closers = endings.filter(([name]) => name === '투어 닫기' || name === 'Esc')
+it.each(closers)('%s는 두 번째 단계에서도 한 번에 투어를 끝내고 기억한다', async (_name, end) => {
+  render(<Host />)
+  await tip()
+  fireEvent.click(screen.getByRole('button', { name: '다음' }))
+  await waitFor(() => expect(progress()).toBe('2 / 3'))
+  await tip()
+  await end()
+  await waitFor(() => expect(dialog()).toBeNull())
+  expect(isTourSeen('studio')).toBe(true)
+})
+
+/**
+ * 말풍선이 다 뜨기 전(스크롤 이동이 끝나기 전)에는 투명한 말풍선이 DOM에 있고 joyride는 lifecycle이 tooltip일 때만 닫기 신호(step:after)를 보내고 Esc를 받는다:
+ * 그때 ✕는 다음 단계로 넘어가고 Esc는 무시됐다. 스크롤 이동은 requestAnimationFrame으로 돌아서 숨은 탭에서는 끝나지 않는다.
+ */
+function stallScroll() {
+  let top = 500
+  const doc = document.documentElement
+  Object.defineProperty(doc, 'scrollHeight', { configurable: true, get: () => 3000 })
+  Object.defineProperty(doc, 'clientHeight', { configurable: true, get: () => 800 })
+  Object.defineProperty(doc, 'scrollTop', { configurable: true, get: () => top, set: (value: number) => { top = value } })
+  vi.stubGlobal('requestAnimationFrame', () => 0)
+  return () => {
+    for (const key of ['scrollHeight', 'clientHeight', 'scrollTop']) delete (doc as unknown as Record<string, unknown>)[key]
+    vi.unstubAllGlobals()
+  }
+}
+it.each(closers)('%s는 말풍선이 다 뜨기 전(스크롤 이동이 끝나지 않은 동안)에도 한 번에 투어를 끝내고 기억한다', async (_name, end) => {
+  const unstall = stallScroll()
+  try {
+    render(<Host />)
+    await screen.findByRole('dialog')
+    expect(document.querySelector<HTMLElement>('.react-joyride__floater')?.style.opacity).toBe('0') // 아직 뜨는 중이다
+    await end()
+    await waitFor(() => expect(dialog()).toBeNull())
+    expect(isTourSeen('studio')).toBe(true)
+  } finally { unstall() }
+})
+
 it('끝낸 뒤에도 사용법 버튼으로 같은 화면의 투어를 처음 단계부터 다시 시작한다', async () => {
   render(<Host />)
   await tip()
